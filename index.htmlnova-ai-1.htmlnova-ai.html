@@ -1,0 +1,105 @@
+// Nova AI backend (UNTESTED starter).
+// Hosts index.html and gives it a server:
+// AI chat proxy (key stays on the server),
+// web search, image generation.
+// Setup: keep nova-server.js, package.json
+// and index.html together in the same folder, then
+//     npm install        (uses package.json)
+//     LLM_KEY=... LLM_MODEL=... node nova-server.js
+// Env: LLM_KEY, LLM_MODEL (required) |
+//      LLM_BASE (default OpenRouter, any OpenAI-compatible URL)
+//      TAVILY_KEY (enables web search) |
+//      IMAGE_KEY, IMAGE_MODEL, IMAGE_BASE (enables images)
+// Free-tier hosts such as Render or Railway can run this.
+// Check each provider's current limits.
+
+const express = require('express');
+const path = require('path');
+const E = process.env;
+const BASE = E.LLM_BASE || 'https://openrouter.ai/api/v1';
+
+const app = express();
+app.use(express.json({ limit: '6mb' }));
+
+// Simple per-IP limit: 30 requests/minute
+const hits = new Map();
+
+app.use('/api', (q, r, next) => {
+  const now = Date.now(),
+    a = (hits.get(q.ip) || []).filter(t => now - t < 6e4);
+
+  if (a.length >= 30) {
+    return r.status(429).json({ error: 'Too many requests' });
+  }
+
+  a.push(now);
+  hits.set(q.ip, a);
+  next();
+});
+
+app.get('/api/config', (q, r) => {
+  if (!E.LLM_KEY || !E.LLM_MODEL) {
+    return r.status(503).end();
+  }
+
+  r.json({
+    model: E.LLM_MODEL,
+    web: !!E.TAVILY_KEY,
+    image: !!(E.IMAGE_KEY && E.IMAGE_MODEL)
+  });
+});
+
+app.post('/api/chat/completions', async (q, r) => {
+  try {
+    const u = await fetch(
+      BASE.replace(/\/$/, '') + '/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + E.LLM_KEY
+        },
+        body: JSON.stringify({
+          ...q.body,
+          model: E.LLM_MODEL,
+          stream: true
+        })
+      }
+    );
+
+    r.status(u.status).set(
+      'Content-Type',
+      u.headers.get('content-type') || 'text/event-stream'
+    );
+
+    for await (const c of u.body) {
+      r.write(c);
+    }
+
+    r.end();
+  } catch (e) {
+    if (!r.headersSent) {
+      r.status(502).json({ error: 'Provider unreachable' });
+    } else {
+      r.end();
+    }
+  }
+});
+
+app.post('/api/search', async (q, r) => {
+  if (!E.TAVILY_KEY) {
+    return r.status(404).
+{
+  "name": "nova-ai",
+  "version": "1.0.0",
+  "main": "nova-server.js",
+  "scripts": {
+    "start": "node nova-server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
