@@ -1,0 +1,8 @@
+{
+  "name": "nova-ai",
+  "version": "1.0.0",
+  "main": "nova-server.js",
+  "scripts": { "start": "node nova-server.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "express": "^4.19.2" }
+}
