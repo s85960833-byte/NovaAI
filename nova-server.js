@@ -1,4 +1,4 @@
-// Nova AI backend (UNTESTED starter). Hosts index.html and gives it a server:
+// Nova AI backend. Hosts index.html and gives it a server:
 // AI chat proxy (key stays on the server), web search, image generation.
 // Setup: keep nova-server.js, package.json and index.html together in the same folder, then
 //   npm install        (uses package.json)
@@ -26,15 +26,38 @@ app.get('/api/config', (q, r) => {
   r.json({ model: E.LLM_MODEL, web: !!E.TAVILY_KEY, image: !!(E.IMAGE_KEY && E.IMAGE_MODEL) });
 });
 
+// Keep requests small (free tiers limit tokens per minute): last N messages, long old answers shortened.
+const MAXMSG = Number(E.LLM_MAX_HISTORY) || 10;
+function slim(body) {
+  const m = Array.isArray(body.messages) ? body.messages : [];
+  const sys = m.filter(x => x.role === 'system').slice(0, 1);
+  const rest = m.filter(x => x.role !== 'system').slice(-MAXMSG).map((x, i, a) =>
+    (x.role === 'assistant' && typeof x.content === 'string' && x.content.length > 1500 && i < a.length - 1)
+      ? { ...x, content: x.content.slice(0, 1500) + ' ...' } : x);
+  while (rest.length && rest[0].role === 'tool') rest.shift();
+  return { ...body, messages: [...sys, ...rest] };
+}
+// LLM_MODEL is tried first; if it is rate limited or down, models in LLM_FALLBACK_MODELS (comma separated) are tried next.
+const RETRY = [413, 429, 500, 502, 503, 504];
 app.post('/api/chat/completions', async (q, r) => {
   try {
-    const u = await fetch(BASE.replace(/\/$/, '') + '/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.LLM_KEY },
-      body: JSON.stringify({ ...q.body, model: E.LLM_MODEL, stream: true })
-    });
-    r.status(u.status).set('Content-Type', u.headers.get('content-type') || 'text/event-stream');
-    for await (const c of u.body) r.write(c);
+    const body = slim(q.body || {});
+    const models = [E.LLM_MODEL, ...String(E.LLM_FALLBACK_MODELS || '').split(',').map(x => x.trim()).filter(Boolean)];
+    let good = null, first = null;
+    for (const model of models) {
+      const u = await fetch(BASE.replace(/\/$/, '') + '/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.LLM_KEY },
+        body: JSON.stringify({ ...body, model, stream: body.stream !== false })
+      });
+      if (u.ok) { good = u; break; }
+      const text = await u.text();
+      if (!first) first = { status: u.status, type: u.headers.get('content-type'), text };
+      if (model === models[0] && !RETRY.includes(u.status)) break;
+    }
+    if (!good) return r.status(first.status).set('Content-Type', first.type || 'application/json').send(first.text);
+    r.status(good.status).set('Content-Type', good.headers.get('content-type') || 'text/event-stream');
+    for await (const c of good.body) r.write(c);
     r.end();
   } catch (e) { if (!r.headersSent) r.status(502).json({ error: 'Provider unreachable' }); else r.end(); }
 });
