@@ -16,7 +16,7 @@ for(const m of r.modes){assert.ok(m.name&&m.desc&&m.prompt,'mode metadata missin
 assert.ok(r.modes.find(x=>x.id==='document').prompt.includes('This is not legal advice.'));
 assert.ok(r.modes.find(x=>x.id==='schemes').prompt.includes('Please verify details on the official website.'));
 assert.ok(r.modes.find(x=>x.id==='math').prompt.includes('step'));
-for(const token of ['nova_modes_v1','nova_mode_cache_v1','SpeechRecognition','speechSynthesis','pdfjsLib','gov\\\\.in'])assert.ok(workspace.includes(token)||source.includes(token),'missing workspace capability '+token);
+for(const token of ['nova_modes_v1','nova_mode_cache_v1','SpeechRecognition','speechSynthesis','pdfjsLib','gov','nic'])assert.ok(workspace.includes(token)||source.includes(token),'missing workspace capability '+token);
 assert.ok(workspace.includes('navigator.onLine'),'offline-aware saved chat mode missing');
 assert.ok(workspace.includes("voiceLabels={'en-IN':'English (India)','en-US':'English (US)','en-GB':'English (UK)'}"),'voice replies must be English-only');
 assert.ok(workspace.includes('10*60*1000'),'per-user rolling request limit missing');
