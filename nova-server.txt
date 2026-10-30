@@ -811,4 +811,44 @@ app.get('/api/feed', async (q, r) => {
 setTimeout(() => { CATS.slice(0, 2).forEach(c => cached('fc:' + c, 8 * 6e4, () => feedCat(c, 6)).catch(() => {})); }, 6000).unref();
 setInterval(() => { ['world', 'india'].forEach(c => cached('fc:' + c, 0, () => feedCat(c, 6)).catch(() => {})); }, 10 * 6e4).unref();
 
-app.listen(E.PORT || 3000, () => console.log('Nova AI running on port ' + (E.PORT || 3000)));
+const PORT = Number(E.PORT) || 3000;
+app.listen(PORT, () => console.log('Nova AI running on port ' + PORT));
+
+// Optional one-time live verification, enabled only temporarily through Render env.
+if (E.SELFTEST_ON_START === '1') {
+  setTimeout(() => {
+    (async () => {
+      const origin = 'http://127.0.0.1:' + PORT, results = [];
+      async function probe(name, path, options = {}, check = r => r.ok) {
+        const started = Date.now(), { timeout = 90000, ...init } = options;
+        try {
+          const r = await fetch(origin + path, { ...init, signal: AbortSignal.timeout(timeout) });
+          const body = await r.text(); let data = {};
+          try { data = JSON.parse(body); } catch (e) {}
+          const ok = !!check(r, data, body);
+          results.push({ name, ok, status: r.status, ms: Date.now() - started });
+          return { response: r, data, body };
+        } catch (e) {
+          results.push({ name, ok: false, status: e && e.status || null, ms: Date.now() - started, note: String(e && e.message || e).slice(0, 80) });
+          return null;
+        }
+      }
+      const config = await probe('config', '/api/config', {}, (r, j) => r.ok && !!j.model);
+      await probe('frontend', '/', {}, (r, j, body) => r.ok && body.includes('<title>Nova AI</title>'));
+      await probe('manifest', '/manifest.webmanifest', {}, (r, j) => r.ok && j.name === 'Nova AI');
+      await probe('PWA icon', '/icons/icon-192.png', {}, r => r.ok && (r.headers.get('content-type') || '').includes('image/png'));
+      await probe('service worker', '/sw.js', {}, r => r.ok);
+      await probe('news feed', '/api/feed?cat=all&lang=en', {}, (r, j) => r.ok && Object.keys(j.cats || {}).length > 0);
+      const self = await probe('provider self-test endpoint', '/api/live/selftest', { timeout: 120000 }, (r, j) => r.ok && Array.isArray(j.results));
+      if (self && self.data.results) self.data.results.forEach(x => results.push({ name: 'provider: ' + x.name, ok: !!x.ok, status: x.status || null, ms: x.ms, provider: x.provider || '', note: x.note || '' }));
+      await probe('live retrieval', '/api/live', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: 'Latest NASA news', mode: 'always', lang: 'en', tz: 'Asia/Kolkata' }), timeout: 60000 }, (r, j) => r.ok && j.ok && !!j.context);
+      await probe('AI chat', '/api/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: (config && config.data.model) || E.LLM_MODEL, stream: false, max_tokens: 16, messages: [{ role: 'user', content: 'Reply exactly NOVAAI_OK.' }] }), timeout: 60000 }, (r, j) => r.ok && !!(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content));
+      if (config && config.data.providers && config.data.providers.tavily) {
+        await probe('Tavily search route', '/api/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: 'NASA' }), timeout: 15000 }, (r, j) => r.ok && Array.isArray(j.results));
+      } else results.push({ name: 'Tavily search route', ok: true, status: 404, note: 'No Tavily key configured; general search uses fallback providers.' });
+      await probe('image input validation', '/api/image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }, r => r.status === 400);
+      await probe('voice input validation', '/api/transcribe', { method: 'POST', headers: { 'Content-Type': 'audio/webm' }, body: new Uint8Array() }, r => r.status === 400);
+      console.log('NOVA_SELFTEST ' + JSON.stringify({ at: new Date().toISOString(), results }));
+    })().catch(e => console.error('NOVA_SELFTEST_ERROR', String(e && e.message || e)));
+  }, 10000).unref();
+}
