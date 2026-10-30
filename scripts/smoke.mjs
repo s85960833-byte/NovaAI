@@ -81,7 +81,9 @@ const imageValidation = await request('/api/image', {
   method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({})
 });
 if (imageValidation.status !== 400) throw new Error('/api/image invalid-input guard expected 400, got ' + imageValidation.status);
-console.log('PASS /api/image validation');\n\nconst imageResponse = await request('/api/image', {
+console.log('PASS /api/image validation');
+
+const imageResponse = await request('/api/image', {
   method: 'POST', headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ prompt: 'A simple blue geometric flower on a clean white background', width: 512, height: 512, seed: 42 }),
   timeout: 90000
