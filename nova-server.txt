@@ -147,20 +147,12 @@ app.post('/api/chat/completions', async (q, r) => {
 });
 
 app.post('/api/search', async (q, r) => {
-  if (!E.TAVILY_KEY) return r.status(404).end();
-  const query = String((q.body && q.body.q) || '').trim().slice(0, 300);
+  const query = String((q.body && q.body.q) || '').trim().slice(0, 400);
   if (!query) return r.status(400).json({ error: 'Search query is required' });
   try {
-    const u = await fetch('https://api.tavily.com/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.TAVILY_KEY },
-      body: JSON.stringify({ query, max_results: 5 }),
-      signal: AbortSignal.timeout(12000)
-    });
-    if (!u.ok) return r.status(502).json({ error: 'Search provider unavailable', status: u.status });
-    const j = await u.json();
-    r.json({ results: (j.results || []).map(x => ({ title: x.title, url: x.url, content: String(x.content || '').slice(0, 600) })) });
-  } catch (e) { r.status(502).json({ error: 'Search failed' }); }
+    const found = await withTimeout(webSearch(query, { lang: /[\\u0900-\\u097F]/.test(query) ? 'hi' : 'en' }), 16000, 'web-search');
+    r.json({ query, provider: found.via, retrievedAt: new Date().toISOString(), results: found.items.slice(0, 8).map(x => ({ title: x.title, url: x.url, publisher: x.publisher, date: x.date || '', content: String(x.snippet || '').slice(0, 900) })) });
+  } catch (e) { r.status(502).json({ error: 'Live internet search is temporarily unavailable' }); }
 });
 
 app.post('/api/image', async (q, r) => {
@@ -381,6 +373,19 @@ async function tavily(q, o = {}) {
   const j = await lhttp('https://api.tavily.com/search', { method: 'POST', json: true, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.TAVILY_KEY }, body: JSON.stringify({ api_key: E.TAVILY_KEY, query: q, max_results: 7, search_depth: 'basic', topic: o.news ? 'news' : 'general' }), timeout: 5500, tries: 1 });
   return (j.results || []).map(r => ({ title: lclean(r.title, 200), url: safeUrl(r.url), publisher: host(r.url), date: iso(r.published_date), snippet: lclean(r.content, 260), kind: 'web', connector: 'tavily' })).filter(x => x.url && x.title);
 }
+async function braveContext(q, o = {}) {
+  const lang = o.lang === 'hi' ? 'hi' : 'en';
+  const params = new URLSearchParams({ q: String(q).slice(0, 400), country: 'IN', search_lang: lang, count: '8', maximum_number_of_urls: '8', maximum_number_of_tokens: '2048', context_threshold_mode: 'balanced', safesearch: 'strict' });
+  const j = await lhttp('https://api.search.brave.com/res/v1/llm/context?' + params.toString(), { json: true, headers: { 'X-Subscription-Token': E.BRAVE_KEY, Accept: 'application/json' }, timeout: 6000, tries: 1 });
+  const generic = j.grounding && j.grounding.generic || [];
+  const out = generic.map(x => {
+    const meta = j.sources && j.sources[x.url] || {}, age = Array.isArray(meta.age) ? meta.age : [];
+    const snippets = Array.isArray(x.snippets) ? x.snippets : [];
+    return { title: lclean(x.title || meta.title || host(x.url), 200), url: safeUrl(x.url), publisher: meta.hostname || host(x.url), date: iso(age[3] || age[1]), snippet: lclean(snippets.join(' '), 900), kind: 'web', connector: 'brave-llm-context' };
+  }).filter(x => x.url && x.title && x.snippet);
+  if (!out.length) throw new Error('Brave LLM Context returned no usable sources');
+  return out;
+}
 async function brave(q) {
   const j = await lhttp('https://api.search.brave.com/res/v1/web/search?q=' + enc(q) + '&count=8', { json: true, headers: { 'X-Subscription-Token': E.BRAVE_KEY, Accept: 'application/json' }, timeout: 5500, tries: 1 });
   return ((j.web && j.web.results) || []).map(r => ({ title: lclean(r.title, 200), url: safeUrl(r.url), publisher: host(r.url), date: iso(r.page_age), snippet: lclean(r.description, 260), kind: 'web', connector: 'brave' })).filter(x => x.url && x.title);
@@ -413,12 +418,14 @@ async function wikiSummary(title, lang = 'en') {
 }
 async function webSearch(q, o = {}) {
   const errs = [], primary = [];
-  if (E.TAVILY_KEY) primary.push(cached('tv:' + (o.news ? 'news:' : 'general:') + q, 3 * 6e4, () => tavily(q, o)).then(items => ({ items, via: 'tavily' })).catch(e => { errs.push('tavily'); throw e; }));
-  if (E.BRAVE_KEY) primary.push(cached('br:' + q, 3 * 6e4, () => brave(q)).then(items => ({ items, via: 'brave' })).catch(e => { errs.push('brave'); throw e; }));
+  if (E.BRAVE_KEY) {
+    primary.push(cached('brctx:' + q + ':' + (o.lang || 'en'), 3 * 6e4, () => braveContext(q, o)).then(items => { if (!items.length) throw new Error('no results'); return { items, via: 'brave-llm-context' }; }).catch(e => { errs.push('brave-llm-context'); throw e; }));
+    primary.push(cached('br:' + q, 3 * 6e4, () => brave(q)).then(items => { if (!items.length) throw new Error('no results'); return { items, via: 'brave' }; }).catch(e => { errs.push('brave'); throw e; }));
+  }
+  if (E.TAVILY_KEY) primary.push(cached('tv:' + (o.news ? 'news:' : 'general:') + q, 3 * 6e4, () => tavily(q, o)).then(items => { if (!items.length) throw new Error('no results'); return { items, via: 'tavily' }; }).catch(e => { errs.push('tavily'); throw e; }));
   if (primary.length) {
-    const settled = await Promise.allSettled(primary);
-    const good = settled.filter(x => x.status === 'fulfilled' && x.value.items && x.value.items.length);
-    if (good.length) return { items: dedupe(good.flatMap(x => x.value.items)), via: good.map(x => x.value.via).join('+') };
+    const winner = await Promise.any(primary).catch(() => null);
+    if (winner && winner.items && winner.items.length) return winner;
   }
   const fallback = await Promise.any([
     cached('ddg:' + q, 4 * 6e4, () => ddg(q)).then(items => { if (!items.length) throw new Error('no DuckDuckGo results'); return { items, via: 'duckduckgo' }; }).catch(e => { errs.push('duckduckgo'); throw e; }),
@@ -427,7 +434,6 @@ async function webSearch(q, o = {}) {
   if (fallback) return fallback;
   throw new Error('all web search providers failed (' + errs.join(', ') + ')');
 }
-// ---- history: Wikipedia "On this day" + Current events portal + year/month pages ----
 async function onThisDay(m, d) {
   const j = await cached('otd:' + m + '-' + d, 12 * 36e5, () => lhttp('https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/' + pad(m) + '/' + pad(d), { json: true }));
   const ev = (j.events || []).filter(e => e.text && e.year).sort((a, b) => b.year - a.year);
@@ -847,7 +853,7 @@ app.get('/api/live/selftest', async (q, r) => {
   a.push(nw); stHits.set(q.ip, a);
   const y = new Date(nw - 864e5), probes = [
     ['Google News', () => gnews('india', { n: 3 })], ['BBC News feed', () => fetchFeed('BBC News', FEEDS.world[0][1])], ['The Hindu feed', () => fetchFeed('The Hindu', FEEDS.india[0][1])], ['GDELT direct', () => gdelt('india', { n: 3, timespan: '1d' })], ['GDELT fallback path', async () => { try { return { items: await gdelt('india', { n: 3, timespan: '1d' }), via: 'gdelt' }; } catch (e) { const items = await gnews('india', { n: 3 }); if (!items.length) throw e; return { items, via: 'google-news-fallback' }; } }],
-    ['Web search', () => webSearch('nasa')], ['Wikipedia', () => wikiSearch('India', 'en', 2)], ['Wikipedia current events', () => currentEvents(y.getUTCFullYear(), y.getUTCMonth() + 1, y.getUTCDate())],
+    ['Web search', () => webSearch('nasa', { lang: 'en' })], ['Brave LLM Context', () => E.BRAVE_KEY ? braveContext('latest NASA news', { lang: 'en' }) : Promise.reject(new Error('BRAVE_KEY not configured'))], ['Wikipedia', () => wikiSearch('India', 'en', 2)], ['Wikipedia current events', () => currentEvents(y.getUTCFullYear(), y.getUTCMonth() + 1, y.getUTCDate())],
     ['Open-Meteo geocoding direct', () => lhttp('https://geocoding-api.open-meteo.com/v1/search?name=Delhi&count=1&format=json', { json: true, timeout: 4500, tries: 1 })], ['Open-Meteo forecast direct', () => lhttp('https://api.open-meteo.com/v1/forecast?latitude=28.6139&longitude=77.2090&current=temperature_2m&timezone=auto', { json: true, timeout: 4500, tries: 1 })], ['Weather (Open-Meteo / fallback)', () => weather('Delhi', 'en')], ['Yahoo Finance', () => yahooQuote('^NSEI', 'Nifty 50')], ['CoinGecko direct', () => lhttp('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd', { json: true, timeout: 4500, tries: 1 })], ['Coinbase fallback', () => coinbaseFallback(CRYPTO.slice(0, 2))], ['Crypto price routing', () => coingecko(CRYPTO.slice(0, 2))], ['Exchange rates', () => fxRate('usd to inr')],
     ['USGS earthquakes', () => quakes()], ['arXiv', () => arxiv('quantum')], ['World Bank', () => worldBank('gdp of india')], ['OpenAlex direct', () => openalex('artificial intelligence')], ['OpenAlex fallback', async () => { try { const items = await openalex('artificial intelligence'); return { items, via: 'openalex' }; } catch (e) { const [papers, feed] = await Promise.all([arxiv('artificial intelligence'), feedCat('science', 5)]); const items = [...papers, ...(feed.items || [])]; if (!items.length) throw e; return { items, via: 'arxiv+science-rss' }; } }], ['Science RSS feeds', async () => { const v = await feedCat('science', 5); if (!v.items.length) throw new Error('no science feed items'); return v; }], ['ESPN direct', () => lhttp('https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard', { json: true, timeout: 4500, tries: 1 })], ['TheSportsDB fallback', () => sportsDbFallback(LEAGUES.find(l => l[2] === 'Premier League'))], ['ESPN scoreboard', () => espn('premier league')], ['Hacker News', () => hackerNews()]];
   const results = await Promise.all(probes.map(async ([name, fn]) => {
