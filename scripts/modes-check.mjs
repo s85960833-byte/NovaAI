@@ -1,0 +1,15 @@
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source=readFileSync('mode-registry.js','utf8');
+const context={window:{}};vm.runInNewContext(source,context);
+const r=context.window.NovaModeRegistry;
+assert.equal(r.version,1);
+assert.equal(r.groups.length,2);
+const ids=r.modes.map(x=>x.id);
+for(const id of ['general','voice','document','schemes','shopkeeper','math','photo','ncert','board','ssc','upsc','english'])assert.ok(ids.includes(id),'missing '+id);
+assert.equal(new Set(ids).size,ids.length,'mode IDs must be unique');
+assert.ok(r.modes.find(x=>x.id==='document').prompt.includes('ये कानूनी सलाह नहीं है।'));
+assert.ok(r.modes.find(x=>x.id==='schemes').prompt.includes('पक्का करने के लिए आधिकारिक साइट देखें'));
+assert.ok(r.modes.find(x=>x.id==='math').prompt.includes('चरणों'));
+console.log('PASS mode registry: 12 isolated modes, 2 groups, required safeguards');
