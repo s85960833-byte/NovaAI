@@ -217,16 +217,20 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const lcache = new Map();
 const inflight = new Map(); // coalesce simultaneous requests for the same upstream resource
 function lprune() { if (lcache.size > 400) { const old = [...lcache.entries()].sort((a, b) => a[1].t - b[1].t).slice(0, 100); old.forEach(([k]) => lcache.delete(k)); } }
-// cache with stale-on-error: if a refresh fails we keep serving the last good value, flagged as stale
-function markStale(v, t) { if (v && typeof v === 'object') { v.stale = true; v.staleMin = Math.round((Date.now() - t) / 6e4); } return v; }
+// Cache only verified fresh results. On provider failure, report unavailable rather than presenting stale data as current.
 async function cached(key, ttl, fn) {
   const c = lcache.get(key), n = Date.now();
   if (c && c.v !== undefined && n - c.t < ttl) return c.v;
   if (inflight.has(key)) return inflight.get(key);
-  if (c && c.e && n - c.e < 180000) { if (c.v !== undefined) return markStale(c.v, c.t); throw new Error(c.msg); }
+  if (c && c.e && n - c.e < (c.backoff || 180000)) throw new Error(c.msg);
   const work = (async () => {
     try { const v = await fn(); lcache.set(key, { v, t: Date.now() }); lprune(); return v; }
-    catch (e) { lcache.set(key, { v: c && c.v, t: c ? c.t : 0, e: Date.now(), msg: String(e && e.message).slice(0, 80) }); if (c && c.v !== undefined) return markStale(c.v, c.t); throw e; }
+    catch (e) {
+      const retry = Number(e && e.retryAfter) * 1000;
+      const backoff = Math.min(30 * 60 * 1000, Math.max(180000, retry || 0));
+      lcache.set(key, { t: Date.now(), e: Date.now(), backoff, msg: String(e && e.message).slice(0, 80) });
+      throw e;
+    }
   })();
   inflight.set(key, work);
   try { return await work; }
@@ -244,7 +248,7 @@ async function lhttp(url, o = {}) {
       });
       if (r.status === 429) {
         const e = new Error('HTTP 429'); e.status = 429;
-        e.retryAfter = Number(r.headers.get('retry-after')) || 0;
+        const ra = r.headers.get('retry-after'); e.retryAfter = Number(ra) || (ra ? Math.max(0, Math.ceil((Date.parse(ra) - Date.now()) / 1000)) : 0);
         throw e; // do not amplify provider rate limits with automatic retries
       }
       if (r.status >= 500) { err = new Error('HTTP ' + r.status); err.status = r.status; if (i < tries - 1) { await sleep(500 * (i + 1)); continue; } throw err; }
