@@ -15,6 +15,7 @@ assert.ok(r.modes.find(x=>x.id==='schemes').prompt.includes('पक्का क
 assert.ok(r.modes.find(x=>x.id==='math').prompt.includes('चरणों'));
 for(const token of ['nova_modes_v1','nova_mode_cache_v1','SpeechRecognition','speechSynthesis','pdfjsLib','gov\\.in'])assert.ok(workspace.includes(token)||source.includes(token),'missing workspace capability '+token);
 assert.ok(workspace.includes('navigator.onLine'),'offline-aware saved chat mode missing');
+assert.ok(workspace.includes('voiceLabels')&&workspace.includes('सरल हिंदी')&&workspace.includes('বাংলা'),'voice reply language must follow the selected regional locale');
 assert.ok(workspace.includes('10*60*1000'),'per-user rolling request limit missing');
 assert.ok(workspace.includes('(lowData()?1.5:4)*1024*1024'),'image upload size guard missing');
 assert.ok(workspace.includes('appendInstruction(\'गणना की जाँच'),'GST instruction must preserve multimodal image content');
