@@ -67,7 +67,7 @@ async function schemeSources(){
 }
 async function send(){
  if(!active)return;const m=mode(active),question=input.value.trim();if(!question&&!upload)return;
- const h=history(active),d=data(),now=Date.now();
+ const d=data(),h=d.histories[active]||(d.histories[active]=[]),now=Date.now();
  d.limits=d.limits||[];d.limits=d.limits.filter(t=>now-t<10*60*1000);if(d.limits.length>=20){$('#nmStatus').textContent='थोड़ा विराम लें; 10 मिनट में 20 नए सवालों की सीमा है।';return}
  if(!navigator.onLine){$('#nmStatus').textContent='ऑफ़लाइन मोड: सेव चैट उपलब्ध है, नया AI जवाब नहीं।';return}
  d.limits.push(now);saveData(d);
@@ -75,7 +75,7 @@ async function send(){
  const userText=question||('📎 '+(file?.name||'अपलोड की गई फ़ाइल'));h.push({role:'user',text:userText,at:now});saveData(d);input.value='';drawChat();$('#nmStatus').textContent='जवाब तैयार हो रहा है…';
  try{
    let extra='',profile=null;
-   if(active==='schemes'){const x=await schemeSources();profile=x.profile;extra='\nकेवल नीचे दिए गए आधिकारिक government domain स्रोतों को उपयोग करें; इनमें से पात्रता सिद्ध न हो तो साफ़ कहें कि पुष्टि नहीं हुई।\n'+JSON.stringify(x.results);}
+   if(active==='schemes'){const x=await schemeSources();profile=x.profile;if(!x.results.length)throw Error('इस समय कोई आधिकारिक सरकारी स्रोत नहीं मिला। कृपया आधिकारिक पोर्टल पर सीधे जाँचें।');extra='\nकेवल नीचे दिए गए आधिकारिक government domain स्रोतों को उपयोग करें; इनमें से पात्रता सिद्ध न हो तो साफ़ कहें कि पुष्टि नहीं हुई।\n'+JSON.stringify(x.results);}
    if(file?.text)extra+='\nअपलोड की गई सामग्री (केवल इस अनुरोध के लिए; इसे स्थायी रूप से सेव न करें):\n'+file.text;
    if(profile)extra+='\nउपयोगकर्ता की पात्रता जानकारी: '+JSON.stringify(profile);
    const prompt=m.prompt+(active==='math'||active==='photo'?' अंतिम उत्तर को फिर से जाँचें।':'');
