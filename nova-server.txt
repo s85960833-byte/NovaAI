@@ -817,8 +817,11 @@ console.log('NovaAI startup audit flag: ' + (E.SELFTEST_ON_START === '1' ? 'enab
 
 // Optional one-time live verification, enabled only temporarily through Render env.
 if (E.SELFTEST_ON_START === '1') {
+  console.log('NOVA_SELFTEST_SCHEDULED');
   setTimeout(() => {
+    console.log('NOVA_SELFTEST_TIMER_FIRED');
     (async () => {
+      console.log('NOVA_SELFTEST_BEGIN');
       const origin = 'http://127.0.0.1:' + PORT, results = [];
       async function probe(name, path, options = {}, check = r => r.ok) {
         const started = Date.now(), { timeout = 90000, ...init } = options;
@@ -835,12 +838,14 @@ if (E.SELFTEST_ON_START === '1') {
         }
       }
       const config = await probe('config', '/api/config', {}, (r, j) => r.ok && !!j.model);
+      console.log('NOVA_SELFTEST_CONFIG ' + JSON.stringify(results[results.length - 1]));
       await probe('frontend', '/', {}, (r, j, body) => r.ok && body.includes('<title>Nova AI</title>'));
       await probe('manifest', '/manifest.webmanifest', {}, (r, j) => r.ok && j.name === 'Nova AI');
       await probe('PWA icon', '/icons/icon-192.png', {}, r => r.ok && (r.headers.get('content-type') || '').includes('image/png'));
       await probe('service worker', '/sw.js', {}, r => r.ok);
       await probe('news feed', '/api/feed?cat=all&lang=en', {}, (r, j) => r.ok && Object.keys(j.cats || {}).length > 0);
       const self = await probe('provider self-test endpoint', '/api/live/selftest', { timeout: 120000 }, (r, j) => r.ok && Array.isArray(j.results));
+      console.log('NOVA_SELFTEST_PROVIDERS ' + JSON.stringify(self && self.data && self.data.results || []));
       if (self && self.data.results) self.data.results.forEach(x => results.push({ name: 'provider: ' + x.name, ok: !!x.ok, status: x.status || null, ms: x.ms, provider: x.provider || '', note: x.note || '' }));
       await probe('live retrieval', '/api/live', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: 'Latest NASA news', mode: 'always', lang: 'en', tz: 'Asia/Kolkata' }), timeout: 60000 }, (r, j) => r.ok && j.ok && !!j.context);
       await probe('AI chat', '/api/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: (config && config.data.model) || E.LLM_MODEL, stream: false, max_tokens: 16, messages: [{ role: 'user', content: 'Reply exactly NOVAAI_OK.' }] }), timeout: 60000 }, (r, j) => r.ok && !!(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content));
