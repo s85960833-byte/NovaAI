@@ -200,19 +200,26 @@ app.get('/', (q, r) => r.sendFile(path.join(__dirname, 'index.html')));
 const L_UA = 'NovaAI/1.0 (personal assistant; +https://nova-ai-mlxf.onrender.com)';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const lcache = new Map();
+const inflight = new Map(); // coalesce simultaneous requests for the same upstream resource
 function lprune() { if (lcache.size > 400) { const old = [...lcache.entries()].sort((a, b) => a[1].t - b[1].t).slice(0, 100); old.forEach(([k]) => lcache.delete(k)); } }
 // cache with stale-on-error: if a refresh fails we keep serving the last good value, flagged as stale
 function markStale(v, t) { if (v && typeof v === 'object') { v.stale = true; v.staleMin = Math.round((Date.now() - t) / 6e4); } return v; }
 async function cached(key, ttl, fn) {
   const c = lcache.get(key), n = Date.now();
   if (c && c.v !== undefined && n - c.t < ttl) return c.v;
-  if (c && c.e && n - c.e < 180000) { if (c.v !== undefined) return markStale(c.v, c.t); throw new Error(c.msg); }   // recent failure: do not hammer a broken provider
-  try { const v = await fn(); lcache.set(key, { v, t: n }); lprune(); return v; }
-  catch (e) { lcache.set(key, { v: c && c.v, t: c ? c.t : 0, e: n, msg: String(e && e.message).slice(0, 80) }); if (c && c.v !== undefined) return markStale(c.v, c.t); throw e; }
+  if (inflight.has(key)) return inflight.get(key);
+  if (c && c.e && n - c.e < 180000) { if (c.v !== undefined) return markStale(c.v, c.t); throw new Error(c.msg); }
+  const work = (async () => {
+    try { const v = await fn(); lcache.set(key, { v, t: Date.now() }); lprune(); return v; }
+    catch (e) { lcache.set(key, { v: c && c.v, t: c ? c.t : 0, e: Date.now(), msg: String(e && e.message).slice(0, 80) }); if (c && c.v !== undefined) return markStale(c.v, c.t); throw e; }
+  })();
+  inflight.set(key, work);
+  try { return await work; }
+  finally { if (inflight.get(key) === work) inflight.delete(key); }
 }
 // HTTP with timeout, retry + backoff, rate-limit (429/5xx) handling
 async function lhttp(url, o = {}) {
-  const tries = o.tries || 2; let err;
+  const tries = Math.max(1, Number(o.tries) || 2); let err;
   for (let i = 0; i < tries; i++) {
     try {
       const r = await fetch(url, {
@@ -220,12 +227,21 @@ async function lhttp(url, o = {}) {
         headers: { 'User-Agent': L_UA, Accept: o.accept || '*/*', ...(o.headers || {}) },
         body: o.body, redirect: 'follow', signal: AbortSignal.timeout(o.timeout || 7000)
       });
-      if (r.status === 429 || r.status >= 500) { err = new Error('HTTP ' + r.status); if (i < tries - 1) await sleep(500 * (i + 1)); continue; }
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (r.status === 429) {
+        const e = new Error('HTTP 429'); e.status = 429;
+        e.retryAfter = Number(r.headers.get('retry-after')) || 0;
+        throw e; // do not amplify provider rate limits with automatic retries
+      }
+      if (r.status >= 500) { err = new Error('HTTP ' + r.status); err.status = r.status; if (i < tries - 1) { await sleep(500 * (i + 1)); continue; } throw err; }
+      if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; }
       const txt = await r.text();
       if (txt.length > 3e6) throw new Error('response too large');
       return o.json ? JSON.parse(txt) : txt;
-    } catch (e) { err = e; if (e && e.name === 'SyntaxError') break; if (i < tries - 1) await sleep(350 * (i + 1)); }
+    } catch (e) {
+      err = e;
+      if (e && (e.name === 'SyntaxError' || e.status === 429 || (e.status >= 400 && e.status < 500))) break;
+      if (i < tries - 1) await sleep(350 * (i + 1));
+    }
   }
   throw err || new Error('request failed');
 }
@@ -332,10 +348,10 @@ async function gnews(q, o = {}) {
 }
 const gdDate = s => { const m = /^(\d{4})(\d\d)(\d\d)T?(\d\d)(\d\d)(\d\d)/.exec(s || ''); return m ? iso(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}Z`) : ''; };
 async function gdelt(q, o = {}) {
-  let url = 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + enc(q) + '&mode=artlist&maxrecords=' + (o.n || 15) + '&format=json&sort=datedesc';
+  let url = 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + enc(q) + '&mode=artlist&maxrecords=' + Math.min(15, Math.max(1, Number(o.n) || 10)) + '&format=json&sort=datedesc';
   url += (o.start && o.end) ? '&startdatetime=' + o.start + '&enddatetime=' + o.end : '&timespan=' + (o.timespan || '3d');
   return cached('gd:' + url, 10 * 6e4, async () => {
-    const j = await lhttp(url, { json: true, timeout: 9000, tries: 1 });
+    const j = await lhttp(url, { json: true, timeout: 6500, tries: 1 });
     const out = (j.articles || []).map(a => ({ title: lclean(a.title, 200), url: safeUrl(a.url), publisher: a.domain || host(a.url), date: gdDate(a.seendate), snippet: '', kind: 'news', connector: 'gdelt' })).filter(x => x.title && x.url);
     if (!out.length) throw new Error('no items');
     return out;
@@ -375,11 +391,12 @@ async function wikiSummary(title, lang = 'en') {
   return { title: (j.title || title) + ' \u2014 Wikipedia', url: (j.content_urls && j.content_urls.desktop && j.content_urls.desktop.page) || ('https://' + lang + '.wikipedia.org/wiki/' + enc(title.replace(/ /g, '_'))), publisher: 'Wikipedia', date: iso(j.timestamp), snippet: lclean(j.extract, 420), kind: 'reference', connector: 'wikipedia' };
 }
 async function webSearch(q, o = {}) {
-  const errs = [];
-  if (E.TAVILY_KEY) { try { const r = await tavily(q, o); if (r.length) return { items: r, via: 'tavily' } } catch (e) { errs.push('tavily') } }
-  if (E.BRAVE_KEY) { try { const r = await brave(q); if (r.length) return { items: r, via: 'brave' } } catch (e) { errs.push('brave') } }
-  try { const r = await cached('ddg:' + q, 4 * 6e4, () => ddg(q)); if (r.length) return { items: r, via: 'duckduckgo' } } catch (e) { errs.push('duckduckgo') }
-  try { const r = await wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5); if (r.length) return { items: r, via: 'wikipedia' } } catch (e) { errs.push('wikipedia') }
+  const errs = [], primary = [];
+  if (E.TAVILY_KEY) primary.push((async () => { const r = await tavily(q, o); if (!r.length) throw new Error('no results'); return { items: r, via: 'tavily' }; })().catch(e => { errs.push('tavily'); throw e; }));
+  if (E.BRAVE_KEY) primary.push((async () => { const r = await brave(q); if (!r.length) throw new Error('no results'); return { items: r, via: 'brave' }; })().catch(e => { errs.push('brave'); throw e; }));
+  if (primary.length) { try { return await Promise.any(primary); } catch (e) {} }
+  try { const r = await cached('ddg:' + q, 4 * 6e4, () => ddg(q)); if (r.length) return { items: r, via: 'duckduckgo' }; } catch (e) { errs.push('duckduckgo'); }
+  try { const r = await wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5); if (r.length) return { items: r, via: 'wikipedia' }; } catch (e) { errs.push('wikipedia'); }
   throw new Error('all web search providers failed (' + errs.join(', ') + ')');
 }
 // ---- history: Wikipedia "On this day" + Current events portal + year/month pages ----
@@ -421,10 +438,20 @@ async function geocode(place, lang = 'en') {
   return { name: r.name, admin1: r.admin1 || '', country: r.country || '', lat: r.latitude, lon: r.longitude, tz: r.timezone || 'UTC', pop: r.population };
 }
 const WMO = { 0: 'clear sky', 1: 'mainly clear', 2: 'partly cloudy', 3: 'overcast', 45: 'fog', 48: 'rime fog', 51: 'light drizzle', 53: 'drizzle', 55: 'dense drizzle', 56: 'freezing drizzle', 57: 'heavy freezing drizzle', 61: 'light rain', 63: 'rain', 65: 'heavy rain', 66: 'freezing rain', 67: 'heavy freezing rain', 71: 'light snow', 73: 'snow', 75: 'heavy snow', 77: 'snow grains', 80: 'light rain showers', 81: 'rain showers', 82: 'violent rain showers', 85: 'snow showers', 86: 'heavy snow showers', 95: 'thunderstorm', 96: 'thunderstorm with hail', 99: 'severe thunderstorm with hail' };
+async function weatherFallback(place) {
+  const j = await cached('wxfallback:' + place.toLowerCase(), 10 * 6e4, () => lhttp('https://wttr.in/' + enc(place) + '?format=j1', { json: true, timeout: 6500, tries: 1 }));
+  const c = (j.current_condition || [])[0], days = (j.weather || []).slice(0, 3);
+  if (!c) throw new Error('no weather data from fallback provider');
+  const area = (((j.nearest_area || [])[0] || {}).areaName || [])[0], name = area && area.value ? area.value : place;
+  const desc = ((c.weatherDesc || [])[0] || {}).value || 'conditions unavailable';
+  const forecast = days.map(d => d.date + ': ' + d.mintempC + '–' + d.maxtempC + '°C, ' + ((((d.hourly || [])[4] || {}).weatherDesc || [])[0] || {}).value + ', rain chance ' + ((((d.hourly || [])[4] || {}).chanceofrain) || '?') + '%');
+  const text = 'WEATHER — ' + name + ' (wttr.in fallback; observation ' + (c.observation_time || 'time unavailable') + '): ' + c.temp_C + '°C (feels ' + c.FeelsLikeC + '°C), ' + desc + ', humidity ' + c.humidity + '%, wind ' + c.windspeedKmph + ' km/h, precipitation ' + c.precipMM + ' mm.\nForecast: ' + forecast.join(' | ');
+  return { text, source: { title: 'Weather — ' + name + ' (wttr.in fallback)', url: 'https://wttr.in/' + enc(place), publisher: 'wttr.in', date: new Date().toISOString(), kind: 'data', connector: 'wttr.in', snippet: '' } };
+}
 async function weather(place, lang) {
   const g = await geocode(place, lang === 'hi' ? 'hi' : 'en');
-  const f = await cached('wx:' + g.lat + ',' + g.lon, 8 * 6e4, () => lhttp('https://api.open-meteo.com/v1/forecast?latitude=' + g.lat + '&longitude=' + g.lon + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&forecast_days=3&timezone=auto', { json: true }));
-  let aq = null; try { aq = await cached('aq:' + g.lat + ',' + g.lon, 15 * 6e4, () => lhttp('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + g.lat + '&longitude=' + g.lon + '&current=us_aqi,pm2_5,pm10', { json: true })); } catch (e) {}
+  let f; try { f = await cached('wx:' + g.lat + ',' + g.lon, 15 * 6e4, () => lhttp('https://api.open-meteo.com/v1/forecast?latitude=' + g.lat + '&longitude=' + g.lon + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&forecast_days=3&timezone=auto', { json: true, timeout: 6500, tries: 1 })); } catch (e) { return weatherFallback(place); }
+  let aq = null; try { aq = await cached('aq:' + g.lat + ',' + g.lon, 30 * 6e4, () => lhttp('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + g.lat + '&longitude=' + g.lon + '&current=us_aqi,pm2_5,pm10', { json: true, timeout: 6500, tries: 1 })); } catch (e) {}
   const c = f.current; if (!c) throw new Error('no weather data');
   const off = f.utc_offset_seconds || 0, obs = iso(Date.parse(c.time + ':00Z') - off * 1000);
   const dd = f.daily || {}, days = (dd.time || []).map((t, i) => t + ': ' + Math.round(dd.temperature_2m_min[i]) + '\u2013' + Math.round(dd.temperature_2m_max[i]) + '\u00b0C, ' + (WMO[dd.weather_code[i]] || '') + ', rain chance ' + (dd.precipitation_probability_max ? dd.precipitation_probability_max[i] : '?') + '%, rain ' + (dd.precipitation_sum ? dd.precipitation_sum[i] : '?') + ' mm');
@@ -487,7 +514,7 @@ async function yahooQuote(sym, label) {
 }
 async function coingecko(list) {
   const ids = list.map(x => x[1]).join(',');
-  const j = await cached('cg:' + ids, 60 * 1000, () => lhttp('https://api.coingecko.com/api/v3/simple/price?ids=' + ids + '&vs_currencies=usd,inr&include_24hr_change=true&include_last_updated_at=true', { json: true, tries: 2 }));
+  const j = await cached('cg:' + ids, 3 * 60 * 1000, () => lhttp('https://api.coingecko.com/api/v3/simple/price?ids=' + ids + '&vs_currencies=usd,inr&include_24hr_change=true&include_last_updated_at=true', { json: true, timeout: 6500, tries: 1 }));
   const lines = list.filter(x => j[x[1]]).map(x => { const v = j[x[1]]; return x[2] + ': $' + v.usd + ' / \u20b9' + v.inr + (v.usd_24h_change != null ? ' (' + (v.usd_24h_change >= 0 ? '+' : '') + v.usd_24h_change.toFixed(2) + '% 24h)' : '') + ' updated ' + (v.last_updated_at ? new Date(v.last_updated_at * 1000).toISOString() : 'n/a'); });
   if (!lines.length) throw new Error('no crypto data');
   return { text: 'CRYPTO (CoinGecko) \u2014 ' + lines.join(' | '), source: { title: 'CoinGecko \u2014 ' + list.map(x => x[2]).join(', '), url: 'https://www.coingecko.com/', publisher: 'CoinGecko', date: new Date().toISOString(), kind: 'data', connector: 'coingecko', snippet: '' } };
@@ -602,7 +629,10 @@ async function runLive(qraw, o = {}) {
   const tasks = [], notes = [], intents = [];
   const T = (name, fn, ms) => tasks.push({ name, run: () => withTimeout(fn(), ms || 11000, name) });
   const gn = (qq, x) => T('google-news', () => gnews(qq, { lang, ...(x || {}) }).then(items => ({ items })));
-  const gd = (qq, x) => T('gdelt', () => gdelt(qq, x).then(items => ({ items })), 12000);
+  const gd = (qq, x) => T('gdelt', async () => {
+    try { return { items: await gdelt(qq, x), via: 'gdelt' }; }
+    catch (e) { const fallback = await gnews(qq, { lang, n: (x && x.n) || 10 }); if (!fallback.length) throw e; return { items: fallback, via: 'google-news-fallback' }; }
+  }, 15000);
   const ws = (qq, x) => T('web-search', () => webSearch(qq, { lang, ...(x || {}) }).then(r => ({ items: r.items, via: r.via })));
   const feedT = (cat, filt) => T('feeds:' + cat, () => feedCat(cat, 14).then(r => { let it = r.items; if (filt) { const k = toks(filt); const sc = it.map(x => [x, jac(k, toks(x.title + ' ' + x.snippet))]).filter(z => z[1] > 0.05).sort((a, b) => b[1] - a[1]); it = sc.map(z => z[0]); } if (!it.length) throw new Error('no matching items'); return { items: it }; }));
   // time & place
@@ -660,6 +690,7 @@ async function runLive(qraw, o = {}) {
     else if (!failed.find(x => x.name === name)) failed.push({ name, why: String(s.reason && s.reason.message || s.reason).slice(0, 90) });
   });
   const ranked = rank(dedupe(items.filter(x => x.title && x.url)), q).slice(0, 14);
+  if (intents.includes('sports') && failed.some(x => x.name === 'scoreboard')) notes.push('A verified live scoreboard was unavailable; news articles are not being used as a substitute.');
   stale.length && notes.push('CACHED DATA: these providers were unreachable, so the last successful result is shown (check the dates; it may be out of date): ' + stale.join(', ') + '.');
   return finish({ q, tz, now, intents, used, failed, blocks, ranked, notes, wh, t0, hi });
 }
