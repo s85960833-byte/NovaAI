@@ -458,13 +458,13 @@ async function wikiExtract(title, month, max = 3200) {
 }
 // ---- geography, time, weather ----
 async function geocode(place, lang = 'en') {
-  const j = await cached('geo:' + lang + place.toLowerCase(), 24 * 36e5, () => lhttp('https://geocoding-api.open-meteo.com/v1/search?name=' + enc(place) + '&count=1&language=' + lang + '&format=json', { json: true, timeout: 5000, tries: 1 }));
+  const j = await cached('geo:' + lang + place.toLowerCase(), 24 * 36e5, () => lhttp('https://geocoding-api.open-meteo.com/v1/search?name=' + enc(place) + '&count=1&language=' + lang + '&format=json', { json: true, timeout: 4000, tries: 1 }));
   const r = j.results && j.results[0]; if (!r) throw new Error('place not found: ' + place);
   return { name: r.name, admin1: r.admin1 || '', country: r.country || '', lat: r.latitude, lon: r.longitude, tz: r.timezone || 'UTC', pop: r.population };
 }
 const WMO = { 0: 'clear sky', 1: 'mainly clear', 2: 'partly cloudy', 3: 'overcast', 45: 'fog', 48: 'rime fog', 51: 'light drizzle', 53: 'drizzle', 55: 'dense drizzle', 56: 'freezing drizzle', 57: 'heavy freezing drizzle', 61: 'light rain', 63: 'rain', 65: 'heavy rain', 66: 'freezing rain', 67: 'heavy freezing rain', 71: 'light snow', 73: 'snow', 75: 'heavy snow', 77: 'snow grains', 80: 'light rain showers', 81: 'rain showers', 82: 'violent rain showers', 85: 'snow showers', 86: 'heavy snow showers', 95: 'thunderstorm', 96: 'thunderstorm with hail', 99: 'severe thunderstorm with hail' };
 async function weatherFallback(place) {
-  const j = await cached('wxfallback:' + place.toLowerCase(), 10 * 6e4, () => lhttp('https://wttr.in/' + enc(place) + '?format=j1', { json: true, timeout: 6500, tries: 1 }));
+  const j = await cached('wxfallback:' + place.toLowerCase(), 10 * 6e4, () => lhttp('https://wttr.in/' + enc(place) + '?format=j1', { json: true, timeout: 5000, tries: 1 }));
   const c = (j.current_condition || [])[0], days = (j.weather || []).slice(0, 3);
   if (!c) throw new Error('no weather data from fallback provider');
   const area = (((j.nearest_area || [])[0] || {}).areaName || [])[0], name = area && area.value ? area.value : place;
@@ -475,8 +475,14 @@ async function weatherFallback(place) {
 }
 async function weather(place, lang) {
   let g; try { g = await geocode(place, lang === 'hi' ? 'hi' : 'en'); } catch (e) { return weatherFallback(place); }
-  let f; try { f = await cached('wx:' + g.lat + ',' + g.lon, 15 * 6e4, () => lhttp('https://api.open-meteo.com/v1/forecast?latitude=' + g.lat + '&longitude=' + g.lon + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&forecast_days=3&timezone=auto', { json: true, timeout: 6500, tries: 1 })); } catch (e) { return weatherFallback(place); }
-  let aq = null; try { aq = await cached('aq:' + g.lat + ',' + g.lon, 30 * 6e4, () => lhttp('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + g.lat + '&longitude=' + g.lon + '&current=us_aqi,pm2_5,pm10', { json: true, timeout: 6500, tries: 1 })); } catch (e) {}
+  let f, aq = null;
+  try {
+    const pair = await Promise.all([
+      cached('wx:' + g.lat + ',' + g.lon, 15 * 6e4, () => lhttp('https://api.open-meteo.com/v1/forecast?latitude=' + g.lat + '&longitude=' + g.lon + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&forecast_days=3&timezone=auto', { json: true, timeout: 5000, tries: 1 })),
+      cached('aq:' + g.lat + ',' + g.lon, 30 * 6e4, () => lhttp('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + g.lat + '&longitude=' + g.lon + '&current=us_aqi,pm2_5,pm10', { json: true, timeout: 5000, tries: 1 })).catch(() => null)
+    ]);
+    f = pair[0]; aq = pair[1];
+  } catch (e) { return weatherFallback(place); }
   const c = f.current; if (!c) throw new Error('no weather data');
   const off = f.utc_offset_seconds || 0, obs = iso(Date.parse(c.time + ':00Z') - off * 1000);
   const dd = f.daily || {}, days = (dd.time || []).map((t, i) => t + ': ' + Math.round(dd.temperature_2m_min[i]) + '\u2013' + Math.round(dd.temperature_2m_max[i]) + '\u00b0C, ' + (WMO[dd.weather_code[i]] || '') + ', rain chance ' + (dd.precipitation_probability_max ? dd.precipitation_probability_max[i] : '?') + '%, rain ' + (dd.precipitation_sum ? dd.precipitation_sum[i] : '?') + ' mm');
@@ -662,7 +668,7 @@ async function runLive(qraw, o = {}) {
   const feedT = (cat, filt) => T('feeds:' + cat, () => feedCat(cat, 14).then(r => { let it = r.items; if (filt) { const k = toks(filt); const sc = it.map(x => [x, jac(k, toks(x.title + ' ' + x.snippet))]).filter(z => z[1] > 0.05).sort((a, b) => b[1] - a[1]); it = sc.map(z => z[0]); } if (!it.length) throw new Error('no matching items'); return { items: it }; }));
   // time & place
   if (f.time) { intents.push('time'); const pl = placeFrom(q, ''); T('time', () => timeIn(pl, tz).then(b => ({ blocks: [b] })), 9000); }
-  if (f.weather) { intents.push('weather'); const pl = placeFrom(q, o.place); if (!pl) notes.push('Weather was requested but no city was given and none is saved; ask the person which city.'); else T('weather', () => weather(pl, lang).then(b => ({ blocks: [b] })), 12000); }
+  if (f.weather) { intents.push('weather'); const pl = placeFrom(q, o.place); if (!pl) notes.push('Weather was requested but no city was given and none is saved; ask the person which city.'); else T('weather', () => weather(pl, lang).then(b => ({ blocks: [b] })), 15000); }
   // markets
   if (f.finance) {
     intents.push('markets'); const syms = []; SYM.forEach(s => { if (s[0].test(q) && !syms.find(z => z[1] === s[1])) syms.push([s[0], s[1], s[2]]); });
