@@ -776,11 +776,20 @@ app.get('/api/live/selftest', async (q, r) => {
   if (a.length >= 4) return r.status(429).json({ error: 'Please wait a minute before testing again.' });
   a.push(nw); stHits.set(q.ip, a);
   const y = new Date(nw - 864e5), probes = [
-    ['Google News', () => gnews('india', { n: 3 })], ['BBC News feed', () => fetchFeed('BBC News', FEEDS.world[0][1])], ['The Hindu feed', () => fetchFeed('The Hindu', FEEDS.india[0][1])], ['GDELT', () => gdelt('india', { n: 3, timespan: '1d' })],
+    ['Google News', () => gnews('india', { n: 3 })], ['BBC News feed', () => fetchFeed('BBC News', FEEDS.world[0][1])], ['The Hindu feed', () => fetchFeed('The Hindu', FEEDS.india[0][1])], ['GDELT direct', () => gdelt('india', { n: 3, timespan: '1d' })], ['GDELT fallback path', async () => { try { return { items: await gdelt('india', { n: 3, timespan: '1d' }), via: 'gdelt' }; } catch (e) { const items = await gnews('india', { n: 3 }); if (!items.length) throw e; return { items, via: 'google-news-fallback' }; } }],
     ['Web search', () => webSearch('nasa')], ['Wikipedia', () => wikiSearch('India', 'en', 2)], ['Wikipedia current events', () => currentEvents(y.getUTCFullYear(), y.getUTCMonth() + 1, y.getUTCDate())],
-    ['Weather (Open-Meteo)', () => weather('Delhi', 'en')], ['Yahoo Finance', () => yahooQuote('^NSEI', 'Nifty 50')], ['CoinGecko', () => coingecko([[null, 'bitcoin', 'Bitcoin']])], ['Exchange rates', () => fxRate('usd to inr')],
+    ['Weather (Open-Meteo / fallback)', () => weather('Delhi', 'en')], ['Yahoo Finance', () => yahooQuote('^NSEI', 'Nifty 50')], ['CoinGecko', () => coingecko([[null, 'bitcoin', 'Bitcoin']])], ['Exchange rates', () => fxRate('usd to inr')],
     ['USGS earthquakes', () => quakes()], ['arXiv', () => arxiv('quantum')], ['World Bank', () => worldBank('gdp of india')], ['ESPN scoreboard', () => espn('premier league')], ['Hacker News', () => hackerNews()]];
-  const results = await Promise.all(probes.map(async ([name, fn]) => { const t0 = Date.now(); try { await withTimeout(fn(), 15000, name); return { name, ok: true, ms: Date.now() - t0, note: '' }; } catch (e) { return { name, ok: false, ms: Date.now() - t0, note: String(e && e.message).slice(0, 60) }; } }));
+  const results = await Promise.all(probes.map(async ([name, fn]) => {
+    const t0 = Date.now();
+    try {
+      const value = await withTimeout(fn(), 15000, name);
+      const sample = Array.isArray(value) ? value[0] : value && value.items ? value.items[0] : null;
+      const source = (value && value.source) || sample || null;
+      const via = (value && value.via) || (source && (source.connector || source.publisher)) || '';
+      return { name, ok: true, ms: Date.now() - t0, provider: via || '', note: '' };
+    } catch (e) { return { name, ok: false, ms: Date.now() - t0, status: e && e.status || null, note: String(e && e.message).slice(0, 60) }; }
+  }));
   r.json({ at: new Date().toISOString(), results });
 });
 const CATS = ['world', 'india', 'tech', 'science', 'business', 'sports', 'health'];
