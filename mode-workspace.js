@@ -56,8 +56,8 @@ async function extractFile(f){
 function cacheGet(k){const c=read(CACHE,{}),x=c[k];if(!x||Date.now()-x.at>12*60*60*1000)return null;return x.text}
 function cacheSet(k,text){const c=read(CACHE,{});c[k]={at:Date.now(),text};const keys=Object.keys(c);while(keys.length>80)delete c[keys.shift()];write(CACHE,c)}
 function cacheKey(id,text){const s=text.trim().toLowerCase().replace(/\s+/g,' ');let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return id+'|'+(h>>>0).toString(36)}
-async function schemeSources(){
- const age=$('#nmAge')?.value,state=$('#nmState')?.value.trim(),work=$('#nmWork')?.value.trim(),income=$('#nmIncome')?.value;
+async function schemeSources(profile){
+ const age=profile?.age,state=profile?.state,work=profile?.work,income=profile?.income;
  if(!age||!state||!work||income==='')throw Error('योजना खोजने के लिए उम्र, राज्य, काम और सालाना आय भरें।');
  const q='सरकारी योजना '+state+' '+work+' पात्रता लाभ आवेदन '+age+' वर्ष आय '+income+' official government scheme';
  const r=await fetch(API+'/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});
@@ -67,6 +67,7 @@ async function schemeSources(){
 }
 async function send(){
  if(!active)return;const m=mode(active),question=input.value.trim();if(!question&&!upload)return;
+ const schemeInput=active==='schemes'?{age:$('#nmAge')?.value,state:$('#nmState')?.value.trim(),work:$('#nmWork')?.value.trim(),income:$('#nmIncome')?.value}:null;
  const d=data(),h=d.histories[active]||(d.histories[active]=[]),now=Date.now();
  d.limits=d.limits||[];d.limits=d.limits.filter(t=>now-t<10*60*1000);if(d.limits.length>=20){$('#nmStatus').textContent='थोड़ा विराम लें; 10 मिनट में 20 नए सवालों की सीमा है।';return}
  if(!navigator.onLine){$('#nmStatus').textContent='ऑफ़लाइन मोड: सेव चैट उपलब्ध है, नया AI जवाब नहीं।';return}
@@ -75,7 +76,7 @@ async function send(){
  const userText=question||('📎 '+(file?.name||'अपलोड की गई फ़ाइल'));h.push({role:'user',text:userText,at:now});saveData(d);input.value='';drawChat();$('#nmStatus').textContent='जवाब तैयार हो रहा है…';
  try{
    let extra='',profile=null,sourceLinks=[];
-   if(active==='schemes'){const x=await schemeSources();profile=x.profile;if(!x.results.length)throw Error('इस समय कोई आधिकारिक सरकारी स्रोत नहीं मिला। कृपया आधिकारिक पोर्टल पर सीधे जाँचें।');sourceLinks=x.results.map(z=>({title:z.title,url:z.url}));extra='\nकेवल नीचे दिए गए आधिकारिक government domain स्रोतों को उपयोग करें; इनमें से पात्रता सिद्ध न हो तो साफ़ कहें कि पुष्टि नहीं हुई।\n'+JSON.stringify(x.results);}
+   if(active==='schemes'){const x=await schemeSources(schemeInput);profile=x.profile;if(!x.results.length)throw Error('इस समय कोई आधिकारिक सरकारी स्रोत नहीं मिला। कृपया आधिकारिक पोर्टल पर सीधे जाँचें।');sourceLinks=x.results.map(z=>({title:z.title,url:z.url}));extra='\nकेवल नीचे दिए गए आधिकारिक government domain स्रोतों को उपयोग करें; इनमें से पात्रता सिद्ध न हो तो साफ़ कहें कि पुष्टि नहीं हुई।\n'+JSON.stringify(x.results);}
    if(file?.text)extra+='\nअपलोड की गई सामग्री (केवल इस अनुरोध के लिए; इसे स्थायी रूप से सेव न करें):\n'+file.text;
    if(profile)extra+='\nउपयोगकर्ता की पात्रता जानकारी: '+JSON.stringify(profile);
    const prompt=m.prompt+(active==='math'||active==='photo'?' अंतिम उत्तर को फिर से जाँचें।':'');
