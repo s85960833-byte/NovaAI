@@ -12,10 +12,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install runtime dependencies
+        run: npm install --no-audit --no-fund
       - name: Check backend and frontend syntax
         run: node scripts/check.mjs
       - name: Check isolated mode registry
         run: node scripts/modes-check.mjs
+      - name: Start local server with test-only credentials
+        run: |
+          LLM_KEY=test LLM_MODEL=test-model PORT=8787 node nova-server.txt > /tmp/novaai-test.log 2>&1 &
+          echo $! > /tmp/novaai-test.pid
+      - name: Exercise local routes and PWA assets
+        run: node scripts/runtime-smoke.mjs
       - name: Wait for Render auto-deploy
         if: github.ref == 'refs/heads/main'
         run: sleep 60
