@@ -7,7 +7,7 @@ let active=null,upload=null,scheme=null,recognition=null,offline=false;
 const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}};
 const write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const data=()=>read(STORE,{version:1,histories:{},lastMode:'general'});
-const saveData=x=>write(STORE,x);
+const saveData=x=>write(STORE,x);\nconst lowData=()=>data().lowData!==false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mode=id=>REG.modes.find(x=>x.id===id)||REG.modes[0];
 const history=id=>{const d=data();return d.histories[id]||(d.histories[id]=[])};
@@ -29,7 +29,8 @@ function show(){root.classList.add('open');drawHome()}
 function hide(){root.classList.remove('open');stopSpeech()}
 function drawHome(){
  active=null;upload=null;compose.hidden=true;$('#nmBack').hidden=true;$('#nmTitle').textContent='Nova AI · मोड्स';
- content.innerHTML=REG.groups.map(g=>'<section class="nmgroup"><h3>'+esc(g.name)+'</h3><div class="nmcards">'+REG.modes.filter(m=>m.group===g.id).map(m=>'<button class="nmmode" data-mode="'+m.id+'"><b>'+esc(m.name)+'</b><small>'+esc(m.desc)+'</small></button>').join('')+'</div></section>').join('')+'<p class="nmhint">हर मोड की चैट और बातचीत अलग सेव होती है। पुरानी Nova चैट्स और सेटिंग्स अलग ही रहेंगी।</p>';
+ content.innerHTML=REG.groups.map(g=>'<section class="nmgroup"><h3>'+esc(g.name)+'</h3><div class="nmcards">'+REG.modes.filter(m=>m.group===g.id).map(m=>'<button class="nmmode" data-mode="'+m.id+'"><b>'+esc(m.name)+'</b><small>'+esc(m.desc)+'</small></button>').join('')+'</div></section>').join('')+'<button id="nmLowData" class="nmmode" type="button">कम डेटा / लाइट मोड</button><p class="nmhint">हर मोड की चैट और बातचीत अलग सेव होती है। पुरानी Nova चैट्स और सेटिंग्स अलग ही रहेंगी। ऑफ़लाइन में सेव्ड चैट पढ़ सकते हैं।</p>';
+ const low=$('#nmLowData');const paintLow=()=>{low.textContent='कम डेटा मोड: '+(lowData()?'चालू':'बंद')+' · कम अपलोड और छोटा संदर्भ';};paintLow();low.onclick=()=>{const d=data();d.lowData=d.lowData===false;saveData(d);paintLow()};
  content.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>openMode(b.dataset.mode));
 }
 function drawChat(){
@@ -44,14 +45,14 @@ function openMode(id){active=id;const d=data();d.lastMode=id;saveData(d);upload=
 function stopSpeech(){try{if(recognition)recognition.stop()}catch(e){}recognition=null}
 async function extractFile(f){
  if(f.size>8*1024*1024)throw Error('फ़ाइल 8 MB से छोटी रखें।');
- if(f.type.startsWith('image/')){if(f.size>4*1024*1024)throw Error('फ़ोटो 4 MB से छोटी रखें।');return {image:await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result));r.onerror=no;r.readAsDataURL(f)}),text:'इस फ़ोटो में लिखी सामग्री पढ़कर समझाएँ।'};}
+ if(f.type.startsWith('image/')){if(f.size>(lowData()?1.5:4)*1024*1024)throw Error(lowData()?'कम डेटा मोड में फ़ोटो 1.5 MB से छोटी रखें।':'फ़ोटो 4 MB से छोटी रखें।');return {image:await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result));r.onerror=no;r.readAsDataURL(f)}),text:'इस फ़ोटो में लिखी सामग्री पढ़कर समझाएँ।'};}
  if(/\.pdf$/i.test(f.name)||f.type==='application/pdf'){
    if(!window.pdfjsLib){$('#nmStatus').textContent='PDF रीडर लोड हो रहा है…';await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';s.onload=ok;s.onerror=()=>no(Error('PDF रीडर उपलब्ध नहीं है'));document.head.append(s)});window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';}
    const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let out='';
-   for(let p=1;p<=Math.min(pdf.numPages,20);p++){const page=await pdf.getPage(p),tc=await page.getTextContent();out+=tc.items.map(x=>x.str).join(' ')+'\n';}
-   if(!out.trim())throw Error('PDF में selectable text नहीं मिला; पेज की साफ़ फोटो अपलोड करें।');return {text:out.slice(0,18000)};
+   for(let p=1;p<=Math.min(pdf.numPages,lowData()?8:20);p++){const page=await pdf.getPage(p),tc=await page.getTextContent();out+=tc.items.map(x=>x.str).join(' ')+'\n';}
+   if(!out.trim())throw Error('PDF में selectable text नहीं मिला; पेज की साफ़ फोटो अपलोड करें।');return {text:out.slice(0,lowData()?8000:18000)};
  }
- if(/text\/|\.txt$|\.md$|\.csv$/i.test(f.type+' '+f.name))return {text:(await f.text()).slice(0,18000)};
+ if(/text\/|\.txt$|\.md$|\.csv$/i.test(f.type+' '+f.name))return {text:(await f.text()).slice(0,lowData()?8000:18000)};
  throw Error('इस फ़ाइल प्रकार का समर्थन नहीं है। PDF, TXT, MD, CSV या फोटो दें।');
 }
 function cacheGet(k){const c=read(CACHE,{}),x=c[k];if(!x||Date.now()-x.at>12*60*60*1000)return null;return x.text}
@@ -81,7 +82,7 @@ async function send(){
    if(file?.text)extra+='\nअपलोड की गई सामग्री (केवल इस अनुरोध के लिए; इसे स्थायी रूप से सेव न करें):\n'+file.text;
    if(profile)extra+='\nउपयोगकर्ता की पात्रता जानकारी: '+JSON.stringify(profile);
    const prompt=m.prompt+(active==='math'||active==='photo'?' अंतिम उत्तर को फिर से जाँचें।':'');
-   const messages=[{role:'system',content:prompt},...h.slice(-8).map(x=>({role:x.role,content:x.text}))];
+   const messages=[{role:'system',content:prompt},...h.slice(-(lowData()?4:8)).map(x=>({role:x.role,content:x.text}))];
    let last=messages[messages.length-1];const appendInstruction=text=>{if(Array.isArray(last.content))last.content.unshift({type:'text',text});else last.content+='\n'+text};
    if(file?.image){last={role:'user',content:[{type:'text',text:q+'\n'+extra},{type:'image_url',image_url:{url:file.image}}]};messages[messages.length-1]=last;}
    else if(extra)last.content+=extra;
@@ -89,7 +90,7 @@ async function send(){
    const ck=cacheKey(active,q+extra),cached=cacheGet(ck);let answer=cached;
    if(!answer){
      const cfg=await fetch(API+'/config');if(!cfg.ok)throw Error('AI सेवा अभी कॉन्फ़िगर नहीं है।');
-     const config=await cfg.json(),r=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:config.model,stream:false,max_tokens:900,messages})});
+     const config=await cfg.json(),r=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:config.model,stream:false,max_tokens:lowData()?500:900,messages})});
      const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'AI provider उपलब्ध नहीं है।');
      answer=String(j.choices?.[0]?.message?.content||'').trim();if(!answer)throw Error('AI से खाली जवाब मिला।');cacheSet(ck,answer);
    }
