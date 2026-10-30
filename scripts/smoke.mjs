@@ -51,6 +51,17 @@ const live = await json(liveResponse);
 if (!liveResponse.ok || !live.ok || !live.context) throw new Error('Live search integration test failed: HTTP ' + liveResponse.status);
 console.log('PASS /api/live');
 
+const internetResponse = await request('/api/search', {
+  method: 'POST', headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ q: 'Latest NASA news' }), timeout: 20000
+});
+const internet = await json(internetResponse);
+if (!internetResponse.ok || !internet.provider || !Array.isArray(internet.results) || !internet.results.length) {
+  throw new Error('Live internet search endpoint failed: HTTP ' + internetResponse.status);
+}
+console.log('PASS /api/search (' + internet.provider + ', ' + internet.results.length + ' sources)');
+
+
 const imageValidation = await request('/api/image', {
   method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({})
 });
