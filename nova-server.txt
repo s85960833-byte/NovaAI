@@ -11,12 +11,19 @@ const path = require('path');
 const E = process.env;
 const BASE = E.LLM_BASE || 'https://openrouter.ai/api/v1';
 const app = express();
+app.set('trust proxy', 1); // Render sits behind one trusted proxy; use the real client IP for rate limits
 app.use(express.json({ limit: '6mb' }));
 
-// Simple per-IP limit: 60 requests/minute
+// Bounded per-IP request windows; discard inactive keys to keep memory stable.
+function rateWindow(map, key, now, windowMs) {
+  const a = (map.get(key) || []).filter(t => now - t < windowMs);
+  if (map.size > 2000) for (const [k, v] of map) if (!v.some(t => now - t < windowMs)) map.delete(k);
+  map.set(key, a);
+  return a;
+}
 const hits = new Map();
 app.use('/api', (q, r, next) => {
-  const now = Date.now(), a = (hits.get(q.ip) || []).filter(t => now - t < 6e4);
+  const now = Date.now(), a = rateWindow(hits, q.ip, now, 6e4);
   if (a.length >= 60) return r.status(429).json({ error: 'Too many requests' });
   a.push(now); hits.set(q.ip, a); next();
 });
@@ -737,7 +744,7 @@ const LIVE_MAX = Number(E.LIVE_CONCURRENCY) || 5;
 app.post('/api/live', async (q, r) => {
   const b = q.body || {}, text = String(b.q || '').trim().slice(0, 500);
   if (!text) return r.status(400).json({ ok: false, error: 'No question' });
-  const nw = Date.now(), a = (liveHits.get(q.ip) || []).filter(t => nw - t < 6e4);
+  const nw = Date.now(), a = rateWindow(liveHits, q.ip, nw, 6e4);
   if (a.length >= 24) return r.status(429).json({ ok: false, error: 'Too many live searches. Please wait a minute.' });
   if (liveActive >= LIVE_MAX) return r.status(429).json({ ok: false, error: 'Live search is busy. Try again in a few seconds.' });
   a.push(nw); liveHits.set(q.ip, a); liveActive++;
@@ -747,7 +754,7 @@ app.post('/api/live', async (q, r) => {
 });
 const stHits = new Map();
 app.get('/api/live/selftest', async (q, r) => {
-  const nw = Date.now(), a = (stHits.get(q.ip) || []).filter(t => nw - t < 6e4);
+  const nw = Date.now(), a = rateWindow(stHits, q.ip, nw, 6e4);
   if (a.length >= 4) return r.status(429).json({ error: 'Please wait a minute before testing again.' });
   a.push(nw); stHits.set(q.ip, a);
   const y = new Date(nw - 864e5), probes = [
