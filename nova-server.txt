@@ -203,7 +203,9 @@ app.get('/manifest.webmanifest', (q, r) => r.set('Content-Type', 'application/ma
   icons: [192, 512].map(n => ({ src: '/icons/icon-' + n + '.png', sizes: n + 'x' + n, type: 'image/png', purpose: 'any' }))
 })));
 app.get(['/icons/icon-192.png', '/icons/icon-512.png'], (q, r) => r.set('Content-Type', 'image/png').send(ICONS[q.path.includes('512') ? 512 : 192]));
-app.get('/sw.js', (q, r) => r.set('Content-Type', 'application/javascript').send("self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));self.addEventListener('fetch',()=>{});"));
+app.get('/mode-registry.js', (q, r) => r.type('application/javascript').sendFile(path.join(__dirname, 'mode-registry.js')));
+app.get('/mode-workspace.js', (q, r) => r.type('application/javascript').sendFile(path.join(__dirname, 'mode-workspace.js')));
+app.get('/sw.js', (q, r) => r.set('Content-Type', 'application/javascript').send(\"const CACHE='nova-shell-v1';const CORE=['/','/mode-registry.js','/mode-workspace.js','/manifest.webmanifest','/icons/icon-192.png'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(k=>k.startsWith('nova-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==location.origin||u.pathname.startsWith('/api/'))return;e.respondWith(caches.match(e.request).then(hit=>hit||fetch(e.request).then(r=>{if(r.ok&&r.type==='basic'){const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match('/'))))});\"));
 app.get('/', (q, r) => r.sendFile(path.join(__dirname, 'index.html')));
 // ===================== LIVE INTELLIGENCE (keyless connectors + optional keys) =====================
 // Every connector returns normalized sources: { title, url, publisher, date, kind, connector, snippet, eventDate? }
