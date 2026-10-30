@@ -73,7 +73,13 @@ const chat = await json(chatResponse);
 if (!chat.choices?.[0]?.message?.content) throw new Error('Chat endpoint returned no assistant message');
 console.log('PASS /api/chat/completions');
 
-const fallbackPairs = { 'GDELT direct': 'GDELT fallback path', 'CoinGecko direct': 'Coinbase fallback' };
+const fallbackPairs = {
+  'GDELT direct': 'GDELT fallback path',
+  'Open-Meteo forecast direct': 'Weather (Open-Meteo / fallback)',
+  'CoinGecko direct': 'Coinbase fallback',
+  'OpenAlex direct': 'OpenAlex fallback',
+  'ESPN direct': 'TheSportsDB fallback'
+};
 const failures = self.results.filter(x => !x.ok && (!fallbackPairs[x.name] || !self.results.some(y => y.name === fallbackPairs[x.name] && y.ok)));
 if (failures.length) throw new Error(failures.length + ' upstream provider self-tests failed; see report above');
 console.log('PASS all provider self-tests');
