@@ -26,5 +26,7 @@ assert.ok(workspace.includes('file?.image?null:cacheGet(ck)'),'image-specific an
 assert.ok(workspace.includes('Low Data Mode'),'low-data mode toggle missing');
 assert.ok(html.includes('<html lang="en">')&&html.includes("const L=['English'];")&&html.includes("const ui=()=>'en';"),'main UI must be English-only');
 assert.ok(html.includes('Always reply in English. Never switch to Hindi, Hinglish, or another language.'),'assistant response language must be English-only');
-assert.ok(html.includes('installAppBtn')&&html.includes('beforeinstallprompt'),'PWA install action missing');\nassert.ok(!Array.from(html).some(ch=>ch.codePointAt(0)>=0x0900&&ch.codePointAt(0)<=0x097F),'Hindi script remains in the English interface');\nassert.ok(workspace.includes("d.voiceLang='en-IN'"),'existing regional voice setting must migrate to English');
+assert.ok(html.includes('installAppBtn')&&html.includes('beforeinstallprompt'),'PWA install action missing');
+assert.ok(!Array.from(html).some(ch=>ch.codePointAt(0)>=0x0900&&ch.codePointAt(0)<=0x097F),'Hindi script remains in the English interface');
+assert.ok(workspace.includes("d.voiceLang='en-IN'"),'existing regional voice setting must migrate to English');
 console.log('PASS English mode registry: 12 isolated modes, English-only UI/prompts/voice, separate storage, PDF/photo, official scheme filtering, rate/cache, offline and PWA install');
