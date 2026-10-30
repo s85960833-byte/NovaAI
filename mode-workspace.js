@@ -82,9 +82,9 @@ async function send(){
    if(active==='schemes'){const x=await schemeSources(schemeInput);profile=x.profile;if(!x.results.length)throw Error('No official government sources were found right now. Please check the official portal directly.');sourceLinks=x.results.map(z=>({title:z.title,url:z.url}));extra='\nUse only the official government-domain sources listed below. If eligibility cannot be verified from them, clearly say so.\n'+JSON.stringify(x.results);}
    if(file?.text)extra+='\nUploaded content (for this request only; do not store it permanently):\n'+file.text;
    if(profile)extra+='\nUser eligibility details: '+JSON.stringify(profile);
-   const voiceLabels={'hi-IN':'सरल English','en-IN':'Indian English','bn-IN':'Bengali','ta-IN':'Tamil','te-IN':'Telugu','mr-IN':'Marathi','gu-IN':'Gujarati','pa-IN':'Punjabi','kn-IN':'Kannada','ml-IN':'Malayalam'};
+   const voiceLabels={'en-IN':'English (India)','en-US':'English (US)','en-GB':'English (UK)'};
    const selectedVoice=active==='voice'?(data().voiceLang||'en-IN'):null;
-   const voiceInstruction=selectedVoice?' In Voice Chat, respond in '+(voiceLabels[selectedVoice]||'सरल English')+' using short, natural sentences suitable for speech.':'';
+   const voiceInstruction=selectedVoice?' In Voice Chat, respond in '+(voiceLabels[selectedVoice]||'English')+' using short, natural sentences suitable for speech.':'';
    const prompt=m.prompt+voiceInstruction+(active==='math'||active==='photo'?' Independently verify the final answer.':'');
    const messages=[{role:'system',content:prompt},...h.slice(-(lowData()?4:8)).map(x=>({role:x.role,content:x.text}))];
    let last=messages[messages.length-1];const appendInstruction=text=>{if(Array.isArray(last.content))last.content.unshift({type:'text',text});else last.content+='\n'+text};
@@ -101,11 +101,11 @@ async function send(){
    if(!answer){
      const cfg=await fetch(API+'/config');if(!cfg.ok)throw Error('The AI service is not configured yet.');
      const config=await cfg.json(),r=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:config.model,stream:false,max_tokens:lowData()?500:900,messages})});
-     const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'AI provider उपलब्ध नहीं है।');
+     const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'The AI provider is unavailable.');
      answer=String(j.choices?.[0]?.message?.content||'').trim();if(!answer)throw Error('The AI returned an empty response.');if(!file?.image)cacheSet(ck,answer);
    }
-   if(active==='document'&&/(RTI|सूचना अधिकार|शिकायत|आवेदन|application|ड्राफ्ट|draft)/i.test(q)&&!answer.includes('This is not legal advice.'))answer+='\n\nThis is not legal advice.';
-   if(active==='schemes'&&!answer.includes('Please verify details on the official website'))answer+='\n\nPlease verify details on the official website।';
+   if(active==='document'&&/(RTI|right to information|complaint|application|draft)/i.test(q)&&!answer.includes('This is not legal advice.'))answer+='\n\nThis is not legal advice.';
+   if(active==='schemes'&&!answer.includes('Please verify details on the official website'))answer+='\n\nPlease verify details on the official website.';
    h.push({role:'assistant',text:answer,at:Date.now()});if(h.length>100)h.splice(0,h.length-100);saveData(d);drawChat();if(active==='voice')speak(answer);
    $('#nmStatus').textContent=cached?'Answer from cache':'Answer ready';
  }catch(e){h.push({role:'assistant',text:'⚠️ '+String(e.message||e),at:Date.now()});if(h.length>100)h.splice(0,h.length-100);saveData(d);drawChat();$('#nmStatus').textContent='';}
