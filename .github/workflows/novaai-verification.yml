@@ -19,5 +19,4 @@ jobs:
       - name: Smoke-test live website and providers
         env:
           NOVAAI_URL: https://novaai-4auo.onrender.com
-          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
         run: node scripts/smoke.mjs
