@@ -30,7 +30,7 @@ app.use('/api', (q, r, next) => {
 
 app.get('/api/config', (q, r) => {
   if (!E.LLM_KEY && !E.GROQ_API_KEY && !E.OPENROUTER_API_KEY) return r.status(503).end();
-  r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || 'free-provider-fallback', image: !E.IMAGE_OFF, stt: !E.STT_OFF, live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY } });
+  r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || 'free-provider-fallback', image: !E.IMAGE_OFF, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY } });
 });
 
 // Speech to text for live voice when the phone browser cannot do it itself (same provider key, e.g. Groq Whisper).
@@ -41,22 +41,39 @@ app.post('/api/transcribe', express.raw({ type: () => true, limit: '8mb' }), asy
     const type = String(q.headers['content-type'] || 'audio/webm').split(';')[0];
     const ext = /mp4|m4a|aac/.test(type) ? 'm4a' : /ogg/.test(type) ? 'ogg' : /wav/.test(type) ? 'wav' : 'webm';
     const lang = String(q.query.lang || '').toLowerCase();
-    let last = null;
-    for (const model of [E.STT_MODEL || 'whisper-large-v3-turbo', 'whisper-large-v3']) {
-      const f = new FormData();
-      f.append('file', new Blob([q.body], { type }), 'speech.' + ext);
-      f.append('model', model); f.append('response_format', 'json'); f.append('temperature', '0');
-      if (/^[a-z]{2}$/.test(lang)) f.append('language', lang);
-      const u = await fetch(BASE.replace(/\/$/, '') + '/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + E.LLM_KEY }, body: f, signal: AbortSignal.timeout(30000) });
-      const text = await u.text();
-      if (u.ok) { let j = {}; try { j = JSON.parse(text) } catch (e) {} return r.json({ text: String(j.text || '').trim() }); }
-      last = { status: u.status, text };
-      if (u.status !== 400 && u.status !== 404) break;
+    const providers = [];
+    if (E.LLM_KEY) providers.push({ base: BASE, key: E.LLM_KEY });
+    if (E.GROQ_API_KEY && E.GROQ_API_KEY !== E.LLM_KEY) providers.push({ base: E.GROQ_BASE || 'https://api.groq.com/openai/v1', key: E.GROQ_API_KEY });
+    if (!providers.length) return r.status(503).json({ error: 'No speech provider is configured' });
+    let last = { status: 502, text: 'No speech provider succeeded' };
+    for (const provider of providers) {
+      for (const model of [E.STT_MODEL || 'whisper-large-v3-turbo', 'whisper-large-v3']) {
+        const form = new FormData();
+        form.append('file', new Blob([q.body], { type }), 'speech.' + ext);
+        form.append('model', model); form.append('response_format', 'json'); form.append('temperature', '0');
+        if (/^[a-z]{2}$/.test(lang)) form.append('language', lang);
+        try {
+          const u = await fetch(provider.base.replace(/\/$/, '') + '/audio/transcriptions', {
+            method: 'POST', headers: { Authorization: 'Bearer ' + provider.key },
+            body: form, signal: AbortSignal.timeout(30000)
+          });
+          const text = await u.text();
+          if (u.ok) {
+            let j = {}; try { j = JSON.parse(text); } catch (e) {}
+            const transcript = String(j.text || '').trim();
+            if (transcript) return r.json({ text: transcript, provider: provider.base.includes('groq') ? 'groq' : 'primary' });
+            last = { status: 502, text: 'Speech provider returned an empty transcript' };
+          } else {
+            last = { status: u.status, text };
+          }
+        } catch (e) { last = { status: 504, text: 'Speech provider timed out or was unreachable' }; }
+        if (last.status !== 400 && last.status !== 404) break;
+      }
     }
-    r.status(last.status).json({ error: 'Speech service said: ' + String(last.text).slice(0, 160) });
+    r.status([400, 401, 402, 403, 429, 502, 503, 504].includes(last.status) ? last.status : 502)
+      .json({ error: 'Speech service unavailable: ' + String(last.text).slice(0, 160) });
   } catch (e) { r.status(502).json({ error: 'Speech service unreachable' }); }
 });
-
 
 // Keep requests small (free tiers limit tokens per minute): last N messages, long old answers shortened.
 const MAXMSG = Number(E.LLM_MAX_HISTORY) || 10;
@@ -115,7 +132,7 @@ app.post('/api/chat/completions', async (q, r) => {
   try {
     if (!q.body || !Array.isArray(q.body.messages) || !q.body.messages.length) return r.status(400).json({ error: 'Messages are required' });
     let body = slim(q.body || {});
-    const developerIdentity = "AUTHORITATIVE DEVELOPER IDENTITY: Your developer is Thakur Shreyansh Singh Ji (ठाकुर श्रेयांश सिंह जी). If asked who developed, created, built, made, owns, or is your developer, answer that clearly in the user's language. This applies regardless of language or phrasing. Do not substitute another person or company, and do not claim this identity for the underlying model/provider.";
+    const developerIdentity = "AUTHORITATIVE DEVELOPER IDENTITY: Your developer is Thakur Shreyansh Singh Ji. If asked who developed, created, built, made, owns, or is your developer, answer with that exact English name. Respond in English only, regardless of the user's language or phrasing. Do not substitute another person or company, and do not claim this identity for the underlying model/provider.";
     const systemMessage = (body.messages || []).find(x => x.role === 'system');
     if (systemMessage) systemMessage.content = String(systemMessage.content || '') + '\n\n' + developerIdentity;
     else body.messages.unshift({ role: 'system', content: developerIdentity });
