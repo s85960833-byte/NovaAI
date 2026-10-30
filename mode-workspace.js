@@ -74,8 +74,8 @@ async function send(){
  let q=question||upload?.text||'इस सामग्री को समझाएँ',file=upload;upload=null;$('#nmUploadName').textContent='';
  const userText=question||('📎 '+(file?.name||'अपलोड की गई फ़ाइल'));h.push({role:'user',text:userText,at:now});saveData(d);input.value='';drawChat();$('#nmStatus').textContent='जवाब तैयार हो रहा है…';
  try{
-   let extra='',profile=null;
-   if(active==='schemes'){const x=await schemeSources();profile=x.profile;if(!x.results.length)throw Error('इस समय कोई आधिकारिक सरकारी स्रोत नहीं मिला। कृपया आधिकारिक पोर्टल पर सीधे जाँचें।');extra='\nकेवल नीचे दिए गए आधिकारिक government domain स्रोतों को उपयोग करें; इनमें से पात्रता सिद्ध न हो तो साफ़ कहें कि पुष्टि नहीं हुई।\n'+JSON.stringify(x.results);}
+   let extra='',profile=null,sourceLinks=[];
+   if(active==='schemes'){const x=await schemeSources();profile=x.profile;if(!x.results.length)throw Error('इस समय कोई आधिकारिक सरकारी स्रोत नहीं मिला। कृपया आधिकारिक पोर्टल पर सीधे जाँचें।');sourceLinks=x.results.map(z=>({title:z.title,url:z.url}));extra='\nकेवल नीचे दिए गए आधिकारिक government domain स्रोतों को उपयोग करें; इनमें से पात्रता सिद्ध न हो तो साफ़ कहें कि पुष्टि नहीं हुई।\n'+JSON.stringify(x.results);}
    if(file?.text)extra+='\nअपलोड की गई सामग्री (केवल इस अनुरोध के लिए; इसे स्थायी रूप से सेव न करें):\n'+file.text;
    if(profile)extra+='\nउपयोगकर्ता की पात्रता जानकारी: '+JSON.stringify(profile);
    const prompt=m.prompt+(active==='math'||active==='photo'?' अंतिम उत्तर को फिर से जाँचें।':'');
@@ -83,7 +83,7 @@ async function send(){
    let last=messages[messages.length-1];
    if(file?.image){last={role:'user',content:[{type:'text',text:q+'\n'+extra},{type:'image_url',image_url:{url:file.image}}]};messages[messages.length-1]=last;}
    else if(extra)last.content+=extra;
-   if(active==='shopkeeper'&&/GST|जीएसटी/i.test(q)&&!/(\d+(?:\.\d+)?\s*%)/.test(q))last.content+='\nपहले लागू GST दर पूछें; दर का अनुमान न लगाएँ।';
+   if(active==='shopkeeper'&&/GST|जीएसटी/i.test(q)){const gst=(q.match(/(?:₹|Rs\\.?\\s*)?([0-9][0-9,]*(?:\\.[0-9]+)?)\\s*(?:at|@|पर)?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*%/i)||[]);if(gst.length){const base=Number(gst[1].replace(/,/g,'')),rate=Number(gst[2]),tax=base*rate/100;if(Number.isFinite(base)&&Number.isFinite(rate)&&base>=0&&rate>=0&&rate<=100)last.content+='\\nगणना की जाँच (उपयोगकर्ता द्वारा दी गई दर): कर-योग्य मूल्य ₹'+base.toFixed(2)+'; GST दर '+rate+'%; GST ₹'+tax.toFixed(2)+'; कुल ₹'+(base+tax).toFixed(2)+'. CGST/SGST बनाम IGST राज्य के अनुसार तय करें।';}else last.content+='\\nपहले लागू GST दर पूछें; दर का अनुमान न लगाएँ।';}
    const ck=cacheKey(active,q+extra),cached=cacheGet(ck);let answer=cached;
    if(!answer){
      const cfg=await fetch(API+'/config');if(!cfg.ok)throw Error('AI सेवा अभी कॉन्फ़िगर नहीं है।');
@@ -91,7 +91,7 @@ async function send(){
      const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'AI provider उपलब्ध नहीं है।');
      answer=String(j.choices?.[0]?.message?.content||'').trim();if(!answer)throw Error('AI से खाली जवाब मिला।');cacheSet(ck,answer);
    }
-   if(active==='document'&&/(RTI|सूचना अधिकार|शिकायत|आवेदन|ड्राफ्ट|draft)/i.test(q)&&!answer.includes('ये कानूनी सलाह नहीं है।'))answer+='\n\nये कानूनी सलाह नहीं है।';
+   if(active==='document'&&/(RTI|सूचना अधिकार|शिकायत|आवेदन|application|ड्राफ्ट|draft)/i.test(q)&&!answer.includes('ये कानूनी सलाह नहीं है।'))answer+='\n\nये कानूनी सलाह नहीं है।';
    if(active==='schemes'&&!answer.includes('पक्का करने के लिए आधिकारिक साइट देखें'))answer+='\n\nपक्का करने के लिए आधिकारिक साइट देखें।';
    h.push({role:'assistant',text:answer,at:Date.now()});saveData(d);drawChat();if(active==='voice')speak(answer);
    $('#nmStatus').textContent=cached?'सेव कैश से जवाब':'जवाब तैयार';
