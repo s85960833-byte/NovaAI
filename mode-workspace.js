@@ -83,7 +83,7 @@ async function send(){
    let last=messages[messages.length-1];
    if(file?.image){last={role:'user',content:[{type:'text',text:q+'\n'+extra},{type:'image_url',image_url:{url:file.image}}]};messages[messages.length-1]=last;}
    else if(extra)last.content+=extra;
-   if(active==='shopkeeper'&&/GST|जीएसटी/i.test(q)){const gst=(q.match(/(?:₹|Rs\\.?\\s*)?([0-9][0-9,]*(?:\\.[0-9]+)?)\\s*(?:at|@|पर)?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*%/i)||[]);if(gst.length){const base=Number(gst[1].replace(/,/g,'')),rate=Number(gst[2]),tax=base*rate/100;if(Number.isFinite(base)&&Number.isFinite(rate)&&base>=0&&rate>=0&&rate<=100)last.content+='\\nगणना की जाँच (उपयोगकर्ता द्वारा दी गई दर): कर-योग्य मूल्य ₹'+base.toFixed(2)+'; GST दर '+rate+'%; GST ₹'+tax.toFixed(2)+'; कुल ₹'+(base+tax).toFixed(2)+'. CGST/SGST बनाम IGST राज्य के अनुसार तय करें।';}else last.content+='\\nपहले लागू GST दर पूछें; दर का अनुमान न लगाएँ।';}
+   if(active==='shopkeeper'&&/GST|जीएसटी/i.test(q)){const gst=(q.match(/(?:₹|Rs\.?\s*)?([0-9][0-9,]*(?:\.[0-9]+)?)\s*(?:at|@|पर)?\s*([0-9]+(?:\.[0-9]+)?)\s*%/i)||[]);if(gst.length){const base=Number(gst[1].replace(/,/g,'')),rate=Number(gst[2]),tax=base*rate/100;if(Number.isFinite(base)&&Number.isFinite(rate)&&base>=0&&rate>=0&&rate<=100)last.content+='\nगणना की जाँच (उपयोगकर्ता द्वारा दी गई दर): कर-योग्य मूल्य ₹'+base.toFixed(2)+'; GST दर '+rate+'%; GST ₹'+tax.toFixed(2)+'; कुल ₹'+(base+tax).toFixed(2)+'. CGST/SGST बनाम IGST राज्य के अनुसार तय करें।';}else last.content+='\nपहले लागू GST दर पूछें; दर का अनुमान न लगाएँ।';}
    const ck=cacheKey(active,q+extra),cached=cacheGet(ck);let answer=cached;
    if(!answer){
      const cfg=await fetch(API+'/config');if(!cfg.ok)throw Error('AI सेवा अभी कॉन्फ़िगर नहीं है।');
