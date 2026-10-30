@@ -370,7 +370,7 @@ async function gdelt(q, o = {}) {
   let url = 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + enc(q) + '&mode=artlist&maxrecords=' + Math.min(15, Math.max(1, Number(o.n) || 10)) + '&format=json&sort=datedesc';
   url += (o.start && o.end) ? '&startdatetime=' + o.start + '&enddatetime=' + o.end : '&timespan=' + (o.timespan || '3d');
   return cached('gd:' + url, 10 * 6e4, async () => {
-    const j = await lhttp(url, { json: true, timeout: 6500, tries: 1 });
+    const j = await lhttp(url, { json: true, timeout: 4500, tries: 1 });
     const out = (j.articles || []).map(a => ({ title: lclean(a.title, 200), url: safeUrl(a.url), publisher: a.domain || host(a.url), date: gdDate(a.seendate), snippet: '', kind: 'news', connector: 'gdelt' })).filter(x => x.title && x.url);
     if (!out.length) throw new Error('no items');
     return out;
