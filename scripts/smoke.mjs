@@ -21,7 +21,15 @@ console.log('PASS /api/config');
 
 const manifest = await request('/manifest.webmanifest');
 if (!manifest.ok) throw new Error('Manifest returned HTTP ' + manifest.status);
-const manifestData = await json(manifest);\nif (manifestData.lang !== 'en' || manifestData.display !== 'standalone') throw new Error('PWA manifest is not configured for the English installable app');\nconsole.log('PASS /manifest.webmanifest (English PWA)');\n\nconst home = await request('/');\nconst homeHtml = await home.text();\nif (!home.ok || !homeHtml.includes('<html lang="en">') || !homeHtml.includes('Install App') || !homeHtml.includes("const L=['English'];")) throw new Error('English-only homepage or install action is missing');\nif (Array.from(homeHtml).some(ch => ch.codePointAt(0) >= 0x0900 && ch.codePointAt(0) <= 0x097F)) throw new Error('Non-English text remains in the shipped homepage');\nconsole.log('PASS English homepage and PWA install action');
+const manifestData = await json(manifest);
+if (manifestData.lang !== 'en' || manifestData.display !== 'standalone') throw new Error('PWA manifest is not configured for the English installable app');
+console.log('PASS /manifest.webmanifest (English PWA)');
+
+const home = await request('/');
+const homeHtml = await home.text();
+if (!home.ok || !homeHtml.includes('<html lang="en">') || !homeHtml.includes('Install App') || !homeHtml.includes("const L=['English'];")) throw new Error('English-only homepage or install action is missing');
+if (Array.from(homeHtml).some(ch => ch.codePointAt(0) >= 0x0900 && ch.codePointAt(0) <= 0x097F)) throw new Error('Non-English text remains in the shipped homepage');
+console.log('PASS English homepage and PWA install action');
 
 for (const [path, marker] of [['/mode-registry.js', 'NovaModeRegistry'], ['/mode-workspace.js', 'nova_modes_v1']]) {
   const response = await request(path);
@@ -73,7 +81,14 @@ const imageValidation = await request('/api/image', {
   method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({})
 });
 if (imageValidation.status !== 400) throw new Error('/api/image invalid-input guard expected 400, got ' + imageValidation.status);
-console.log('PASS /api/image validation');\n\nconst imageResponse = await request('/api/image', {\n  method: 'POST', headers: { 'content-type': 'application/json' },\n  body: JSON.stringify({ prompt: 'A simple blue geometric flower on a clean white background', width: 512, height: 512, seed: 42 }),\n  timeout: 90000\n});\nconst generated = await json(imageResponse);\nif (!imageResponse.ok || !/^data:image\\//.test(generated.image || '') || generated.image.length < 1200) throw new Error('Actual image generation failed: HTTP ' + imageResponse.status);\nconsole.log('PASS actual free image generation (' + Math.round(generated.image.length / 1024) + ' KB data URL)');
+console.log('PASS /api/image validation');\n\nconst imageResponse = await request('/api/image', {
+  method: 'POST', headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ prompt: 'A simple blue geometric flower on a clean white background', width: 512, height: 512, seed: 42 }),
+  timeout: 90000
+});
+const generated = await json(imageResponse);
+if (!imageResponse.ok || !/^data:image\\//.test(generated.image || '') || generated.image.length < 1200) throw new Error('Actual image generation failed: HTTP ' + imageResponse.status);
+console.log('PASS actual free image generation (' + Math.round(generated.image.length / 1024) + ' KB data URL)');
 
 const transcribeValidation = await request('/api/transcribe', {
   method: 'POST', headers: { 'content-type': 'audio/webm' }, body: new Uint8Array()
