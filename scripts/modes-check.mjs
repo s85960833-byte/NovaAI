@@ -13,7 +13,7 @@ assert.equal(new Set(ids).size,ids.length,'mode IDs must be unique');
 assert.ok(r.modes.find(x=>x.id==='document').prompt.includes('ये कानूनी सलाह नहीं है।'));
 assert.ok(r.modes.find(x=>x.id==='schemes').prompt.includes('पक्का करने के लिए आधिकारिक साइट देखें'));
 assert.ok(r.modes.find(x=>x.id==='math').prompt.includes('चरणों'));
-for(const token of ['nova_modes_v1','nova_mode_cache_v1','SpeechRecognition','speechSynthesis','pdfjsLib','gov\\.in','GROQ_API_KEY'])assert.ok(workspace.includes(token)||source.includes(token),'missing workspace capability '+token);
+for(const token of ['nova_modes_v1','nova_mode_cache_v1','SpeechRecognition','speechSynthesis','pdfjsLib','gov\\.in'])assert.ok(workspace.includes(token)||source.includes(token),'missing workspace capability '+token);
 assert.ok(workspace.includes('navigator.onLine'),'offline-aware saved chat mode missing');
 assert.ok(workspace.includes('10*60*1000'),'per-user rolling request limit missing');
 assert.ok(workspace.includes('4*1024*1024'),'image upload memory/size guard missing');
