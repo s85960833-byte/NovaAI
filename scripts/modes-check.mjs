@@ -12,7 +12,7 @@ assert.deepEqual(Array.from(r.groups,x=>x.name),['General Modes','Study Modes'])
 const ids=r.modes.map(x=>x.id);
 for(const id of ['general','voice','document','schemes','shopkeeper','math','photo','ncert','board','ssc','upsc','english'])assert.ok(ids.includes(id),'missing '+id);
 assert.equal(new Set(ids).size,ids.length,'mode IDs must be unique');
-for(const m of r.modes){assert.ok(m.name&&m.desc&&m.prompt,'mode metadata missing for '+m.id);assert.ok(!/[\\u0900-\\u097F]/.test(m.name+m.desc+m.prompt),'non-English mode content in '+m.id)}
+for(const m of r.modes){assert.ok(m.name&&m.desc&&m.prompt,'mode metadata missing for '+m.id);assert.ok(!/[\u0900-\u097F]/.test(m.name+m.desc+m.prompt),'non-English mode content in '+m.id)}
 assert.ok(r.modes.find(x=>x.id==='document').prompt.includes('This is not legal advice.'));
 assert.ok(r.modes.find(x=>x.id==='schemes').prompt.includes('Please verify details on the official website.'));
 assert.ok(r.modes.find(x=>x.id==='math').prompt.includes('step'));
