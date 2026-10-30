@@ -179,7 +179,7 @@ app.post('/api/search', async (q, r) => {
   const query = String((q.body && q.body.q) || '').trim().slice(0, 400);
   if (!query) return r.status(400).json({ error: 'Search query is required' });
   try {
-    const found = await withTimeout(webSearch(query, { lang: /[ऀ-ॿ]/u.test(query) ? 'hi' : 'en' }), 16000, 'web-search');
+    const found = await withTimeout(webSearch(query, { lang: 'en' }), 16000, 'web-search');
     r.json({ query, provider: found.via, retrievedAt: new Date().toISOString(), results: found.items.slice(0, 8).map(x => ({ title: x.title, url: x.url, publisher: x.publisher, date: x.date || '', content: String(x.snippet || '').slice(0, 900) })) });
   } catch (e) { r.status(502).json({ error: 'Live internet search is temporarily unavailable' }); }
 });
