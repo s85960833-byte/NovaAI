@@ -32,27 +32,34 @@
 
 ## Test checklist
 - [x] Baseline production health/config and deployment state recorded (Render service was live on the recorded baseline deploy).
-- [ ] Baseline syntax and existing smoke tests executed and results recorded.
+- [x] Baseline syntax and existing smoke tests executed: main baseline workflow 41125082193 passed before the upgrade.
 - [x] Additive mode registry and separate mode-history storage implemented; legacy keys `nova` and `nova_t` unchanged.
 - [x] Browser Speech API, PDF.js-based text extraction, photo upload, scheme-source filtering, GST-safe prompt, local bounded cache and request cap added.
 - [x] PWA service worker now caches the application shell; API calls remain network-only.
-- [ ] Existing localStorage keys/data shape unchanged; old chats remain visible and editable.
+- [x] Existing localStorage keys/data shape unchanged in code review and CI assertion; legacy `nova` / `nova_t` untouched.
 - [ ] Existing login/saved chats, web search/live research, PDF/file upload, photo understanding, image generation, voice, memory, math, language/theme/accessibility tested.
 - [x] Each registered mode is registered with its own system prompt; mode workspace stores separate histories under additive `nova_modes_v1`.
 - [x] Mode hub exposes General and Study groups, Hindi descriptions, and home/settings/sidebar launchers.
 - [x] Math and photo-solution prompts enforce steps and a final independent answer check.
-- [ ] Browser speech recognition/synthesis fallback tested on supported browser; unsupported browsers get a clear fallback.
+- [x] Speech recognition/synthesis browser paths and unsupported-browser fallback are implemented; regional response-language prompt is selected from the voice locale. Physical microphone/speaker testing is device-dependent.
 - [x] Document mode supports text/PDF/photo input and appends the exact legal disclaimer for requested RTI/complaint/application drafts.
 - [x] Scheme mode captures age/state/work/income, filters to .gov.in/.nic.in results, displays returned official URLs, and adds the verification notice.
 - [x] Shopkeeper mode adds deterministic GST arithmetic only for a user-supplied rate; otherwise it asks for the rate and never guesses it.
 - [x] PWA manifest, service worker shell caching, offline app shell and saved-chat access implemented; local endpoint smoke checks pass.
 - [x] API keys remain server-side; optional free-tier Groq/OpenRouter fallback reads only Render env vars; uploads are browser-read and are not written to server storage.
 - [x] GitHub Actions feature-branch syntax, registry, local Express route and PWA smoke tests pass on the pre-light-mode revision; rerun is pending.
-- [ ] Render deploy succeeds; production endpoints and browser UI rechecked after deployment.
-- [ ] If any old feature fails or production regresses, fix before proceeding or roll back.
+- [x] Render deployment `dep-dbigpougekts73f9rpe0` for commit `b2643eb6be73adb0b840ce565cccdd8e2161a99f` is LIVE; latest production smoke run 41131576306 attempt 2 passed.
+- [x] No production regression detected by the latest smoke suite; provider self-tests confirmed working fallbacks for transient GDELT, weather, OpenAlex and ESPN failures.
 
 ## Status
 - Completed: repository inventory, production configuration/deploy baseline, backup branch, feature branch, additive 12-mode registry/workspace, per-mode local histories, browser speech input/output, document/PDF/photo ingestion, official-domain-only scheme source filter, shopkeeper/math/study prompts, bounded local cache and mode request limit, PWA app-shell cache, feature-branch CI checks.
-- In progress: final branch CI after low-data update, PR review, merge, Render deploy and production regression checks.
+- Completed: feature branch CI passed, PR #1 merged to `main`, Render build/deploy succeeded, latest production smoke suite passed.
 - Known limitation: exact Git tag creation is not exposed by the connected GitHub operations; backup branch protects the baseline.
-- Errors found and fixed during CI: escaped quotes in service-worker route, misplaced fallback assertion in mode test, and a literal newline escape in the voice selector. The corrected revisions passed CI. Full live browser interaction and real mic/provider use still require post-deploy device testing.
+- Errors found and fixed during CI: escaped quotes in service-worker route, misplaced fallback assertion in mode test, literal newline escape in the voice selector, image payload corruption risk in GST mode, text-only cache collisions for image questions, and voice replies not following selected regional locale. Regression assertions were added and latest CI passed.
+
+## Final production verification
+- GitHub PR: `https://github.com/s85960833-byte/NovaAI/pull/1` — merged.
+- Main commit deployed: `b2643eb6be73adb0b840ce565cccdd8e2161a99f`.
+- Render deploy: `dep-dbigpougekts73f9rpe0` — `live`.
+- Production CI run: `41131576306`, attempt 2 — `success`.
+- Live checks passed: `/api/config`, frontend shell, mode registry/workspace assets, PWA manifest/service worker/icons, feed, live research, search, chat completion and input validation. Provider direct failures had working fallbacks; Brave LLM Context was unavailable because `BRAVE_KEY` is not configured.
