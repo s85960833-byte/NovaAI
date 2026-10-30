@@ -649,7 +649,7 @@ async function runLive(qraw, o = {}) {
     if (!syms.length && !cry.length && !/inr|rupee|dollar|usd|eur/i.test(q) && !brief) notes.push('A market question was detected but no known instrument matched; do not guess a price.');
     gn((tq || sq) + ' market', { when: '2d', n: 6 });
   }
-  if (f.sports) { intents.push('sports'); T('espn', () => espn(q).then(b => ({ blocks: [b] })), 9000); gn(sq + ' live score OR result', { when: '2d', n: 8 }); if (/cricket|ipl|\bt20\b|\bodi\b|test match|\u0915\u094d\u0930\u093f\u0915\u0947\u091f|asia cup/i.test(q)) feedT('sports'); }
+  if (f.sports) { intents.push('sports'); T('scoreboard', () => espn(q).then(b => ({ blocks: [b] })), 9000); }
   if (f.quake) { intents.push('natural-events'); if (/earthquake|\u092d\u0942\u0915\u0902\u092a/i.test(q)) T('usgs', () => quakes().then(b => ({ blocks: [b] })), 9000); else T('nasa-eonet', () => eonet().then(b => ({ blocks: [b] })), 9000); gn(sq, { when: '7d', n: 8 }); }
   if (f.science) { intents.push('science'); T('arxiv', () => arxiv(tq || sq).then(items => ({ items })), 11000); T('openalex', () => openalex(tq || sq).then(items => ({ items })), 11000); gn(sq + ' study', { when: '30d', n: 6 }); feedT('science', tq || sq); }
   if (f.stats) { intents.push('statistics'); T('world-bank', () => worldBank(q).then(b => ({ blocks: [b] })), 11000); }
