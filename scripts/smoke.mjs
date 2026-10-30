@@ -1,4 +1,4 @@
-const BASE = (process.env.NOVAAI_URL || 'https://novaai-4auo.onrender.com').replace(/\\/$/, '');
+const BASE = process.env.NOVAAI_URL || 'https://novaai-4auo.onrender.com';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function request(path, options = {}) {
   const controller = new AbortController();
@@ -37,10 +37,9 @@ const self = await json(selfResponse);
 if (!selfResponse.ok || !Array.isArray(self.results)) throw new Error('Provider self-test endpoint failed');
 const lines = self.results.map(x => (x.ok ? 'PASS ' : 'FAIL ') + x.name + ' — ' + x.ms + 'ms' + (x.note ? ' (' + x.note + ')' : ''));
 console.log(lines.join('\n'));
-const summary = process.env.GITHUB_STEP_SUMMARY;
-if (summary) {
+if (process.env.GITHUB_STEP_SUMMARY) {
   const fs = await import('node:fs/promises');
-  await fs.appendFile(summary, '## NovaAI provider self-test\n\n' + lines.map(x => '- ' + x).join('\n') + '\n');
+  await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, '## NovaAI provider self-test\n\n' + lines.map(x => '- ' + x).join('\n') + '\n');
 }
 
 const liveResponse = await request('/api/live', {
