@@ -511,7 +511,7 @@ async function arxiv(q) {
 }
 async function openalex(q) {
   const yr = new Date().getFullYear() - 1;
-  const j = await cached('oa:' + q, 30 * 6e4, () => lhttp('https://api.openalex.org/works?search=' + enc(q) + '&per-page=6&filter=from_publication_date:' + yr + '-01-01&mailto=nova@example.com', { json: true, timeout: 9000 }));
+  const j = await cached('oa:' + q, 30 * 6e4, () => lhttp('https://api.openalex.org/works?search=' + enc(q) + '&per-page=6&filter=from_publication_date:' + yr + '-01-01', { json: true, timeout: 9000 }));
   const it = (j.results || []).map(r => ({ title: lclean(r.display_name, 220), url: safeUrl(r.doi || r.id), publisher: (r.primary_location && r.primary_location.source && r.primary_location.source.display_name) || 'OpenAlex', date: iso(r.publication_date), snippet: '', kind: 'paper', connector: 'openalex' })).filter(x => x.title && x.url);
   if (!it.length) throw new Error('no papers'); return it;
 }
@@ -520,7 +520,7 @@ const CC = { india: 'IN', bharat: 'IN', '\u092d\u093e\u0930\u0924': 'IN', usa: '
 const WBI = [[/gdp growth|growth rate|\u0935\u093f\u0915\u093e\u0938 \u0926\u0930/i, 'NY.GDP.MKTP.KD.ZG', 'GDP growth (annual %)'], [/gdp per capita/i, 'NY.GDP.PCAP.CD', 'GDP per capita (current US$)'], [/gdp|\u091c\u0940\u0921\u0940\u092a\u0940|economy size/i, 'NY.GDP.MKTP.CD', 'GDP (current US$)'], [/inflation|\u092e\u0939\u0902\u0917\u093e\u0908/i, 'FP.CPI.TOTL.ZG', 'Inflation, consumer prices (annual %)'], [/unemployment|\u092c\u0947\u0930\u094b\u091c\u093c\u0917\u093e\u0930\u0940|\u092c\u0947\u0930\u094b\u091c\u0917\u093e\u0930\u0940/i, 'SL.UEM.TOTL.ZS', 'Unemployment (% of labour force)'], [/population|\u091c\u0928\u0938\u0902\u0916\u094d\u092f\u093e/i, 'SP.POP.TOTL', 'Population, total'], [/life expectancy/i, 'SP.DYN.LE00.IN', 'Life expectancy at birth (years)'], [/literacy/i, 'SE.ADT.LITR.ZS', 'Adult literacy rate (%)'], [/poverty/i, 'SI.POV.DDAY', 'Poverty headcount ($2.15/day, %)']];
 async function worldBank(q) {
   const ql = q.toLowerCase(); const ind = WBI.find(x => x[0].test(q)); if (!ind) throw new Error('no indicator');
-  let cc = 'IN'; for (const k of Object.keys(CC)) if (new RegExp('(^|[^a-z])' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z])', 'i').test(ql) || ql.includes(k)) { cc = CC[k]; break; }
+  let cc = 'IN'; for (const k of Object.keys(CC).sort((a, b) => b.length - a.length)) if (new RegExp('(^|[^a-z])' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z])', 'i').test(ql)) { cc = CC[k]; break; }
   const j = await cached('wb:' + cc + ind[1], 12 * 36e5, () => lhttp('https://api.worldbank.org/v2/country/' + cc + '/indicator/' + ind[1] + '?format=json&per_page=10&date=2012:' + new Date().getFullYear(), { json: true, timeout: 9000 }));
   const rows = (j[1] || []).filter(r => r.value !== null); if (!rows.length) throw new Error('no data');
   const fmt = v => Math.abs(v) >= 1e9 ? (v / 1e9).toFixed(2) + ' billion' : Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(2) + ' million' : String(Math.round(v * 100) / 100);
@@ -552,7 +552,7 @@ async function fxRate(q) {
   if (!j.rates || j.rates[to] == null) throw new Error('no rate');
   return { text: 'EXCHANGE RATE (ECB reference rate, updated once per working day, not a live market price) \u2014 1 ' + from + ' = ' + j.rates[to] + ' ' + to + ' on ' + j.date + '.', source: { title: 'Frankfurter/ECB \u2014 ' + from + '/' + to, url: 'https://www.frankfurter.app/', publisher: 'European Central Bank via Frankfurter', date: iso(j.date), kind: 'data', connector: 'frankfurter', snippet: '' } };
 }
-// ---- sports: ESPN public scoreboards (unofficial). Cricket falls back to news + Cricinfo ----
+// ---- sports: verified scoreboard data only; never substitute news articles for live scores ----
 const LEAGUES = [[/\bnba\b/i, 'basketball/nba', 'NBA'], [/\bnfl\b/i, 'football/nfl', 'NFL'], [/\bmlb\b/i, 'baseball/mlb', 'MLB'], [/\bnhl\b/i, 'hockey/nhl', 'NHL'], [/premier league|\bepl\b/i, 'soccer/eng.1', 'Premier League'], [/la ?liga/i, 'soccer/esp.1', 'La Liga'], [/serie a/i, 'soccer/ita.1', 'Serie A'], [/bundesliga/i, 'soccer/ger.1', 'Bundesliga'], [/champions league|\bucl\b/i, 'soccer/uefa.champions', 'UEFA Champions League'], [/\bisl\b|indian super league/i, 'soccer/ind.1', 'Indian Super League'], [/\bmls\b/i, 'soccer/usa.1', 'MLS'], [/fifa world cup|football world cup/i, 'soccer/fifa.world', 'FIFA World Cup'], [/formula ?1|\bf1\b/i, 'racing/f1', 'Formula 1'], [/\batp\b|tennis/i, 'tennis/atp', 'ATP tennis']];
 async function espn(q) {
   const lg = LEAGUES.find(l => l[0].test(q)); if (!lg) throw new Error('no ESPN league for this sport');
