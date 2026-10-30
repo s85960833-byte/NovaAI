@@ -89,6 +89,7 @@ const fallbackPairs = {
   'Open-Meteo forecast direct': 'Weather (Open-Meteo / fallback)',
   'CoinGecko direct': 'Coinbase fallback',
   'OpenAlex direct': 'OpenAlex fallback',
+  'Brave LLM Context': 'Web search',
   'ESPN direct': 'TheSportsDB fallback'
 };
 const failures = self.results.filter(x => !x.ok && (!fallbackPairs[x.name] || !self.results.some(y => y.name === fallbackPairs[x.name] && y.ok)));
