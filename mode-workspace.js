@@ -82,7 +82,10 @@ async function send(){
    if(active==='schemes'){const x=await schemeSources(schemeInput);profile=x.profile;if(!x.results.length)throw Error('इस समय कोई आधिकारिक सरकारी स्रोत नहीं मिला। कृपया आधिकारिक पोर्टल पर सीधे जाँचें।');sourceLinks=x.results.map(z=>({title:z.title,url:z.url}));extra='\nकेवल नीचे दिए गए आधिकारिक government domain स्रोतों को उपयोग करें; इनमें से पात्रता सिद्ध न हो तो साफ़ कहें कि पुष्टि नहीं हुई।\n'+JSON.stringify(x.results);}
    if(file?.text)extra+='\nअपलोड की गई सामग्री (केवल इस अनुरोध के लिए; इसे स्थायी रूप से सेव न करें):\n'+file.text;
    if(profile)extra+='\nउपयोगकर्ता की पात्रता जानकारी: '+JSON.stringify(profile);
-   const prompt=m.prompt+(active==='math'||active==='photo'?' अंतिम उत्तर को फिर से जाँचें।':'');
+   const voiceLabels={'hi-IN':'सरल हिंदी','en-IN':'Indian English','bn-IN':'বাংলা','ta-IN':'தமிழ்','te-IN':'తెలుగు','mr-IN':'मराठी','gu-IN':'ગુજરાતી','pa-IN':'ਪੰਜਾਬੀ','kn-IN':'ಕನ್ನಡ','ml-IN':'മലയാളം'};
+   const selectedVoice=active==='voice'?(data().voiceLang||'hi-IN'):null;
+   const voiceInstruction=selectedVoice?' वॉइस मोड में जवाब '+(voiceLabels[selectedVoice]||'सरल हिंदी')+' में दें; बोलने योग्य, छोटे वाक्य रखें।':'';
+   const prompt=m.prompt+voiceInstruction+(active==='math'||active==='photo'?' अंतिम उत्तर को फिर से जाँचें।':'');
    const messages=[{role:'system',content:prompt},...h.slice(-(lowData()?4:8)).map(x=>({role:x.role,content:x.text}))];
    let last=messages[messages.length-1];const appendInstruction=text=>{if(Array.isArray(last.content))last.content.unshift({type:'text',text});else last.content+='\n'+text};
    if(file?.image){last={role:'user',content:[{type:'text',text:q+'\n'+extra},{type:'image_url',image_url:{url:file.image}}]};messages[messages.length-1]=last;}
