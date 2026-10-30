@@ -36,7 +36,7 @@ function drawHome(){
 }
 function drawChat(){
  const m=mode(active),h=history(active);$('#nmBack').hidden=false;$('#nmTitle').textContent=m.name;compose.hidden=false;
- const controls=active==='schemes'?'<div class="nmscheme"><label>Age<input id="nmAge" type="number" min="1" max="120" placeholder="Age"></label><label>State<input id="nmState" placeholder="State"></label><label>Work/status<input id="nmWork" placeholder="e.g. student, farmer"></label><label>Annual income (₹)<input id="nmIncome" type="number" min="0" placeholder="Income"></label></div>':active==='voice'?'<label class="nmhint">Reply language <select id="nmVoiceLang"><option value="hi-IN">English</option><option value="en-IN">English (India)</option><option value="bn-IN">Bengali</option><option value="ta-IN">Tamil</option><option value="te-IN">Telugu</option><option value="mr-IN">Marathi</option><option value="gu-IN">Gujarati</option><option value="pa-IN">Punjabi</option><option value="kn-IN">Kannada</option><option value="ml-IN">Malayalam</option></select></label>':'';
+ const controls=active==='schemes'?'<div class="nmscheme"><label>Age<input id="nmAge" type="number" min="1" max="120" placeholder="Age"></label><label>State<input id="nmState" placeholder="State"></label><label>Work/status<input id="nmWork" placeholder="e.g. student, farmer"></label><label>Annual income (₹)<input id="nmIncome" type="number" min="0" placeholder="Income"></label></div>':active==='voice'?'<label class="nmhint">Reply language <select id="nmVoiceLang"><option value="en-IN">English (India)</option><option value="en-US">English (US)</option><option value="en-GB">English (UK)</option></select></label>':'';
  content.innerHTML=controls+'<div class="nmchat">'+h.map(x=>'<div class="nmbubble '+(x.role==='user'?'user':'assistant')+'">'+esc(x.text)+'</div>').join('')+'</div>';
  $('#nmStatus').textContent=navigator.onLine?'':'Offline: saved chats are available; new AI replies require an internet connection.';
  const vl=$('#nmVoiceLang');if(vl){vl.value=data().voiceLang||'hi-IN';vl.onchange=()=>{const d=data();d.voiceLang=vl.value;saveData(d)}}
@@ -46,7 +46,7 @@ function openMode(id){active=id;const d=data();d.lastMode=id;saveData(d);upload=
 function stopSpeech(){try{if(recognition)recognition.stop()}catch(e){}recognition=null}
 async function extractFile(f){
  if(f.size>8*1024*1024)throw Error('Keep files under 8 MB.');
- if(f.type.startsWith('image/')){if(f.size>(lowData()?1.5:4)*1024*1024)throw Error(lowData()?'In Low Data Mode, keep photos under 1.5 MB.':'Keep photos under 4 MB.');return {image:await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result));r.onerror=no;r.readAsDataURL(f)}),text:'इस फ़ोटो में लिखी सामग्री पढ़कर समझाएँ।'};}
+ if(f.type.startsWith('image/')){if(f.size>(lowData()?1.5:4)*1024*1024)throw Error(lowData()?'In Low Data Mode, keep photos under 1.5 MB.':'Keep photos under 4 MB.');return {image:await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result));r.onerror=no;r.readAsDataURL(f)}),text:'Read and explain the content in this image in clear English.'};}
  if(/\.pdf$/i.test(f.name)||f.type==='application/pdf'){
    if(!window.pdfjsLib){$('#nmStatus').textContent='Loading PDF reader…';await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';s.onload=ok;s.onerror=()=>no(Error('PDF reader is unavailable'));document.head.append(s)});window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';}
    const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let out='';
@@ -61,8 +61,8 @@ function cacheSet(k,text){const c=read(CACHE,{});c[k]={at:Date.now(),text};const
 function cacheKey(id,text){const s=text.trim().toLowerCase().replace(/\s+/g,' ');let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return id+'|'+(h>>>0).toString(36)}
 async function schemeSources(profile){
  const age=profile?.age,state=profile?.state,work=profile?.work,income=profile?.income;
- if(!age||!state||!work||income==='')throw Error('योजना खोजने के लिए Age, State, काम और सालाना Income भरें।');
- const q='सरकारी योजना '+state+' '+work+' पात्रता लाभ आवेदन '+age+' वर्ष Income '+income+' official government scheme';
+ if(!age||!state||!work||income==='')throw Error('Enter your age, state, work/status, and annual income to search for schemes.');
+ const q='government schemes '+state+' '+work+' eligibility benefits application age '+age+' annual income '+income;
  const r=await fetch(API+'/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});
  if(!r.ok)throw Error('Official scheme search is unavailable right now. Please try again later.');
  const j=await r.json(),official=(j.results||[]).filter(x=>{try{return /(^|\.)(gov\.in|nic\.in)$/i.test(new URL(x.url).hostname)}catch(e){return false}});
@@ -75,8 +75,8 @@ async function send(){
  d.limits=d.limits||[];d.limits=d.limits.filter(t=>now-t<10*60*1000);if(d.limits.length>=20){$('#nmStatus').textContent='Please pause. The limit is 20 new requests per 10 minutes.';return}
  if(!navigator.onLine){$('#nmStatus').textContent='Offline mode: saved chats are available, but new AI replies are not.';return}
  d.limits.push(now);saveData(d);
- let q=question||upload?.text||'इस सामग्री को समझाएँ',file=upload;upload=null;$('#nmUploadName').textContent='';
- const userText=question||('📎 '+(file?.name||'अपलोड की गई फ़ाइल'));h.push({role:'user',text:userText,at:now});if(h.length>100)h.splice(0,h.length-100);saveData(d);input.value='';drawChat();$('#nmStatus').textContent='Preparing your answer…';
+ let q=question||upload?.text||'Explain this content',file=upload;upload=null;$('#nmUploadName').textContent='';
+ const userText=question||('📎 '+(file?.name||'Uploaded file'));h.push({role:'user',text:userText,at:now});if(h.length>100)h.splice(0,h.length-100);saveData(d);input.value='';drawChat();$('#nmStatus').textContent='Preparing your answer…';
  try{
    let extra='',profile=null,sourceLinks=[];
    if(active==='schemes'){const x=await schemeSources(schemeInput);profile=x.profile;if(!x.results.length)throw Error('No official government sources were found right now. Please check the official portal directly.');sourceLinks=x.results.map(z=>({title:z.title,url:z.url}));extra='\nUse only the official government-domain sources listed below. If eligibility cannot be verified from them, clearly say so.\n'+JSON.stringify(x.results);}
@@ -94,15 +94,15 @@ async function send(){
      const gst=(q.match(/(?:₹|Rs\.?\s*)?([0-9][0-9,]*(?:\.[0-9]+)?)\s*(?:at|@|पर)?\s*([0-9]+(?:\.[0-9]+)?)\s*%/i)||[]);
      if(gst.length){
        const base=Number(gst[1].replace(/,/g,'')),rate=Number(gst[2]),tax=base*rate/100;
-       if(Number.isFinite(base)&&Number.isFinite(rate)&&base>=0&&rate>=0&&rate<=100)appendInstruction('Calculation check (user-provided rate): taxable amount ₹'+base.toFixed(2)+'; GST rate '+rate+'%; GST ₹'+tax.toFixed(2)+'; total ₹'+(base+tax).toFixed(2)+'. CGST/SGST बनाम IGST State के अनुसार तय करें।');
+       if(Number.isFinite(base)&&Number.isFinite(rate)&&base>=0&&rate>=0&&rate<=100)appendInstruction('Calculation check (user-provided rate): taxable amount ₹'+base.toFixed(2)+'; GST rate '+rate+'%; GST ₹'+tax.toFixed(2)+'; total ₹'+(base+tax).toFixed(2)+'. Determine CGST/SGST versus IGST based on the transaction location.');
      }else appendInstruction('Ask for the applicable GST rate first; never guess the rate.');
    }
    const ck=cacheKey(active,q+extra),cached=file?.image?null:cacheGet(ck);let answer=cached;
    if(!answer){
-     const cfg=await fetch(API+'/config');if(!cfg.ok)throw Error('AI सेवा अभी कॉन्फ़िगर नहीं है।');
+     const cfg=await fetch(API+'/config');if(!cfg.ok)throw Error('The AI service is not configured yet.');
      const config=await cfg.json(),r=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:config.model,stream:false,max_tokens:lowData()?500:900,messages})});
      const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'AI provider उपलब्ध नहीं है।');
-     answer=String(j.choices?.[0]?.message?.content||'').trim();if(!answer)throw Error('AI से खाली जवाब मिला।');if(!file?.image)cacheSet(ck,answer);
+     answer=String(j.choices?.[0]?.message?.content||'').trim();if(!answer)throw Error('The AI returned an empty response.');if(!file?.image)cacheSet(ck,answer);
    }
    if(active==='document'&&/(RTI|सूचना अधिकार|शिकायत|आवेदन|application|ड्राफ्ट|draft)/i.test(q)&&!answer.includes('This is not legal advice.'))answer+='\n\nThis is not legal advice.';
    if(active==='schemes'&&!answer.includes('Please verify details on the official website'))answer+='\n\nPlease verify details on the official website।';
@@ -119,10 +119,10 @@ window.addEventListener('online',()=>{offline=false;if(active)drawChat()});windo
 function addLaunchers(){
  const top=$('#top'),side=$('#side');
  const add=(host,id,label)=>{if(!host||document.getElementById(id))return;const b=document.createElement('button');b.id=id;b.type='button';b.textContent=label;b.addEventListener('click',show);host.append(b)};
- add(top,'novaModesTop','☷ मोड्स');add(side,'novaModesSide','☷ मोड्स खोलें');
- const home=document.createElement('button');home.id='novaModesHome';home.type='button';home.textContent='☷ सभी मोड्स खोलें';home.addEventListener('click',show);
+ add(top,'novaModesTop','☷ Modes');add(side,'novaModesSide','☷ Open Modes');
+ const home=document.createElement('button');home.id='novaModesHome';home.type='button';home.textContent='☷ Open All Modes';home.addEventListener('click',show);
  const hi=$('#hi');if(hi)hi.append(home);
- const settings=$('#dset');if(settings){const b=document.createElement('button');b.type='button';b.textContent='☷ मोड्स पेज';b.onclick=()=>{if(settings.open)settings.close();show()};settings.append(b)}
+ const settings=$('#dset');if(settings){const b=document.createElement('button');b.type='button';b.textContent='☷ Modes';b.onclick=()=>{if(settings.open)settings.close();show()};settings.append(b)}
 }
 addLaunchers();
 if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('/sw.js').catch(()=>{});
