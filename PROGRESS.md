@@ -64,5 +64,5 @@
 - Main commit deployed: `b2643eb6be73adb0b840ce565cccdd8e2161a99f`.
 - Render deploy: `dep-dbigpougekts73f9rpe0` — `live`.
 - Production CI run: `41131576306`, attempt 2 — `success`.
-- Final documentation-only commit: `6cb1f7d45fe5f7bf0ed0cc4a7cf63f6771e7b8d6`; deployed runtime remains the verified `b2643eb6be73adb0b840ce565cccdd8e2161a99f`.
+- Final documentation-only commits: `6cb1f7d45fe5f7bf0ed0cc4a7cf63f6771e7b8d6`, `e0728daf5ebf643c1ef7d87206804db03a9cd252`; deployed runtime remains the verified `b2643eb6be73adb0b840ce565cccdd8e2161a99f`.
 - Live checks passed: `/api/config`, frontend shell, mode registry/workspace assets, PWA manifest/service worker/icons, feed, live research, search, chat completion and input validation. Provider direct failures had working fallbacks; Brave LLM Context was unavailable because `BRAVE_KEY` is not configured.
