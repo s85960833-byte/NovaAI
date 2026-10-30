@@ -3,7 +3,7 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 const source=readFileSync('mode-registry.js','utf8');
 const workspace=readFileSync('mode-workspace.js','utf8');
-const html=readFileSync('index.html','utf8');
+const html=readFileSync('index.html','utf8');\nconst server=readFileSync('nova-server.txt','utf8');
 const context={window:{}};vm.runInNewContext(source,context);
 const r=context.window.NovaModeRegistry;
 assert.equal(r.version,1);
@@ -23,7 +23,7 @@ assert.ok(workspace.includes('10*60*1000'),'per-user rolling request limit missi
 assert.ok(workspace.includes('(lowData()?1.5:4)*1024*1024'),'image upload size guard missing');
 assert.ok(workspace.includes('Calculation check (user-provided rate)'),'GST instruction must preserve multimodal image content');
 assert.ok(workspace.includes('file?.image?null:cacheGet(ck)'),'image-specific answers must bypass text-only cache');
-assert.ok(workspace.includes('Low Data Mode'),'low-data mode toggle missing');
+assert.ok(workspace.includes('Low Data Mode'),'low-data mode toggle missing');\nassert.ok(server.includes('HORDE_API_KEY')&&server.includes('/generate/async')&&server.includes('/generate/check/')&&server.includes('/generate/status/'),'free community image fallback is missing');\nassert.ok(server.includes('censor_nsfw: true')&&server.includes('nsfw: false'),'image safety settings are missing');
 assert.ok(html.includes('<html lang="en">')&&html.includes("const L=['English'];")&&html.includes("const ui=()=>'en';"),'main UI must be English-only');
 assert.ok(html.includes('Always reply in English. Never switch to Hindi, Hinglish, or another language.'),'assistant response language must be English-only');
 assert.ok(html.includes('installAppBtn')&&html.includes('beforeinstallprompt'),'PWA install action missing');
