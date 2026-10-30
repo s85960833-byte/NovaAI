@@ -14,5 +14,10 @@ await expect('PWA icon 512','/icons/icon-512.png',{},(r,b)=>r.ok);
 await expect('chat validation','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},(r)=>r.status===400);
 await expect('search validation','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},(r)=>r.status===400);
 await expect('image validation','/api/image',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},(r)=>r.status===400);
+const generatedResponse=await req('/api/image',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:'A simple blue geometric flower on a white background',width:512,height:512,seed:42}),signal:AbortSignal.timeout(90000)});
+const generated=await generatedResponse.json().catch(()=>({}));
+if(!generatedResponse.ok||!String(generated.image||'').startsWith('data:image/')||generated.image.length<1200)throw new Error('real image generation failed: HTTP '+generatedResponse.status);
+console.log('PASS real free image generation');
+
 await expect('transcription validation','/api/transcribe',{method:'POST',headers:{'content-type':'audio/webm'},body:new Uint8Array()},(r)=>r.status===400);
 console.log('PASS local runtime smoke tests');
