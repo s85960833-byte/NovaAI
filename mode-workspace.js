@@ -39,7 +39,7 @@ function drawChat(){
  const controls=active==='schemes'?'<div class="nmscheme"><label>Age<input id="nmAge" type="number" min="1" max="120" placeholder="Age"></label><label>State<input id="nmState" placeholder="State"></label><label>Work/status<input id="nmWork" placeholder="e.g. student, farmer"></label><label>Annual income (₹)<input id="nmIncome" type="number" min="0" placeholder="Income"></label></div>':active==='voice'?'<label class="nmhint">Reply language <select id="nmVoiceLang"><option value="en-IN">English (India)</option><option value="en-US">English (US)</option><option value="en-GB">English (UK)</option></select></label>':'';
  content.innerHTML=controls+'<div class="nmchat">'+h.map(x=>'<div class="nmbubble '+(x.role==='user'?'user':'assistant')+'">'+esc(x.text)+'</div>').join('')+'</div>';
  $('#nmStatus').textContent=navigator.onLine?'':'Offline: saved chats are available; new AI replies require an internet connection.';
- const vl=$('#nmVoiceLang');if(vl){vl.value=data().voiceLang||'hi-IN';vl.onchange=()=>{const d=data();d.voiceLang=vl.value;saveData(d)}}
+ const vl=$('#nmVoiceLang');if(vl){const d=data();if(!/^en-/.test(d.voiceLang||'')){d.voiceLang='en-IN';saveData(d)}vl.value=d.voiceLang;vl.onchange=()=>{const next=data();next.voiceLang=vl.value;saveData(next)}}
  content.scrollTop=content.scrollHeight;input.placeholder=active==='document'?'Upload a bill, notice, or form, or type a question…':active==='photo'?'Choose a photo of the question or type it…':'Type your question…';
 }
 function openMode(id){active=id;const d=data();d.lastMode=id;saveData(d);upload=null;$('#nmUploadName').textContent='';drawChat()}
