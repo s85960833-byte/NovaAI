@@ -813,6 +813,7 @@ setInterval(() => { ['world', 'india'].forEach(c => cached('fc:' + c, 0, () => f
 
 const PORT = Number(E.PORT) || 3000;
 app.listen(PORT, () => console.log('Nova AI running on port ' + PORT));
+console.log('NovaAI startup audit flag: ' + (E.SELFTEST_ON_START === '1' ? 'enabled' : 'disabled'));
 
 // Optional one-time live verification, enabled only temporarily through Render env.
 if (E.SELFTEST_ON_START === '1') {
@@ -850,5 +851,5 @@ if (E.SELFTEST_ON_START === '1') {
       await probe('voice input validation', '/api/transcribe', { method: 'POST', headers: { 'Content-Type': 'audio/webm' }, body: new Uint8Array() }, r => r.status === 400);
       console.log('NOVA_SELFTEST ' + JSON.stringify({ at: new Date().toISOString(), results }));
     })().catch(e => console.error('NOVA_SELFTEST_ERROR', String(e && e.message || e)));
-  }, 10000).unref();
+  }, 10000);
 }
