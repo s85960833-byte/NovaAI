@@ -26,7 +26,7 @@ if (!server.includes("app.post('/api/live'") || !server.includes("app.get('/api/
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in the active server file');
 syntaxCheck('backend', server);
 syntaxCheck('mode-registry', modeRegistry);
-syntaxCheck('mode-workspace', modeWorkspace);
+syntaxCheck('mode-workspace', modeWorkspace);\nsyntaxCheck('runtime-smoke-test', readFileSync('scripts/runtime-smoke.mjs','utf8'));\nsyntaxCheck('production-smoke-test', readFileSync('scripts/smoke.mjs','utf8'));
 
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(x => x.trim());
 if (!scripts.length) throw new Error('No inline frontend JavaScript was found');
