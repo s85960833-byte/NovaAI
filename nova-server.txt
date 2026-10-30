@@ -30,7 +30,7 @@ app.use('/api', (q, r, next) => {
 
 app.get('/api/config', (q, r) => {
   if (!E.LLM_KEY || !E.LLM_MODEL) return r.status(503).end();
-  r.json({ model: E.LLM_MODEL, image: !E.IMAGE_OFF, stt: !E.STT_OFF, live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, pollinationsKey: !!E.POLLI_KEY } });
+  r.json({ model: E.LLM_MODEL, image: !E.IMAGE_OFF, stt: !E.STT_OFF, live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY } });
 });
 
 // Speech to text for live voice when the phone browser cannot do it itself (same provider key, e.g. Groq Whisper).
@@ -122,26 +122,33 @@ app.post('/api/chat/completions', async (q, r) => {
     const sm0 = (body.messages || []).find(x => x.role === 'system'), hasLive = !!(sm0 && typeof sm0.content === 'string' && sm0.content.includes('== LIVE DATA ==')), vis = hasImg(body), bud = vis ? VBUDGET : hasLive ? Math.max(BUDGET, 6500) : BUDGET;
     body = fit(body, bud);
     const models = vis ? [VISION] : [E.LLM_MODEL, ...String(E.LLM_FALLBACK_MODELS || '').split(',').map(x => x.trim()).filter(Boolean)];
+    const providers = [{ base: BASE, key: E.LLM_KEY, models }];
+    // Optional free-tier OpenAI-compatible providers; secrets are read only from Render env vars.
+    if (!vis && E.GROQ_API_KEY) providers.push({ base: E.GROQ_BASE || 'https://api.groq.com/openai/v1', key: E.GROQ_API_KEY, models: [E.GROQ_MODEL || 'llama-3.3-70b-versatile'] });
+    if (!vis && E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: E.OPENROUTER_BASE || 'https://openrouter.ai/api/v1', key: E.OPENROUTER_API_KEY, models: [E.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'] });
     let extra = vis ? { reasoning_format: 'hidden' } : {};   // keep the model's private thinking out of the answer
     let good = null, first = null, last = 0;
-    for (const model of models) {
-      for (let t = 0; t < 3; t++) {
-        const u = await fetch(BASE.replace(/\/$/, '') + '/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.LLM_KEY },
-          body: JSON.stringify({ ...body, ...extra, model, stream: body.stream !== false }),
-          signal: AbortSignal.timeout(Math.max(15000, Math.min(120000, Number(E.LLM_TIMEOUT_MS) || 90000)))
-        });
-        if (u.ok) { good = u; break; }
-        const text = await u.text();
-        if (!first) first = { status: u.status, type: u.headers.get('content-type'), text };
-        last = u.status;
-        if (u.status === 400 && Object.keys(extra).length) { extra = {}; continue; }   // model refused the extra option: retry plain
-        if (u.status === 413 && t < 2) { body = fit(body, Math.floor(bud * 0.55)); continue; }
-        break;
+    for (const provider of providers) {
+      for (const model of provider.models) {
+        for (let t = 0; t < 3; t++) {
+          const u = await fetch(provider.base.replace(/\/$/, '') + '/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + provider.key },
+            body: JSON.stringify({ ...body, ...extra, model, stream: body.stream !== false }),
+            signal: AbortSignal.timeout(Math.max(15000, Math.min(120000, Number(E.LLM_TIMEOUT_MS) || 90000)))
+          });
+          if (u.ok) { good = u; break; }
+          const text = await u.text();
+          if (!first) first = { status: u.status, type: u.headers.get('content-type'), text };
+          last = u.status;
+          if (u.status === 400 && Object.keys(extra).length) { extra = {}; continue; }
+          if (u.status === 413 && t < 2) { body = fit(body, Math.floor(bud * 0.55)); continue; }
+          break;
+        }
+        if (good) break;
       }
       if (good) break;
-      if (model === models[0] && !RETRY.includes(last)) break;
+      // Always attempt the next configured provider; one provider's outage must not block the rest.
     }
     if (!good) return r.status(first ? first.status : 502).json({ error: 'LLM provider request failed', status: first ? first.status : 502 });
     r.status(good.status).set('Content-Type', good.headers.get('content-type') || 'text/event-stream');
