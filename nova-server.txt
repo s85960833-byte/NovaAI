@@ -595,11 +595,24 @@ async function sportsDbFallback(lg) {
   const sport = lg[1].split('/')[0];
   const sportName = ({ soccer: 'Soccer', basketball: 'Basketball', football: 'American Football', baseball: 'Baseball', hockey: 'Ice Hockey', racing: 'Motorsport', tennis: 'Tennis' })[sport];
   if (!sportName) throw new Error('TheSportsDB fallback does not support this sport');
-  const today = new Date(), dates = [0, -1].map(n => { const d = new Date(today.getTime() + n * 864e5); return d.toISOString().slice(0, 10); });
-  const settled = await Promise.allSettled(dates.map(date => cached('tsdb:' + sportName + ':' + lg[2] + ':' + date, 60 * 1000, () => lhttp('https://www.thesportsdb.com/api/v1/json/123/eventsday.php?d=' + date + '&s=' + enc(sportName) + '&l=' + enc(lg[2]), { json: true, timeout: 5000, tries: 1 }))));
-  const events = settled.filter(x => x.status === 'fulfilled').flatMap(x => x.value.events || []);
-  const matches = events.filter(e => !e.strLeague || e.strLeague.toLowerCase().includes(lg[2].toLowerCase())).slice(0, 10);
-  if (!matches.length) throw new Error('TheSportsDB has no verified ' + lg[2] + ' events for today or yesterday');
+  const known = { 'Premier League': '4328', 'Formula 1': '4370' };
+  let leagueId = known[lg[2]] || '';
+  if (!leagueId) {
+    const country = ({ 'La Liga': 'Spain', 'Serie A': 'Italy', 'Bundesliga': 'Germany', 'Indian Super League': 'India', 'MLS': 'USA', 'NBA': 'USA', 'NFL': 'USA', 'MLB': 'USA', 'NHL': 'USA', 'UEFA Champions League': 'Europe', 'ATP tennis': 'USA' })[lg[2]] || 'England';
+    const listing = await cached('tsdb:leagues:' + country + ':' + sportName, 6 * 36e5, () => lhttp('https://www.thesportsdb.com/api/v1/json/123/search_all_leagues.php?c=' + enc(country) + '&s=' + enc(sportName), { json: true, timeout: 5000, tries: 1 }));
+    const leagues = listing.countries || listing.leagues || [];
+    const target = lg[2].toLowerCase();
+    const found = leagues.find(x => String(x.strLeague || '').toLowerCase().includes(target) || target.includes(String(x.strLeague || '').toLowerCase()));
+    if (!found || !found.idLeague) throw new Error('TheSportsDB free tier has no league mapping for ' + lg[2]);
+    leagueId = String(found.idLeague);
+  }
+  const [next, previous] = await Promise.allSettled([
+    cached('tsdb:next:' + leagueId, 60 * 1000, () => lhttp('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=' + leagueId, { json: true, timeout: 5000, tries: 1 })),
+    cached('tsdb:previous:' + leagueId, 60 * 1000, () => lhttp('https://www.thesportsdb.com/api/v1/json/123/eventspastleague.php?id=' + leagueId, { json: true, timeout: 5000, tries: 1 }))
+  ]);
+  const events = [...(next.status === 'fulfilled' ? next.value.events || [] : []), ...(previous.status === 'fulfilled' ? previous.value.events || [] : [])];
+  const matches = events.filter(e => e && (e.strHomeTeam || e.strAwayTeam)).slice(0, 10);
+  if (!matches.length) throw new Error('TheSportsDB has no schedule/results for ' + lg[2]);
   const lines = matches.map(e => {
     const home = e.strHomeTeam || '?', away = e.strAwayTeam || '?';
     const scored = e.intHomeScore != null && e.intAwayScore != null && e.intHomeScore !== '' && e.intAwayScore !== '';
@@ -607,7 +620,7 @@ async function sportsDbFallback(lg) {
     const status = e.strStatus || (scored ? 'Result' : 'Scheduled');
     return home + ' vs ' + away + score + ' [' + status + '] ' + (e.dateEvent || '') + (e.strTime ? ' ' + e.strTime + ' UTC' : '');
   });
-  return { text: lg[2].toUpperCase() + ' SCHEDULE / RESULTS (TheSportsDB free API; not guaranteed live; retrieved ' + new Date().toISOString() + ') — ' + lines.join(' | '), source: { title: 'TheSportsDB — ' + lg[2] + ' schedule and results', url: 'https://www.thesportsdb.com/', publisher: 'TheSportsDB', date: new Date().toISOString(), kind: 'data', connector: 'thesportsdb', snippet: '' } };
+  return { text: lg[2].toUpperCase() + ' SCHEDULE / RESULTS (TheSportsDB free tier; NOT live scores; retrieved ' + new Date().toISOString() + ') — ' + lines.join(' | '), source: { title: 'TheSportsDB — ' + lg[2] + ' schedule and results (not live)', url: 'https://www.thesportsdb.com/', publisher: 'TheSportsDB', date: new Date().toISOString(), kind: 'data', connector: 'thesportsdb', snippet: '' } };
 }
 async function espn(q) {
   const lg = LEAGUES.find(l => l[0].test(q)); if (!lg) throw new Error('no ESPN league for this sport');
