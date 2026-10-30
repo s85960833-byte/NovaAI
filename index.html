@@ -875,7 +875,7 @@ $('lcap').textContent=clean(txt).slice(-240)}
 function lvDone(a){if(lvInt){lvInt=false;return}if(a.e){$('lcap').textContent=a.c;lvSet('mute');return}lvFeed(a.c||'',true);lvDoneFlag=true;lvNext()}
 function lvNext(){if(LV&&lvQ<=0&&lvDoneFlag)listen()}
 function readAloud(txt){if(!window.speechSynthesis)return;lvGen++;lvQ=0;speechSynthesis.cancel();const lang=lvLang(txt),re=new RegExp(SEN.source,'g');let p=0,m;while((m=re.exec(txt))){say(clean(txt.slice(p,m.index+m[0].length)),lang);p=m.index+m[0].length}say(clean(txt.slice(p)),lang)}
-const LVT={en:{hi:'Go ahead, I am listening.',err:'I could not understand that. Please try again.',mic:'Microphone is blocked. In Chrome tap ⋮ → Settings → Site settings → Microphone and allow this site.',net:'Could not reach the speech service. Check your internet.',nomic:'No microphone found.'}}};
+const LVT={en:{hi:'Go ahead, I am listening.',err:'I could not understand that. Please try again.',mic:'Microphone is blocked. In Chrome tap ⋮ → Settings → Site settings → Microphone and allow this site.',net:'Could not reach the speech service. Check your internet.',nomic:'No microphone found.'}};
 const lvT=k=>(LVT[ui()]||LVT.en)[k],lvHi=()=>vlang().toLowerCase().startsWith('hi')?LVT.hi.hi:LVT.en.hi;
 const lvLog=m=>{const e=$('ldiag');if(e)e.textContent=m||''};
 const canRec=()=>!!(SV&&SV.stt&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder);
