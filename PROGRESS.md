@@ -33,9 +33,12 @@
 ## Test checklist
 - [ ] Baseline production health/config and deployment state recorded.
 - [ ] Baseline syntax and existing smoke tests executed and results recorded.
+- [x] Additive mode registry and separate mode-history storage implemented; legacy keys `nova` and `nova_t` unchanged.
+- [x] Browser Speech API, PDF.js-based text extraction, photo upload, scheme-source filtering, GST-safe prompt, local bounded cache and request cap added.
+- [x] PWA service worker now caches the application shell; API calls remain network-only.
 - [ ] Existing localStorage keys/data shape unchanged; old chats remain visible and editable.
 - [ ] Existing login/saved chats, web search/live research, PDF/file upload, photo understanding, image generation, voice, memory, math, language/theme/accessibility tested.
-- [ ] Each registered mode opens independently and retains its own history/system prompt.
+- [ ] Each registered mode opens independently and retains its own history/system prompt (static checks pending).
 - [ ] Mode settings page shows General and Study groups with Hindi descriptions.
 - [ ] Math and photo-solution responses require steps and a final check.
 - [ ] Browser speech recognition/synthesis fallback tested on supported browser; unsupported browsers get a clear fallback.
@@ -49,7 +52,7 @@
 - [ ] If any old feature fails or production regresses, fix before proceeding or roll back.
 
 ## Status
-- Completed: repository inventory, production configuration/deploy baseline, backup branch, feature branch.
-- In progress: baseline runtime tests and feature implementation.
+- Completed: repository inventory, production configuration/deploy baseline, backup branch, feature branch, additive 12-mode registry/workspace, per-mode local histories, browser speech input/output, document/PDF/photo ingestion, official-domain-only scheme source filter, shopkeeper/math/study prompts, bounded local cache and mode request limit, PWA app-shell cache, feature-branch CI checks.
+- In progress: CI execution, code review, production-safe regression verification.
 - Known limitation: exact Git tag creation is not exposed by the connected GitHub operations; backup branch protects the baseline.
 - Errors: none observed during repository/Render metadata reads. Full live browser interaction has not yet been exercised.
