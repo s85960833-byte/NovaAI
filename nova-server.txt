@@ -205,7 +205,7 @@ app.post('/api/image', async (q, r) => {
   // Free image service (Pollinations). A free key in POLLI_KEY makes it more reliable.
   const w = Math.min(1536, Number(body.width) || 1024), h = Math.min(1536, Number(body.height) || 1024), seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
   const qs = 'width=' + w + '&height=' + h + '&seed=' + seed + '&nologo=true&safe=true&enhance=false' + (E.POLLI_KEY ? '&key=' + encodeURIComponent(E.POLLI_KEY) : '');
-  const tries = [['https://gen.pollinations.ai/image/', 'flux'], ['https://image.pollinations.ai/prompt/', 'flux'], ['https://image.pollinations.ai/prompt/', 'turbo']];
+  const tries = E.POLLI_KEY ? [['https://gen.pollinations.ai/image/', 'flux'], ['https://image.pollinations.ai/prompt/', 'flux']] : [['https://image.pollinations.ai/prompt/', 'flux']];
   let last = 502;
   for (const [host, model] of tries) {
     try {
@@ -217,6 +217,49 @@ app.post('/api/image', async (q, r) => {
       }
       last = u.status;
     } catch (e) { last = 504; }
+  }
+  // Free community fallback. The anonymous Horde key is configured only in Render env vars.
+  if (E.HORDE_API_KEY) {
+    try {
+      const base = (E.HORDE_BASE || 'https://aihorde.net/api/v2').replace(/\/$/, '');
+      const headers = { 'Content-Type': 'application/json', apikey: E.HORDE_API_KEY, 'Client-Agent': 'NovaAI:1.0:https://novaai-4auo.onrender.com' };
+      const submit = await fetch(base + '/generate/async', {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          prompt, params: { width: 512, height: 512, n: 1, steps: 20, cfg_scale: 7 },
+          nsfw: false, censor_nsfw: true, replacement_filter: true, r2: true, shared: false
+        }),
+        signal: AbortSignal.timeout(20000)
+      });
+      const accepted = await submit.json().catch(() => ({}));
+      if (!submit.ok || !accepted.id) throw new Error('Community image queue rejected the request');
+      let complete = false;
+      for (let attempt = 0; attempt < 35; attempt++) {
+        await sleep(2000);
+        const check = await fetch(base + '/generate/check/' + encodeURIComponent(accepted.id), { headers, signal: AbortSignal.timeout(10000) });
+        const state = await check.json().catch(() => ({}));
+        if (!check.ok || state.faulted) throw new Error('Community image generation failed');
+        if (state.done) { complete = true; break; }
+      }
+      if (!complete) throw new Error('Community image queue is busy; try again shortly');
+      const status = await fetch(base + '/generate/status/' + encodeURIComponent(accepted.id), { headers, signal: AbortSignal.timeout(15000) });
+      const result = await status.json().catch(() => ({}));
+      const generated = result.generations && result.generations[0] && result.generations[0].img;
+      if (!status.ok || !generated) throw new Error('Community image result was empty');
+      if (/^data:image\//i.test(generated)) return r.json({ image: generated, provider: 'community-free' });
+      if (/^https?:\/\//i.test(generated)) {
+        const imageResponse = await fetch(generated, { signal: AbortSignal.timeout(20000) });
+        const type = String(imageResponse.headers.get('content-type') || 'image/webp').split(';')[0];
+        if (!imageResponse.ok || !/^image\//i.test(type)) throw new Error('Community image download failed');
+        const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+        if (imageBuffer.length > 1000) return r.json({ image: 'data:' + type + ';base64,' + imageBuffer.toString('base64'), provider: 'community-free' });
+      } else if (/^[A-Za-z0-9+/=]+$/.test(generated)) {
+        return r.json({ image: 'data:image/webp;base64,' + generated, provider: 'community-free' });
+      }
+      throw new Error('Community image format was not supported');
+    } catch (e) {
+      return r.status(502).json({ error: 'Free image providers are temporarily busy. Please try again later.' });
+    }
   }
   r.status(last === 401 || last === 402 || last === 403 ? 401 : 502).json({ error: 'Image service unavailable' });
 });
