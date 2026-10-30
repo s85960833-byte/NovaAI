@@ -420,8 +420,11 @@ async function webSearch(q, o = {}) {
     const good = settled.filter(x => x.status === 'fulfilled' && x.value.items && x.value.items.length);
     if (good.length) return { items: dedupe(good.flatMap(x => x.value.items)), via: good.map(x => x.value.via).join('+') };
   }
-  try { const r = await cached('ddg:' + q, 4 * 6e4, () => ddg(q)); if (r.length) return { items: r, via: 'duckduckgo' }; } catch (e) { errs.push('duckduckgo'); }
-  try { const r = await wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5); if (r.length) return { items: r, via: 'wikipedia' }; } catch (e) { errs.push('wikipedia'); }
+  const fallback = await Promise.any([
+    cached('ddg:' + q, 4 * 6e4, () => ddg(q)).then(items => { if (!items.length) throw new Error('no DuckDuckGo results'); return { items, via: 'duckduckgo' }; }).catch(e => { errs.push('duckduckgo'); throw e; }),
+    wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5).then(items => { if (!items.length) throw new Error('no Wikipedia results'); return { items, via: 'wikipedia' }; }).catch(e => { errs.push('wikipedia'); throw e; })
+  ]).catch(() => null);
+  if (fallback) return fallback;
   throw new Error('all web search providers failed (' + errs.join(', ') + ')');
 }
 // ---- history: Wikipedia "On this day" + Current events portal + year/month pages ----
@@ -587,12 +590,33 @@ async function fxRate(q) {
 }
 // ---- sports: verified scoreboard data only; never substitute news articles for live scores ----
 const LEAGUES = [[/\bnba\b/i, 'basketball/nba', 'NBA'], [/\bnfl\b/i, 'football/nfl', 'NFL'], [/\bmlb\b/i, 'baseball/mlb', 'MLB'], [/\bnhl\b/i, 'hockey/nhl', 'NHL'], [/premier league|\bepl\b/i, 'soccer/eng.1', 'Premier League'], [/la ?liga/i, 'soccer/esp.1', 'La Liga'], [/serie a/i, 'soccer/ita.1', 'Serie A'], [/bundesliga/i, 'soccer/ger.1', 'Bundesliga'], [/champions league|\bucl\b/i, 'soccer/uefa.champions', 'UEFA Champions League'], [/\bisl\b|indian super league/i, 'soccer/ind.1', 'Indian Super League'], [/\bmls\b/i, 'soccer/usa.1', 'MLS'], [/fifa world cup|football world cup/i, 'soccer/fifa.world', 'FIFA World Cup'], [/formula ?1|\bf1\b/i, 'racing/f1', 'Formula 1'], [/\batp\b|tennis/i, 'tennis/atp', 'ATP tennis']];
+async function sportsDbFallback(lg) {
+  if (!lg) throw new Error('no supported league for sports fallback');
+  const sport = lg[1].split('/')[0];
+  const sportName = ({ soccer: 'Soccer', basketball: 'Basketball', football: 'American Football', baseball: 'Baseball', hockey: 'Ice Hockey', racing: 'Motorsport', tennis: 'Tennis' })[sport];
+  if (!sportName) throw new Error('TheSportsDB fallback does not support this sport');
+  const today = new Date(), dates = [0, -1].map(n => { const d = new Date(today.getTime() + n * 864e5); return d.toISOString().slice(0, 10); });
+  const settled = await Promise.allSettled(dates.map(date => cached('tsdb:' + sportName + ':' + lg[2] + ':' + date, 60 * 1000, () => lhttp('https://www.thesportsdb.com/api/v1/json/123/eventsday.php?d=' + date + '&s=' + enc(sportName) + '&l=' + enc(lg[2]), { json: true, timeout: 5000, tries: 1 }))));
+  const events = settled.filter(x => x.status === 'fulfilled').flatMap(x => x.value.events || []);
+  const matches = events.filter(e => !e.strLeague || e.strLeague.toLowerCase().includes(lg[2].toLowerCase())).slice(0, 10);
+  if (!matches.length) throw new Error('TheSportsDB has no verified ' + lg[2] + ' events for today or yesterday');
+  const lines = matches.map(e => {
+    const home = e.strHomeTeam || '?', away = e.strAwayTeam || '?';
+    const scored = e.intHomeScore != null && e.intAwayScore != null && e.intHomeScore !== '' && e.intAwayScore !== '';
+    const score = scored ? ' ' + e.intHomeScore + '–' + e.intAwayScore : '';
+    const status = e.strStatus || (scored ? 'Result' : 'Scheduled');
+    return home + ' vs ' + away + score + ' [' + status + '] ' + (e.dateEvent || '') + (e.strTime ? ' ' + e.strTime + ' UTC' : '');
+  });
+  return { text: lg[2].toUpperCase() + ' SCHEDULE / RESULTS (TheSportsDB free API; not guaranteed live; retrieved ' + new Date().toISOString() + ') — ' + lines.join(' | '), source: { title: 'TheSportsDB — ' + lg[2] + ' schedule and results', url: 'https://www.thesportsdb.com/', publisher: 'TheSportsDB', date: new Date().toISOString(), kind: 'data', connector: 'thesportsdb', snippet: '' } };
+}
 async function espn(q) {
   const lg = LEAGUES.find(l => l[0].test(q)); if (!lg) throw new Error('no ESPN league for this sport');
-  const j = await cached('espn:' + lg[1], 60 * 1000, () => lhttp('https://site.api.espn.com/apis/site/v2/sports/' + lg[1] + '/scoreboard', { json: true, timeout: 8000, tries: 1 }));
-  const ev = (j.events || []).slice(0, 10); if (!ev.length) throw new Error('no events on the scoreboard');
-  const lines = ev.map(e => { const c = (e.competitions && e.competitions[0]) || {}, cs = (c.competitors || []).slice().sort((a, b) => (b.homeAway === 'home' ? 1 : 0) - (a.homeAway === 'home' ? 1 : 0)); const st = (e.status && e.status.type) || {}; return cs.map(x => ((x.team && x.team.displayName) || (x.athlete && x.athlete.displayName) || '?') + (x.score != null ? ' ' + x.score : '')).join(' vs ') + ' [' + (st.detail || st.description || st.state || '') + '] ' + String(e.date || '').slice(0, 16).replace('T', ' ') + ' UTC'; });
-  return { text: lg[2].toUpperCase() + ' SCOREBOARD (ESPN, unofficial feed; home team listed first) \u2014 ' + lines.join(' | '), source: { title: 'ESPN \u2014 ' + lg[2] + ' scoreboard', url: 'https://www.espn.com/', publisher: 'ESPN', date: new Date().toISOString(), kind: 'data', connector: 'espn', snippet: '' } };
+  try {
+    const j = await cached('espn:' + lg[1], 60 * 1000, () => lhttp('https://site.api.espn.com/apis/site/v2/sports/' + lg[1] + '/scoreboard', { json: true, timeout: 5000, tries: 1 }));
+    const ev = (j.events || []).slice(0, 10); if (!ev.length) throw new Error('no events on the scoreboard');
+    const lines = ev.map(e => { const c = (e.competitions && e.competitions[0]) || {}, cs = (c.competitors || []).slice().sort((a, b) => (b.homeAway === 'home' ? 1 : 0) - (a.homeAway === 'home' ? 1 : 0)); const st = (e.status && e.status.type) || {}; return cs.map(x => ((x.team && x.team.displayName) || (x.athlete && x.athlete.displayName) || '?') + (x.score != null ? ' ' + x.score : '')).join(' vs ') + ' [' + (st.detail || st.description || st.state || '') + '] ' + String(e.date || '').slice(0, 16).replace('T', ' ') + ' UTC'; });
+    return { text: lg[2].toUpperCase() + ' SCOREBOARD (ESPN, unofficial feed; home team listed first) — ' + lines.join(' | '), source: { title: 'ESPN — ' + lg[2] + ' scoreboard', url: 'https://www.espn.com/', publisher: 'ESPN', date: new Date().toISOString(), kind: 'data', connector: 'espn', snippet: '' } };
+  } catch (e) { return sportsDbFallback(lg); }
 }
 async function hackerNews() {
   return cached('hn', 10 * 6e4, async () => {
@@ -806,7 +830,7 @@ app.get('/api/live/selftest', async (q, r) => {
     ['Google News', () => gnews('india', { n: 3 })], ['BBC News feed', () => fetchFeed('BBC News', FEEDS.world[0][1])], ['The Hindu feed', () => fetchFeed('The Hindu', FEEDS.india[0][1])], ['GDELT direct', () => gdelt('india', { n: 3, timespan: '1d' })], ['GDELT fallback path', async () => { try { return { items: await gdelt('india', { n: 3, timespan: '1d' }), via: 'gdelt' }; } catch (e) { const items = await gnews('india', { n: 3 }); if (!items.length) throw e; return { items, via: 'google-news-fallback' }; } }],
     ['Web search', () => webSearch('nasa')], ['Wikipedia', () => wikiSearch('India', 'en', 2)], ['Wikipedia current events', () => currentEvents(y.getUTCFullYear(), y.getUTCMonth() + 1, y.getUTCDate())],
     ['Open-Meteo geocoding direct', () => lhttp('https://geocoding-api.open-meteo.com/v1/search?name=Delhi&count=1&format=json', { json: true, timeout: 4500, tries: 1 })], ['Open-Meteo forecast direct', () => lhttp('https://api.open-meteo.com/v1/forecast?latitude=28.6139&longitude=77.2090&current=temperature_2m&timezone=auto', { json: true, timeout: 4500, tries: 1 })], ['Weather (Open-Meteo / fallback)', () => weather('Delhi', 'en')], ['Yahoo Finance', () => yahooQuote('^NSEI', 'Nifty 50')], ['CoinGecko direct', () => lhttp('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd', { json: true, timeout: 4500, tries: 1 })], ['Coinbase fallback', () => coinbaseFallback(CRYPTO.slice(0, 2))], ['Crypto price routing', () => coingecko(CRYPTO.slice(0, 2))], ['Exchange rates', () => fxRate('usd to inr')],
-    ['USGS earthquakes', () => quakes()], ['arXiv', () => arxiv('quantum')], ['World Bank', () => worldBank('gdp of india')], ['OpenAlex', () => openalex('artificial intelligence')], ['Science RSS feeds', async () => { const v = await feedCat('science', 5); if (!v.items.length) throw new Error('no science feed items'); return v; }], ['ESPN scoreboard', () => espn('premier league')], ['Hacker News', () => hackerNews()]];
+    ['USGS earthquakes', () => quakes()], ['arXiv', () => arxiv('quantum')], ['World Bank', () => worldBank('gdp of india')], ['OpenAlex direct', () => openalex('artificial intelligence')], ['OpenAlex fallback', async () => { try { const items = await openalex('artificial intelligence'); return { items, via: 'openalex' }; } catch (e) { const [papers, feed] = await Promise.all([arxiv('artificial intelligence'), feedCat('science', 5)]); const items = [...papers, ...(feed.items || [])]; if (!items.length) throw e; return { items, via: 'arxiv+science-rss' }; } }], ['Science RSS feeds', async () => { const v = await feedCat('science', 5); if (!v.items.length) throw new Error('no science feed items'); return v; }], ['ESPN direct', () => lhttp('https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard', { json: true, timeout: 4500, tries: 1 })], ['TheSportsDB fallback', () => sportsDbFallback(LEAGUES.find(l => l[2] === 'Premier League'))], ['ESPN scoreboard', () => espn('premier league')], ['Hacker News', () => hackerNews()]];
   const results = await Promise.all(probes.map(async ([name, fn]) => {
     const t0 = Date.now();
     try {
