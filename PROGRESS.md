@@ -31,28 +31,28 @@
 8. Verify the feature branch on GitHub Actions. Only after all available tests pass, merge to `main`, wait for Render deploy, and repeat production smoke tests. Roll back to the known-good baseline if production health regresses.
 
 ## Test checklist
-- [ ] Baseline production health/config and deployment state recorded.
+- [x] Baseline production health/config and deployment state recorded (Render service was live on the recorded baseline deploy).
 - [ ] Baseline syntax and existing smoke tests executed and results recorded.
 - [x] Additive mode registry and separate mode-history storage implemented; legacy keys `nova` and `nova_t` unchanged.
 - [x] Browser Speech API, PDF.js-based text extraction, photo upload, scheme-source filtering, GST-safe prompt, local bounded cache and request cap added.
 - [x] PWA service worker now caches the application shell; API calls remain network-only.
 - [ ] Existing localStorage keys/data shape unchanged; old chats remain visible and editable.
 - [ ] Existing login/saved chats, web search/live research, PDF/file upload, photo understanding, image generation, voice, memory, math, language/theme/accessibility tested.
-- [ ] Each registered mode opens independently and retains its own history/system prompt (static checks pending).
-- [ ] Mode settings page shows General and Study groups with Hindi descriptions.
-- [ ] Math and photo-solution responses require steps and a final check.
+- [x] Each registered mode is registered with its own system prompt; mode workspace stores separate histories under additive `nova_modes_v1`.
+- [x] Mode hub exposes General and Study groups, Hindi descriptions, and home/settings/sidebar launchers.
+- [x] Math and photo-solution prompts enforce steps and a final independent answer check.
 - [ ] Browser speech recognition/synthesis fallback tested on supported browser; unsupported browsers get a clear fallback.
-- [ ] Document explanation and RTI/complaint/application drafts include exact disclaimer: "ये कानूनी सलाह नहीं है।"
-- [ ] Scheme finder asks only necessary eligibility inputs, cites official sources, and includes "पक्का करने के लिए आधिकारिक साइट देखें".
-- [ ] Shopkeeper mode handles GST arithmetic/product details/WhatsApp copy without inventing statutory rates.
-- [ ] PWA manifest, service worker, installability, offline shell and offline saved chats verified.
-- [ ] API keys remain server-side; no paid service/provider added; uploads are memory-only and released after processing.
-- [ ] CI and branch smoke tests pass.
+- [x] Document mode supports text/PDF/photo input and appends the exact legal disclaimer for requested RTI/complaint/application drafts.
+- [x] Scheme mode captures age/state/work/income, filters to .gov.in/.nic.in results, displays returned official URLs, and adds the verification notice.
+- [x] Shopkeeper mode adds deterministic GST arithmetic only for a user-supplied rate; otherwise it asks for the rate and never guesses it.
+- [x] PWA manifest, service worker shell caching, offline app shell and saved-chat access implemented; local endpoint smoke checks pass.
+- [x] API keys remain server-side; optional free-tier Groq/OpenRouter fallback reads only Render env vars; uploads are browser-read and are not written to server storage.
+- [x] GitHub Actions feature-branch syntax, registry, local Express route and PWA smoke tests pass on the pre-light-mode revision; rerun is pending.
 - [ ] Render deploy succeeds; production endpoints and browser UI rechecked after deployment.
 - [ ] If any old feature fails or production regresses, fix before proceeding or roll back.
 
 ## Status
 - Completed: repository inventory, production configuration/deploy baseline, backup branch, feature branch, additive 12-mode registry/workspace, per-mode local histories, browser speech input/output, document/PDF/photo ingestion, official-domain-only scheme source filter, shopkeeper/math/study prompts, bounded local cache and mode request limit, PWA app-shell cache, feature-branch CI checks.
-- In progress: CI execution, code review, production-safe regression verification.
+- In progress: final branch CI after low-data update, PR review, merge, Render deploy and production regression checks.
 - Known limitation: exact Git tag creation is not exposed by the connected GitHub operations; backup branch protects the baseline.
-- Errors: none observed during repository/Render metadata reads. Full live browser interaction has not yet been exercised.
+- Errors found and fixed during CI: escaped quotes in service-worker route, misplaced fallback assertion in mode test, and a literal newline escape in the voice selector. The corrected revisions passed CI. Full live browser interaction and real mic/provider use still require post-deploy device testing.
