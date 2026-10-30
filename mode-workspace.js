@@ -34,10 +34,10 @@ function drawHome(){
 }
 function drawChat(){
  const m=mode(active),h=history(active);$('#nmBack').hidden=false;$('#nmTitle').textContent=m.name;compose.hidden=false;
- const controls=active==='schemes'?'<div class="nmscheme"><label>उम्र<input id="nmAge" type="number" min="1" max="120" placeholder="उम्र"></label><label>राज्य<input id="nmState" placeholder="राज्य"></label><label>काम/स्थिति<input id="nmWork" placeholder="जैसे छात्र, किसान"></label><label>वार्षिक आय (₹)<input id="nmIncome" type="number" min="0" placeholder="आय"></label></div>':'';
+ const controls=active==='schemes'?'<div class="nmscheme"><label>उम्र<input id="nmAge" type="number" min="1" max="120" placeholder="उम्र"></label><label>राज्य<input id="nmState" placeholder="राज्य"></label><label>काम/स्थिति<input id="nmWork" placeholder="जैसे छात्र, किसान"></label><label>वार्षिक आय (₹)<input id="nmIncome" type="number" min="0" placeholder="आय"></label></div>':active==='voice'?'<label class="nmhint">जवाब की भाषा <select id="nmVoiceLang"><option value="hi-IN">हिंदी</option><option value="en-IN">English (India)</option><option value="bn-IN">বাংলা</option><option value="ta-IN">தமிழ்</option><option value="te-IN">తెలుగు</option><option value="mr-IN">मराठी</option><option value="gu-IN">ગુજરાતી</option><option value="pa-IN">ਪੰਜਾਬੀ</option><option value="kn-IN">ಕನ್ನಡ</option><option value="ml-IN">മലയാളം</option></select></label>':'';
  content.innerHTML=controls+'<div class="nmchat">'+h.map(x=>'<div class="nmbubble '+(x.role==='user'?'user':'assistant')+'">'+esc(x.text)+'</div>').join('')+'</div>';
  $('#nmStatus').textContent=navigator.onLine?'':'ऑफ़लाइन: पहले से सेव चैट पढ़ सकते हैं; नया AI जवाब इंटरनेट पर निर्भर है।';
- content.scrollTop=content.scrollHeight;input.placeholder=active==='document'?'बिल/नोटिस/फॉर्म अपलोड करें या सवाल लिखें…':active==='photo'?'सवाल की फोटो चुनें या सवाल लिखें…':'अपना सवाल लिखें…';
+ const vl=$('#nmVoiceLang');if(vl){vl.value=data().voiceLang||'hi-IN';vl.onchange=()=>{const d=data();d.voiceLang=vl.value;saveData(d)}}\n content.scrollTop=content.scrollHeight;input.placeholder=active==='document'?'बिल/नोटिस/फॉर्म अपलोड करें या सवाल लिखें…':active==='photo'?'सवाल की फोटो चुनें या सवाल लिखें…':'अपना सवाल लिखें…';
 }
 function openMode(id){active=id;const d=data();d.lastMode=id;saveData(d);upload=null;$('#nmUploadName').textContent='';drawChat()}
 function stopSpeech(){try{if(recognition)recognition.stop()}catch(e){}recognition=null}
@@ -73,7 +73,7 @@ async function send(){
  if(!navigator.onLine){$('#nmStatus').textContent='ऑफ़लाइन मोड: सेव चैट उपलब्ध है, नया AI जवाब नहीं।';return}
  d.limits.push(now);saveData(d);
  let q=question||upload?.text||'इस सामग्री को समझाएँ',file=upload;upload=null;$('#nmUploadName').textContent='';
- const userText=question||('📎 '+(file?.name||'अपलोड की गई फ़ाइल'));h.push({role:'user',text:userText,at:now});saveData(d);input.value='';drawChat();$('#nmStatus').textContent='जवाब तैयार हो रहा है…';
+ const userText=question||('📎 '+(file?.name||'अपलोड की गई फ़ाइल'));h.push({role:'user',text:userText,at:now});if(h.length>100)h.splice(0,h.length-100);saveData(d);input.value='';drawChat();$('#nmStatus').textContent='जवाब तैयार हो रहा है…';
  try{
    let extra='',profile=null,sourceLinks=[];
    if(active==='schemes'){const x=await schemeSources(schemeInput);profile=x.profile;if(!x.results.length)throw Error('इस समय कोई आधिकारिक सरकारी स्रोत नहीं मिला। कृपया आधिकारिक पोर्टल पर सीधे जाँचें।');sourceLinks=x.results.map(z=>({title:z.title,url:z.url}));extra='\nकेवल नीचे दिए गए आधिकारिक government domain स्रोतों को उपयोग करें; इनमें से पात्रता सिद्ध न हो तो साफ़ कहें कि पुष्टि नहीं हुई।\n'+JSON.stringify(x.results);}
@@ -94,12 +94,12 @@ async function send(){
    }
    if(active==='document'&&/(RTI|सूचना अधिकार|शिकायत|आवेदन|application|ड्राफ्ट|draft)/i.test(q)&&!answer.includes('ये कानूनी सलाह नहीं है।'))answer+='\n\nये कानूनी सलाह नहीं है।';
    if(active==='schemes'&&!answer.includes('पक्का करने के लिए आधिकारिक साइट देखें'))answer+='\n\nपक्का करने के लिए आधिकारिक साइट देखें।';
-   h.push({role:'assistant',text:answer,at:Date.now()});saveData(d);drawChat();if(active==='voice')speak(answer);
+   h.push({role:'assistant',text:answer,at:Date.now()});if(h.length>100)h.splice(0,h.length-100);saveData(d);drawChat();if(active==='voice')speak(answer);
    $('#nmStatus').textContent=cached?'सेव कैश से जवाब':'जवाब तैयार';
- }catch(e){h.push({role:'assistant',text:'⚠️ '+String(e.message||e),at:Date.now()});saveData(d);drawChat();$('#nmStatus').textContent='';}
+ }catch(e){h.push({role:'assistant',text:'⚠️ '+String(e.message||e),at:Date.now()});if(h.length>100)h.splice(0,h.length-100);saveData(d);drawChat();$('#nmStatus').textContent='';}
 }
-function speak(text){if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(text);u.lang='hi-IN';speechSynthesis.cancel();speechSynthesis.speak(u)}
-function voice(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('#nmStatus').textContent='इस ब्राउज़र में Speech Recognition उपलब्ध नहीं है; टाइप करके पूछें।';return}stopSpeech();recognition=new SR();recognition.lang='hi-IN';recognition.interimResults=false;recognition.onresult=e=>{input.value=e.results[0][0].transcript;send()};recognition.onerror=()=>$('#nmStatus').textContent='माइक उपलब्ध नहीं; अनुमति जाँचें या टाइप करें।';recognition.start();$('#nmStatus').textContent='सुन रहा हूँ…'}
+function speak(text){if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(text);u.lang=data().voiceLang||'hi-IN';speechSynthesis.cancel();speechSynthesis.speak(u)}
+function voice(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('#nmStatus').textContent='इस ब्राउज़र में Speech Recognition उपलब्ध नहीं है; टाइप करके पूछें।';return}stopSpeech();recognition=new SR();recognition.lang=data().voiceLang||'hi-IN';recognition.interimResults=false;recognition.onresult=e=>{input.value=e.results[0][0].transcript;send()};recognition.onerror=()=>$('#nmStatus').textContent='माइक उपलब्ध नहीं; अनुमति जाँचें या टाइप करें।';recognition.start();$('#nmStatus').textContent='सुन रहा हूँ…'}
 $('#nmClose').onclick=hide;$('#nmBack').onclick=drawHome;$('#nmSend').onclick=send;$('#nmMic').onclick=voice;
 $('#nmFile').onclick=()=>$('#nmPick').click();$('#nmPick').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;try{upload={...await extractFile(f),name:f.name};$('#nmUploadName').textContent='फ़ाइल तैयार: '+f.name+' (भेजने के बाद सर्वर पर सेव नहीं होगी)';}catch(err){$('#nmStatus').textContent=err.message}};
 input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
