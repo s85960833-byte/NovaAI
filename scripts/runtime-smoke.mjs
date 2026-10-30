@@ -8,8 +8,9 @@ await expect('mode registry asset','/mode-registry.js',{},(r,b)=>r.ok&&b.include
 await expect('mode workspace asset','/mode-workspace.js',{},(r,b)=>r.ok&&b.includes('nova_modes_v1')&&b.includes('nova_mode_cache_v1'));
 const config=JSON.parse(await expect('server config','/api/config',{},(r,b)=>r.ok&&JSON.parse(b).model==='test-model'));
 const manifest=JSON.parse(await expect('PWA manifest','/manifest.webmanifest',{},(r,b)=>r.ok&&JSON.parse(b).name==='Nova AI'));
-await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v1')&&b.includes("u.pathname.startsWith('/api/')"));
-await expect('PWA icon','/icons/icon-192.png',{},(r,b)=>r.ok);
+await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v1')&&b.includes("u.pathname.startsWith('/api/')")&&b.includes("/icons/icon-512.png"));
+await expect('PWA icon 192','/icons/icon-192.png',{},(r,b)=>r.ok);
+await expect('PWA icon 512','/icons/icon-512.png',{},(r,b)=>r.ok);
 await expect('chat validation','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},(r)=>r.status===400);
 await expect('search validation','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},(r)=>r.status===400);
 await expect('image validation','/api/image',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},(r)=>r.status===400);
