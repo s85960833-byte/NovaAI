@@ -43,7 +43,7 @@ function openMode(id){active=id;const d=data();d.lastMode=id;saveData(d);upload=
 function stopSpeech(){try{if(recognition)recognition.stop()}catch(e){}recognition=null}
 async function extractFile(f){
  if(f.size>8*1024*1024)throw Error('फ़ाइल 8 MB से छोटी रखें।');
- if(f.type.startsWith('image/')){return {image:await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result));r.onerror=no;r.readAsDataURL(f)}),text:'इस फ़ोटो में लिखी सामग्री पढ़कर समझाएँ।'};}
+ if(f.type.startsWith('image/')){if(f.size>4*1024*1024)throw Error('फ़ोटो 4 MB से छोटी रखें।');return {image:await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result));r.onerror=no;r.readAsDataURL(f)}),text:'इस फ़ोटो में लिखी सामग्री पढ़कर समझाएँ।'};}
  if(/\.pdf$/i.test(f.name)||f.type==='application/pdf'){
    if(!window.pdfjsLib){$('#nmStatus').textContent='PDF रीडर लोड हो रहा है…';await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';s.onload=ok;s.onerror=()=>no(Error('PDF रीडर उपलब्ध नहीं है'));document.head.append(s)});window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';}
    const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let out='';
@@ -55,7 +55,7 @@ async function extractFile(f){
 }
 function cacheGet(k){const c=read(CACHE,{}),x=c[k];if(!x||Date.now()-x.at>12*60*60*1000)return null;return x.text}
 function cacheSet(k,text){const c=read(CACHE,{});c[k]={at:Date.now(),text};const keys=Object.keys(c);while(keys.length>80)delete c[keys.shift()];write(CACHE,c)}
-function cacheKey(id,text){return id+'|'+text.trim().toLowerCase().replace(/\s+/g,' ').slice(0,900)}
+function cacheKey(id,text){const s=text.trim().toLowerCase().replace(/\s+/g,' ');let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return id+'|'+(h>>>0).toString(36)}
 async function schemeSources(){
  const age=$('#nmAge')?.value,state=$('#nmState')?.value.trim(),work=$('#nmWork')?.value.trim(),income=$('#nmIncome')?.value;
  if(!age||!state||!work||income==='')throw Error('योजना खोजने के लिए उम्र, राज्य, काम और सालाना आय भरें।');
@@ -109,7 +109,7 @@ function addLaunchers(){
  add(top,'novaModesTop','☷ मोड्स');add(side,'novaModesSide','☷ मोड्स खोलें');
  const home=document.createElement('button');home.id='novaModesHome';home.type='button';home.textContent='☷ सभी मोड्स खोलें';home.addEventListener('click',show);
  const hi=$('#hi');if(hi)hi.append(home);
- const settings=$('#dset');if(settings){const b=document.createElement('button');b.type='button';b.textContent='☷ मोड्स पेज';b.onclick=show;settings.append(b)}
+ const settings=$('#dset');if(settings){const b=document.createElement('button');b.type='button';b.textContent='☷ मोड्स पेज';b.onclick=()=>{if(settings.open)settings.close();show()};settings.append(b)}
 }
 addLaunchers();
 if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('/sw.js').catch(()=>{});
