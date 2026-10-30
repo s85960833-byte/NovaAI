@@ -89,7 +89,7 @@ const imageResponse = await request('/api/image', {
   timeout: 90000
 });
 const generated = await json(imageResponse);
-if (!imageResponse.ok || !/^data:image\\//.test(generated.image || '') || generated.image.length < 1200) throw new Error('Actual image generation failed: HTTP ' + imageResponse.status);
+if (!imageResponse.ok || !String(generated.image || '').startsWith('data:image/') || generated.image.length < 1200) throw new Error('Actual image generation failed: HTTP ' + imageResponse.status);
 console.log('PASS actual free image generation (' + Math.round(generated.image.length / 1024) + ' KB data URL)');
 
 const transcribeValidation = await request('/api/transcribe', {
