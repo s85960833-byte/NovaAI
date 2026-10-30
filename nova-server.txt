@@ -1,6 +1,6 @@
-// Nova AI backend. Hosts index.html and gives it a server:
-// AI chat proxy (key stays on the server), web search, image generation.
-// Setup: keep nova-server.js, package.json and index.html together in the same folder, then
+// Nova AI backend. Hosts index.html and provides the server-side API.
+// AI chat proxy (key stays on the server), web search, image generation and live data.
+// Setup: keep nova-server.txt, package.json and index.html together in the same folder, then
 //   npm install        (uses package.json)
 //   LLM_KEY=... LLM_MODEL=... node nova-server.txt
 // Env: LLM_KEY, LLM_MODEL (required) | LLM_BASE (default OpenRouter, any OpenAI-compatible URL)
@@ -36,6 +36,7 @@ app.get('/api/config', (q, r) => {
 // Speech to text for live voice when the phone browser cannot do it itself (same provider key, e.g. Groq Whisper).
 app.post('/api/transcribe', express.raw({ type: () => true, limit: '8mb' }), async (q, r) => {
   try {
+    if (E.STT_OFF) return r.status(404).end();
     if (!Buffer.isBuffer(q.body) || q.body.length < 800) return r.status(400).json({ error: 'No audio received' });
     const type = String(q.headers['content-type'] || 'audio/webm').split(';')[0];
     const ext = /mp4|m4a|aac/.test(type) ? 'm4a' : /ogg/.test(type) ? 'ogg' : /wav/.test(type) ? 'wav' : 'webm';
@@ -46,7 +47,7 @@ app.post('/api/transcribe', express.raw({ type: () => true, limit: '8mb' }), asy
       f.append('file', new Blob([q.body], { type }), 'speech.' + ext);
       f.append('model', model); f.append('response_format', 'json'); f.append('temperature', '0');
       if (/^[a-z]{2}$/.test(lang)) f.append('language', lang);
-      const u = await fetch(BASE.replace(/\/$/, '') + '/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + E.LLM_KEY }, body: f });
+      const u = await fetch(BASE.replace(/\/$/, '') + '/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + E.LLM_KEY }, body: f, signal: AbortSignal.timeout(30000) });
       const text = await u.text();
       if (u.ok) { let j = {}; try { j = JSON.parse(text) } catch (e) {} return r.json({ text: String(j.text || '').trim() }); }
       last = { status: u.status, text };
@@ -112,6 +113,7 @@ function fit(body, budget) {
 const RETRY = [413, 429, 500, 502, 503, 504];
 app.post('/api/chat/completions', async (q, r) => {
   try {
+    if (!q.body || !Array.isArray(q.body.messages) || !q.body.messages.length) return r.status(400).json({ error: 'Messages are required' });
     let body = slim(q.body || {});
     const sm0 = (body.messages || []).find(x => x.role === 'system'), hasLive = !!(sm0 && typeof sm0.content === 'string' && sm0.content.includes('== LIVE DATA ==')), vis = hasImg(body), bud = vis ? VBUDGET : hasLive ? Math.max(BUDGET, 6500) : BUDGET;
     body = fit(body, bud);
@@ -123,7 +125,8 @@ app.post('/api/chat/completions', async (q, r) => {
         const u = await fetch(BASE.replace(/\/$/, '') + '/chat/completions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.LLM_KEY },
-          body: JSON.stringify({ ...body, ...extra, model, stream: body.stream !== false })
+          body: JSON.stringify({ ...body, ...extra, model, stream: body.stream !== false }),
+          signal: AbortSignal.timeout(Math.max(15000, Math.min(120000, Number(E.LLM_TIMEOUT_MS) || 90000)))
         });
         if (u.ok) { good = u; break; }
         const text = await u.text();
@@ -136,7 +139,7 @@ app.post('/api/chat/completions', async (q, r) => {
       if (good) break;
       if (model === models[0] && !RETRY.includes(last)) break;
     }
-    if (!good) return r.status(first.status).set('Content-Type', first.type || 'application/json').send(first.text);
+    if (!good) return r.status(first ? first.status : 502).json({ error: 'LLM provider request failed', status: first ? first.status : 502 });
     r.status(good.status).set('Content-Type', good.headers.get('content-type') || 'text/event-stream');
     for await (const c of good.body) r.write(c);
     r.end();
@@ -145,12 +148,16 @@ app.post('/api/chat/completions', async (q, r) => {
 
 app.post('/api/search', async (q, r) => {
   if (!E.TAVILY_KEY) return r.status(404).end();
+  const query = String((q.body && q.body.q) || '').trim().slice(0, 300);
+  if (!query) return r.status(400).json({ error: 'Search query is required' });
   try {
     const u = await fetch('https://api.tavily.com/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.TAVILY_KEY },
-      body: JSON.stringify({ query: String(q.body.q || '').slice(0, 300), max_results: 5 })
+      body: JSON.stringify({ query, max_results: 5 }),
+      signal: AbortSignal.timeout(12000)
     });
+    if (!u.ok) return r.status(502).json({ error: 'Search provider unavailable', status: u.status });
     const j = await u.json();
     r.json({ results: (j.results || []).map(x => ({ title: x.title, url: x.url, content: String(x.content || '').slice(0, 600) })) });
   } catch (e) { r.status(502).json({ error: 'Search failed' }); }
@@ -164,7 +171,8 @@ app.post('/api/image', async (q, r) => {
       const u = await fetch((E.IMAGE_BASE || 'https://api.openai.com/v1').replace(/\/$/, '') + '/images/generations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.IMAGE_KEY },
-        body: JSON.stringify({ model: E.IMAGE_MODEL, prompt, size: '1024x1024', response_format: 'b64_json' })
+        body: JSON.stringify({ model: E.IMAGE_MODEL, prompt, size: '1024x1024', response_format: 'b64_json' }),
+        signal: AbortSignal.timeout(60000)
       });
       const j = await u.json();
       const b = j.data && j.data[0] && j.data[0].b64_json;
