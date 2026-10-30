@@ -547,10 +547,10 @@ const COINBASE_PAIRS = { bitcoin: 'BTC-USD', ethereum: 'ETH-USD', dogecoin: 'DOG
 async function coinbaseFallback(list) {
   const mapped = list.filter(x => COINBASE_PAIRS[x[1]]);
   if (!mapped.length) throw new Error('Coinbase fallback has no mapped trading pairs');
-  const rs = await Promise.allSettled(mapped.map(x => {
+  const rs = await Promise.allSettled(mapped.map(async x => {
     const pair = COINBASE_PAIRS[x[1]];
-    return cached('cb:' + pair, 60 * 1000, () => lhttp('https://api.exchange.coinbase.com/products/' + pair + '/stats', { json: true, timeout: 4500, tries: 1 }))
-      .then(v => ({ coin: x, pair, stats: v }));
+    const stats = await cached('cb:' + pair, 60 * 1000, () => lhttp('https://api.exchange.coinbase.com/products/' + pair + '/stats', { json: true, timeout: 4500, tries: 1 }));
+    return { coin: x, pair, stats };
   }));
   const quotes = rs.filter(x => x.status === 'fulfilled').map(x => x.value).filter(x => Number.isFinite(Number(x.stats.last)) && Number(x.stats.last) > 0);
   if (!quotes.length) throw new Error('Coinbase market-data fallback unavailable');
@@ -563,7 +563,20 @@ async function coinbaseFallback(list) {
     const price = Number(x.stats.last), open = Number(x.stats.open);
     const change = Number.isFinite(open) && open > 0 ? (price - open) / open * 100 : null;
     const local = inr ? ' / ₹' + (price * inr).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + ' approx.' : '';
-    return x.coin[2] + ': 
+    return x.coin[2] + ': $' + price.toLocaleString('en-US', { maximumFractionDigits: 6 }) + local + (change != null ? ' (' + (change >= 0 ? '+' : '') + change.toFixed(2) + '% 24h)' : '') + ' — Coinbase Exchange spot';
+  });
+  const at = new Date().toISOString();
+  return { text: 'CRYPTO SPOT PRICES (Coinbase Exchange fallback; exchange-specific, not a global market average; retrieved ' + at + (inr ? '; INR estimate uses the daily ECB/Frankfurter USD-INR reference rate' : '') + ') — ' + lines.join(' | '), source: { title: 'Coinbase Exchange — public spot market data', url: 'https://www.coinbase.com/', publisher: 'Coinbase Exchange', date: at, kind: 'data', connector: 'coinbase', snippet: '' } };
+}
+async function coingecko(list) {
+  const ids = list.map(x => x[1]).join(',');
+  let j;
+  try { j = await cached('cg:' + ids, 3 * 60 * 1000, () => lhttp('https://api.coingecko.com/api/v3/simple/price?ids=' + ids + '&vs_currencies=usd,inr&include_24hr_change=true&include_last_updated_at=true', { json: true, timeout: 6500, tries: 1 })); }
+  catch (e) { return coinbaseFallback(list); }
+  const lines = list.filter(x => j[x[1]]).map(x => { const v = j[x[1]]; return x[2] + ': $' + v.usd + ' / ₹' + v.inr + (v.usd_24h_change != null ? ' (' + (v.usd_24h_change >= 0 ? '+' : '') + v.usd_24h_change.toFixed(2) + '% 24h)' : '') + ' updated ' + (v.last_updated_at ? new Date(v.last_updated_at * 1000).toISOString() : 'n/a'); });
+  if (!lines.length) throw new Error('no crypto data');
+  return { text: 'CRYPTO (CoinGecko) — ' + lines.join(' | '), source: { title: 'CoinGecko — ' + list.map(x => x[2]).join(', '), url: 'https://www.coingecko.com/', publisher: 'CoinGecko', date: new Date().toISOString(), kind: 'data', connector: 'coingecko', snippet: '' } };
+}
 const CUR = { usd: 'USD', dollar: 'USD', '\u0921\u0949\u0932\u0930': 'USD', inr: 'INR', rupee: 'INR', rupees: 'INR', '\u0930\u0941\u092a\u092f\u093e': 'INR', '\u0930\u0941\u092a\u092f\u0947': 'INR', eur: 'EUR', euro: 'EUR', gbp: 'GBP', pound: 'GBP', jpy: 'JPY', yen: 'JPY', aed: 'AED', dirham: 'AED' };
 async function fxRate(q) {
   const found = []; q.toLowerCase().split(/[^a-z\u0900-\u097f]+/).forEach(w => { if (CUR[w] && !found.includes(CUR[w])) found.push(CUR[w]); });
