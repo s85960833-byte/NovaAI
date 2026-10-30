@@ -47,7 +47,7 @@ const feed = await json(feedResponse);
 if (!feedResponse.ok || !feed.cats || !Object.keys(feed.cats).length) throw new Error('News feed endpoint returned no categories');
 console.log('PASS /api/feed');
 
-const selfResponse = await request('/api/live/selftest', { timeout: 90000 });
+const selfResponse = await request('/api/live/selftest', { signal: AbortSignal.timeout(90000) });
 const self = await json(selfResponse);
 if (!selfResponse.ok || !Array.isArray(self.results)) throw new Error('Provider self-test endpoint failed');
 const lines = self.results.map(x => (x.ok ? 'PASS ' : 'FAIL ') + x.name + ' — ' + x.ms + 'ms' + (x.note ? ' (' + x.note + ')' : ''));
