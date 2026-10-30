@@ -1,7 +1,7 @@
 name: NovaAI verification
 on:
   push:
-    branches: [main]
+    branches: [main, feature-upgrade]
   workflow_dispatch:
 jobs:
   verify:
@@ -14,9 +14,13 @@ jobs:
           node-version: 22
       - name: Check backend and frontend syntax
         run: node scripts/check.mjs
+      - name: Check isolated mode registry
+        run: node scripts/modes-check.mjs
       - name: Wait for Render auto-deploy
+        if: github.ref == 'refs/heads/main'
         run: sleep 60
       - name: Smoke-test live website and providers
+        if: github.ref == 'refs/heads/main'
         env:
           NOVAAI_URL: https://novaai-4auo.onrender.com
         run: node scripts/smoke.mjs
