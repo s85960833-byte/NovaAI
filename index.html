@@ -857,7 +857,7 @@ fetch(API+'/config').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.model){SV=j;$(
 $('web').onclick=()=>{const o=['auto','on','off'],n=o[(o.indexOf(S.live||'on')+1)%3];S.live=n;save();paintLive();toast(LS(n==='on'?'liveOn':n==='off'?'liveOff':'liveAuto'))};
 try{if(window.claude&&claude.use)claude.use('sample').then(s=>{if(s){SMP=s;$('cfg').style.display='none';first=true;syncFeatures();render();trUI()}}).catch(()=>{})}catch(e){}
 
-const SEN=/[.!?।؟]+["')\]]*\s|[。！？]|\n+/g;
+const SEN=/[.!?]+["')\\]]*\\s|\\n+/g;
 const clean=s=>s.replace(/```[\s\S]*?```/g,' ').replace(/https?:\/\/\S+/g,' ').replace(/\[(\d+)\]/g,' ').replace(/[`*#_>|~]/g,' ').replace(/\p{Extended_Pictographic}/gu,' ').replace(/\s+/g,' ').trim();
 function detectLang(x){const T3=[[/[\u0900-\u097F]/,'hi-IN'],[/[\u0980-\u09FF]/,'bn-IN'],[/[\u0B80-\u0BFF]/,'ta-IN'],[/[\u0C00-\u0C7F]/,'te-IN'],[/[\u0A80-\u0AFF]/,'gu-IN'],[/[\u0C80-\u0CFF]/,'kn-IN'],[/[\u0D00-\u0D7F]/,'ml-IN'],[/[\u0A00-\u0A7F]/,'pa-IN'],[/[\u0600-\u06FF]/,'ar-SA'],[/[\u3040-\u30FF]/,'ja-JP'],[/[\uAC00-\uD7AF]/,'ko-KR'],[/[\u4E00-\u9FFF]/,'zh-CN'],[/[\u0400-\u04FF]/,'ru-RU']];for(const[r,c]of T3)if(r.test(x))return c;return LC[S.rl]||navigator.language||'en-IN'}
 const lvLang=x=>'en-IN';
