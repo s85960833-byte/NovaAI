@@ -17,4 +17,6 @@ for(const token of ['nova_modes_v1','nova_mode_cache_v1','SpeechRecognition','sp
 assert.ok(workspace.includes('navigator.onLine'),'offline-aware saved chat mode missing');
 assert.ok(workspace.includes('10*60*1000'),'per-user rolling request limit missing');
 assert.ok(workspace.includes('4*1024*1024'),'image upload memory/size guard missing');
+assert.ok(workspace.includes('कम डेटा मोड'),'low-data mode toggle missing');
+assert.ok(workspace.includes('bn-IN')&&workspace.includes('ta-IN')&&workspace.includes('gu-IN'),'regional voice language options missing');
 console.log('PASS mode registry: 12 isolated modes, separate storage, voice, PDF/photo, official scheme filtering, rate/cache and offline guards');
