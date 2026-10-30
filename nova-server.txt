@@ -367,7 +367,7 @@ async function brave(q) {
   return ((j.web && j.web.results) || []).map(r => ({ title: lclean(r.title, 200), url: safeUrl(r.url), publisher: host(r.url), date: iso(r.page_age), snippet: lclean(r.description, 260), kind: 'web', connector: 'brave' })).filter(x => x.url && x.title);
 }
 async function ddg(q) {
-  const html = await lhttp('https://html.duckduckgo.com/html/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'text/html' }, body: 'q=' + enc(q) + '&kl=in-en', timeout: 8000, tries: 1 });
+  const html = await lhttp('https://html.duckduckgo.com/html/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'text/html' }, body: 'q=' + enc(q) + '&kl=in-en', timeout: 6000, tries: 1 });
   const out = [], re = /<a\s+([^>]*class="[^"]*result__a[^"]*"[^>]*)>([\s\S]*?)<\/a>/gi, ms = [];
   let m; while ((m = re.exec(html))) ms.push({ at: m.index, end: re.lastIndex, attrs: m[1], title: m[2] });
   if (!ms.length) throw new Error(/captcha|anomaly|unusual/i.test(html) ? 'blocked' : 'no results');
@@ -382,8 +382,10 @@ async function ddg(q) {
   return out;
 }
 async function wikiSearch(q, lang = 'en', n = 4) {
-  const j = await lhttp('https://' + lang + '.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + enc(q) + '&srlimit=' + n + '&format=json&origin=*&srprop=snippet%7Ctimestamp', { json: true });
-  return ((j.query && j.query.search) || []).map(r => ({ title: r.title + ' \u2014 Wikipedia', url: 'https://' + lang + '.wikipedia.org/wiki/' + enc(r.title.replace(/ /g, '_')), publisher: 'Wikipedia', date: iso(r.timestamp), snippet: lclean(r.snippet, 260), kind: 'reference', connector: 'wikipedia' }));
+  return cached('wq:' + lang + ':' + q + ':' + n, 10 * 6e4, async () => {
+    const j = await lhttp('https://' + lang + '.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + enc(q) + '&srlimit=' + n + '&format=json&origin=*&srprop=snippet%7Ctimestamp', { json: true, timeout: 6000, tries: 1 });
+    return ((j.query && j.query.search) || []).map(r => ({ title: r.title + ' \u2014 Wikipedia', url: 'https://' + lang + '.wikipedia.org/wiki/' + enc(r.title.replace(/ /g, '_')), publisher: 'Wikipedia', date: iso(r.timestamp), snippet: lclean(r.snippet, 260), kind: 'reference', connector: 'wikipedia' }));
+  });
 }
 async function wikiSummary(title, lang = 'en') {
   const j = await cached('ws:' + lang + title, 6 * 36e5, () => lhttp('https://' + lang + '.wikipedia.org/api/rest_v1/page/summary/' + enc(title.replace(/ /g, '_')), { json: true }));
@@ -392,7 +394,7 @@ async function wikiSummary(title, lang = 'en') {
 }
 async function webSearch(q, o = {}) {
   const errs = [], primary = [];
-  if (E.TAVILY_KEY) primary.push(cached('tv:' + q, 3 * 6e4, () => tavily(q, o)).then(items => ({ items, via: 'tavily' })).catch(e => { errs.push('tavily'); throw e; }));
+  if (E.TAVILY_KEY) primary.push(cached('tv:' + (o.news ? 'news:' : 'general:') + q, 3 * 6e4, () => tavily(q, o)).then(items => ({ items, via: 'tavily' })).catch(e => { errs.push('tavily'); throw e; }));
   if (E.BRAVE_KEY) primary.push(cached('br:' + q, 3 * 6e4, () => brave(q)).then(items => ({ items, via: 'brave' })).catch(e => { errs.push('brave'); throw e; }));
   if (primary.length) {
     const settled = await Promise.allSettled(primary);
@@ -637,7 +639,7 @@ async function runLive(qraw, o = {}) {
     try { return { items: await gdelt(qq, x), via: 'gdelt' }; }
     catch (e) { const fallback = await gnews(qq, { lang, n: (x && x.n) || 10 }); if (!fallback.length) throw e; return { items: fallback, via: 'google-news-fallback' }; }
   }, 15000);
-  const ws = (qq, x) => T('web-search', () => webSearch(qq, { lang, ...(x || {}) }).then(r => ({ items: r.items, via: r.via })));
+  const ws = (qq, x) => T('web-search', () => webSearch(qq, { lang, ...(x || {}) }).then(r => ({ items: r.items, via: r.via })), 18000);
   const feedT = (cat, filt) => T('feeds:' + cat, () => feedCat(cat, 14).then(r => { let it = r.items; if (filt) { const k = toks(filt); const sc = it.map(x => [x, jac(k, toks(x.title + ' ' + x.snippet))]).filter(z => z[1] > 0.05).sort((a, b) => b[1] - a[1]); it = sc.map(z => z[0]); } if (!it.length) throw new Error('no matching items'); return { items: it }; }));
   // time & place
   if (f.time) { intents.push('time'); const pl = placeFrom(q, ''); T('time', () => timeIn(pl, tz).then(b => ({ blocks: [b] })), 9000); }
