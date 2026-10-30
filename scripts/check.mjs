@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 
 function syntaxCheck(name, source) {
-  const file = join('/tmp', 'novaai-' + name.replace(/[^a-z0-9]/gi, '-') + '.js');
+  const ext = name.endsWith('-test') ? '.mjs' : '.js';\n  const file = join('/tmp', 'novaai-' + name.replace(/[^a-z0-9]/gi, '-') + ext);
   writeFileSync(file, source);
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
   try { unlinkSync(file); } catch {}
