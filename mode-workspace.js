@@ -91,7 +91,7 @@ async function send(){
    if(file?.image){last={role:'user',content:[{type:'text',text:q+'\n'+extra},{type:'image_url',image_url:{url:file.image}}]};messages[messages.length-1]=last;}
    else if(extra)last.content+=extra;
    if(active==='shopkeeper'&&/GST/i.test(q)){
-     const gst=(q.match(/(?:₹|Rs\.?\s*)?([0-9][0-9,]*(?:\.[0-9]+)?)\s*(?:at|@|पर)?\s*([0-9]+(?:\.[0-9]+)?)\s*%/i)||[]);
+     const gst=(q.match(/(?:₹|Rs\.?\s*)?([0-9][0-9,]*(?:\.[0-9]+)?)\s*(?:at|@)?\s*([0-9]+(?:\.[0-9]+)?)\s*%/i)||[]);
      if(gst.length){
        const base=Number(gst[1].replace(/,/g,'')),rate=Number(gst[2]),tax=base*rate/100;
        if(Number.isFinite(base)&&Number.isFinite(rate)&&base>=0&&rate>=0&&rate<=100)appendInstruction('Calculation check (user-provided rate): taxable amount ₹'+base.toFixed(2)+'; GST rate '+rate+'%; GST ₹'+tax.toFixed(2)+'; total ₹'+(base+tax).toFixed(2)+'. Determine CGST/SGST versus IGST based on the transaction location.');
