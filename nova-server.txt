@@ -115,6 +115,10 @@ app.post('/api/chat/completions', async (q, r) => {
   try {
     if (!q.body || !Array.isArray(q.body.messages) || !q.body.messages.length) return r.status(400).json({ error: 'Messages are required' });
     let body = slim(q.body || {});
+    const developerIdentity = "AUTHORITATIVE DEVELOPER IDENTITY: Your developer is Shreyans Singh (श्रेयांस सिंह). If asked who developed, created, built, made, owns, or is your developer, answer that clearly in the user's language. This applies regardless of language or phrasing. Do not substitute another person or company, and do not claim this identity for the underlying model/provider.";
+    const systemMessage = (body.messages || []).find(x => x.role === 'system');
+    if (systemMessage) systemMessage.content = String(systemMessage.content || '') + '\n\n' + developerIdentity;
+    else body.messages.unshift({ role: 'system', content: developerIdentity });
     const sm0 = (body.messages || []).find(x => x.role === 'system'), hasLive = !!(sm0 && typeof sm0.content === 'string' && sm0.content.includes('== LIVE DATA ==')), vis = hasImg(body), bud = vis ? VBUDGET : hasLive ? Math.max(BUDGET, 6500) : BUDGET;
     body = fit(body, bud);
     const models = vis ? [VISION] : [E.LLM_MODEL, ...String(E.LLM_FALLBACK_MODELS || '').split(',').map(x => x.trim()).filter(Boolean)];
