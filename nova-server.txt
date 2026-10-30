@@ -29,8 +29,8 @@ app.use('/api', (q, r, next) => {
 });
 
 app.get('/api/config', (q, r) => {
-  if (!E.LLM_KEY || !E.LLM_MODEL) return r.status(503).end();
-  r.json({ model: E.LLM_MODEL, image: !E.IMAGE_OFF, stt: !E.STT_OFF, live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY } });
+  if (!E.LLM_KEY && !E.GROQ_API_KEY && !E.OPENROUTER_API_KEY) return r.status(503).end();
+  r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || 'free-provider-fallback', image: !E.IMAGE_OFF, stt: !E.STT_OFF, live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY } });
 });
 
 // Speech to text for live voice when the phone browser cannot do it itself (same provider key, e.g. Groq Whisper).
@@ -122,10 +122,11 @@ app.post('/api/chat/completions', async (q, r) => {
     const sm0 = (body.messages || []).find(x => x.role === 'system'), hasLive = !!(sm0 && typeof sm0.content === 'string' && sm0.content.includes('== LIVE DATA ==')), vis = hasImg(body), bud = vis ? VBUDGET : hasLive ? Math.max(BUDGET, 6500) : BUDGET;
     body = fit(body, bud);
     const models = vis ? [VISION] : [E.LLM_MODEL, ...String(E.LLM_FALLBACK_MODELS || '').split(',').map(x => x.trim()).filter(Boolean)];
-    const providers = [{ base: BASE, key: E.LLM_KEY, models }];
+    const providers = [];
+    if (E.LLM_KEY) providers.push({ base: BASE, key: E.LLM_KEY, models });
     // Optional free-tier OpenAI-compatible providers; secrets are read only from Render env vars.
-    if (!vis && E.GROQ_API_KEY) providers.push({ base: E.GROQ_BASE || 'https://api.groq.com/openai/v1', key: E.GROQ_API_KEY, models: [E.GROQ_MODEL || 'llama-3.3-70b-versatile'] });
-    if (!vis && E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: E.OPENROUTER_BASE || 'https://openrouter.ai/api/v1', key: E.OPENROUTER_API_KEY, models: [E.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'] });
+    if (E.GROQ_API_KEY) providers.push({ base: E.GROQ_BASE || 'https://api.groq.com/openai/v1', key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL || 'llama-3.3-70b-versatile'] });
+    if (E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: E.OPENROUTER_BASE || 'https://openrouter.ai/api/v1', key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'] });
     let extra = vis ? { reasoning_format: 'hidden' } : {};   // keep the model's private thinking out of the answer
     let good = null, first = null, last = 0;
     for (const provider of providers) {
