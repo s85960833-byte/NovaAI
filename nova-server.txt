@@ -359,11 +359,11 @@ async function gdelt(q, o = {}) {
 }
 // ---- general web search: Tavily/Brave when keys exist, else DuckDuckGo, else Wikipedia ----
 async function tavily(q, o = {}) {
-  const j = await lhttp('https://api.tavily.com/search', { method: 'POST', json: true, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.TAVILY_KEY }, body: JSON.stringify({ api_key: E.TAVILY_KEY, query: q, max_results: 7, search_depth: 'basic', topic: o.news ? 'news' : 'general' }), timeout: 9000, tries: 1 });
+  const j = await lhttp('https://api.tavily.com/search', { method: 'POST', json: true, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.TAVILY_KEY }, body: JSON.stringify({ api_key: E.TAVILY_KEY, query: q, max_results: 7, search_depth: 'basic', topic: o.news ? 'news' : 'general' }), timeout: 5500, tries: 1 });
   return (j.results || []).map(r => ({ title: lclean(r.title, 200), url: safeUrl(r.url), publisher: host(r.url), date: iso(r.published_date), snippet: lclean(r.content, 260), kind: 'web', connector: 'tavily' })).filter(x => x.url && x.title);
 }
 async function brave(q) {
-  const j = await lhttp('https://api.search.brave.com/res/v1/web/search?q=' + enc(q) + '&count=8', { json: true, headers: { 'X-Subscription-Token': E.BRAVE_KEY, Accept: 'application/json' }, timeout: 8000, tries: 1 });
+  const j = await lhttp('https://api.search.brave.com/res/v1/web/search?q=' + enc(q) + '&count=8', { json: true, headers: { 'X-Subscription-Token': E.BRAVE_KEY, Accept: 'application/json' }, timeout: 5500, tries: 1 });
   return ((j.web && j.web.results) || []).map(r => ({ title: lclean(r.title, 200), url: safeUrl(r.url), publisher: host(r.url), date: iso(r.page_age), snippet: lclean(r.description, 260), kind: 'web', connector: 'brave' })).filter(x => x.url && x.title);
 }
 async function ddg(q) {
@@ -392,9 +392,13 @@ async function wikiSummary(title, lang = 'en') {
 }
 async function webSearch(q, o = {}) {
   const errs = [], primary = [];
-  if (E.TAVILY_KEY) primary.push((async () => { const r = await tavily(q, o); if (!r.length) throw new Error('no results'); return { items: r, via: 'tavily' }; })().catch(e => { errs.push('tavily'); throw e; }));
-  if (E.BRAVE_KEY) primary.push((async () => { const r = await brave(q); if (!r.length) throw new Error('no results'); return { items: r, via: 'brave' }; })().catch(e => { errs.push('brave'); throw e; }));
-  if (primary.length) { try { return await Promise.any(primary); } catch (e) {} }
+  if (E.TAVILY_KEY) primary.push(cached('tv:' + q, 3 * 6e4, () => tavily(q, o)).then(items => ({ items, via: 'tavily' })).catch(e => { errs.push('tavily'); throw e; }));
+  if (E.BRAVE_KEY) primary.push(cached('br:' + q, 3 * 6e4, () => brave(q)).then(items => ({ items, via: 'brave' })).catch(e => { errs.push('brave'); throw e; }));
+  if (primary.length) {
+    const settled = await Promise.allSettled(primary);
+    const good = settled.filter(x => x.status === 'fulfilled' && x.value.items && x.value.items.length);
+    if (good.length) return { items: dedupe(good.flatMap(x => x.value.items)), via: good.map(x => x.value.via).join('+') };
+  }
   try { const r = await cached('ddg:' + q, 4 * 6e4, () => ddg(q)); if (r.length) return { items: r, via: 'duckduckgo' }; } catch (e) { errs.push('duckduckgo'); }
   try { const r = await wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5); if (r.length) return { items: r, via: 'wikipedia' }; } catch (e) { errs.push('wikipedia'); }
   throw new Error('all web search providers failed (' + errs.join(', ') + ')');
