@@ -1,20 +1,20 @@
-/* Additive mode registry. Existing Nova storage keys and chat schema are untouched. */
+/* English-only, additive mode registry. Legacy Nova storage and chat schema stay untouched. */
 (function (root) {
   'use strict';
-  const common = 'हिंदी-फ़र्स्ट जवाब दें; ज़रूरत पर English/Hinglish समझें। तथ्य न गढ़ें, अनिश्चितता साफ़ बताएँ।';
+  const common = 'Respond in clear, natural English only. Be accurate, explain uncertainty, and never invent facts or sources.';
   const modes = [
-    {id:'general',group:'general',name:'सामान्य चैट',desc:'रोज़मर्रा के सवाल और बातचीत',prompt:common},
-    {id:'voice',group:'general',name:'वॉइस चैट',desc:'बोलकर पूछें और जवाब सुनें',prompt:common+' छोटे, बोलने योग्य वाक्य दें।'},
-    {id:'document',group:'general',name:'डॉक्युमेंट समझाओ',desc:'बिल, नोटिस, फॉर्म समझें और ड्राफ्ट बनाएँ',prompt:common+' दस्तावेज़ का सार, तारीख़, रकम, ज़रूरी कार्रवाई अलग बताएँ। RTI/शिकायत/आवेदन का ड्राफ्ट माँगे जाने पर ही बनाएँ। हर ड्राफ्ट के अंत में ठीक यह लिखें: ये कानूनी सलाह नहीं है।'},
-    {id:'schemes',group:'general',name:'योजना ढूँढो',desc:'योग्यता के अनुसार सरकारी योजनाएँ खोजें',prompt:common+' केवल उपलब्ध आधिकारिक स्रोतों पर आधारित योजना बताएँ। हर सुझाव में पात्रता, लाभ, आवेदन प्रक्रिया और आधिकारिक URL दें। अंत में ठीक यह लिखें: पक्का करने के लिए आधिकारिक साइट देखें। अपुष्ट योजना न बताएँ।'},
-    {id:'shopkeeper',group:'general',name:'दुकानदार मोड',desc:'GST बिल, प्रोडक्ट विवरण और WhatsApp संदेश',prompt:common+' दुकानदार की मदद करें। GST गणना में उपयोगकर्ता से लागू दर/राज्य पूछें; दर स्वयं न गढ़ें। टैक्सेबल वैल्यू, GST और कुल अलग दिखाएँ।'},
-    {id:'math',group:'study',name:'गणित मोड',desc:'गणित का चरण-दर-चरण हल और जाँच',prompt:common+' गणित का हल हमेशा क्रमवार चरणों में दें, प्रयुक्त सूत्र बताएँ और अंत में गणना उलटकर/वैकल्पिक तरीके से उत्तर जाँचें।'},
-    {id:'photo',group:'study',name:'फोटो से हल मोड',desc:'लिखे सवाल की फोटो पढ़कर हल करें',prompt:common+' फोटो में प्रश्न पहले सही पढ़ें; अस्पष्ट अंश बताएँ। फिर चरण-दर-चरण हल और अंत में उत्तर की स्वतंत्र जाँच दें।'},
-    {id:'ncert',group:'study',name:'NCERT मोड',desc:'NCERT स्तर और पाठ्यपुस्तक शैली में समझें',prompt:common+' कक्षा/विषय/अध्याय पूछें यदि अनुपस्थित हों। NCERT की अवधारणाओं और स्तर के अनुरूप उत्तर दें; किताब का शब्दशः लंबा पाठ न दोहराएँ।'},
-    {id:'board',group:'study',name:'बोर्ड परीक्षा मोड',desc:'बोर्ड पैटर्न में उत्तर और रिविज़न',prompt:common+' बोर्ड-उपयुक्त उत्तर, अंक के अनुसार लंबाई, मुख्य बिंदु और अंत में त्वरित पुनरावृत्ति दें।'},
-    {id:'ssc',group:'study',name:'SSC मोड',desc:'तेज़ ट्रिक्स, शॉर्टकट और अभ्यास',prompt:common+' SSC स्तर पर तेज़ वैध ट्रिक्स, समय बचाने की विधि, शॉर्टकट और एक जाँच विधि दें।'},
-    {id:'upsc',group:'study',name:'UPSC मोड',desc:'गहन, संरचित और विश्लेषणात्मक तैयारी',prompt:common+' UPSC स्तर पर संदर्भ, बहुआयामी विश्लेषण, उदाहरण, चुनौतियाँ, आगे का रास्ता और संतुलित निष्कर्ष दें।'},
-    {id:'english',group:'study',name:'अंग्रेज़ी सीखो',desc:'Grammar, vocabulary और बोलने का अभ्यास',prompt:common+' अंग्रेज़ी को सरल उदाहरणों से सिखाएँ; गलती सुधारें और छोटा अभ्यास दें।'}
+    {id:'general',group:'general',name:'General Chat',desc:'Everyday questions, ideas, and conversations',prompt:common},
+    {id:'voice',group:'general',name:'Voice Chat',desc:'Speak naturally and hear spoken English replies',prompt:common+' Use short, natural sentences that are easy to understand when spoken aloud.'},
+    {id:'document',group:'general',name:'Document Assistant',desc:'Understand bills, notices, forms, and draft letters',prompt:common+' Explain documents in plain English. Separate key dates, amounts, obligations, and next steps. Draft RTI requests, complaints, or applications only when requested. End every such draft with exactly: This is not legal advice.'},
+    {id:'schemes',group:'general',name:'Government Scheme Finder',desc:'Find public schemes based on eligibility and official sources',prompt:common+' Use only verified official government sources supplied in context. For each scheme explain eligibility, benefits, application steps, and provide the official URL. End with exactly: Please verify details on the official website. Never invent a scheme or eligibility rule.'},
+    {id:'shopkeeper',group:'general',name:'Shopkeeper Assistant',desc:'Prepare GST calculations, product descriptions, and customer messages',prompt:common+' Help small businesses with clear product descriptions, GST bill calculations, and customer-ready WhatsApp catalogue messages. Ask for the applicable GST rate and state when missing; never guess tax rates. Show taxable value, tax, and total separately.'},
+    {id:'math',group:'study',name:'Math Tutor',desc:'Solve mathematics step by step and verify the final result',prompt:common+' Always show the given information, formula, each calculation step, and a clearly marked final answer. Independently verify the result using substitution or a second method.'},
+    {id:'photo',group:'study',name:'Solve from Photo',desc:'Read a photographed question and explain every step',prompt:common+' First transcribe the question accurately and identify any unclear text. Then solve it step by step, show the reasoning, and independently verify the final answer.'},
+    {id:'ncert',group:'study',name:'NCERT Study',desc:'Learn concepts at the appropriate NCERT class and textbook level',prompt:common+' Ask for class, subject, and chapter if missing. Match the NCERT curriculum and level, explain concepts in original words, and do not reproduce long copyrighted textbook passages.'},
+    {id:'board',group:'study',name:'Board Exam Prep',desc:'Prepare mark-appropriate answers and revision notes',prompt:common+' Give board-exam-style answers with length appropriate to the marks, key points, definitions, examples, and a short revision recap.'},
+    {id:'ssc',group:'study',name:'SSC Exam Prep',desc:'Learn fast, valid shortcuts and practise exam questions',prompt:common+' Focus on SSC-level methods, time-saving shortcuts, quick mental strategies, and a way to verify each answer. Explain when a shortcut is valid.'},
+    {id:'upsc',group:'study',name:'UPSC Exam Prep',desc:'Build detailed, structured, analytical answers',prompt:common+' Answer at UPSC depth with context, multiple dimensions, examples, challenges, balanced analysis, way forward, and a concise conclusion.'},
+    {id:'english',group:'study',name:'English Learning',desc:'Practise grammar, vocabulary, writing, and speaking',prompt:common+' Teach English through clear examples, gently correct errors, explain why, and give a short practice exercise.'}
   ];
-  root.NovaModeRegistry = Object.freeze({version:1,groups:[{id:'general',name:'सामान्य मोड्स'},{id:'study',name:'स्टडी मोड्स'}],modes});
+  root.NovaModeRegistry = Object.freeze({version:1,groups:[{id:'general',name:'General Modes'},{id:'study',name:'Study Modes'}],modes});
 })(window);

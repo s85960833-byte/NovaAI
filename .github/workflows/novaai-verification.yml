@@ -1,7 +1,7 @@
 name: NovaAI verification
 on:
   push:
-    branches: [main, feature-upgrade]
+    branches: [main, feature-upgrade, feature-english]
   workflow_dispatch:
 jobs:
   verify:
