@@ -2,7 +2,7 @@
 // AI chat proxy (key stays on the server), web search, image generation.
 // Setup: keep nova-server.js, package.json and index.html together in the same folder, then
 //   npm install        (uses package.json)
-//   LLM_KEY=... LLM_MODEL=... node nova-server.js
+//   LLM_KEY=... LLM_MODEL=... node nova-server.txt
 // Env: LLM_KEY, LLM_MODEL (required) | LLM_BASE (default OpenRouter, any OpenAI-compatible URL)
 //      TAVILY_KEY (enables web search) | IMAGE_KEY, IMAGE_MODEL, IMAGE_BASE (enables images)
 // Free-tier hosts such as Render or Railway can run this. Check each provider's current limits.
@@ -197,7 +197,7 @@ app.get('/', (q, r) => r.sendFile(path.join(__dirname, 'index.html')));
 // ===================== LIVE INTELLIGENCE (keyless connectors + optional keys) =====================
 // Every connector returns normalized sources: { title, url, publisher, date, kind, connector, snippet, eventDate? }
 // and/or structured data blocks. Nothing here invents data: when a provider fails it is reported as failed.
-const L_UA = 'NovaAI/1.0 (personal assistant; +https://nova-ai-mlxf.onrender.com)';
+const L_UA = 'NovaAI/1.0 (personal assistant; +https://novaai-4auo.onrender.com)';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const lcache = new Map();
 const inflight = new Map(); // coalesce simultaneous requests for the same upstream resource
@@ -449,7 +449,7 @@ async function weatherFallback(place) {
   return { text, source: { title: 'Weather — ' + name + ' (wttr.in fallback)', url: 'https://wttr.in/' + enc(place), publisher: 'wttr.in', date: new Date().toISOString(), kind: 'data', connector: 'wttr.in', snippet: '' } };
 }
 async function weather(place, lang) {
-  const g = await geocode(place, lang === 'hi' ? 'hi' : 'en');
+  let g; try { g = await geocode(place, lang === 'hi' ? 'hi' : 'en'); } catch (e) { return weatherFallback(place); }
   let f; try { f = await cached('wx:' + g.lat + ',' + g.lon, 15 * 6e4, () => lhttp('https://api.open-meteo.com/v1/forecast?latitude=' + g.lat + '&longitude=' + g.lon + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&forecast_days=3&timezone=auto', { json: true, timeout: 6500, tries: 1 })); } catch (e) { return weatherFallback(place); }
   let aq = null; try { aq = await cached('aq:' + g.lat + ',' + g.lon, 30 * 6e4, () => lhttp('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + g.lat + '&longitude=' + g.lon + '&current=us_aqi,pm2_5,pm10', { json: true, timeout: 6500, tries: 1 })); } catch (e) {}
   const c = f.current; if (!c) throw new Error('no weather data');
