@@ -187,6 +187,8 @@ app.post('/api/search', async (q, r) => {
 app.post('/api/image', async (q, r) => {
   const body = q.body || {}, prompt = String(body.prompt || '').slice(0, 1000);
   if (!prompt) return r.status(400).json({ error: 'No prompt' });
+  const unsafeImagePrompt = /\b(?:firearm|gun|rifle|pistol|knife|sword|explosive|bomb|weapon|porn|pornography|nude|nudity|sexual|erotic|gore|graphic violence|self-harm|suicide)\b/i;
+  if (unsafeImagePrompt.test(prompt)) return r.status(400).json({ error: 'This image prompt is not supported. Choose a safe, non-graphic subject.' });
   if (E.IMAGE_KEY && E.IMAGE_MODEL) {
     try {
       const u = await fetch((E.IMAGE_BASE || 'https://api.openai.com/v1').replace(/\/$/, '') + '/images/generations', {
