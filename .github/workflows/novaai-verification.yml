@@ -1,0 +1,23 @@
+name: NovaAI verification
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check backend and frontend syntax
+        run: node scripts/check.mjs
+      - name: Wait for Render auto-deploy
+        run: sleep 60
+      - name: Smoke-test live website and providers
+        env:
+          NOVAAI_URL: https://novaai-4auo.onrender.com
+          GITHUB_STEP_SUMMARY: ${{ github.step_summary }}
+        run: node scripts/smoke.mjs
