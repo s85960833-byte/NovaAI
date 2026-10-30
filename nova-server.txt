@@ -29,8 +29,8 @@ app.use('/api', (q, r, next) => {
 });
 
 app.get('/api/config', (q, r) => {
-  if (!E.LLM_KEY || !E.LLM_MODEL) return r.status(503).end();
-  r.json({ model: E.LLM_MODEL, image: !E.IMAGE_OFF, stt: !E.STT_OFF, live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, pollinationsKey: !!E.POLLI_KEY } });
+  if (!E.LLM_KEY && !E.GROQ_API_KEY && !E.OPENROUTER_API_KEY) return r.status(503).end();
+  r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || 'free-provider-fallback', image: !E.IMAGE_OFF, stt: !E.STT_OFF, live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY } });
 });
 
 // Speech to text for live voice when the phone browser cannot do it itself (same provider key, e.g. Groq Whisper).
@@ -122,26 +122,34 @@ app.post('/api/chat/completions', async (q, r) => {
     const sm0 = (body.messages || []).find(x => x.role === 'system'), hasLive = !!(sm0 && typeof sm0.content === 'string' && sm0.content.includes('== LIVE DATA ==')), vis = hasImg(body), bud = vis ? VBUDGET : hasLive ? Math.max(BUDGET, 6500) : BUDGET;
     body = fit(body, bud);
     const models = vis ? [VISION] : [E.LLM_MODEL, ...String(E.LLM_FALLBACK_MODELS || '').split(',').map(x => x.trim()).filter(Boolean)];
+    const providers = [];
+    if (E.LLM_KEY) providers.push({ base: BASE, key: E.LLM_KEY, models });
+    // Optional free-tier OpenAI-compatible providers; secrets are read only from Render env vars.
+    if (E.GROQ_API_KEY) providers.push({ base: E.GROQ_BASE || 'https://api.groq.com/openai/v1', key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL || 'llama-3.3-70b-versatile'] });
+    if (E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: E.OPENROUTER_BASE || 'https://openrouter.ai/api/v1', key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'] });
     let extra = vis ? { reasoning_format: 'hidden' } : {};   // keep the model's private thinking out of the answer
     let good = null, first = null, last = 0;
-    for (const model of models) {
-      for (let t = 0; t < 3; t++) {
-        const u = await fetch(BASE.replace(/\/$/, '') + '/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.LLM_KEY },
-          body: JSON.stringify({ ...body, ...extra, model, stream: body.stream !== false }),
-          signal: AbortSignal.timeout(Math.max(15000, Math.min(120000, Number(E.LLM_TIMEOUT_MS) || 90000)))
-        });
-        if (u.ok) { good = u; break; }
-        const text = await u.text();
-        if (!first) first = { status: u.status, type: u.headers.get('content-type'), text };
-        last = u.status;
-        if (u.status === 400 && Object.keys(extra).length) { extra = {}; continue; }   // model refused the extra option: retry plain
-        if (u.status === 413 && t < 2) { body = fit(body, Math.floor(bud * 0.55)); continue; }
-        break;
+    for (const provider of providers) {
+      for (const model of provider.models) {
+        for (let t = 0; t < 3; t++) {
+          const u = await fetch(provider.base.replace(/\/$/, '') + '/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + provider.key },
+            body: JSON.stringify({ ...body, ...extra, model, stream: body.stream !== false }),
+            signal: AbortSignal.timeout(Math.max(15000, Math.min(120000, Number(E.LLM_TIMEOUT_MS) || 90000)))
+          });
+          if (u.ok) { good = u; break; }
+          const text = await u.text();
+          if (!first) first = { status: u.status, type: u.headers.get('content-type'), text };
+          last = u.status;
+          if (u.status === 400 && Object.keys(extra).length) { extra = {}; continue; }
+          if (u.status === 413 && t < 2) { body = fit(body, Math.floor(bud * 0.55)); continue; }
+          break;
+        }
+        if (good) break;
       }
       if (good) break;
-      if (model === models[0] && !RETRY.includes(last)) break;
+      // Always attempt the next configured provider; one provider's outage must not block the rest.
     }
     if (!good) return r.status(first ? first.status : 502).json({ error: 'LLM provider request failed', status: first ? first.status : 502 });
     r.status(good.status).set('Content-Type', good.headers.get('content-type') || 'text/event-stream');
@@ -203,7 +211,9 @@ app.get('/manifest.webmanifest', (q, r) => r.set('Content-Type', 'application/ma
   icons: [192, 512].map(n => ({ src: '/icons/icon-' + n + '.png', sizes: n + 'x' + n, type: 'image/png', purpose: 'any' }))
 })));
 app.get(['/icons/icon-192.png', '/icons/icon-512.png'], (q, r) => r.set('Content-Type', 'image/png').send(ICONS[q.path.includes('512') ? 512 : 192]));
-app.get('/sw.js', (q, r) => r.set('Content-Type', 'application/javascript').send("self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));self.addEventListener('fetch',()=>{});"));
+app.get('/mode-registry.js', (q, r) => r.type('application/javascript').sendFile(path.join(__dirname, 'mode-registry.js')));
+app.get('/mode-workspace.js', (q, r) => r.type('application/javascript').sendFile(path.join(__dirname, 'mode-workspace.js')));
+app.get('/sw.js', (q, r) => r.set('Content-Type', 'application/javascript').send("const CACHE='nova-shell-v1';const CORE=['/','/mode-registry.js','/mode-workspace.js','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(k=>k.startsWith('nova-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==location.origin||u.pathname.startsWith('/api/'))return;e.respondWith(fetch(e.request).then(r=>{if(r.ok&&r.type==='basic'){const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match(e.request).then(hit=>hit||caches.match('/'))))});"));
 app.get('/', (q, r) => r.sendFile(path.join(__dirname, 'index.html')));
 // ===================== LIVE INTELLIGENCE (keyless connectors + optional keys) =====================
 // Every connector returns normalized sources: { title, url, publisher, date, kind, connector, snippet, eventDate? }

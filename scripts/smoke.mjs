@@ -23,6 +23,13 @@ const manifest = await request('/manifest.webmanifest');
 if (!manifest.ok) throw new Error('Manifest returned HTTP ' + manifest.status);
 console.log('PASS /manifest.webmanifest');
 
+for (const [path, marker] of [['/mode-registry.js', 'NovaModeRegistry'], ['/mode-workspace.js', 'nova_modes_v1']]) {
+  const response = await request(path);
+  const source = await response.text();
+  if (!response.ok || !source.includes(marker)) throw new Error(path + ' returned an invalid mode asset');
+  console.log('PASS ' + path);
+}
+
 const icon = await request('/icons/icon-192.png');
 if (!icon.ok || !(icon.headers.get('content-type') || '').includes('image/png')) throw new Error('PWA icon check failed');
 console.log('PASS /icons/icon-192.png');
