@@ -43,6 +43,7 @@ if (!server.includes('You are Nova AI, a free, India-first AI assistant.') || !s
 if (!html.includes('/s-tier.js')) throw new Error('S-tier experience bundle is not loaded');
 for (const marker of ['Nova Study','Nova Build','Nova Chat','Nova Voice','data-cat="study"','data-cat="build"','data-cat="chat"','data-cat="voice"']) if (!readFileSync('s-tier.js','utf8').includes(marker)) throw new Error('Four-workspace home missing: '+marker);
 if (!readFileSync('s-tier.js','utf8').includes('#mode{display:none!important}')) throw new Error('Legacy mode dropdown must be hidden to keep the four-workspace home clear');
+if (!readFileSync('s-tier.js','utf8').includes('hiEl.replaceChildren(e)') || !readFileSync('s-tier.js','utf8').includes("n.id==='hi'")) throw new Error('The four-workspace home must replace the old dashboard and return after New Chat');
 if (!modeRegistry.includes("id:'study'") || !modeRegistry.includes("id:'build'") || !modeRegistry.includes("id:'chat'") || !modeRegistry.includes("id:'voice'")) throw new Error('Four mode groups are not registered');
 if (!modeWorkspace.includes('openGroup(group)') || modeWorkspace.includes("add(top,'novaModesTop'")) throw new Error('Mode workspace must open only the selected group without the all-modes launcher');
 if (!readFileSync('nova-suite.js','utf8').includes('window.NovaSuite=Object.freeze({open,close})')) throw new Error('Nova Build launcher API is missing');
