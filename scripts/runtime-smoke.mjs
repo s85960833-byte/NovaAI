@@ -14,5 +14,6 @@ await expect('PWA icon 512','/icons/icon-512.png',{},(r,b)=>r.ok);
 await expect('chat validation','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},(r)=>r.status===400);
 await expect('search validation','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},(r)=>r.status===400);
 await expect('image validation','/api/image',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},(r)=>r.status===400);
+await expect('image job status validation','/api/image/status/not-a-real-job',{},(r)=>r.status===404);
 await expect('transcription validation','/api/transcribe',{method:'POST',headers:{'content-type':'audio/webm'},body:new Uint8Array()},(r)=>r.status===400);
 console.log('PASS local runtime smoke tests');
