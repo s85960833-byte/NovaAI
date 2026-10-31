@@ -3,12 +3,17 @@
   "version": "1.0.0",
   "main": "nova-server.txt",
   "scripts": {
-    "start": "node nova-server.txt"
+    "start": "node nova-server.txt",
+    "test:ui": "playwright test"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
     "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "lighthouse": "^12.8.2"
   }
 }

@@ -237,7 +237,30 @@ dialog,.pbox{border-color:color-mix(in srgb,var(--acc) 28%,var(--bd))}
  .u .b{max-width:92%}
 }
 </style>
+<style id="nova-critical-first-paint">
+html,body{margin:0!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:clip!important}
+body{display:block!important;height:100dvh!important;padding:0!important}
+#novaSplash{position:fixed!important;inset:0!important;z-index:2147483000!important;display:grid!important;place-items:center!important;width:100%!important;height:100dvh!important;overflow:hidden!important;background:radial-gradient(ellipse at 50% 46%,#26345a,#151d3d 40%,#090d20 82%)!important;color:#fff!important}
+#novaSplash .nsplash-inner{width:100%;max-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;box-sizing:border-box}
+#novaSplash .nova-bloom{width:124px;height:124px;display:grid;place-items:center}
+#novaSplash h1{margin:12px 0 0;font:700 35px/1.15 Nunito,system-ui,sans-serif}
+#novaSplash p{margin:6px 0;color:#e2dfdc}
+#novaApp[hidden]{display:none!important}
+#novaApp{display:flex;width:100%;max-width:100%;min-width:0;height:100dvh;max-height:100dvh;overflow-x:clip;overflow-y:hidden;box-sizing:border-box}
+#novaApp #main{display:flex;flex:1 1 auto;min-width:0;width:100%;max-width:100%;height:100%;max-height:100%;overflow:hidden}
+#novaApp #top{flex:0 0 auto;min-width:0;max-width:100%;flex-wrap:wrap}
+#novaApp #msgs{flex:1 1 auto;min-height:0;min-width:0;max-width:100%;overflow-x:clip;overflow-y:auto}
+#novaApp #box{flex:0 0 auto;min-width:0;max-width:min(760px,calc(100% - 24px));margin-bottom:calc(4px + env(safe-area-inset-bottom,0px))}
+#novaApp .note{flex:0 0 auto;padding-bottom:env(safe-area-inset-bottom,0px)}
+#novaApp #novaSHome{width:100%;max-width:900px;min-width:0;margin-inline:auto}
+#novaApp *{min-width:0}
+.nova-decor,.nghat,.nriver,.ndona{pointer-events:none}
+@media(max-width:599px){#novaApp #novaSHome .ncatgrid{grid-template-columns:1fr}}
+@media(min-width:600px){#novaApp #novaSHome .ncatgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
 </head><body>
+<div id="novaSplash" role="status" aria-label="Nova AI starting"><div class="nsplash-inner"><div class="nova-bloom" aria-hidden="true"><svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="18" fill="#ffcf70"/><ellipse cx="50" cy="22" rx="8" ry="17" fill="#e8a34b" transform="rotate(0 50 50)"/><ellipse cx="50" cy="22" rx="8" ry="17" fill="#e8a34b" transform="rotate(45 50 50)"/><ellipse cx="50" cy="22" rx="8" ry="17" fill="#e8a34b" transform="rotate(90 50 50)"/><ellipse cx="50" cy="22" rx="8" ry="17" fill="#e8a34b" transform="rotate(135 50 50)"/><ellipse cx="50" cy="22" rx="8" ry="17" fill="#e8a34b" transform="rotate(180 50 50)"/><ellipse cx="50" cy="22" rx="8" ry="17" fill="#e8a34b" transform="rotate(225 50 50)"/><ellipse cx="50" cy="22" rx="8" ry="17" fill="#e8a34b" transform="rotate(270 50 50)"/><ellipse cx="50" cy="22" rx="8" ry="17" fill="#e8a34b" transform="rotate(315 50 50)"/><circle cx="50" cy="50" r="7" fill="#fff9d8"/></svg></div><h1>Nova AI</h1><p>Your own AI</p></div></div>
+<div id="novaApp" hidden>
 <aside id="side"><div class="brand"><span class="logo">✦</span><b>Nova AI</b></div>
 <button id="new" data-i="new">＋ New chat</button><nav class="nav"><button id="nHome" data-i="nHome"></button><button id="nPhoto" data-i="nPhoto"></button><button id="nArch" data-i="nArch"></button><button id="nImg" data-i="nImg" hidden></button><button id="nLive" data-i="nLive" hidden></button></nav><input id="q" type="search" data-p="search" aria-label="Search chats"><div id="list"></div>
 <select id="lang" aria-label="Reply language"></select>
@@ -1092,4 +1115,4 @@ if(installButton){
 }
 
 applyUI();syncFeatures();const WAIT=!!(window.claude&&window.claude.use)||location.protocol.startsWith('http');if(WAIT)setTimeout(()=>{if(!first){first=true;render()}},450);else{first=true;render()}
-</script><script src="/mode-registry.js"></script><script src="/mode-workspace.js"></script><script src="/s-tier.js" defer></script></body></html>
+</script><script src="/mode-registry.js"></script><script src="/mode-workspace.js"></script><script src="/s-tier.js" defer></script></div></body></html>
