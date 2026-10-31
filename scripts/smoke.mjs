@@ -26,7 +26,7 @@ console.log('PASS instant /health');
 const tier = await request('/s-tier.js');
 const tierJs = await tier.text();
 if (!tier.ok || !['Nova Study','Nova Build','Nova Chat','Nova Voice','data-cat="study"','data-cat="build"','data-cat="chat"','data-cat="voice"'].every(x=>tierJs.includes(x)) || tierJs.includes('Chat & Study') || !tierJs.includes('hiEl.replaceChildren(e)') || !tierJs.includes("n.id==='hi'")) throw new Error('Four-workspace home is missing or incorrectly grouped');
-if(!['THE NOVA EXPERIENCE','LEARN · MASTER · GROW','IMAGINE · CREATE · LAUNCH','THINK · DISCOVER · SOLVE','SPEAK · LISTEN · CONNECT','ncard-enter','@media(max-width:600px)','novaAuroraSweep','novaCardRise','novaHomeGlow','n-brandbar','n-orbit-seal','DESIGNED IN INDIA · BUILT FOR THE WORLD'].every(x=>tierJs.includes(x)))throw new Error('Royal four-workspace premium interface or enhanced motion is missing');
+if(!['A NEW EXPRESSION OF INTELLIGENCE','LEARN · MASTER · GROW','IMAGINE · CREATE · LAUNCH','THINK · DISCOVER · SOLVE','SPEAK · LISTEN · CONNECT','ncard-enter','@media(max-width:600px)','novaAuroraSweep','novaCardRise','novaHomeGlow','n-brandbar','n-orbit-seal','DESIGNED IN INDIA · BUILT FOR THE WORLD'].every(x=>tierJs.includes(x)))throw new Error('Royal four-workspace premium interface or enhanced motion is missing');
 console.log('PASS royal responsive four-workspace home: Study, Build, Chat and Voice');
 const registryResponse=await request('/mode-registry.js');const registryJs=await registryResponse.text();
 if(!registryResponse.ok||!['Nova Study','Nova Build','Nova Chat','Nova Voice · Voice Chat'].every(x=>registryJs.includes(x))||!registryJs.includes("id:'builder',group:'build'"))throw new Error('Four isolated mode groups are missing');
