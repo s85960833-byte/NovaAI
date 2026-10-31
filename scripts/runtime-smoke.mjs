@@ -14,6 +14,7 @@ const manifest=JSON.parse(await expect('bilingual PWA manifest','/manifest.webma
 await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v5-mobile-first-paint')&&b.includes("e.request.mode==='navigate'")&&b.includes('clients.claim')&&b.includes("/icons/icon-512.png"));
 await expect('PWA icon 192','/icons/icon-192.png',{},(r,b)=>r.ok);
 await expect('PWA icon 512','/icons/icon-512.png',{},(r,b)=>r.ok);
+await expect('feedback storage fallback','/api/feedback',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({kind:'report',text:'runtime smoke test'})},r=>[200,503].includes(r.status));
 await expect('chat validation','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
 await expect('search validation','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
 await expect('image validation','/api/image',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);

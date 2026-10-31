@@ -187,7 +187,28 @@ app.post('/api/chat/completions', async (q, r) => {
   } catch (e) { if (!r.headersSent) r.status(502).json({ error: 'Provider unreachable' }); else r.end(); }
 });
 
-app.post('/api/search', async (q, r) => {
+const feedbackHits = new Map();
+app.post('/api/feedback', async (q, r) => {
+  const now = Date.now(), hits = rateWindow(feedbackHits, q.ip, now, 60e3);
+  if (hits.length >= 12) return r.status(429).json({ ok: false, error: 'Feedback limit reached' });
+  hits.push(now); feedbackHits.set(q.ip, hits);
+  const body = q.body || {}, kind = ['up','down','report'].includes(body.kind) ? body.kind : 'report';
+  const message = String(body.text || '').slice(0, 1600);
+  if (!message) return r.status(400).json({ ok: false, error: 'Feedback text is required' });
+  const base = String(E.SUPABASE_URL || '').replace(/\/$/, ''), key = String(E.SUPABASE_SERVICE_ROLE_KEY || '');
+  if (!base || !key) return r.status(503).json({ ok: false, storage: 'local-only', error: 'Central feedback storage is not configured' });
+  try {
+    const response = await fetch(base + '/rest/v1/nova_feedback', {
+      method: 'POST',
+      headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ kind, message, created_at: new Date().toISOString(), source: 'nova-ai' }),
+      signal: AbortSignal.timeout(7000)
+    });
+    if (!response.ok) return r.status(502).json({ ok: false, storage: 'local-only', error: 'Central feedback storage is temporarily unavailable' });
+    r.json({ ok: true, storage: 'supabase' });
+  } catch (e) { r.status(502).json({ ok: false, storage: 'local-only', error: 'Central feedback storage is temporarily unavailable' }); }
+});
+\napp.post('/api/search', async (q, r) => {
   const query = String((q.body && q.body.q) || '').trim().slice(0, 400);
   if (!query) return r.status(400).json({ error: 'Search query is required' });
   try {
