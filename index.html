@@ -261,10 +261,26 @@ dialog,.pbox{border-color:color-mix(in srgb,var(--acc) 28%,var(--bd))}
 <style id="nova-performance-polish">
 /* Lightweight premium motion: avoid blur filters, animated full-screen layers and moving shimmer backgrounds. */
 #novaSplash{transition:opacity .22s ease-out!important}
-#novaSplash:before,.nova-jaali,.nova-halo,.nova-halo:before,.nova-halo:after,.nova-yantra,.nova-yantra .outer,.nova-yantra .inner,.nova-yantra .petal,.nova-orbit,.nova-emblem,.nova-emblem:before,.nova-emblem:after,.nova-royal-scene:after,.nova-splash-core,.nova-splash-progress:after{animation:none!important;filter:none!important;mix-blend-mode:normal!important}
-#novaSplash .nova-jaali{opacity:.07}
-#novaSplash .nova-halo{box-shadow:none}
-#novaSplash .nova-emblem svg{filter:none}
+#novaSplash:before,.nova-jaali,.nova-halo,.nova-halo:before,.nova-halo:after,.nova-yantra,.nova-yantra .outer,.nova-yantra .inner,.nova-yantra .petal,.nova-orbit,.nova-emblem,.nova-emblem:before,.nova-emblem:after,.nova-royal-scene:after,.nova-splash-core,.nova-splash-progress:after{filter:none!important;mix-blend-mode:normal!important}
+#novaSplash .nova-jaali{opacity:.13}
+#novaSplash .nova-halo{box-shadow:0 0 64px #b67a3b18,inset 0 0 54px #b67a3b10}
+#novaSplash .nova-emblem svg{filter:drop-shadow(0 0 9px #e7b96844)}
+@media(prefers-reduced-motion:no-preference){
+#novaSplash .nova-jaali{animation:novaJaaliDrift 38s linear infinite}
+#novaSplash .nova-halo{animation:novaHaloBreathe 9s ease-in-out infinite}
+#novaSplash .nova-halo:before{animation:novaHalo 8s ease-in-out infinite}
+#novaSplash .nova-halo:after{animation:novaHalo 24s linear infinite reverse}
+#novaSplash .nova-yantra{animation:novaYantraIn 1.1s cubic-bezier(.16,.8,.25,1) both}
+#novaSplash .nova-yantra .outer{animation:novaTurn 54s linear infinite}
+#novaSplash .nova-yantra .inner{animation:novaTurn 39s linear infinite reverse}
+#novaSplash .nova-yantra .petal{animation:novaPetal 7s ease-in-out infinite}
+#novaSplash .nova-orbit{display:block!important;animation:novaOrbitTurn 46s linear infinite}
+#novaSplash .nova-emblem:before{animation:novaEmblemTurn 48s linear infinite}
+#novaSplash .nova-emblem:after{animation:novaEmblemPulse 7s ease-in-out infinite}
+#novaSplash .nova-splash-core{animation:novaCoreIn .8s .12s both}
+#novaSplash .nova-splash-progress:after{animation:novaProgress 2.8s cubic-bezier(.45,0,.55,1) infinite}
+}
+@media(max-width:760px) and (prefers-reduced-motion:no-preference){#novaSplash .nova-jaali{opacity:.08}#novaSplash .nova-orbit{display:block!important;opacity:.55}}
 .reveal{animation:novaFastReveal .18s ease-out both!important;filter:none!important}
 @keyframes novaFastReveal{from{opacity:.35;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
 .skel{animation:none!important;background:var(--card)!important}
