@@ -36,9 +36,10 @@ for (const size of sizes) {
     const layout = await page.evaluate(() => {
       const root=document.querySelector('#novaApp'), box=document.querySelector('#box'), top=document.querySelector('#top');
       const overflow=[...document.querySelectorAll('body *')].map(el=>({tag:el.tagName,id:el.id,cls:String(el.className?.baseVal||el.className||'').slice(0,60),right:el.getBoundingClientRect().right})).filter(x=>x.right>innerWidth+1);
-      return {width:root?.getBoundingClientRect().width,innerWidth,scrollWidth:document.scrollingElement.scrollWidth,overflow:overflow.slice(0,20),top:top?.getBoundingClientRect().toJSON(),box:box?.getBoundingClientRect().toJSON()};
+      const main=document.querySelector('#main'),side=document.querySelector('#side');return {width:root?.getBoundingClientRect().width,mainWidth:main?.getBoundingClientRect().width,sidePosition:getComputedStyle(side).position,innerWidth,scrollWidth:document.scrollingElement.scrollWidth,overflow:overflow.slice(0,20),top:top?.getBoundingClientRect().toJSON(),box:box?.getBoundingClientRect().toJSON()};
     });
     expect(Math.abs(layout.width-layout.innerWidth)).toBeLessThanOrEqual(1);
+    if(size.width<=760){expect(layout.sidePosition).toBe('fixed');expect(Math.abs(layout.mainWidth-layout.innerWidth)).toBeLessThanOrEqual(1);}
     expect(layout.scrollWidth).toBeLessThanOrEqual(layout.innerWidth);
     expect(layout.overflow).toEqual([]);
     expect(layout.box.bottom).toBeLessThanOrEqual(size.height+1);
