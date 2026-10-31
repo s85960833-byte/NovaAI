@@ -3,7 +3,7 @@
 const REG=window.NovaModeRegistry;if(!REG)return;
 const STORE='nova_modes_v1',CACHE='nova_mode_cache_v1',API='/api';
 const $=s=>document.querySelector(s);
-let active=null,upload=null,scheme=null,recognition=null,offline=false;
+let active=null,activeGroup=null,upload=null,scheme=null,recognition=null,offline=false;
 const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}};
 const write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const data=()=>read(STORE,{version:1,histories:{},lastMode:'general'});
@@ -29,11 +29,11 @@ const root=document.createElement('section');root.id='novaModes';root.innerHTML=
 <footer class="nmcompose" id="nmCompose" hidden><div class="nmhint" id="nmUploadName"></div><textarea id="nmInput" placeholder="${tr('Type your question…','अपना सवाल लिखें…')}"></textarea><div class="nmbar"><button id="nmFile">📎 ${tr('Attach file/photo','फ़ाइल/फोटो जोड़ें')}</button><input id="nmPick" type="file" accept=".pdf,.txt,.md,.csv,image/*" hidden><button id="nmMic">🎙 ${tr('Speak','बोलें')}</button><button id="nmSend" class="primary">${tr('Send','भेजें')}</button></div><div class="nmstatus" id="nmStatus" aria-live="polite"></div></footer>`;
 document.body.append(root);
 const content=$('#nmContent'),compose=$('#nmCompose'),input=$('#nmInput');
-function show(){root.classList.add('open');drawHome()}
+function show(groupFilter){root.classList.add('open');drawHome(groupFilter)}
 function hide(){root.classList.remove('open');stopSpeech()}
-function drawHome(){
- active=null;upload=null;compose.hidden=true;$('#nmBack').hidden=true;$('#nmTitle').textContent=tr('Nova AI · Modes','Nova AI · मोड्स');
- content.innerHTML=REG.groups.map(g=>'<section class="nmgroup"><h3>'+esc(isHi()?(g.nameHi||g.name):g.name)+'</h3><div class="nmcards">'+REG.modes.filter(m=>m.group===g.id).map(m=>{const v=mode(m.id);return '<button class="nmmode" data-mode="'+m.id+'"><b>'+esc(v.name)+'</b><small>'+esc(v.desc)+'</small></button>'}).join('')+'</div></section>').join('')+'<button id="nmLowData" class="nmmode" type="button">'+tr('Low Data / Lite Mode','कम डेटा / लाइट मोड')+'</button><p class="nmhint">'+tr('Each mode has its own chat history. Your existing Nova chats and settings remain unchanged. Saved chats are available offline.','हर मोड की अलग चैट हिस्ट्री है। आपकी पुरानी Nova चैट और सेटिंग्स सुरक्षित हैं। सेव की गई चैट ऑफलाइन भी खुलेंगी।')+'</p>';
+function drawHome(groupFilter){
+ active=null;activeGroup=groupFilter||null;upload=null;compose.hidden=true;$('#nmBack').hidden=true;$('#nmTitle').textContent=tr('Nova AI · Modes','Nova AI · मोड्स');
+ content.innerHTML=REG.groups.filter(g=>!groupFilter||g.id===groupFilter).map(g=>'<section class="nmgroup"><h3>'+esc(isHi()?(g.nameHi||g.name):g.name)+'</h3><div class="nmcards">'+REG.modes.filter(m=>m.group===g.id).map(m=>{const v=mode(m.id);return '<button class="nmmode" data-mode="'+m.id+'"><b>'+esc(v.name)+'</b><small>'+esc(v.desc)+'</small></button>'}).join('')+'</div></section>').join('')+'<button id="nmLowData" class="nmmode" type="button">'+tr('Low Data / Lite Mode','कम डेटा / लाइट मोड')+'</button><p class="nmhint">'+tr('Each mode has its own chat history. Your existing Nova chats and settings remain unchanged. Saved chats are available offline.','हर मोड की अलग चैट हिस्ट्री है। आपकी पुरानी Nova चैट और सेटिंग्स सुरक्षित हैं। सेव की गई चैट ऑफलाइन भी खुलेंगी।')+'</p>';
  const low=$('#nmLowData');const paintLow=()=>{low.textContent=isHi()?'कम डेटा मोड: '+(lowData()?'चालू':'बंद')+' · छोटी फ़ाइलें और छोटा संदर्भ':'Low Data Mode: '+(lowData()?'On':'Off')+' · Smaller uploads and shorter context';};paintLow();low.onclick=()=>{const d=data();d.lowData=d.lowData===false;saveData(d);paintLow()};
  content.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>openMode(b.dataset.mode));
 }
@@ -115,19 +115,11 @@ async function send(){
 }
 function speak(text){if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(text);u.lang=data().voiceLang||'en-IN';speechSynthesis.cancel();speechSynthesis.speak(u)}
 function voice(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('#nmStatus').textContent=tr('Speech recognition is not available in this browser. You can type your question instead.','इस ब्राउज़र में आवाज़ पहचान उपलब्ध नहीं है। आप सवाल टाइप कर सकते हैं।');return}stopSpeech();recognition=new SR();recognition.lang=data().voiceLang||'en-IN';recognition.interimResults=false;recognition.onresult=e=>{input.value=e.results[0][0].transcript;send()};recognition.onerror=()=>$('#nmStatus').textContent=tr('Microphone unavailable. Check browser permissions or type your question.','माइक उपलब्ध नहीं है। ब्राउज़र अनुमति जाँचें या सवाल टाइप करें।');recognition.start();$('#nmStatus').textContent=tr('Listening…','सुन रहा है…')}
-$('#nmClose').onclick=hide;$('#nmBack').onclick=drawHome;$('#nmSend').onclick=send;$('#nmMic').onclick=voice;
+$('#nmClose').onclick=hide;$('#nmBack').onclick=()=>drawHome(activeGroup);$('#nmSend').onclick=send;$('#nmMic').onclick=voice;
 $('#nmFile').onclick=()=>$('#nmPick').click();$('#nmPick').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;try{upload={...await extractFile(f),name:f.name};$('#nmUploadName').textContent=tr('File ready: ','फ़ाइल तैयार: ')+f.name+tr(' (not stored on the server after submission)',' (भेजने के बाद सर्वर पर सेव नहीं होती)');}catch(err){$('#nmStatus').textContent=err.message}};
 input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
-document.querySelector('#lang')?.addEventListener('change',()=>{const b1=$('#novaModesTop'),b2=$('#novaModesSide'),b3=$('#novaModesHome');if(b1)b1.textContent=tr('☷ Modes','☷ मोड्स');if(b2)b2.textContent=tr('☷ Open Modes','☷ मोड्स खोलें');if(b3)b3.textContent=tr('☷ Open All Modes','☷ सभी मोड्स खोलें');if(root.classList.contains('open')){if(active)drawChat();else drawHome();}});
+document.querySelector('#lang')?.addEventListener('change',()=>{const b1=$('#novaModesTop'),b2=$('#novaModesSide'),b3=$('#novaModesHome');if(b1)b1.textContent=tr('☷ Modes','☷ मोड्स');if(b2)b2.textContent=tr('☷ Open Modes','☷ मोड्स खोलें');if(b3)b3.textContent=tr('☷ Open All Modes','☷ सभी मोड्स खोलें');if(root.classList.contains('open')){if(active)drawChat();else drawHome(activeGroup);}});
 window.addEventListener('online',()=>{offline=false;if(active)drawChat()});window.addEventListener('offline',()=>{offline=true;if(active)drawChat()});
-function addLaunchers(){
- const top=$('#top'),side=$('#side');
- const add=(host,id,label)=>{if(!host||document.getElementById(id))return;const b=document.createElement('button');b.id=id;b.type='button';b.textContent=label;b.addEventListener('click',show);host.append(b)};
- add(top,'novaModesTop',tr('☷ Modes','☷ मोड्स'));add(side,'novaModesSide',tr('☷ Open Modes','☷ मोड्स खोलें'));
- const home=document.createElement('button');home.id='novaModesHome';home.type='button';home.textContent=tr('☷ Open All Modes','☷ सभी मोड्स खोलें');home.addEventListener('click',show);
- const hi=$('#hi');if(hi)hi.append(home);
- const settings=$('#dset');if(settings){const b=document.createElement('button');b.type='button';b.textContent=tr('☷ Modes','☷ मोड्स');b.onclick=()=>{if(settings.open)settings.close();show()};settings.append(b)}
-}
-addLaunchers();
+window.NovaModeWorkspace=Object.freeze({openGroup(group){if(!REG.groups.some(g=>g.id===group))return false;show(group);return true;},openMode(id){const m=REG.modes.find(x=>x.id===id);if(!m)return false;activeGroup=m.group;root.classList.add('open');openMode(id);return true;},close:hide});
 if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('/sw.js').catch(()=>{});
 })();
