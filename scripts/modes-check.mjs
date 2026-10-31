@@ -27,6 +27,7 @@ assert.ok(workspace.includes('file?.image?null:cacheGet(ck)'),'image-specific an
 assert.ok(workspace.includes('Low Data Mode'),'low-data mode toggle missing');
 assert.ok(server.includes('HORDE_API_KEY')&&server.includes('/generate/async')&&server.includes('/generate/check/')&&server.includes('/generate/status/'),'free community image fallback is missing');
 assert.ok(server.includes('censor_nsfw: true')&&server.includes('nsfw: false'),'image safety settings are missing');
+assert.ok(server.includes('AbortSignal.timeout(18000)'),'image provider must fail fast enough to reach the free fallback');
 assert.ok(html.includes('<html lang="en">')&&html.includes("const L=['English'];")&&html.includes("const ui=()=>'en';"),'main UI must be English-only');
 assert.ok(html.includes('Always reply in English. Never switch to Hindi, Hinglish, or another language.'),'assistant response language must be English-only');
 assert.ok(html.includes('installAppBtn')&&html.includes('beforeinstallprompt'),'PWA install action missing');
