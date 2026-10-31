@@ -29,7 +29,8 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - All 12 modes now have English and Hindi names, descriptions, and separate language-appropriate system prompts:
   - General Chat, Voice Chat, Document Explainer, Government Scheme Finder, Shopkeeper Assistant.
   - Math Mode, Solve from Photo, NCERT Mode, Board Exam Mode, SSC Exam Mode, UPSC Exam Mode, English Learning.
-- General and Study groups are localized. Mode workspace refreshes when the app language changes.
+- General and Study groups, mode cards and descriptions are localized. Mode workspace refreshes when the app language changes.
+- Voice mode defaults to the selected app language unless the user explicitly chooses a separate speech language; explicit voice preference is stored additively.
 - Voice mode supports Hindi (India) and English (India/US/UK) recognition/speech language options.
 - Document mode supports text/PDF/photo input; RTI/complaint/application drafts append the correct Hindi or English legal disclaimer.
 - Scheme mode asks for age, state, work/status and annual income; filters search results to official `.gov.in` / `.nic.in` domains; shows official links and the Hindi/English verification notice.
@@ -75,6 +76,7 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 
 ## Current status
 - Feature branch: `feature-upgrade`.
-- Latest feature commit: `b35ea912945a243be28aea7d9d902bb85fa748dc`.
-- Latest local CI: PASS (`41165167613`).
-- Not yet merged or deployed to production. Do not say complete until the main-branch production smoke and live checks pass.
+- PR #4 was merged into `main` as commit `b4fb66bd77255cb62482080a553c5ad601b8f8ac`.
+- Follow-up mode-card/speech-language polish is on `feature-upgrade` commit `ea665bf261390dc821672d7e3ed06c71c2af2871`; its local CI passed (`41165295304`).
+- Main-branch production smoke run `41165241614` failed because the public Render manifest still returned the previous `lang: en` metadata instead of the newly committed `lang: hi`. This indicates the updated app has not yet been confirmed live; check Render deployment state before any completion claim.
+- Not complete until Render serves the merged bilingual revision and the full live smoke passes.
