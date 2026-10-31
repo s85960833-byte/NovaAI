@@ -684,8 +684,15 @@ async function yahooQuote(sym, label) {
   try {
     j = await cached('yq:' + sym, 90 * 1000, () => lhttp('https://query1.finance.yahoo.com/v8/finance/chart/' + enc(sym) + '?interval=1d&range=5d', { json: true, headers: { Accept: 'application/json' }, timeout: 4500, tries: 1 }));
   } catch (primaryError) {
-    j = await cached('yq2:' + sym, 90 * 1000, () => lhttp('https://query2.finance.yahoo.com/v8/finance/chart/' + enc(sym) + '?interval=1d&range=5d', { json: true, headers: { Accept: 'application/json' }, timeout: 4500, tries: 1 }));
-    connector = 'yahoo-finance-alt';
+    try {
+      j = await cached('yq2:' + sym, 90 * 1000, () => lhttp('https://query2.finance.yahoo.com/v8/finance/chart/' + enc(sym) + '?interval=1d&range=5d', { json: true, headers: { Accept: 'application/json' }, timeout: 6500, tries: 1 }));
+      connector = 'yahoo-finance-alt';
+    } catch (secondaryError) {
+      // Yahoo may throttle Render's shared egress IP. Relay only the public ticker request
+      // through a free CORS relay; validate the chart payload below before using any values.
+      j = await cached('yqproxy:' + sym, 90 * 1000, () => lhttp('https://proxy.cors.dev/https://query1.finance.yahoo.com/v8/finance/chart/' + enc(sym) + '?interval=1d&range=5d', { json: true, headers: { Accept: 'application/json' }, timeout: 9000, tries: 1 }));
+      connector = 'yahoo-finance-proxy';
+    }
   }
   const r = j.chart && j.chart.result && j.chart.result[0]; if (!r || !r.meta || r.meta.regularMarketPrice == null) throw new Error('no quote');
   const m = r.meta, cl = ((r.indicators && r.indicators.quote && r.indicators.quote[0] && r.indicators.quote[0].close) || []).filter(x => x != null);
