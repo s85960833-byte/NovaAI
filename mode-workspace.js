@@ -10,9 +10,10 @@ const data=()=>read(STORE,{version:1,histories:{},lastMode:'general'});
 const saveData=x=>write(STORE,x);
 const lowData=()=>data().lowData!==false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const language=()=>document.querySelector('#lang')?.value||'Hindi';
+const language=()=>{const selected=document.querySelector('#lang')?.value;if(selected==='English'||selected==='Hindi')return selected;try{const saved=JSON.parse(localStorage.getItem('nova')||'{}').rl;if(saved==='Hindi'||saved==='English')return saved}catch(e){}return 'English'};
 const isHi=()=>language()==='Hindi';
 const tr=(en,hi)=>isHi()?hi:en;
+function syncStaticLabels(){const back=$('#nmBack'),close=$('#nmClose'),title=$('#nmTitle'),file=$('#nmFile'),mic=$('#nmMic'),send=$('#nmSend');if(back)back.textContent='←';if(close)close.textContent=tr('Close','बंद करें');if(title&&!active)title.textContent=tr('Nova AI · Modes','Nova AI · मोड्स');if(file)file.textContent='📎 '+tr('Attach file/photo','फ़ाइल/फोटो जोड़ें');if(mic)mic.textContent='🎙 '+tr('Speak','बोलें');if(send)send.textContent=tr('Send','भेजें');if(input)input.placeholder=active==='document'?tr('Upload a bill, notice, or form, or type a question…','बिल, नोटिस या फॉर्म अपलोड करें, या सवाल लिखें…'):active==='photo'?tr('Choose a photo of the question or type it…','सवाल की फोटो चुनें या सवाल लिखें…'):tr('Type your question…','अपना सवाल लिखें…')}
 const mode=id=>{const m=REG.modes.find(x=>x.id===id)||REG.modes[0];return {...m,name:isHi()?(m.nameHi||m.name):m.name,desc:isHi()?(m.descHi||m.desc):m.desc,prompt:isHi()?(m.promptHi||m.prompt):m.prompt};};
 const history=id=>{const d=data();return d.histories[id]||(d.histories[id]=[])};
 const css=`
@@ -29,16 +30,16 @@ const root=document.createElement('section');root.id='novaModes';root.innerHTML=
 <footer class="nmcompose" id="nmCompose" hidden><div class="nmhint" id="nmUploadName"></div><textarea id="nmInput" placeholder="${tr('Type your question…','अपना सवाल लिखें…')}"></textarea><div class="nmbar"><button id="nmFile">📎 ${tr('Attach file/photo','फ़ाइल/फोटो जोड़ें')}</button><input id="nmPick" type="file" accept=".pdf,.txt,.md,.csv,image/*" hidden><button id="nmMic">🎙 ${tr('Speak','बोलें')}</button><button id="nmSend" class="primary">${tr('Send','भेजें')}</button></div><div class="nmstatus" id="nmStatus" aria-live="polite"></div></footer>`;
 document.body.append(root);
 const content=$('#nmContent'),compose=$('#nmCompose'),input=$('#nmInput');
-function show(groupFilter){root.classList.add('open');drawHome(groupFilter)}
+function show(groupFilter){syncStaticLabels();root.classList.add('open');drawHome(groupFilter)}
 function hide(){root.classList.remove('open');stopSpeech()}
 function drawHome(groupFilter){
- active=null;activeGroup=groupFilter||null;upload=null;compose.hidden=true;$('#nmBack').hidden=true;$('#nmTitle').textContent=tr('Nova AI · Modes','Nova AI · मोड्स');
+ syncStaticLabels();active=null;activeGroup=groupFilter||null;upload=null;compose.hidden=true;$('#nmBack').hidden=true;$('#nmTitle').textContent=tr('Nova AI · Modes','Nova AI · मोड्स');
  content.innerHTML=REG.groups.filter(g=>!groupFilter||g.id===groupFilter).map(g=>'<section class="nmgroup"><h3>'+esc(isHi()?(g.nameHi||g.name):g.name)+'</h3><div class="nmcards">'+REG.modes.filter(m=>m.group===g.id).map(m=>{const v=mode(m.id);return '<button class="nmmode" data-mode="'+m.id+'"><b>'+esc(v.name)+'</b><small>'+esc(v.desc)+'</small></button>'}).join('')+'</div></section>').join('')+'<button id="nmLowData" class="nmmode" type="button">'+tr('Low Data / Lite Mode','कम डेटा / लाइट मोड')+'</button><p class="nmhint">'+tr('Each mode has its own chat history. Your existing Nova chats and settings remain unchanged. Saved chats are available offline.','हर मोड की अलग चैट हिस्ट्री है। आपकी पुरानी Nova चैट और सेटिंग्स सुरक्षित हैं। सेव की गई चैट ऑफलाइन भी खुलेंगी।')+'</p>';
  const low=$('#nmLowData');const paintLow=()=>{low.textContent=isHi()?'कम डेटा मोड: '+(lowData()?'चालू':'बंद')+' · छोटी फ़ाइलें और छोटा संदर्भ':'Low Data Mode: '+(lowData()?'On':'Off')+' · Smaller uploads and shorter context';};paintLow();low.onclick=()=>{const d=data();d.lowData=d.lowData===false;saveData(d);paintLow()};
  content.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>openMode(b.dataset.mode));
 }
 function drawChat(){
- const m=mode(active),h=history(active);$('#nmBack').hidden=false;$('#nmTitle').textContent=m.name;compose.hidden=false;
+ syncStaticLabels();const m=mode(active),h=history(active);$('#nmBack').hidden=false;$('#nmTitle').textContent=m.name;compose.hidden=false;
  const controls=active==='schemes'?'<div class="nmscheme"><label>'+tr('Age','उम्र')+'<input id="nmAge" type="number" min="1" max="120" placeholder="'+tr('Age','उम्र')+'"></label><label>'+tr('State','राज्य')+'<input id="nmState" placeholder="'+tr('State','राज्य')+'"></label><label>'+tr('Work/status','काम / स्थिति')+'<input id="nmWork" placeholder="'+tr('e.g. student, farmer','जैसे छात्र, किसान')+'"></label><label>'+tr('Annual income (₹)','सालाना आय (₹)')+'<input id="nmIncome" type="number" min="0" placeholder="'+tr('Income','आय')+'"></label></div>':active==='voice'?'<label class="nmhint">'+tr('Reply language','जवाब की भाषा')+' <select id="nmVoiceLang"><option value="hi-IN">'+tr('Hindi (India)','हिन्दी (भारत)')+'</option><option value="en-IN">'+tr('English (India)','अंग्रेज़ी (भारत)')+'</option><option value="en-US">English (US)</option><option value="en-GB">English (UK)</option></select></label>':'';
  content.innerHTML=controls+'<div class="nmchat">'+h.map(x=>'<div class="nmbubble '+(x.role==='user'?'user':'assistant')+'">'+esc(x.text)+'</div>').join('')+'</div>';
  $('#nmStatus').textContent=navigator.onLine?'':tr('Offline: saved chats are available; new AI replies require an internet connection.','ऑफलाइन: सेव की गई चैट उपलब्ध हैं; नए AI जवाब के लिए इंटरनेट चाहिए।');
@@ -102,9 +103,9 @@ async function send(){
    }
    const ck=cacheKey(active,q+extra),cached=file?.image?null:cacheGet(ck);let answer=cached;
    if(!answer){
-     const cfg=await fetch(API+'/config');if(!cfg.ok)throw Error('The AI service is not configured yet.');
+     const cfg=await fetch(API+'/config');if(!cfg.ok)throw Error(tr('The AI service is not configured yet.','AI सेवा अभी कॉन्फ़िगर नहीं है।'));
      const config=await cfg.json(),r=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:config.model,stream:false,max_tokens:lowData()?500:900,messages})});
-     const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'The AI provider is unavailable.');
+     const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(tr('The AI provider is unavailable.','AI सेवा अभी उपलब्ध नहीं है।'));
      answer=String(j.choices?.[0]?.message?.content||'').trim();if(!answer)throw Error('The AI returned an empty response.');if(!file?.image)cacheSet(ck,answer);
    }
    if(active==='document'&&/(RTI|right to information|complaint|application|draft)/i.test(q)&&!answer.includes('This is not legal advice.'))answer+='\n\n'+tr('This is not legal advice.','ये कानूनी सलाह नहीं है।');
@@ -118,7 +119,7 @@ function voice(){const SR=window.SpeechRecognition||window.webkitSpeechRecogniti
 $('#nmClose').onclick=hide;$('#nmBack').onclick=()=>drawHome(activeGroup);$('#nmSend').onclick=send;$('#nmMic').onclick=voice;
 $('#nmFile').onclick=()=>$('#nmPick').click();$('#nmPick').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;try{upload={...await extractFile(f),name:f.name};$('#nmUploadName').textContent=tr('File ready: ','फ़ाइल तैयार: ')+f.name+tr(' (not stored on the server after submission)',' (भेजने के बाद सर्वर पर सेव नहीं होती)');}catch(err){$('#nmStatus').textContent=err.message}};
 input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
-document.querySelector('#lang')?.addEventListener('change',()=>{const b1=$('#novaModesTop'),b2=$('#novaModesSide'),b3=$('#novaModesHome');if(b1)b1.textContent=tr('☷ Modes','☷ मोड्स');if(b2)b2.textContent=tr('☷ Open Modes','☷ मोड्स खोलें');if(b3)b3.textContent=tr('☷ Open All Modes','☷ सभी मोड्स खोलें');if(root.classList.contains('open')){if(active)drawChat();else drawHome(activeGroup);}});
+document.querySelector('#lang')?.addEventListener('change',()=>{syncStaticLabels();const b1=$('#novaModesTop'),b2=$('#novaModesSide'),b3=$('#novaModesHome');if(b1)b1.textContent=tr('☷ Modes','☷ मोड्स');if(b2)b2.textContent=tr('☷ Open Modes','☷ मोड्स खोलें');if(b3)b3.textContent=tr('☷ Open All Modes','☷ सभी मोड्स खोलें');if(root.classList.contains('open')){if(active)drawChat();else drawHome(activeGroup);}});
 window.addEventListener('online',()=>{offline=false;if(active)drawChat()});window.addEventListener('offline',()=>{offline=true;if(active)drawChat()});
 window.NovaModeWorkspace=Object.freeze({openGroup(group){if(!REG.groups.some(g=>g.id===group))return false;show(group);return true;},openMode(id){const m=REG.modes.find(x=>x.id===id);if(!m)return false;activeGroup=m.group;root.classList.add('open');openMode(id);return true;},close:hide});
 if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('/sw.js').catch(()=>{});
