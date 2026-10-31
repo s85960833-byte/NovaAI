@@ -1,3 +1,5 @@
+import { mkdirSync } from 'node:fs';
+mkdirSync('artifacts',{recursive:true});
 import { test, expect } from '@playwright/test';
 
 const sizes = [{width:360,height:800},{width:390,height:844},{width:412,height:915},{width:768,height:1024},{width:1280,height:800}];
