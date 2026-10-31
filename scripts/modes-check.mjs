@@ -19,7 +19,7 @@ assert.ok(r.modes.find(x=>x.id==='schemes').prompt.includes('Please verify detai
 assert.ok(r.modes.find(x=>x.id==='math').prompt.includes('step'));
 for(const token of ['nova_modes_v1','nova_mode_cache_v1','SpeechRecognition','speechSynthesis','pdfjsLib','gov','nic'])assert.ok(workspace.includes(token)||source.includes(token),'missing workspace capability '+token);
 assert.ok(workspace.includes('navigator.onLine'),'offline-aware saved chat mode missing');
-assert.ok(workspace.includes('imageViaApi')&&workspace.includes('/image/status/'),'image studio must poll asynchronous image jobs');
+assert.ok(html.includes('imageViaApi')&&html.includes('/image/status/'),'image studio must poll asynchronous image jobs');
 assert.ok(workspace.includes("voiceLabels={'en-IN':'English (India)','en-US':'English (US)','en-GB':'English (UK)'}"),'voice replies must be English-only');
 assert.ok(workspace.includes('10*60*1000'),'per-user rolling request limit missing');
 assert.ok(workspace.includes('(lowData()?1.5:4)*1024*1024'),'image upload size guard missing');
@@ -28,7 +28,8 @@ assert.ok(workspace.includes('file?.image?null:cacheGet(ck)'),'image-specific an
 assert.ok(workspace.includes('Low Data Mode'),'low-data mode toggle missing');
 assert.ok(server.includes('HORDE_API_KEY')&&server.includes('/generate/async')&&server.includes('/generate/check/')&&server.includes('/generate/status/'),'free community image fallback is missing');
 assert.ok(server.includes('censor_nsfw: true')&&server.includes('nsfw: false'),'image safety settings are missing');
-assert.ok(server.includes('AbortSignal.timeout(18000)'),'image provider must fail fast enough to reach the free fallback');
+assert.ok(server.includes('AbortSignal.timeout(12000)'),'image provider must fail fast enough to reach the free fallback');
+assert.ok(server.includes("app.get('/api/image/status/:id'")&&server.includes("status: 'queued'"),'background image job status route missing');
 assert.ok(html.includes('<html lang="en">')&&html.includes("const L=['English'];")&&html.includes("const ui=()=>'en';"),'main UI must be English-only');
 assert.ok(html.includes('Always reply in English. Never switch to Hindi, Hinglish, or another language.'),'assistant response language must be English-only');
 assert.ok(html.includes('installAppBtn')&&html.includes('beforeinstallprompt'),'PWA install action missing');
