@@ -8,7 +8,7 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,12 +20,31 @@ jobs:
         run: node scripts/check.mjs
       - name: Check isolated mode registry
         run: node scripts/modes-check.mjs
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
       - name: Start local server with test-only credentials
         run: |
           LLM_KEY=test LLM_MODEL=test-model PORT=8787 node nova-server.txt > /tmp/novaai-test.log 2>&1 &
           echo $! > /tmp/novaai-test.pid
       - name: Exercise local routes and PWA assets
         run: node scripts/runtime-smoke.mjs
+      - name: Run real-browser responsive UI tests
+        run: |
+          mkdir -p artifacts
+          npm run test:ui
+      - name: Run Lighthouse mobile audit
+        run: |
+          npx lighthouse http://127.0.0.1:8787 --chrome-flags="--headless --no-sandbox" --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=artifacts/lighthouse-mobile.json
+      - name: Upload browser screenshots, traces and Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-ui-verification
+          path: |
+            artifacts/
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
       - name: Wait for the merged bilingual revision to become live on Render
         if: github.ref == 'refs/heads/main'
         env:
