@@ -98,3 +98,14 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Provider checks passed with documented fallbacks where upstream providers rate-limited or timed out. OpenAlex direct returned HTTP 429, but its configured fallback passed; GDELT, Open-Meteo, Brave and ESPN direct paths also used working alternatives in this run.
 - `npm install` reported zero vulnerabilities. Node emitted a `punycode` deprecation warning; it did not fail the build or tests.
 - Remaining verification needs a real Android browser/device for microphone/speaker permissions, camera/gallery interaction, language switching against pre-existing device-local chats, and Add to Home Screen. Do not claim those physical-device interactions were tested from CI.
+
+
+## AI Council evidence-quality upgrade (2026-10-31)
+- Replaced the previous assumption-only Council flow with a five-stage evidence-led workflow: three parallel live-search queries, Researcher review, Builder plan, Critic challenge, and final evidence audit.
+- The Council now labels search results as excerpts rather than claiming that original pages were opened or independently verified; only supplied source IDs can be cited, and missing evidence must be labelled NOT VERIFIED.
+- Business answers are explicitly prevented from inventing customer demand, willingness to pay, competitor pricing, market size, API costs, conversion rates or profits. Costs and unit economics must be source-backed or labelled as estimates with formulas.
+- Search results are deduplicated, restricted to HTTPS URLs before display, shown with publisher/date metadata, and rendered as safe external links. Failed search or failed model stages stop the audit rather than presenting a fabricated completed answer.
+- The UI explicitly states that Researcher, Builder and Critic are sequential prompts on the same configured model, not independent providers. It also states that no AI can guarantee perfect correctness.
+- Increased the Council request timeout to 90 seconds and bounded its output token budget. Added static regression checks, local runtime asset checks, and a production smoke assertion for the Council safeguards.
+- Verification branch: `feature-ai-council-evidence`. Do not merge or deploy until the branch workflow is green. The next production workflow must verify the deployed Council asset and live search integration.
+- Important limitation: the existing `/api/search` endpoint returns search-result excerpts, not full-page authenticated source review. The Council now discloses this limitation; high-impact decisions still require opening primary sources. Perfect correctness cannot be guaranteed by an LLM.
