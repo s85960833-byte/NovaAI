@@ -1,58 +1,80 @@
-# Nova AI — English Upgrade Progress
+# NovaAI Upgrade Progress
 
 ## Goal
-Convert the complete Nova AI interface and all assistant modes to English, keep existing user data compatible, improve the install-to-home-screen experience, and verify the live app before reporting completion.
+Upgrade the existing Nova AI app without breaking existing chats, settings, or features. Keep the app Hindi-first with a visible Hindi/English language selector. Every mode must have its own prompt and history. Use only free-tier services and do not add plans, payments, or paid dependencies.
 
-## Safety and compatibility
-- Baseline snapshot branch: `backup-before-upgrade`.
-- Work branch: `feature-english`.
-- Target branch: `main`; production remains untouched until feature CI passes.
-- Legacy chat/settings storage keys `nova` and `nova_t` are preserved. Existing chat records are not rewritten.
-- New mode histories remain in additive key `nova_modes_v1`.
-- Existing saved non-English voice locale values are migrated to `en-IN` only when the Voice Chat mode is opened; chat histories are not changed.
-- No paid service or new external paid dependency is added. API credentials remain in Render environment variables.
+## Baseline and architecture inventory
+- Repository: `s85960833-byte/NovaAI`; production branch: `main`.
+- Production URL: `https://novaai-4auo.onrender.com`.
+- Render service ID recorded from the existing project: `srv-dbidhpc9v7es73d6ia80`; package start command: `node nova-server.txt`.
+- Active app files:
+  - `index.html`: mobile-first single-page assistant; localStorage chat/settings key `nova`; legacy probe key `nova_t`; chat history, language, theme, memory/preferences, export/import, photo/camera, image generation, voice, search/live data, accessibility and settings.
+  - `nova-server.txt`: active Express backend; per-IP API rate limit; LLM proxy and provider fallback; speech transcription; web search aggregation; image generation jobs; PWA manifest/icons/service worker; live research, weather, earthquake, events, science, finance, sports/news and provider self-test routes.
+  - `mode-registry.js`: config-driven mode list and per-mode system prompts.
+  - `mode-workspace.js`: isolated per-mode chat histories, file/photo handling, voice controls, scheme lookup, GST helper, local cache, request limits and offline saved-history UI.
+  - `scripts/check.mjs`, `scripts/modes-check.mjs`, `scripts/runtime-smoke.mjs`, `scripts/smoke.mjs`: syntax, registry, local route and production regression checks.
+  - `.github/workflows/novaai-verification.yml`: CI runs on main and feature branches; production smoke runs on main.
+- Legacy user storage contract is unchanged: `nova` and `nova_t`. New mode history/cache use additive keys `nova_modes_v1` and `nova_mode_cache_v1`.
+- No database schema or existing user storage key has been renamed or removed.
 
-## Changes implemented
-- Entire main interface, settings, privacy copy, history/archive tools, image studio, live voice labels, error messages, and help text converted to English.
-- Language selection is locked to English; assistant system prompts explicitly require English responses.
-- All 12 mode names, descriptions, group headings, prompts, upload controls, scheme fields, GST instructions, and error states are English-only.
-- Voice Chat offers English (India), English (US), and English (UK); existing stored regional voice preferences are safely normalized to English.
-- Document drafts end with: `This is not legal advice.`
-- Government scheme answers end with: `Please verify details on the official website.`
-- PWA manifest now declares English, standalone display, and app metadata. Service-worker cache version changed so older cached Hindi assets are replaced.
-- Added an always-visible **Install App** action: uses the native install prompt where supported and gives browser-specific Add to Home Screen guidance otherwise.
-- Server developer identity and search language normalization now require English.
-- Speech transcription now tries the primary provider and the optional free Groq provider, without exposing API keys.
-- Pollinations' current image endpoint was returning HTTP 401/402. Added a free volunteer-community image fallback with NSFW generation disabled, output censoring enabled, and prompt safety checks. Its anonymous token is configured only in Render environment variables. Production smoke tests attempt a real generated image.
+## Backup and branch safety
+- `backup-before-upgrade` branch preserves the original baseline commit `7223889812961e36bc5837feabffd9974172269a`.
+- Previous in-progress work branch was preserved as `archive-feature-upgrade-pre-sync`.
+- `feature-upgrade` was safely synced to the latest production `main` commit `950465845ee646542c1d15f9512163f559159712` before new edits; archived branch remains available.
+- The connected GitHub actions expose branch creation but not Git tag creation. The requested Git tag `backup-before-upgrade` could not be created; the exact baseline backup branch is retained instead.
+- Production code has not been changed by feature-branch edits. Merge only after CI is green.
+
+## Changes completed on feature-upgrade
+- Restored a visible Hindi + English app-language selector. New users default to Hindi; existing English preference is retained. The full app UI has the existing Hindi dictionary restored rather than forcing English.
+- All 12 modes now have English and Hindi names, descriptions, and separate language-appropriate system prompts:
+  - General Chat, Voice Chat, Document Explainer, Government Scheme Finder, Shopkeeper Assistant.
+  - Math Mode, Solve from Photo, NCERT Mode, Board Exam Mode, SSC Exam Mode, UPSC Exam Mode, English Learning.
+- General and Study groups are localized. Mode workspace refreshes when the app language changes.
+- Voice mode supports Hindi (India) and English (India/US/UK) recognition/speech language options.
+- Document mode supports text/PDF/photo input; RTI/complaint/application drafts append the correct Hindi or English legal disclaimer.
+- Scheme mode asks for age, state, work/status and annual income; filters search results to official `.gov.in` / `.nic.in` domains; shows official links and the Hindi/English verification notice.
+- Shopkeeper mode includes GST arithmetic only when a user-provided rate is present; it never guesses the rate.
+- Math and photo modes require step-by-step solutions and independent final-answer verification.
+- Low Data / Lite Mode, bounded local response cache, rolling mode request limit, upload-size checks, PWA shell cache and offline saved-chat access remain enabled.
+- Uploaded file/photo content is read in the browser and sent for the current request; no permanent server-side file storage was added.
+- API keys remain server-side in environment variables. No paid dependency, payment, plan, or tier was added.
+- Fixed image job polling: status requests no longer fail solely because a proxy/client IP rotates between image submission and polling. Job IDs are cryptographically random UUIDs.
+
+## Baseline regression findings
+- Production smoke run `41164358609` on the pre-upgrade main commit passed API config, PWA manifest/homepage, mode asset delivery, feed, live search, internet search and image input validation.
+- That run failed on actual image-job polling with HTTP 404 `Image job not found`. Root cause was the image status endpoint binding a job to the caller IP; this is fixed on feature-upgrade and covered by local route tests.
+- GDELT direct, Brave LLM Context (no BRAVE_KEY configured), and ESPN direct can fail upstream; configured fallbacks (GDELT fallback, general web search/Wikipedia, and TheSportsDB) passed in the same provider self-test. Do not report a direct provider as working when its fallback is the path that succeeded.
 
 ## Test checklist
-- [x] Baseline backup branch exists and production was not changed during feature-branch work.
-- [x] English-only mode registry: 12 unique modes and English group names/prompts.
-- [x] English-only main interface; no Devanagari text remains in shipped HTML, registry, workspace, or backend.
-- [x] Existing `nova` / `nova_t` storage contract preserved.
-- [x] Separate per-mode histories and offline saved-chat access retained.
-- [x] Voice locale selection and migration to English implemented.
-- [x] PDF/text/photo upload code, size checks, and non-persistent upload handling retained.
-- [x] Government scheme search uses official `.gov.in` / `.nic.in` source filtering.
-- [x] GST arithmetic uses only a user-supplied tax rate; no rate is guessed.
-- [x] Math and photo-solution prompts require step-by-step reasoning and a final check.
-- [x] PWA install button, English manifest, service worker, and icons covered by local runtime smoke tests.
-- [x] Free image fallback endpoints, anonymous Render-only token wiring, and safe-generation flags covered by registry/backend assertions.
-- [x] Backend, frontend, registry, workspace, production smoke script, and runtime smoke script syntax checks passed on latest feature-branch CI run `41136536387`.
-- [x] Local Express route smoke tests passed for homepage, mode assets, config, manifest, service worker, icons, and API validation.
-- [x] Latest feature-branch CI run `41136536387` passed all syntax, 12-mode, and local runtime checks.
-- [ ] Merge to main after review.
-- [ ] Render deployment and production live smoke tests, including a real image-generation request.
-- [ ] Confirm installed PWA behavior, real microphone/speaker interaction, and photo/PDF selection on a physical phone.
+- [x] Baseline repository and active Render entrypoint inventory recorded.
+- [x] Baseline backup branch and archive of previous feature work retained.
+- [x] Working branch synced to current main before edits.
+- [x] Legacy `nova` / `nova_t` storage keys preserved; mode data is additive.
+- [x] Bilingual Hindi/English selector and UI dictionary restored.
+- [x] 12 modes have unique IDs, separate prompts, Hindi/English labels and separate histories.
+- [x] Voice mode supports Hindi and English speech locales.
+- [x] PDF/text/photo parsing, official scheme source filtering, legal disclaimer and GST-rate safeguards covered by assertions.
+- [x] Low-data limits, request cap, local cache, offline mode and PWA shell covered by assertions.
+- [x] Backend, frontend, registry, workspace, smoke scripts and runtime scripts pass syntax checks.
+- [x] Bilingual mode registry and legacy-storage assertions pass.
+- [x] Local Express route/PWA smoke tests pass on latest feature branch.
+- [x] Latest feature-branch GitHub Actions run `41165167613` passed all available local checks.
+- [ ] Create/review PR and merge feature-upgrade into main only after final CI review.
+- [ ] Wait for Render auto-deploy from main; confirm the deployed commit/build.
+- [ ] Run production smoke on the live URL: chat, web search, live data, image job submit/poll/result, transcription validation, PWA assets and all mode assets.
+- [ ] Recheck old saved chats/settings on the actual device; confirm language toggle and separate histories.
+- [ ] Verify real microphone/speaker, camera/gallery and PWA installation on a physical Android browser.
 
-## Known constraints to verify before claiming complete
-- The existing repository has local-device saved chats, but no real account login/authentication flow was found in the original code. Do not label local storage as account login.
-- Groq/OpenRouter cross-provider fallback requires free API credentials to be configured in Render. The available Render connection does not expose existing secret values, and no credentials have been invented or committed. The anonymous image provider token will be set in Render env only.
-- Browser microphone permissions, actual spoken audio, camera/gallery selection, and Add to Home Screen prompts need a supported physical device. Automated checks can verify code and live routes but cannot grant device permissions.
-- Scanned PDFs without selectable text still require a clear page image; the current PDF text extractor does not perform OCR.
-- The app uses browser-local storage; clearing browser site data removes locally saved chats. Back up important chats before clearing data.
+## Known limitations / honest verification notes
+- Original source does not contain a real account login/authentication flow. It has device-local saved chats and settings. Do not claim account login is implemented unless an existing authenticated flow is found and tested.
+- Optional Groq/OpenRouter fallback only works when valid free-tier credentials are configured in Render environment variables. Existing secret values are not readable through the GitHub connection and have not been invented or committed.
+- The anonymous/free image provider may queue or rate-limit requests. The live production image test must complete successfully before claiming image generation is verified.
+- Browser microphone permissions and real spoken audio, camera/gallery selection, and Add to Home Screen behavior require physical-device testing.
+- Scanned PDFs without selectable text still require a clear page image; OCR is not implemented.
+- Browser-local saved chats are lost if the user clears site data; this upgrade does not alter their storage format.
 
 ## Current status
-- Feature branch CI and local runtime smoke have passed on earlier revisions; final assertions are being re-run.
-- Production has not yet been updated with this English revision. The real image-generation smoke test is intentionally gated to production after the Render-only image token is configured.
-- Do not merge or deploy until the latest feature-branch CI is green.
+- Feature branch: `feature-upgrade`.
+- Latest feature commit: `b35ea912945a243be28aea7d9d902bb85fa748dc`.
+- Latest local CI: PASS (`41165167613`).
+- Not yet merged or deployed to production. Do not say complete until the main-branch production smoke and live checks pass.
