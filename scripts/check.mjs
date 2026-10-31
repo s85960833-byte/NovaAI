@@ -36,7 +36,7 @@ if (!council.includes('No AI can guarantee every answer is correct') || !council
 for (const marker of ['auditCouncilCitations','INVALID SOURCE ID','Citation audit warning']) if (!novaSuite.includes(marker)) throw new Error('AI Council citation audit missing: '+marker);
 if(!novaSuite.includes('const auditedAnswer=auditCouncilCitations(answer,found.length)')||!novaSuite.includes('const auditedFinal=auditCouncilCitations(final,found.length)'))throw new Error('Council citations must be audited in every expert and final response');
 const sTier = readFileSync('s-tier.js', 'utf8');
-if (!html.includes('id="novaSplash"') || !html.includes('class="nova-network"') || !html.includes('nova-splash-word')) throw new Error('Immediate blue NOVA AI splash markup is missing from first paint');
+if (!html.includes('id="novaSplash"') || !html.includes('class="nova-royal-indian"') || !html.includes('class="nova-jaali"') || !html.includes('class="nova-yantra"') || !html.includes('nova-wordmark') || !html.includes('DESIGNED IN INDIA')) throw new Error('Royal Indian motion splash markup is missing from first paint');
 if (sTier.includes('novaJagran') || sTier.includes('sessionStorage.getItem(\'nova_splash_seen\')')) throw new Error('Legacy Jagran screen or one-time splash suppression remains');
 if (!sTier.includes("const e=$('novaSplash')") || !sTier.includes('async function wake(){await splash()}')) throw new Error('Splash must reveal the app without waiting for backend health');
 if (sTier.includes('#main,#side{position:relative;z-index:1}')) throw new Error('S-tier styles must not override the mobile sidebar fixed positioning');
