@@ -27,6 +27,9 @@ if (!server.includes("app.post('/api/live'") || !server.includes("app.get('/api/
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in the active server file');
 syntaxCheck('backend', server);
 syntaxCheck('s-tier-experience', readFileSync('s-tier.js','utf8'));
+syntaxCheck('i18n-experience', readFileSync('nova-i18n.js','utf8'));
+if ((html.match(/name="viewport"/g)||[]).length!==1 || !html.includes('id="novaSplash"') || !html.includes('id="novaApp" hidden')) throw new Error('First-paint splash or single viewport contract missing');
+if (!server.includes('nova-shell-v5-mobile-first-paint') || !server.includes("e.request.mode==='navigate'")) throw new Error('Network-first service worker cache contract missing');
 if (!server.includes("app.get('/health'") || !server.includes("app.get('/s-tier.js'")) throw new Error('S-tier health or asset route missing');
 if (!server.includes('You are Nova AI, a free, India-first AI assistant.') || !server.includes("timeZone: 'Asia/Kolkata'")) throw new Error('Truth-first IST system prompt missing');
 if (!html.includes('/s-tier.js')) throw new Error('S-tier experience bundle is not loaded');

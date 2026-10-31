@@ -49,7 +49,7 @@ test('Hindi toggle changes only interface language and preserves the reply-langu
   await page.waitForTimeout(3200);
   await page.locator('#novaUiLang').click();
   await expect(page.locator('#novaSHome')).toContainText('नमस्ते');
-  await expect(page.locator('#novaApp :lang(hi)')).toHaveCSS('letter-spacing', 'normal');
+  await expect(page.locator('#novaApp :lang(hi)')).toHaveCSS('letter-spacing', '0px');
 });
 
 test('upgrade from old service-worker cache removes previous cache and does not cache index', async ({ page }) => {

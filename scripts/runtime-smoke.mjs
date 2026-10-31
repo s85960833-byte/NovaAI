@@ -5,12 +5,13 @@ let ready=false;for(let i=0;i<30;i++){try{const r=await req('/api/config');if(r.
 if(!ready)throw new Error('local Express server did not become ready');
 await expect('bilingual frontend shell','/',{},(r,b)=>r.ok&&b.includes('<html lang="en">')&&b.includes('/mode-registry.js')&&b.includes('/mode-workspace.js')&&b.includes('/s-tier.js')&&b.includes('Install App')&&b.includes("const L=['English','हिन्दी|Hindi'];")&&b.includes('hi:{'));
 await expect('instant health endpoint','/health',{},(r,b)=>r.ok&&JSON.parse(b).status==='ok'&&JSON.parse(b).ready===true);
-await expect('S-tier experience bundle','/s-tier.js',{},(r,b)=>r.ok&&b.includes('Nova Jagran')&&b.includes('Chat & Study')&&b.includes('nova_feedback_v1'));
+await expect('S-tier experience bundle','/s-tier.js',{},(r,b)=>r.ok&&b.includes('Nova Jagran')&&b.includes('function home()')&&b.includes('nova_feedback_v1'));
+await expect('opening experience translations','/nova-i18n.js',{},(r,b)=>r.ok&&b.includes('Your own AI')&&b.includes('Waking up the server'));
 await expect('bilingual mode registry asset','/mode-registry.js',{},(r,b)=>r.ok&&b.includes('NovaModeRegistry')&&b.includes('Government Scheme Finder')&&b.includes('योजना ढूँढो'));
 await expect('mode workspace asset','/mode-workspace.js',{},(r,b)=>r.ok&&b.includes('nova_modes_v1')&&b.includes('nova_mode_cache_v1')&&b.includes('फ़ाइल तैयार:'));
 const config=JSON.parse(await expect('server config','/api/config',{},(r,b)=>r.ok&&JSON.parse(b).model==='test-model'));
-const manifest=JSON.parse(await expect('bilingual PWA manifest','/manifest.webmanifest',{},(r,b)=>r.ok&&JSON.parse(b).name==='Nova AI'&&JSON.parse(b).lang==='hi'));
-await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v4-s-tier')&&b.includes("u.pathname.startsWith('/api/')")&&b.includes("/icons/icon-512.png"));
+const manifest=JSON.parse(await expect('bilingual PWA manifest','/manifest.webmanifest',{},(r,b)=>r.ok&&JSON.parse(b).name==='Nova AI'&&JSON.parse(b).lang==='en'));
+await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v5-mobile-first-paint')&&b.includes("e.request.mode==='navigate'")&&b.includes('clients.claim')&&b.includes("/icons/icon-512.png"));
 await expect('PWA icon 192','/icons/icon-192.png',{},(r,b)=>r.ok);
 await expect('PWA icon 512','/icons/icon-512.png',{},(r,b)=>r.ok);
 await expect('chat validation','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
