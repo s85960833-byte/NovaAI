@@ -57,6 +57,8 @@ syntaxCheck('mode-registry', modeRegistry);
 syntaxCheck('mode-workspace', modeWorkspace);
 for (const marker of ["return 'English'",'function syncStaticLabels()','Attach file/photo','The AI service is not configured yet.']) if (!modeWorkspace.includes(marker)) throw new Error('Bilingual Study Mode language regression guard missing: '+marker);
 if (modeWorkspace.includes("const language=()=>document.querySelector('#lang')?.value||'Hindi'")) throw new Error('Study Mode must not silently default to Hindi before the language preference loads');
+const tierHome = read('s-tier.js');
+for (const marker of ['n-brandbar','n-orbit-seal','DESIGNED IN INDIA · BUILT FOR THE WORLD','novaSealTurn']) if (!tierHome.includes(marker)) throw new Error('NOVA premium brand home marker missing: '+marker);
 syntaxCheck('runtime-smoke-test', readFileSync('scripts/runtime-smoke.mjs','utf8'));
 syntaxCheck('production-smoke-test', readFileSync('scripts/smoke.mjs','utf8'));
 syntaxCheck('wait-live-test', readFileSync('scripts/wait-live.mjs','utf8'));
