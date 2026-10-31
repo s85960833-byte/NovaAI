@@ -43,7 +43,7 @@ const workspaceCss="\n#novaSHome{max-width:1120px;margin:0 auto 34px;padding:cla
 #novaSplash .nova-emblem:after{animation:novaEmblemPulse 7s ease-in-out infinite!important}
 #novaSplash .nova-splash-core{animation:novaCoreIn .8s .12s both!important}
 #novaSplash .nova-splash-progress:after{animation:novaProgress 2.8s cubic-bezier(.45,0,.55,1) infinite!important}
-#novaSHome .nhero{animation:novaHomeGlow 12s ease-in-out infinite!important}
+#novaSHome .nhero:before{animation:novaRoyalSheen 11s ease-in-out infinite!important}
 #novaSHome .n-seal-ring:before{animation:novaSealTurn 42s linear infinite!important}
 #novaSHome .n-seal-ring:after{animation:novaSealTurn 32s linear infinite reverse!important}
 #novaSHome .ncat{animation:novaCardRise .38s cubic-bezier(.2,.7,.2,1) both!important}
@@ -53,7 +53,7 @@ const workspaceCss="\n#novaSHome{max-width:1120px;margin:0 auto 34px;padding:cla
 #novaSHome .ncat:hover{transform:translateY(-4px)!important}
 #novaSHome .nicon{transition:transform .22s ease-out!important}
 }
-@media(max-width:760px) and (prefers-reduced-motion:no-preference){
+@keyframes novaRoyalSheen{0%,100%{opacity:.07}50%{opacity:.17}}\n@media(max-width:760px) and (prefers-reduced-motion:no-preference){
 #novaSplash .nova-jaali{opacity:.08!important}
 #novaSplash .nova-orbit{display:block!important;opacity:.55}
 #novaSplash .nova-yantra .outer{animation-duration:68s!important}
@@ -61,7 +61,7 @@ const workspaceCss="\n#novaSHome{max-width:1120px;margin:0 auto 34px;padding:cla
 }
 @media(prefers-reduced-motion:reduce){#novaSplash *,#novaSHome *{animation:none!important;transition:none!important}}";st.textContent=[css,workspaceCss,splashCss,performanceCss].join(String.fromCharCode(10));document.head.append(st);
 const bloom='<span class="nova-bloom" aria-hidden="true"><svg viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="18" fill="#ffcf70"/>'+Array.from({length:8},(_,i)=>'<ellipse cx="50" cy="22" rx="8" ry="17" fill="#e8a34b" transform="rotate('+(i*45)+' 50 50)"/>').join('')+'<circle cx="50" cy="50" r="7" fill="#fff9d8"/></svg></span>';
-function splash(){const e=$('novaSplash');if(!e)return Promise.resolve();return new Promise(resolve=>{let done=false;const finish=()=>{if(done)return;done=true;e.classList.add('nova-splash-leaving');setTimeout(()=>{e.remove();resolve()},220)};setTimeout(finish,1450)})}
+function splash(){const e=$('novaSplash');if(!e)return Promise.resolve();return new Promise(resolve=>{let done=false;const finish=()=>{if(done)return;done=true;e.classList.add('nova-splash-leaving');setTimeout(()=>{e.remove();resolve()},560)};setTimeout(finish,1450)})}
 async function wake(){await splash()}
 function streak(){const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});let x={};try{x=JSON.parse(localStorage.getItem(D)||'{}')}catch{}if(x.last!==today){const y=new Date(Date.now()-86400000).toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});x.count=x.last===y?(x.count||0)+1:1;x.last=today;try{localStorage.setItem(D,JSON.stringify(x))}catch{}}if($('novaStreakText'))$('novaStreakText').textContent=hi()?'लगातार '+(x.count||1)+' दिन Nova का उपयोग':(x.count||1)+'-day Nova streak'}
 function accent(){const m={saffron:['#e8a34b','#4aa58a'],peacock:['#36a6a0','#e6bb6a'],ganga:['#72b9c9','#e0a36a']},v=m[prefs.accent]||m.saffron;document.documentElement.style.setProperty('--acc',v[0]);document.documentElement.style.setProperty('--acc2',v[1])}
