@@ -120,3 +120,5 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Explore contains Document Explainer, Government Scheme Finder and Shopkeeper Assistant modes.
 - Existing API routes, legacy chat storage, settings and Studio functionality remain additive and unchanged.
 - Bump the PWA shell cache version so Android installations fetch the corrected home and workspace registry instead of stale cached assets.
+
+- Verification follow-up: corrected the S-Tier script's escaped newline syntax and aligned the runtime PWA cache assertion with `nova-shell-v10-four-sections`.
