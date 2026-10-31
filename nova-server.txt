@@ -211,7 +211,7 @@ app.post('/api/image', async (q, r) => {
   let last = 502;
   for (const [host, model] of tries) {
     try {
-      const u = await fetch(host + encodeURIComponent(prompt) + '?' + qs + '&model=' + model, { headers: E.POLLI_KEY ? { Authorization: 'Bearer ' + E.POLLI_KEY } : {}, signal: AbortSignal.timeout(60000) });
+      const u = await fetch(host + encodeURIComponent(prompt) + '?' + qs + '&model=' + model, { headers: E.POLLI_KEY ? { Authorization: 'Bearer ' + E.POLLI_KEY } : {}, signal: AbortSignal.timeout(18000) });
       const type = String(u.headers.get('content-type') || '').split(';')[0];
       if (u.ok && /^image\//.test(type)) {
         const buf = Buffer.from(await u.arrayBuffer());
