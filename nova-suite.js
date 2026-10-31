@@ -68,12 +68,14 @@ function render(){
      const prompt='You are the '+roles[i][0]+' on an evidence-audited AI Council. '+roles[i][1]+'\n\n'+base+'\n\n'+(out?'PREVIOUS EXPERT REVIEWS:\n'+out:'');
      const answer=await askAI(prompt,1250);
      if(!answer)throw Error(roles[i][0]+' review could not be completed');
-     out+='## '+roles[i][0]+'\n'+answer+'\n\n';
+     const auditedAnswer=auditCouncilCitations(answer,found.length);
+     out+='## '+roles[i][0]+'\n'+auditedAnswer+'\n\n';
      renderCouncilText(box,out+'\n'+sourceMeta);
     }
     box.textContent='Step 5/5 — Critic is checking the final recommendation…';
     const final=await askAI('You are the final evidence auditor. Reconcile the three reviews below. Do not add new facts. Preserve disagreement. Give: (1) direct verdict, (2) claims supported by cited search excerpts, (3) unverified claims and missing primary evidence, (4) conservative recommendation or explicit NO-GO, (5) calculations with assumptions, (6) practical validation tests, (7) confidence level with reasons. For a business idea, do not say it is proven or likely profitable without actual evidence. If source excerpts do not establish demand or willingness to pay, say so plainly. Cite only [S1] style IDs already supplied.\n\n'+base+'\n\nEXPERT REVIEWS:\n'+out,1500);
     if(!final)throw Error('Final evidence audit could not be completed');
+    const auditedFinal=auditCouncilCitations(final,found.length);
     const sourceList=found.length?'\n\n## Sources returned by live search\n'+found.map(x=>'['+x.id+'] '+x.title+' — '+x.publisher+' ('+x.date+')\n'+x.url).join('\n\n'):'\n\n## Sources\nNo usable sources were returned. All current or market claims remain unverified.';
     const limitations='\n\n## Verification limits\n'+sourceMeta+'\nNova AI cannot guarantee perfect correctness. The search endpoint returns result excerpts, not independently authenticated full-page reviews. Important decisions still require opening primary sources and checking them directly.';
     renderCouncilText(box,out+'## Final evidence audit\n'+auditedFinal+sourceList+limitations);
