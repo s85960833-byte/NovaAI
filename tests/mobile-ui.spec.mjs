@@ -53,9 +53,9 @@ test('Hindi toggle changes only interface language and preserves the reply-langu
 });
 
 test('upgrade from old service-worker cache removes previous cache and does not cache index', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/favicon.svg');
   await page.evaluate(async () => { await caches.open('nova-shell-v4-s-tier'); });
-  await page.reload();
+  await page.goto('/');
   await page.waitForTimeout(1500);
   const result = await page.evaluate(async () => ({ old: await caches.has('nova-shell-v4-s-tier'), keys: await caches.keys() }));
   expect(result.old).toBeFalsy();
