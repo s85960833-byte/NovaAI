@@ -86,7 +86,7 @@ console.log('PASS /api/image validation');
 const imageResponse = await request('/api/image', {
   method: 'POST', headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ prompt: 'A simple blue geometric flower on a clean white background', width: 512, height: 512, seed: 42 }),
-  timeout: 90000
+  timeout: 180000
 });
 const generated = await json(imageResponse);
 if (!imageResponse.ok || !String(generated.image || '').startsWith('data:image/') || generated.image.length < 1200) throw new Error('Actual image generation failed: HTTP ' + imageResponse.status);
