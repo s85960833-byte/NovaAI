@@ -34,6 +34,13 @@ const council = novaSuite.slice(novaSuite.indexOf("active==='council'"), novaSui
 for (const marker of ['/api/search','Researcher','Builder','Critic','Final evidence audit','NOT VERIFIED','Search-result excerpt','renderCouncilText','AbortSignal.timeout(20000)','untrusted data','distinct source domains','q.length>2000','No usable sources were returned by live search','u.username||u.password']) if (!council.includes(marker)) throw new Error('AI Council evidence-safety feature missing: '+marker);
 if (!council.includes('No AI can guarantee every answer is correct') || !council.includes('Never invent citations')) throw new Error('AI Council accuracy limitation and anti-fabrication guard missing');
 for (const marker of ['auditCouncilCitations','INVALID SOURCE ID','Citation audit warning']) if (!novaSuite.includes(marker)) throw new Error('AI Council citation audit missing: '+marker);
+const citationAuditMatch = novaSuite.match(/function auditCouncilCitations\\(value,sourceCount\\)\\{[\\s\\S]*?\\}\\nfunction renderCouncilText/);
+if (!citationAuditMatch) throw new Error('AI Council citation validator function could not be isolated for tests');
+const auditCouncilCitations = new Function(citationAuditMatch[0].replace(/\\nfunction renderCouncilText$/, '')+';return auditCouncilCitations;')();
+if (auditCouncilCitations('Supported claim [S1]', 2) !== 'Supported claim [S1]') throw new Error('AI Council rejected a valid source ID');
+const invalidCitationOutput = auditCouncilCitations('Unsupported claim [S3] and [S0]', 2);
+if (!invalidCitationOutput.includes('[INVALID SOURCE ID S3]') || !invalidCitationOutput.includes('[INVALID SOURCE ID S0]') || !invalidCitationOutput.includes('Citation audit warning')) throw new Error('AI Council failed to flag unavailable source IDs');
+process.stdout.write('PASS AI Council citation ID integrity tests\\n');
 const sTier = readFileSync('s-tier.js', 'utf8');
 if (sTier.includes('#main,#side{position:relative;z-index:1}')) throw new Error('S-tier styles must not override the mobile sidebar fixed positioning');
 if (!sTier.includes('#main{position:relative;z-index:1}#side{z-index:5}')) throw new Error('Mobile sidebar stacking regression guard is missing');
