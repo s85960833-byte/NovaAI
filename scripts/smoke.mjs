@@ -19,6 +19,14 @@ for (let i = 0; i < 18; i++) {
 if (!config?.model) throw new Error('Live API config did not become healthy within 3 minutes');
 console.log('PASS /api/config');
 
+const health = await request('/health', { timeout: 10000 });
+const healthData = await json(health);
+if (!health.ok || healthData.status !== 'ok' || healthData.ready !== true) throw new Error('Instant /health endpoint is not ready');
+console.log('PASS instant /health');
+const tier = await request('/s-tier.js');
+const tierJs = await tier.text();
+if (!tier.ok || !tierJs.includes('Nova Jagran') || !tierJs.includes('Chat & Study') || !tierJs.includes('nova_feedback_v1')) throw new Error('S-tier experience bundle is missing or incomplete');
+console.log('PASS S-tier opening, Jagran, category and answer-feedback bundle');
 const manifest = await request('/manifest.webmanifest');
 if (!manifest.ok) throw new Error('Manifest returned HTTP ' + manifest.status);
 const manifestData = await json(manifest);
