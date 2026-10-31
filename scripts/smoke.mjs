@@ -86,11 +86,25 @@ console.log('PASS /api/image validation');
 const imageResponse = await request('/api/image', {
   method: 'POST', headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ prompt: 'A simple blue geometric flower on a clean white background', width: 512, height: 512, seed: 42 }),
-  timeout: 180000
+  timeout: 25000
 });
-const generated = await json(imageResponse);
-if (!imageResponse.ok || !String(generated.image || '').startsWith('data:image/') || generated.image.length < 1200) throw new Error('Actual image generation failed: HTTP ' + imageResponse.status);
-console.log('PASS actual free image generation (' + Math.round(generated.image.length / 1024) + ' KB data URL)');
+let generated = await json(imageResponse);
+if (!imageResponse.ok) throw new Error('Image job submission failed: HTTP ' + imageResponse.status);
+if (!generated.image && !generated.jobId) throw new Error('Image endpoint returned neither an image nor a job ID');
+if (generated.jobId) {
+  let completed = false;
+  for (let attempt = 0; attempt < 285; attempt++) {
+    await sleep(2000);
+    const statusResponse = await request('/api/image/status/' + encodeURIComponent(generated.jobId), { timeout: 15000 });
+    const state = await json(statusResponse);
+    if (!statusResponse.ok) throw new Error('Image job failed: HTTP ' + statusResponse.status + ' ' + (state.error || ''));
+    if (state.status === 'error') throw new Error('Image job failed: ' + (state.error || 'unknown error'));
+    if (state.status === 'done' && state.image) { generated = state; completed = true; break; }
+  }
+  if (!completed) throw new Error('Free image job did not finish within the production smoke window');
+}
+if (!String(generated.image || '').startsWith('data:image/') || generated.image.length < 1200) throw new Error('Actual image generation returned an invalid image');
+console.log('PASS actual free image generation (' + Math.round(generated.image.length / 1024) + ' KB data URL; ' + (generated.provider || 'provider') + ')');
 
 const transcribeValidation = await request('/api/transcribe', {
   method: 'POST', headers: { 'content-type': 'audio/webm' }, body: new Uint8Array()
