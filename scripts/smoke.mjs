@@ -47,6 +47,9 @@ console.log('PASS /manifest.webmanifest (Hindi and English PWA)');
 
 const home = await request('/');
 const homeHtml = await home.text();
+if (!homeHtml.includes('id="novaSplash"') || !homeHtml.includes('class="nova-network"') || !homeHtml.includes('nova-splash-word')) throw new Error('Immediate first-paint NOVA AI splash is missing');
+if (tierJs.includes('novaJagran') || tierJs.includes('nova_splash_seen')) throw new Error('Legacy startup overlay or one-time splash suppression remains');
+if (!tierJs.includes("const e=$('novaSplash')") || !tierJs.includes('async function wake(){await splash()}')) throw new Error('Splash must not wait for backend readiness');
 if (!home.ok || !homeHtml.includes('<html lang="en">') || !homeHtml.includes('Install App') || !homeHtml.includes("const L=['English','हिन्दी|Hindi'];")) throw new Error('English-only homepage or install action is missing');
 if (!homeHtml.includes('id="nova-indian-heritage"') || !homeHtml.includes('--acc:#e8a34b')) throw new Error('Indian heritage visual theme is missing from the live homepage');
 if (!homeHtml.includes('hi:{')) throw new Error('Hindi UI dictionary is missing');
