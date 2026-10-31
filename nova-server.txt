@@ -208,7 +208,7 @@ app.post('/api/feedback', async (q, r) => {
     r.json({ ok: true, storage: 'supabase' });
   } catch (e) { r.status(502).json({ ok: false, storage: 'local-only', error: 'Central feedback storage is temporarily unavailable' }); }
 });
-\napp.post('/api/search', async (q, r) => {
+app.post('/api/search', async (q, r) => {
   const query = String((q.body && q.body.q) || '').trim().slice(0, 400);
   if (!query) return r.status(400).json({ error: 'Search query is required' });
   try {

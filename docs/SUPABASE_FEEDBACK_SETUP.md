@@ -22,6 +22,7 @@ create table if not exists public.nova_feedback (
 alter table public.nova_feedback enable row level security;
 revoke all on table public.nova_feedback from anon, authenticated;
 grant insert on table public.nova_feedback to service_role;
+grant usage, select on sequence public.nova_feedback_id_seq to service_role;
 ```
 
 Do not create a public SELECT policy. Feedback is inserted only by Nova's server using the service-role secret.
