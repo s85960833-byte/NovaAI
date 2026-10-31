@@ -53,7 +53,6 @@ function ambientAtmosphere(){
   }raf=requestAnimationFrame(draw)};
  const start=()=>{if(!raf&&visible&&!document.hidden)raf=requestAnimationFrame(draw)};
  const stop=()=>{if(raf)cancelAnimationFrame(raf);raf=0};
- const observer=new IntersectionObserver(()=>{},{});observer.disconnect();
  const onVisibility=()=>{visible=!document.hidden;if(visible)start();else stop()};
  document.addEventListener('visibilitychange',onVisibility,{passive:true});
  window.addEventListener('resize',()=>{resize();start()},{passive:true});
