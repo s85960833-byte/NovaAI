@@ -150,7 +150,94 @@ a.cite{color:var(--acc);text-decoration:none;font-weight:700;font-size:.85em;ver
 @keyframes shm{to{background-position:-200% 0}}@keyframes bar{to{background-position:140% 0}}
 .imopt{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:2px auto 4px;width:calc(100% - 24px);max-width:760px}.imopt button{font-size:13px;padding:4px 12px;border-radius:999px}.imopt .on{border-color:var(--acc);background:var(--panel);font-weight:700}
 @media(prefers-reduced-motion:reduce){.skel,.sk-bar,.reveal{animation:none}}
-</style></head><body>
+</style>
+<style id="nova-indian-heritage">
+/* Nova Indian Heritage: visual-only refresh; preserves app structure and behavior. */
+:root{
+ --bg:#171624;--panel:#211f31;--fg:#f7f0e4;--mut:#b9ad9c;
+ --acc:#e8a34b;--acc2:#d97757;--onacc:#211729;
+ --card:#29263a;--bd:#484052;--ub:#343047;
+ --glow:rgba(232,163,75,.22);--g1:rgba(61,91,145,.24);--g2:rgba(199,104,72,.12);
+ --shadow:0 18px 52px -20px rgba(5,4,14,.72);
+}
+:root[data-theme=light]{
+ --bg:#f6f0e5;--panel:#eee4d4;--fg:#282438;--mut:#746b66;
+ --acc:#b85d3e;--acc2:#d99a43;--onacc:#fffaf1;
+ --card:#fffaf1;--bd:#dfd2bf;--ub:#f0e2d0;
+ --glow:rgba(184,93,62,.16);--g1:rgba(49,72,118,.10);--g2:rgba(205,137,67,.13);
+ --shadow:0 16px 44px -18px rgba(72,49,31,.22);
+}
+body{
+ background:
+  radial-gradient(ellipse at 88% 0%,var(--g1),transparent 48%),
+  radial-gradient(ellipse at 0% 100%,var(--g2),transparent 42%),
+  repeating-linear-gradient(135deg,transparent 0 38px,color-mix(in srgb,var(--acc) 2.3%,transparent) 39px 40px),
+  var(--bg);
+}
+#side{
+ background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 97%,var(--acc) 3%),var(--panel));
+ border-inline-end:1px solid color-mix(in srgb,var(--acc) 20%,var(--bd));
+ box-shadow:8px 0 34px rgba(8,6,16,.12);
+}
+.brand{padding:8px 5px 13px}
+.brand b{letter-spacing:.35px}
+.logo{
+ background:linear-gradient(145deg,#efbd69 0%,#d77b50 52%,#9b5360 100%);
+ color:#241a2c;border:1px solid rgba(255,239,201,.28);
+ box-shadow:0 7px 22px var(--glow),inset 0 1px 0 rgba(255,255,255,.28);
+}
+#top{
+ min-height:60px;
+ background:linear-gradient(90deg,color-mix(in srgb,var(--panel) 90%,var(--acc) 10%),color-mix(in srgb,var(--bg) 94%,transparent));
+ border-bottom:1px solid color-mix(in srgb,var(--acc) 25%,var(--bd));
+ box-shadow:0 5px 24px rgba(10,7,20,.08);
+}
+#top>b{letter-spacing:.2px}
+#new,#box #send,.psolve{
+ background:linear-gradient(135deg,#edb85f,#d97952);
+ color:#251a28;border:1px solid rgba(255,238,205,.35);
+ box-shadow:0 7px 20px var(--glow);
+}
+#new{border-color:color-mix(in srgb,var(--acc) 65%,var(--bd))}
+.it.on{background:color-mix(in srgb,var(--acc) 10%,var(--card));box-shadow:inset 3px 0 0 var(--acc)}
+.it:hover{background:color-mix(in srgb,var(--acc) 7%,var(--card))}
+#msgs{background:radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--acc) 3%,transparent),transparent 60%)}
+.u .b{
+ background:linear-gradient(145deg,color-mix(in srgb,var(--ub) 90%,var(--acc) 10%),var(--ub));
+ border:1px solid color-mix(in srgb,var(--acc) 28%,var(--bd));
+ box-shadow:0 7px 22px rgba(10,7,20,.08);
+}
+.m.a::before{
+ background:linear-gradient(145deg,#efbd69,#d77b50 58%,#9b5360);
+ color:#241a2c;border:1px solid rgba(255,239,201,.35);
+}
+.b pre{box-shadow:inset 3px 0 0 color-mix(in srgb,var(--acc) 75%,transparent)}
+#box{
+ background:color-mix(in srgb,var(--card) 96%,var(--acc) 4%);
+ border-color:color-mix(in srgb,var(--acc) 24%,var(--bd));
+ box-shadow:0 15px 42px -18px rgba(8,6,16,.42);
+}
+#box:focus-within{border-color:var(--acc);box-shadow:0 0 0 4px var(--glow),var(--shadow)}
+#hi .fc{
+ background:linear-gradient(145deg,color-mix(in srgb,var(--card) 92%,var(--acc) 8%),var(--card));
+ border-color:color-mix(in srgb,var(--acc) 27%,var(--bd));
+}
+.fi{background:linear-gradient(145deg,#efbd69,#d77b50);color:#241a2c}
+#hi .tp{border:1px solid rgba(255,255,255,.2)}
+dialog,.pbox{border-color:color-mix(in srgb,var(--acc) 28%,var(--bd))}
+#docbar,#imbar{border-color:color-mix(in srgb,var(--acc) 22%,var(--bd))}
+#live{background:radial-gradient(ellipse at 50% 25%,var(--g1),transparent 58%),var(--bg)}
+.lorb{background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.4),transparent 38%),linear-gradient(145deg,#efbd69,#d77b50 58%,#9b5360)}
+.pdrop{border-color:color-mix(in srgb,var(--acc) 52%,var(--bd))}
+#toast{background:var(--fg);color:var(--bg)}
+@media(max-width:760px){
+ #side{box-shadow:18px 0 46px rgba(5,4,14,.28)}
+ #top{min-height:56px}
+ #msgs{padding:16px 12px}
+ .u .b{max-width:92%}
+}
+</style>
+</head><body>
 <aside id="side"><div class="brand"><span class="logo">✦</span><b>Nova AI</b></div>
 <button id="new" data-i="new">＋ New chat</button><nav class="nav"><button id="nHome" data-i="nHome"></button><button id="nPhoto" data-i="nPhoto"></button><button id="nArch" data-i="nArch"></button><button id="nImg" data-i="nImg" hidden></button><button id="nLive" data-i="nLive" hidden></button></nav><input id="q" type="search" data-p="search" aria-label="Search chats"><div id="list"></div>
 <select id="lang" aria-label="Reply language"></select>
