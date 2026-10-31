@@ -55,6 +55,8 @@ if (!readFileSync('nova-suite.js','utf8').includes('nsAppBuilder') || !readFileS
 if (!modeRegistry.includes("id:'builder',group:'build'")) throw new Error('App and Website Builder mode is not assigned to Nova Build');
 syntaxCheck('mode-registry', modeRegistry);
 syntaxCheck('mode-workspace', modeWorkspace);
+for (const marker of ["return 'English'",'function syncStaticLabels()','Attach file/photo','The AI service is not configured yet.']) if (!modeWorkspace.includes(marker)) throw new Error('Bilingual Study Mode language regression guard missing: '+marker);
+if (modeWorkspace.includes("||'Hindi'")) throw new Error('Study Mode must not silently default to Hindi before the language preference loads');
 syntaxCheck('runtime-smoke-test', readFileSync('scripts/runtime-smoke.mjs','utf8'));
 syntaxCheck('production-smoke-test', readFileSync('scripts/smoke.mjs','utf8'));
 syntaxCheck('wait-live-test', readFileSync('scripts/wait-live.mjs','utf8'));
