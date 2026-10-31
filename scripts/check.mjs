@@ -31,7 +31,7 @@ const novaSuite = readFileSync('nova-suite.js','utf8');
 syntaxCheck('nova-suite', novaSuite);
 for (const marker of ['Project Brain','Reality Check','AI Council','Digital Hands','Time Machine','Model Arena','Watchtower','Knowledge Vault','Trust Shield','Idea-to-Business']) if (!novaSuite.includes(marker)) throw new Error('S-Tier Studio feature missing: '+marker);
 const council = novaSuite.slice(novaSuite.indexOf("active==='council'"), novaSuite.indexOf("active==='hands'"));
-for (const marker of ['/api/search','Researcher','Builder','Critic','Final evidence audit','NOT VERIFIED','Search-result excerpt','renderCouncilText','AbortSignal.timeout(20000)']) if (!council.includes(marker)) throw new Error('AI Council evidence-safety feature missing: '+marker);
+for (const marker of ['/api/search','Researcher','Builder','Critic','Final evidence audit','NOT VERIFIED','Search-result excerpt','renderCouncilText','AbortSignal.timeout(20000)','untrusted data','distinct source domains']) if (!council.includes(marker)) throw new Error('AI Council evidence-safety feature missing: '+marker);
 if (!council.includes('No AI can guarantee every answer is correct') || !council.includes('Never invent citations')) throw new Error('AI Council accuracy limitation and anti-fabrication guard missing');
 const sTier = readFileSync('s-tier.js', 'utf8');
 if (sTier.includes('#main,#side{position:relative;z-index:1}')) throw new Error('S-tier styles must not override the mobile sidebar fixed positioning');
