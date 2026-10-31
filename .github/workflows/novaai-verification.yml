@@ -1,7 +1,7 @@
 name: NovaAI verification
 on:
   push:
-    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier]
+    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, fix/mobile-first-paint-layout]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -31,7 +31,7 @@ jobs:
       - name: Run real-browser responsive UI tests
         run: |
           mkdir -p artifacts
-          npm run test:ui
+          npm run test:mobile-layout
       - name: Run Lighthouse mobile audit
         run: |
           npx lighthouse http://127.0.0.1:8787 --chrome-flags="--headless --no-sandbox" --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=artifacts/lighthouse-mobile.json

@@ -4,7 +4,8 @@
   "main": "nova-server.txt",
   "scripts": {
     "start": "node nova-server.txt",
-    "test:ui": "playwright test"
+    "test:ui": "playwright test",
+    "test:mobile-layout": "playwright test tests/mobile-layout-regression.spec.mjs"
   },
   "engines": {
     "node": ">=18"
