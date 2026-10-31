@@ -22,7 +22,7 @@ console.log('PASS /api/config');
 const manifest = await request('/manifest.webmanifest');
 if (!manifest.ok) throw new Error('Manifest returned HTTP ' + manifest.status);
 const manifestData = await json(manifest);
-if (manifestData.lang !== 'hi' || manifestData.display !== 'standalone') throw new Error('PWA manifest is not configured for the English installable app');
+if (manifestData.lang !== 'hi' || manifestData.display !== 'standalone') throw new Error('PWA manifest is not configured for the bilingual installable app');
 console.log('PASS /manifest.webmanifest (Hindi and English PWA)');
 
 const home = await request('/');
