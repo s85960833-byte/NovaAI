@@ -27,10 +27,14 @@ if (!server.includes("app.post('/api/live'") || !server.includes("app.get('/api/
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in the active server file');
 syntaxCheck('backend', server);
 syntaxCheck('s-tier-experience', readFileSync('s-tier.js','utf8'));
+const novaSuite = readFileSync('nova-suite.js','utf8');
+syntaxCheck('nova-suite', novaSuite);
+for (const marker of ['Project Brain','Reality Check','AI Council','Digital Hands','Time Machine','Model Arena','Watchtower','Knowledge Vault','Trust Shield','Idea-to-Business']) if (!novaSuite.includes(marker)) throw new Error('S-Tier Studio feature missing: '+marker);
 const sTier = readFileSync('s-tier.js', 'utf8');
 if (sTier.includes('#main,#side{position:relative;z-index:1}')) throw new Error('S-tier styles must not override the mobile sidebar fixed positioning');
 if (!sTier.includes('#main{position:relative;z-index:1}#side{z-index:5}')) throw new Error('Mobile sidebar stacking regression guard is missing');
-if (!server.includes("app.get('/health'") || !server.includes("app.get('/s-tier.js'")) throw new Error('S-tier health or asset route missing');
+if (!server.includes("app.get('/health'") || !server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'")) throw new Error('S-tier health or asset route missing');
+if (!html.includes('/nova-suite.js')) throw new Error('S-Tier Studio bundle is not loaded');
 if (!server.includes('You are Nova AI, a free, India-first AI assistant.') || !server.includes("timeZone: 'Asia/Kolkata'")) throw new Error('Truth-first IST system prompt missing');
 if (!html.includes('/s-tier.js')) throw new Error('S-tier experience bundle is not loaded');
 syntaxCheck('mode-registry', modeRegistry);

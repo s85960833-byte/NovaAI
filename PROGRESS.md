@@ -80,3 +80,18 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Follow-up mode-card/speech-language polish is on `feature-upgrade` commit `ea665bf261390dc821672d7e3ed06c71c2af2871`; its local CI passed (`41165295304`).
 - Main-branch production smoke run `41165241614` failed because the public Render manifest still returned the previous `lang: en` metadata instead of the newly committed `lang: hi`. This indicates the updated app has not yet been confirmed live; check Render deployment state before any completion claim.
 - Not complete until Render serves the merged bilingual revision and the full live smoke passes.
+
+
+## S-Tier Studio implementation (feature-s-tier-studio)
+- Added a mobile-responsive S-Tier Studio with ten navigable tools: Project Brain, Reality Check, AI Council, Digital Hands, Time Machine, Model Arena, Watchtower, Knowledge Vault, Trust Shield and Idea-to-Business.
+- Project Brain, Knowledge Vault and Time Machine store data locally in browser storage. This is device-local, not cloud-synced or source-control versioning.
+- Reality Check reviews user-supplied claims/evidence with the configured model; it is advisory and does not independently browse or prove claims.
+- AI Council uses Researcher/Builder/Critic prompts sequentially through the configured model; not independent model providers.
+- Model Arena compares prompt strategies using the same configured provider/model; it is not a multi-provider benchmark.
+- Digital Hands prepares checklists and offers an explicit HTTPS website hand-off; it does not automate browser clicks, credentials, payments or form submissions.
+- Watchtower runs on-demand `/health`, `/api/config`, and feed checks; it is not an always-on background monitor.
+- Trust Shield controls AI requests, external links and local text imports within this studio only; it is not app-wide authentication or server security.
+- Idea-to-Business generates a structured blueprint and can save it into Project Brain.
+- The `nova-suite.js` asset is served by the backend, loaded by the homepage and included in the PWA shell cache. Existing local-storage keys remain unchanged.
+- Cross-device sync, full browser automation, continuous monitoring, independent multi-provider council/benchmark and source-code Git rollback are not implemented and must not be claimed.
+- Verification pending: CI, local runtime smoke, production deploy and live smoke on Render.
