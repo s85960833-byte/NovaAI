@@ -47,6 +47,8 @@ if (!readFileSync('s-tier.js','utf8').includes('hiEl.replaceChildren(e)') || !re
 if (!modeRegistry.includes("id:'study'") || !modeRegistry.includes("id:'build'") || !modeRegistry.includes("id:'chat'") || !modeRegistry.includes("id:'voice'")) throw new Error('Four mode groups are not registered');
 if (!modeWorkspace.includes('openGroup(group)') || modeWorkspace.includes("add(top,'novaModesTop'")) throw new Error('Mode workspace must open only the selected group without the all-modes launcher');
 if (!readFileSync('nova-suite.js','utf8').includes('window.NovaSuite=Object.freeze({open,close})')) throw new Error('Nova Build launcher API is missing');
+if (!readFileSync('nova-suite.js','utf8').includes('nsAppBuilder') || !readFileSync('nova-suite.js','utf8').includes("openMode('builder')")) throw new Error('App and Website Builder shortcut is missing from Nova Build');
+if (!modeRegistry.includes("id:'builder',group:'build'")) throw new Error('App and Website Builder mode is not assigned to Nova Build');
 syntaxCheck('mode-registry', modeRegistry);
 syntaxCheck('mode-workspace', modeWorkspace);
 syntaxCheck('runtime-smoke-test', readFileSync('scripts/runtime-smoke.mjs','utf8'));

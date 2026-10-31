@@ -12,14 +12,14 @@ assert.equal(r.groups.length,4);
 assert.deepEqual(Array.from(r.groups,x=>x.name),['Nova Study','Nova Build','Nova Chat','Nova Voice · Voice Chat']);
 assert.deepEqual(Array.from(r.groups,x=>x.nameHi),['नोवा स्टडी','नोवा बिल्ड','नोवा चैट','नोवा वॉइस · वॉइस चैट']);
 assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='study').map(x=>x.id)),['math','photo','ncert','board','ssc','upsc','english']);
-assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='build').map(x=>x.id)),['document','schemes','shopkeeper']);
+assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='build').map(x=>x.id)),['document','schemes','shopkeeper','builder']);
 assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='chat').map(x=>x.id)),['general']);
 assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='voice').map(x=>x.id)),['voice']);
 assert.ok(workspace.includes('window.NovaModeWorkspace=Object.freeze'));
 assert.ok(workspace.includes('openGroup(group)'));
 assert.ok(!workspace.includes("add(top,'novaModesTop'"),'legacy all-modes launchers must be removed');
 const ids=r.modes.map(x=>x.id);
-for(const id of ['general','voice','document','schemes','shopkeeper','math','photo','ncert','board','ssc','upsc','english'])assert.ok(ids.includes(id),'missing '+id);
+for(const id of ['general','voice','document','schemes','shopkeeper','math','photo','ncert','board','ssc','upsc','english','builder'])assert.ok(ids.includes(id),'missing '+id);
 assert.equal(new Set(ids).size,ids.length,'mode IDs must be unique');
 for(const m of r.modes){assert.ok(m.name&&m.desc&&m.prompt&&m.nameHi&&m.descHi&&m.promptHi,'bilingual mode metadata missing for '+m.id);assert.ok(!/[\u0900-\u097F]/.test(m.name+m.desc+m.prompt),'Hindi leaked into English mode fields: '+m.id);assert.ok(/[\u0900-\u097F]/.test(m.nameHi+m.descHi+m.promptHi),'Hindi translation missing: '+m.id)}
 assert.ok(r.modes.find(x=>x.id==='document').prompt.includes('This is not legal advice.'));
