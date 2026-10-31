@@ -19,6 +19,7 @@ assert.ok(r.modes.find(x=>x.id==='schemes').prompt.includes('Please verify detai
 assert.ok(r.modes.find(x=>x.id==='math').prompt.includes('step'));
 for(const token of ['nova_modes_v1','nova_mode_cache_v1','SpeechRecognition','speechSynthesis','pdfjsLib','gov','nic'])assert.ok(workspace.includes(token)||source.includes(token),'missing workspace capability '+token);
 assert.ok(workspace.includes('navigator.onLine'),'offline-aware saved chat mode missing');
+assert.ok(workspace.includes('imageViaApi')&&workspace.includes('/image/status/'),'image studio must poll asynchronous image jobs');
 assert.ok(workspace.includes("voiceLabels={'en-IN':'English (India)','en-US':'English (US)','en-GB':'English (UK)'}"),'voice replies must be English-only');
 assert.ok(workspace.includes('10*60*1000'),'per-user rolling request limit missing');
 assert.ok(workspace.includes('(lowData()?1.5:4)*1024*1024'),'image upload size guard missing');
