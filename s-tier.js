@@ -9,7 +9,7 @@ const lite=()=>prefs.dataSaver||navigator.connection?.saveData||/2g|3g/.test(nav
 const css=[
 ':root{--nova-night:#10142d;--nova-ivory:#f8f4e9;--nova-saffron:#e8a34b;--nova-emerald:#4aa58a;--nova-peacock:#36a6a0;--nova-ganga:#72b9c9}',
 'body{background-image:radial-gradient(ellipse at 12% 8%,rgba(75,119,166,.12),transparent 42%),radial-gradient(ellipse at 88% 84%,rgba(232,163,75,.08),transparent 38%)!important}',
-'#main,#side{position:relative;z-index:1}#mic{display:grid!important;visibility:visible!important;min-width:44px;min-height:44px}',
+'#main{position:relative;z-index:1}#side{z-index:5}#mic{display:grid!important;visibility:visible!important;min-width:44px;min-height:44px}',
 '#novaSHome{max-width:900px;margin:0 auto 24px;padding:0 14px;text-align:start}#novaSHome .nhero{padding:22px 18px;border:1px solid color-mix(in srgb,var(--acc) 30%,var(--bd));border-radius:26px;background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 90%,#243c61),color-mix(in srgb,var(--card) 94%,#8b6338));box-shadow:0 18px 55px -30px #000}',
 '#novaSHome .ngreet{font-size:clamp(23px,4vw,34px);font-weight:800;margin:0 0 5px}#novaSHome .nsub{color:var(--mut);margin:0 0 16px}',
 '#novaSHome .ncatgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}#novaSHome .ncat{min-height:105px;text-align:left;display:flex;gap:12px;align-items:flex-start;padding:16px;border-radius:20px;background:var(--card);border:1px solid var(--bd);color:var(--fg);cursor:pointer}',
