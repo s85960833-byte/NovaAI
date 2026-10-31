@@ -60,9 +60,9 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - [x] Bilingual mode registry and legacy-storage assertions pass.
 - [x] Local Express route/PWA smoke tests pass on latest feature branch.
 - [x] Latest feature-branch GitHub Actions run `41165167613` passed all available local checks.
-- [ ] Create/review PR and merge feature-upgrade into main only after final CI review.
-- [ ] Wait for Render auto-deploy from main; confirm the deployed commit/build.
-- [ ] Run production smoke on the live URL: chat, web search, live data, image job submit/poll/result, transcription validation, PWA assets and all mode assets.
+- [x] S-Tier Studio changes are present on production `main` at `a77a72a265c375a2f21dc3ba6bef2f10f658d0c8`.
+- [x] Render deployment `dep-dbiqfkflk1mc73ff4lb0` is live on that exact commit.
+- [x] Main CI run `41183882833` passed syntax, registry, local runtime, PWA, live homepage, Studio bundle, API, internet search, live retrieval, image generation and chat smoke checks.
 - [ ] Recheck old saved chats/settings on the actual device; confirm language toggle and separate histories.
 - [ ] Verify real microphone/speaker, camera/gallery and PWA installation on a physical Android browser.
 
@@ -78,8 +78,7 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Feature branch: `feature-upgrade`.
 - PR #4 was merged into `main` as commit `b4fb66bd77255cb62482080a553c5ad601b8f8ac`.
 - Follow-up mode-card/speech-language polish is on `feature-upgrade` commit `ea665bf261390dc821672d7e3ed06c71c2af2871`; its local CI passed (`41165295304`).
-- Main-branch production smoke run `41165241614` failed because the public Render manifest still returned the previous `lang: en` metadata instead of the newly committed `lang: hi`. This indicates the updated app has not yet been confirmed live; check Render deployment state before any completion claim.
-- Not complete until Render serves the merged bilingual revision and the full live smoke passes.
+- The earlier production smoke run `41165241614` failed while Render still served an older revision. This was resolved by deploying the current main commit and re-running the full production smoke successfully.
 
 
 ## S-Tier Studio implementation (feature-s-tier-studio)
@@ -94,4 +93,8 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Idea-to-Business generates a structured blueprint and can save it into Project Brain.
 - The `nova-suite.js` asset is served by the backend, loaded by the homepage and included in the PWA shell cache. Existing local-storage keys remain unchanged.
 - Cross-device sync, full browser automation, continuous monitoring, independent multi-provider council/benchmark and source-code Git rollback are not implemented and must not be claimed.
-- Verification pending: CI, local runtime smoke, production deploy and live smoke on Render.
+- Verified on 2026-10-31: GitHub Actions run `41183882833` passed; Render deploy `dep-dbiqfkflk1mc73ff4lb0` is live on commit `a77a72a265c375a2f21dc3ba6bef2f10f658d0c8`.
+- Production checks passed: English/Hindi homepage and PWA assets, all ten Studio feature labels and bundle delivery, `/health`, `/api/config`, news feed, live retrieval, internet search, image generation result, transcription input validation, and AI chat.
+- Provider checks passed with documented fallbacks where upstream providers rate-limited or timed out. OpenAlex direct returned HTTP 429, but its configured fallback passed; GDELT, Open-Meteo, Brave and ESPN direct paths also used working alternatives in this run.
+- `npm install` reported zero vulnerabilities. Node emitted a `punycode` deprecation warning; it did not fail the build or tests.
+- Remaining verification needs a real Android browser/device for microphone/speaker permissions, camera/gallery interaction, language switching against pre-existing device-local chats, and Add to Home Screen. Do not claim those physical-device interactions were tested from CI.
