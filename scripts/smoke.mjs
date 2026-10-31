@@ -162,7 +162,7 @@ const fallbackPairs = {
   'OpenAlex direct': 'OpenAlex fallback',
   'Brave LLM Context': 'Web search',
   'ESPN direct': 'TheSportsDB fallback',
-  'arXiv': 'OpenAlex direct'
+  'arXiv': 'OpenAlex fallback'
 };
 const optionalUnavailable = self.results.filter(x => !x.ok && x.name === 'Yahoo Finance');
 const failures = self.results.filter(x => !x.ok && x.name !== 'Yahoo Finance' && (!fallbackPairs[x.name] || !self.results.some(y => y.name === fallbackPairs[x.name] && y.ok)));
