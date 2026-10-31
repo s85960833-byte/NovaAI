@@ -2,7 +2,7 @@ import { mkdirSync } from 'node:fs';
 mkdirSync('artifacts',{recursive:true});
 import { test, expect } from '@playwright/test';
 
-const sizes = [{width:360,height:800},{width:390,height:844},{width:412,height:915},{width:768,height:1024},{width:1280,height:800}];
+const sizes = [{width:360,height:800},{width:390,height:844},{width:412,height:915},{width:768,height:1024},{width:800,height:1280},{width:1280,height:800}];
 
 for (const size of sizes) {
   test('first paint and mobile layout '+size.width+'x'+size.height, async ({ page, browserName }) => {
@@ -39,7 +39,7 @@ for (const size of sizes) {
       const main=document.querySelector('#main'),side=document.querySelector('#side');return {width:root?.getBoundingClientRect().width,mainWidth:main?.getBoundingClientRect().width,sidePosition:getComputedStyle(side).position,innerWidth,scrollWidth:document.scrollingElement.scrollWidth,overflow:overflow.slice(0,20),top:top?.getBoundingClientRect().toJSON(),box:box?.getBoundingClientRect().toJSON()};
     });
     expect(Math.abs(layout.width-layout.innerWidth)).toBeLessThanOrEqual(1);
-    if(size.width<=760){expect(layout.sidePosition).toBe('fixed');expect(Math.abs(layout.mainWidth-layout.innerWidth)).toBeLessThanOrEqual(1);}
+    if(size.width<=960){expect(layout.sidePosition).toBe('fixed');expect(Math.abs(layout.mainWidth-layout.innerWidth)).toBeLessThanOrEqual(1);}
     expect(layout.scrollWidth).toBeLessThanOrEqual(layout.innerWidth);
     expect(layout.overflow).toEqual([]);
     expect(layout.box.bottom).toBeLessThanOrEqual(size.height+1);

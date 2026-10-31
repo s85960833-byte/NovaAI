@@ -5,6 +5,7 @@
 - html, body, and #novaApp must stay width/max-width 100%, min-width 0, and clip horizontal overflow.
 - Every decorative layer must be fixed to inset:0, clipped, pointer-events:none, and contain:layout paint; animate only inner layers.
 - Main app is a 100dvh flex column; header is fixed-height, message area flex:1 with min-height:0 and vertical scrolling, composer stays at the bottom with safe-area padding.
+- Use a 960px responsive-navigation breakpoint so high-density Android portrait viewports do not fall into the desktop two-column shell. Desktop-only header rules require a fine pointer.
 - Mobile category cards are one column through 599px; two columns from 600px.
 - The first body paint is the static splash; #novaApp stays hidden until /health confirms readiness. Interface language defaults to English independently of reply language.
 - Remove the splash node from the DOM after its transition; never leave an invisible full-screen overlay behind.
