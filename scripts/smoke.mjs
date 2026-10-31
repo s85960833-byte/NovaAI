@@ -25,13 +25,13 @@ if (!health.ok || healthData.status !== 'ok' || healthData.ready !== true) throw
 console.log('PASS instant /health');
 const tier = await request('/s-tier.js');
 const tierJs = await tier.text();
-if (!tier.ok || !['Nova Study','Nova Build','Nova Chat','Nova Voice','data-cat="study"','data-cat="build"','data-cat="chat"','data-cat="voice"'].every(x=>tierJs.includes(x)) || tierJs.includes('Chat & Study') || !tierJs.includes('hiEl.replaceChildren(e)') || !tierJs.includes("n.id==='hi'")) throw new Error('Four-workspace home is missing or incorrectly grouped');
+if (!tier.ok || !['Chat &amp; Study','Voice Chat','Create','Explore','data-cat="chat-study"','data-cat="create"','data-cat="explore"','data-cat="voice"'].every(x=>tierJs.includes(x)) || !tierJs.includes('hiEl.replaceChildren(e)') || !tierJs.includes("n.id==='hi'")) throw new Error('Four-workspace home is missing or incorrectly grouped');
 if(!['A NEW EXPRESSION OF INTELLIGENCE','LEARN · MASTER · GROW','IMAGINE · CREATE · LAUNCH','THINK · DISCOVER · SOLVE','SPEAK · LISTEN · CONNECT','ncard-enter','@media(max-width:600px)','novaAuroraSweep','novaCardRise','novaHomeGlow','n-brandbar','n-orbit-seal','DESIGNED IN INDIA · BUILT FOR THE WORLD'].every(x=>tierJs.includes(x)))throw new Error('Royal four-workspace premium interface or enhanced motion is missing');
-console.log('PASS royal responsive four-workspace home: Study, Build, Chat and Voice');
+console.log('PASS royal responsive four-section home: Chat & Study, Voice Chat, Create and Explore');
 if(!tierJs.includes('S-tier motion system')||!tierJs.includes('setTimeout(finish,1450)')||!tierJs.includes('novaTurn 48s linear infinite')||!tierJs.includes('novaSealTurn 34s linear infinite')||!tierJs.includes('novaCardGlint')||!tierJs.includes('novaGlyphFloat')||!tierJs.includes('nova-lite-motion')||!tierJs.includes('prefers-reduced-motion:no-preference'))throw new Error('Nova lightweight royal motion/performance layer is missing');
 console.log('PASS lightweight mobile motion, splash timing, reveal and skeleton rendering');
 const registryResponse=await request('/mode-registry.js');const registryJs=await registryResponse.text();
-if(!registryResponse.ok||!['Nova Study','Nova Build','Nova Chat','Nova Voice · Voice Chat'].every(x=>registryJs.includes(x))||!registryJs.includes("id:'builder',group:'build'"))throw new Error('Four isolated mode groups are missing');
+if(!registryResponse.ok||!['Chat & Study','Voice Chat','Create','Explore'].every(x=>registryJs.includes(x))||!registryJs.includes("id:'builder',group:'create'"))throw new Error('Four isolated mode groups are missing');
 const workspaceResponse=await request('/mode-workspace.js');const workspaceJs=await workspaceResponse.text();
 if(!workspaceResponse.ok||!workspaceJs.includes('openGroup(group)')||workspaceJs.includes("add(top,'novaModesTop'"))throw new Error('Scoped mode workspace launcher is missing');
 if(!workspaceJs.includes('function syncStaticLabels()')||!workspaceJs.includes("return 'English'")||workspaceJs.includes("const language=()=>document.querySelector('#lang')?.value||'Hindi'"))throw new Error('Study Mode English/Hindi language sync regression');
