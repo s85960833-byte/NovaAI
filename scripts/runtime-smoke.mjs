@@ -4,6 +4,7 @@ async function expect(name,path,options,check){const r=await req(path,options);c
 let ready=false;for(let i=0;i<30;i++){try{const r=await req('/api/config');if(r.ok){ready=true;break}}catch{}await new Promise(x=>setTimeout(x,500))}
 if(!ready)throw new Error('local Express server did not become ready');
 await expect('bilingual frontend shell','/',{},(r,b)=>r.ok&&b.includes('<html lang="en">')&&b.includes('/mode-registry.js')&&b.includes('/mode-workspace.js')&&b.includes('/s-tier.js')&&b.includes('/nova-suite.js')&&b.includes('Install App')&&b.includes("const L=['English','हिन्दी|Hindi'];")&&b.includes('hi:{'));
+await expect('mobile full-width layout guard','/',{},(r,b)=>r.ok&&b.includes('id="nova-mobile-layout-guard"')&&b.includes('#main{display:flex;flex:1 1 0%;width:0;max-width:100%;min-width:0}')&&b.includes('#main{position:relative;display:flex;flex:1 1 100%!important;width:100%!important;max-width:100vw!important;min-width:0!important;height:100%}'));
 await expect('instant health endpoint','/health',{},(r,b)=>r.ok&&JSON.parse(b).status==='ok'&&JSON.parse(b).ready===true);
 await expect('four-workspace home','/s-tier.js',{},(r,b)=>r.ok&&['Chat &amp; Study','Voice Chat','Create','Explore','data-cat="chat-study"','data-cat="create"','data-cat="explore"','data-cat="voice"'].every(x=>b.includes(x))&&b.includes('hiEl.replaceChildren(e)')&&b.includes("n.id==='hi'"));
 await expect('lightweight home motion','/s-tier.js',{},(r,b)=>r.ok&&b.includes('S-tier motion system')&&b.includes('setTimeout(finish,1450)')&&b.includes('novaTurn 48s linear infinite')&&b.includes('novaSealTurn 34s linear infinite')&&b.includes('novaCardGlint')&&b.includes('novaGlyphFloat')&&b.includes('nova-lite-motion')&&b.includes('prefers-reduced-motion:no-preference'));
@@ -20,7 +21,7 @@ await expect('mode workspace asset','/mode-workspace.js',{},(r,b)=>r.ok&&b.inclu
 const config=JSON.parse(await expect('server config','/api/config',{},(r,b)=>r.ok&&JSON.parse(b).model==='test-model'));
 const manifest=JSON.parse(await expect('NOVA royal PWA manifest','/manifest.webmanifest',{},(r,b)=>r.ok&&JSON.parse(b).name==='NOVA AI — Indian Intelligence'&&JSON.parse(b).lang==='en-IN'&&JSON.parse(b).short_name==='NOVA'&&JSON.parse(b).icons.some(x=>x.src==='/icons/nova-emblem.svg')));
 await expect('custom NOVA SVG identity','/icons/nova-emblem.svg',{},(r,b)=>r.ok&&b.includes('viewBox="0 0 512 512"'));
-await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v12-ambient-atmosphere')&&b.includes("u.pathname.startsWith('/api/')")&&b.includes("/icons/icon-512.png")&&b.includes('/icons/nova-emblem.svg'));
+await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v13-root-ambient')&&b.includes("u.pathname.startsWith('/api/')")&&b.includes("/icons/icon-512.png")&&b.includes('/icons/nova-emblem.svg'));
 await expect('PWA icon 192','/icons/icon-192.png',{},(r,b)=>r.ok);
 await expect('PWA icon 512','/icons/icon-512.png',{},(r,b)=>r.ok);
 await expect('chat validation','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
