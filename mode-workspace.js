@@ -10,7 +10,7 @@ const data=()=>read(STORE,{version:1,histories:{},lastMode:'general'});
 const saveData=x=>write(STORE,x);
 const lowData=()=>data().lowData!==false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const language=()=>document.querySelector('#lang')?.value||'Hindi';
+const language=()=>localStorage.getItem('nova_ui_language')==='hi'?'Hindi':'English';
 const isHi=()=>language()==='Hindi';
 const tr=(en,hi)=>isHi()?hi:en;
 const mode=id=>{const m=REG.modes.find(x=>x.id===id)||REG.modes[0];return {...m,name:isHi()?(m.nameHi||m.name):m.name,desc:isHi()?(m.descHi||m.desc):m.desc,prompt:isHi()?(m.promptHi||m.prompt):m.prompt};};
