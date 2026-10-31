@@ -32,7 +32,7 @@ const registryResponse=await request('/mode-registry.js');const registryJs=await
 if(!registryResponse.ok||!['Nova Study','Nova Build','Nova Chat','Nova Voice · Voice Chat'].every(x=>registryJs.includes(x))||!registryJs.includes("id:'builder',group:'build'"))throw new Error('Four isolated mode groups are missing');
 const workspaceResponse=await request('/mode-workspace.js');const workspaceJs=await workspaceResponse.text();
 if(!workspaceResponse.ok||!workspaceJs.includes('openGroup(group)')||workspaceJs.includes("add(top,'novaModesTop'"))throw new Error('Scoped mode workspace launcher is missing');
-if(!workspaceJs.includes('function syncStaticLabels()')||!workspaceJs.includes("return 'English'")||workspaceJs.includes("||'Hindi'"))throw new Error('Study Mode English/Hindi language sync regression');
+if(!workspaceJs.includes('function syncStaticLabels()')||!workspaceJs.includes("return 'English'")||workspaceJs.includes("const language=()=>document.querySelector('#lang')?.value||'Hindi'"))throw new Error('Study Mode English/Hindi language sync regression');
 console.log('PASS four isolated mode groups and scoped workspace');
 const suiteResponse = await request('/nova-suite.js');
 const suiteJs = await suiteResponse.text();
