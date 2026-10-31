@@ -839,11 +839,28 @@ await new Promise((ok,no)=>{const i=new Image();i.onload=ok;i.onerror=()=>no({st
 catch(e){if(sig.aborted)throw e;last=e&&e.status?e:{status:502}}finally{clearTimeout(tm);sig.removeEventListener('abort',f)}}
 throw last}
 async function dlImg(m){try{let u=m.img,x='png';if(u.startsWith('data:'))x=/^data:image\/svg/.test(u)?'svg':/^data:image\/jpeg/.test(u)?'jpg':'png';else{u=URL.createObjectURL(await getImg(u,new AbortController().signal));x='jpg'}const a=document.createElement('a');a.href=u;a.download='nova-'+Date.now()+'.'+x;document.body.append(a);a.click();a.remove();if(u.startsWith('blob:'))setTimeout(()=>URL.revokeObjectURL(u),4000)}catch(e){window.open(m.img,'_blank','noopener')}}
+async function imageViaApi(p,ar,seed,sig){
+const r=await fetch(API+'/image',{method:'POST',signal:sig,headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p,aspect:ar,width:DIM[ar][0],height:DIM[ar][1],seed})});
+const j=await r.json().catch(()=>({}));
+if(!r.ok)throw{status:r.status,error:j.error};
+if(j.image)return j.image;
+if(!j.jobId)throw{status:502,error:'Image queue did not return a job ID'};
+const wait=ms=>new Promise((resolve,reject)=>{if(sig.aborted)return reject({name:'AbortError'});const abort=()=>{clearTimeout(timer);sig.removeEventListener('abort',abort);reject({name:'AbortError'})};const timer=setTimeout(()=>{sig.removeEventListener('abort',abort);resolve()},ms);sig.addEventListener('abort',abort,{once:true})});
+for(let attempt=0;attempt<270;attempt++){
+await wait(2000);
+const response=await fetch(API+'/image/status/'+encodeURIComponent(j.jobId),{signal:sig});
+const state=await response.json().catch(()=>({}));
+if(!response.ok)throw{status:response.status,error:state.error};
+if(state.status==='done'&&state.image)return state.image;
+if(state.status==='error')throw{status:502,error:state.error||'Image generation failed'};
+}
+throw{status:504,error:'The free image queue is taking too long. Please try again later.'};
+}
 async function makeImg(v,re){if(busy){toast(t('wait'));return}if(!chat())newChat();const c=chat(),st=re?re.is:(IM&&IM.d?IM.d:''),ar=re?re.ar:IMS.ar,seed=Math.floor(Math.random()*1e9);popN=2;
 if(!re){c.m.push({r:'user',c:'🎨 '+(st?'['+IM.name+'] ':'')+v});if(c.title==='New chat')c.title=v.slice(0,40);$('in').value='';$('in').style.height='auto'}
 busy=true;ctl=new AbortController();const sig=ctl.signal,a={r:'assistant',c:'',gen:{ar,t0:Date.now()},ip:v,ar,is:st};c.m.push(a);stick=true;render();
 try{const base=st?v+'. Style: '+st:v,p=(re&&re.fp)||(IMS.enh?await enhance(base,sig):base);a.fp=p;
-if(SV&&SV.image){try{const r=await fetch(API+'/image',{method:'POST',signal:sig,headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p,aspect:ar,width:DIM[ar][0],height:DIM[ar][1],seed})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.image)throw{status:r.status};a.img=j.image}catch(e1){if(sig.aborted)throw e1;a.img=await pollin(p,ar,seed,sig)}}
+if(SV&&SV.image){try{a.img=await imageViaApi(p,ar,seed,sig)}catch(e1){if(sig.aborted)throw e1;a.img=await pollin(p,ar,seed,sig)}}
 else if(SMP){const o=await SMP('Create a beautiful, richly detailed SVG illustration (viewBox 0 0 1024 1024) of: '+p+'\nUse layered shapes, gradients, soft shadows and a harmonious colour palette. Return ONLY the SVG markup starting with <svg and ending with </svg>. No explanation, no code fences, no scripts, no external images, no foreignObject.',{cache:false});
 let s=(o.text.match(/<svg[\s\S]*<\/svg>/i)||[''])[0];if(!s||/<script|foreignObject|\son\w+\s*=|javascript:|href\s*=\s*["']?https?:/i.test(s))throw{};if(!/xmlns=/.test(s))s=s.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');a.img='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s)}
 else a.img=await pollin(p,ar,seed,sig);
