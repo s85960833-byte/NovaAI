@@ -13,8 +13,8 @@ for(let i=0;i<36;i++){
     const suiteText=await suite.text();
     const suiteMarkers=['Project Brain','Reality Check','AI Council','Digital Hands','Time Machine','Model Arena','Watchtower','Knowledge Vault','Trust Shield','Idea-to-Business'];
     last='manifest HTTP '+m.status+' lang='+manifest.lang+', homepage HTTP '+h.status+', suite HTTP '+suite.status;
-    if(m.ok&&h.ok&&suite.ok&&manifest.lang==='hi'&&manifest.display==='standalone'&&html.includes("const L=['English','हिन्दी|Hindi'];")&&html.includes('hi:{')&&html.includes('/mode-workspace.js')&&html.includes('/mode-registry.js')&&html.includes('/nova-suite.js')&&html.includes('id="nova-indian-heritage"')&&html.includes('--acc:#e8a34b')&&suiteMarkers.every(x=>suiteText.includes(x))){
-      console.log('PASS Render serves bilingual revision and Indian heritage theme');
+    if(m.ok&&h.ok&&suite.ok&&manifest.lang==='hi'&&manifest.display==='standalone'&&html.includes("const L=['English','हिन्दी|Hindi'];")&&html.includes('hi:{')&&html.includes('/mode-workspace.js')&&html.includes('/mode-registry.js')&&html.includes('/nova-suite.js')&&html.includes('id="nova-indian-heritage"')&&html.includes('--acc:#e8a34b')&&suiteMarkers.every(x=>suiteText.includes(x))&&suiteText.includes('auditCouncilCitations')&&suiteText.includes('INVALID SOURCE ID')&&suiteText.includes('Citation audit warning')){
+      console.log('PASS Render serves bilingual revision, Indian heritage theme, and AI Council citation audit');
       process.exit(0);
     }
   }catch(e){last=String(e.message||e)}
