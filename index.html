@@ -294,6 +294,23 @@ dialog,.pbox{border-color:color-mix(in srgb,var(--acc) 28%,var(--bd))}
  .skel{background:var(--card)!important}
 }
 @media(prefers-reduced-motion:reduce){#novaSplash *,#novaSHome *, .reveal,.skel,.sk-bar,.dots i{animation:none!important;transition:none!important}}
+</style><style id="nova-mobile-layout-guard">
+/* Mobile viewport layout guard: keep the chat workspace full-width on phones. */
+html,body{width:100%;min-width:0;max-width:100%;overflow-x:hidden}
+body{display:flex;flex-flow:row nowrap;align-items:stretch}
+#main{display:flex;flex:1 1 0%;width:0;max-width:100%;min-width:0}
+#top,#msgs,#box{min-width:0;max-width:100%}
+#msgs{width:100%}
+#hi,#novaSHome{box-sizing:border-box;width:100%;min-width:0;max-width:880px}
+@media(max-width:760px){
+ body{width:100%;min-width:0;max-width:100vw;overflow:hidden}
+ #side{position:fixed!important;inset:0 auto 0 0!important;width:min(272px,86vw)!important;max-width:86vw!important;flex:0 0 auto!important}
+ [dir=rtl] #side{inset:0 0 0 auto!important}
+ #scrim{position:fixed!important;inset:0!important}
+ #main{position:relative;display:flex;flex:1 1 100%!important;width:100%!important;max-width:100vw!important;min-width:0!important;height:100%;margin:0}
+ #top,#msgs,#box{width:100%;min-width:0;max-width:100%}
+ #hi,#novaSHome{width:100%;min-width:0;max-width:100%;margin-left:auto;margin-right:auto}
+}
 </style></head><body><div id="novaSplash" class="nova-royal-indian" role="status" aria-label="Nova AI is starting"><div class="nova-royal-scene" aria-hidden="true">
 <svg class="nova-jaali" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice"><defs><pattern id="novaJaalPattern" width="96" height="96" patternUnits="userSpaceOnUse"><path d="M48 0 96 48 48 96 0 48Z M48 18 78 48 48 78 18 48Z M0 0 96 96 M96 0 0 96"/></pattern></defs><rect width="1200" height="800" fill="url(#novaJaalPattern)"/></svg><div class="nova-halo"></div><div class="nova-orbit"></div>
 <svg class="nova-yantra" viewBox="0 0 400 400" fill="none"><g class="outer" stroke="#d7ad70" stroke-width="1.15" opacity=".8"><circle cx="200" cy="200" r="188"/><circle cx="200" cy="200" r="174"/><circle cx="200" cy="200" r="158" stroke-dasharray="2 8"/><path d="M200 10V390M10 200H390M65 65 335 335M335 65 65 335"/><path d="M200 24 226 174 376 200 226 226 200 376 174 226 24 200 174 174Z"/></g><g class="inner" stroke="#67a99c" stroke-width="1" opacity=".85"><circle cx="200" cy="200" r="135"/><circle cx="200" cy="200" r="112" stroke-dasharray="3 7"/><path d="M200 65 318 268 82 268Z M200 335 82 132 318 132Z"/><path d="M200 78 228 172 322 200 228 228 200 322 172 228 78 200 172 172Z"/></g><g class="petal" stroke="#e8bd79" stroke-width="1.4" fill="#d99b4a" fill-opacity=".08"><path d="M200 100C164 130 164 170 200 200 236 170 236 130 200 100Z"/><path d="M300 200C270 164 230 164 200 200 230 236 270 236 300 200Z"/><path d="M200 300C236 270 236 230 200 200 164 230 164 270 200 300Z"/><path d="M100 200C130 236 170 236 200 200 170 164 130 164 100 200Z"/></g><circle cx="200" cy="200" r="30" fill="#241d2d" stroke="#e8bd79" stroke-width="1.5"/><path d="M200 177 222 200 200 223 178 200Z" stroke="#f1d49a" stroke-width="1.5"/><circle cx="200" cy="200" r="5" fill="#e8bd79"/></svg><div class="nova-splash-corners"></div></div>
