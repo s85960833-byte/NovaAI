@@ -258,7 +258,26 @@ dialog,.pbox{border-color:color-mix(in srgb,var(--acc) 28%,var(--bd))}
  .u .b{max-width:92%}
 }
 </style>
-</head><body><div id="novaSplash" class="nova-royal-indian" role="status" aria-label="Nova AI is starting"><div class="nova-royal-scene" aria-hidden="true">
+<style id="nova-performance-polish">
+/* Lightweight premium motion: avoid blur filters, animated full-screen layers and moving shimmer backgrounds. */
+#novaSplash{transition:opacity .22s ease-out!important}
+#novaSplash:before,.nova-jaali,.nova-halo,.nova-halo:before,.nova-halo:after,.nova-yantra,.nova-yantra .outer,.nova-yantra .inner,.nova-yantra .petal,.nova-orbit,.nova-emblem,.nova-emblem:before,.nova-emblem:after,.nova-royal-scene:after,.nova-splash-core,.nova-splash-progress:after{animation:none!important;filter:none!important;mix-blend-mode:normal!important}
+#novaSplash .nova-jaali{opacity:.07}
+#novaSplash .nova-halo{box-shadow:none}
+#novaSplash .nova-emblem svg{filter:none}
+.reveal{animation:novaFastReveal .18s ease-out both!important;filter:none!important}
+@keyframes novaFastReveal{from{opacity:.35;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.skel{animation:none!important;background:var(--card)!important}
+.sk-bar{animation:none!important;background:linear-gradient(90deg,transparent,var(--acc),transparent)!important}
+.dots i{animation-duration:1.5s}
+@media(max-width:760px){
+ #novaSplash .nova-jaali,#novaSplash .nova-orbit{display:none!important}
+ #novaSplash .nova-yantra{filter:none!important}
+ .reveal{animation:none!important}
+ .skel{background:var(--card)!important}
+}
+@media(prefers-reduced-motion:reduce){#novaSplash *,#novaSHome *, .reveal,.skel,.sk-bar,.dots i{animation:none!important;transition:none!important}}
+</style></head><body><div id="novaSplash" class="nova-royal-indian" role="status" aria-label="Nova AI is starting"><div class="nova-royal-scene" aria-hidden="true">
 <svg class="nova-jaali" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice"><defs><pattern id="novaJaalPattern" width="96" height="96" patternUnits="userSpaceOnUse"><path d="M48 0 96 48 48 96 0 48Z M48 18 78 48 48 78 18 48Z M0 0 96 96 M96 0 0 96"/></pattern></defs><rect width="1200" height="800" fill="url(#novaJaalPattern)"/></svg><div class="nova-halo"></div><div class="nova-orbit"></div>
 <svg class="nova-yantra" viewBox="0 0 400 400" fill="none"><g class="outer" stroke="#d7ad70" stroke-width="1.15" opacity=".8"><circle cx="200" cy="200" r="188"/><circle cx="200" cy="200" r="174"/><circle cx="200" cy="200" r="158" stroke-dasharray="2 8"/><path d="M200 10V390M10 200H390M65 65 335 335M335 65 65 335"/><path d="M200 24 226 174 376 200 226 226 200 376 174 226 24 200 174 174Z"/></g><g class="inner" stroke="#67a99c" stroke-width="1" opacity=".85"><circle cx="200" cy="200" r="135"/><circle cx="200" cy="200" r="112" stroke-dasharray="3 7"/><path d="M200 65 318 268 82 268Z M200 335 82 132 318 132Z"/><path d="M200 78 228 172 322 200 228 228 200 322 172 228 78 200 172 172Z"/></g><g class="petal" stroke="#e8bd79" stroke-width="1.4" fill="#d99b4a" fill-opacity=".08"><path d="M200 100C164 130 164 170 200 200 236 170 236 130 200 100Z"/><path d="M300 200C270 164 230 164 200 200 230 236 270 236 300 200Z"/><path d="M200 300C236 270 236 230 200 200 164 230 164 270 200 300Z"/><path d="M100 200C130 236 170 236 200 200 170 164 130 164 100 200Z"/></g><circle cx="200" cy="200" r="30" fill="#241d2d" stroke="#e8bd79" stroke-width="1.5"/><path d="M200 177 222 200 200 223 178 200Z" stroke="#f1d49a" stroke-width="1.5"/><circle cx="200" cy="200" r="5" fill="#e8bd79"/></svg><div class="nova-splash-corners"></div></div>
 <div class="nova-splash-core"><div class="nova-emblem" aria-hidden="true"><svg viewBox="0 0 100 100" fill="none"><path d="M50 9 86 50 50 91 14 50Z" stroke="#eac47e" stroke-width="2"/><path d="M50 20 76 50 50 80 24 50Z" stroke="#67b6a3" stroke-width="1.5"/><path d="M32 68V32L68 68V32" stroke="#fff0cf" stroke-width="5" stroke-linecap="square" stroke-linejoin="round"/><circle cx="50" cy="50" r="4" fill="#e8b968"/></svg></div><div class="nova-wordmark">NOVA <span>AI</span></div><p class="nova-splash-kicker">Indian Intelligence. Infinite Possibility.</p><p class="nova-splash-tag">DESIGNED IN INDIA · BUILT FOR THE WORLD</p><div class="nova-splash-progress"></div></div></div><script>window.setTimeout(()=>{const s=document.getElementById("novaSplash");if(s){s.classList.add("nova-splash-leaving");window.setTimeout(()=>s.remove(),900)}},8000);</script>
@@ -930,7 +949,7 @@ const tI=k=>((IT[ui()]||IT.en)[k]||IT.en[k]);
 const DIM={'1:1':[1024,1024,480],'16:9':[1280,720,560],'9:16':[720,1280,300],'4:3':[1152,864,520]};
 const IMS={ar:DIM[S.imar]?S.imar:'1:1',enh:S.imenh!==false};
 const skel=m=>{const d=DIM[m.gen.ar]||DIM['1:1'];return '<div class="skel" style="width:min(100%,'+d[2]+'px);aspect-ratio:'+d[0]+'/'+d[1]+'"><div><span>🎨</span><b>'+tI('gen')+'</b><i class="gsec" data-t="'+m.gen.t0+'">0s</i></div><span class="sk-bar"></span></div>'};
-setInterval(()=>document.querySelectorAll('.gsec').forEach(e=>{e.textContent=Math.floor((Date.now()-e.dataset.t)/1000)+'s'}),500);
+setInterval(()=>document.querySelectorAll('.gsec').forEach(e=>{const v=Math.floor((Date.now()-e.dataset.t)/1000)+'s';if(e.textContent!==v)e.textContent=v}),1000);
 const imopt=mkEl('div','imopt');imopt.id='imopt';imopt.hidden=true;
 function paintOpt(){imopt.textContent='';Object.keys(DIM).forEach(k=>{const b=mkEl('button',IMS.ar===k?'on':'',k);b.type='button';b.onclick=()=>{IMS.ar=k;S.imar=k;save();paintOpt()};imopt.append(b)});const e=mkEl('button',IMS.enh?'on':'',tI('enh'));e.type='button';e.setAttribute('aria-pressed',IMS.enh);e.onclick=()=>{IMS.enh=!IMS.enh;S.imenh=IMS.enh;save();paintOpt()};imopt.append(e)}
 paintOpt();$('imbar').after(imopt);
