@@ -25,7 +25,7 @@ if (!health.ok || healthData.status !== 'ok' || healthData.ready !== true) throw
 console.log('PASS instant /health');
 const tier = await request('/s-tier.js');
 const tierJs = await tier.text();
-if (!tier.ok || !['Nova Study','Nova Build','Nova Chat','Nova Voice','data-cat="study"','data-cat="build"','data-cat="chat"','data-cat="voice"'].every(x=>tierJs.includes(x)) || tierJs.includes('Chat & Study')) throw new Error('Four-workspace home is missing or incorrectly grouped');
+if (!tier.ok || !['Nova Study','Nova Build','Nova Chat','Nova Voice','data-cat="study"','data-cat="build"','data-cat="chat"','data-cat="voice"'].every(x=>tierJs.includes(x)) || tierJs.includes('Chat & Study') || !tierJs.includes('hiEl.replaceChildren(e)') || !tierJs.includes("n.id==='hi'")) throw new Error('Four-workspace home is missing or incorrectly grouped');
 console.log('PASS four-workspace home: Study, Build, Chat and Voice');
 const registryResponse=await request('/mode-registry.js');const registryJs=await registryResponse.text();
 if(!registryResponse.ok||!['Nova Study','Nova Build','Nova Chat','Nova Voice · Voice Chat'].every(x=>registryJs.includes(x)))throw new Error('Four isolated mode groups are missing');

@@ -5,7 +5,7 @@ let ready=false;for(let i=0;i<30;i++){try{const r=await req('/api/config');if(r.
 if(!ready)throw new Error('local Express server did not become ready');
 await expect('bilingual frontend shell','/',{},(r,b)=>r.ok&&b.includes('<html lang="en">')&&b.includes('/mode-registry.js')&&b.includes('/mode-workspace.js')&&b.includes('/s-tier.js')&&b.includes('/nova-suite.js')&&b.includes('Install App')&&b.includes("const L=['English','हिन्दी|Hindi'];")&&b.includes('hi:{'));
 await expect('instant health endpoint','/health',{},(r,b)=>r.ok&&JSON.parse(b).status==='ok'&&JSON.parse(b).ready===true);
-await expect('four-workspace home','/s-tier.js',{},(r,b)=>r.ok&&['Nova Study','Nova Build','Nova Chat','Nova Voice','data-cat="study"','data-cat="build"','data-cat="chat"','data-cat="voice"'].every(x=>b.includes(x))&&!b.includes('Chat & Study'));
+await expect('four-workspace home','/s-tier.js',{},(r,b)=>r.ok&&['Nova Study','Nova Build','Nova Chat','Nova Voice','data-cat="study"','data-cat="build"','data-cat="chat"','data-cat="voice"'].every(x=>b.includes(x))&&!b.includes('Chat & Study')&&b.includes('hiEl.replaceChildren(e)')&&b.includes("n.id==='hi'"));
 await expect('Nova Build launcher','/nova-suite.js',{},(r,b)=>r.ok&&b.includes('Nova Build Studio')&&b.includes('nsImageStudio')&&b.includes('window.NovaSuite=Object.freeze({open,close})'));
 await expect('four isolated mode groups','/mode-registry.js',{},(r,b)=>r.ok&&['Nova Study','Nova Build','Nova Chat','Nova Voice · Voice Chat'].every(x=>b.includes(x)));
 await expect('mode workspace scoped launcher','/mode-workspace.js',{},(r,b)=>r.ok&&b.includes('openGroup(group)')&&b.includes('window.NovaModeWorkspace=Object.freeze')&&!b.includes("add(top,'novaModesTop'"));
