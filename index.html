@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Nova AI</title><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'self'"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#120d1b"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/icon-192.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<title>Nova AI</title><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'self'"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#120d1b"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/icon-192.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 #installAppBtn{font-size:12px;padding:7px 9px;white-space:nowrap}#installAppBtn[hidden]{display:none!important}
 :root{--bg:#120d1b;--panel:#191225;--fg:#f3ecf8;--mut:#a899bb;--acc:#e8c58e;--acc2:#f0a6b8;--onacc:#2a1a05;--card:#221832;--bd:#33264a;--ub:#2c2142;--glow:rgba(232,197,142,.2);--g1:rgba(155,92,230,.26);--g2:rgba(240,166,184,.12);--shadow:0 14px 44px -14px rgba(0,0,0,.6);box-sizing:border-box}
@@ -253,7 +253,7 @@ body{display:block!important;height:100dvh!important;padding:0!important}
 #novaApp #box{flex:0 0 auto;min-width:0;max-width:min(760px,calc(100% - 24px));margin-bottom:calc(4px + env(safe-area-inset-bottom,0px))}
 #novaApp .note{flex:0 0 auto;padding-bottom:env(safe-area-inset-bottom,0px)}
 #novaApp #novaSHome{width:100%;max-width:900px;min-width:0;margin-inline:auto}
-#novaApp *{min-width:0}
+#novaApp *{min-width:0}html:lang(hi) :is(*,::before,::after){letter-spacing:0!important;font-family:"Noto Sans Devanagari",Nunito,system-ui,sans-serif}#novaApp [lang="hi"],#novaApp :lang(hi){letter-spacing:0!important;font-family:"Noto Sans Devanagari",Nunito,system-ui,sans-serif}
 .nova-decor,.nghat,.nriver,.ndona{pointer-events:none}
 @media(max-width:599px){#novaApp #novaSHome .ncatgrid{grid-template-columns:1fr}}
 @media(min-width:600px){#novaApp #novaSHome .ncatgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -265,7 +265,7 @@ body{display:block!important;height:100dvh!important;padding:0!important}
 <button id="new" data-i="new">＋ New chat</button><nav class="nav"><button id="nHome" data-i="nHome"></button><button id="nPhoto" data-i="nPhoto"></button><button id="nArch" data-i="nArch"></button><button id="nImg" data-i="nImg" hidden></button><button id="nLive" data-i="nLive" hidden></button></nav><input id="q" type="search" data-p="search" aria-label="Search chats"><div id="list"></div>
 <select id="lang" aria-label="Reply language"></select>
 <div class="row"><button id="setb" data-i="setB"></button><button id="theme" aria-label="Theme">◐</button></div></aside><div id="scrim"></div>
-<div id="main"><div id="top"><button id="menu" aria-label="Menu">☰</button><span class="logo">✦</span><b>Nova AI</b><select id="mode" aria-label="Mode"></select><button id="installAppBtn" type="button">Install App</button><button id="acc" type="button" class="on" aria-pressed="true">🎯</button><button id="xcopy" type="button" hidden>📋</button><button id="xexp" type="button" hidden>⤓</button></div>
+<div id="main"><div id="top"><button id="menu" aria-label="Menu">☰</button><button id="novaUiLang" type="button" aria-label="Switch interface language">EN / हिं</button><span class="logo">✦</span><b>Nova AI</b><select id="mode" aria-label="Mode"></select><button id="installAppBtn" type="button">Install App</button><button id="acc" type="button" class="on" aria-pressed="true">🎯</button><button id="xcopy" type="button" hidden>📋</button><button id="xexp" type="button" hidden>⤓</button></div>
 <div id="msgs" aria-live="polite"><div class="w" id="log"></div></div>
 <div class="w" id="imbar" hidden></div>
 <div class="w" id="docbar" hidden></div>
@@ -1115,4 +1115,4 @@ if(installButton){
 }
 
 applyUI();syncFeatures();const WAIT=!!(window.claude&&window.claude.use)||location.protocol.startsWith('http');if(WAIT)setTimeout(()=>{if(!first){first=true;render()}},450);else{first=true;render()}
-</script><script src="/mode-registry.js"></script><script src="/mode-workspace.js"></script><script src="/s-tier.js" defer></script></div></body></html>
+</script><script src="/mode-registry.js"></script><script src="/mode-workspace.js"></script><script src="/nova-i18n.js"></script><script src="/s-tier.js" defer></script></div></body></html>
