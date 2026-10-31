@@ -24,9 +24,9 @@ const css=`
 `;
 const st=document.createElement('style');st.textContent=css;document.head.append(st);
 const root=document.createElement('section');root.id='novaModes';root.innerHTML=`
-<header class="nmhead"><button id="nmBack">←</button><strong id="nmTitle">Nova AI · Modes</strong><button id="nmClose">Off</button></header>
+<header class="nmhead"><button id="nmBack">←</button><strong id="nmTitle">${tr('Nova AI · Modes','Nova AI · मोड्स')}</strong><button id="nmClose">${tr('Close','बंद करें')}</button></header>
 <main class="nmcontent" id="nmContent"></main>
-<footer class="nmcompose" id="nmCompose" hidden><div class="nmhint" id="nmUploadName"></div><textarea id="nmInput" placeholder="Type your question…"></textarea><div class="nmbar"><button id="nmFile">📎 Attach file/photo</button><input id="nmPick" type="file" accept=".pdf,.txt,.md,.csv,image/*" hidden><button id="nmMic">🎙 Speak</button><button id="nmSend" class="primary">Send</button></div><div class="nmstatus" id="nmStatus" aria-live="polite"></div></footer>`;
+<footer class="nmcompose" id="nmCompose" hidden><div class="nmhint" id="nmUploadName"></div><textarea id="nmInput" placeholder="${tr('Type your question…','अपना सवाल लिखें…')}"></textarea><div class="nmbar"><button id="nmFile">📎 ${tr('Attach file/photo','फ़ाइल/फोटो जोड़ें')}</button><input id="nmPick" type="file" accept=".pdf,.txt,.md,.csv,image/*" hidden><button id="nmMic">🎙 ${tr('Speak','बोलें')}</button><button id="nmSend" class="primary">${tr('Send','भेजें')}</button></div><div class="nmstatus" id="nmStatus" aria-live="polite"></div></footer>`;
 document.body.append(root);
 const content=$('#nmContent'),compose=$('#nmCompose'),input=$('#nmInput');
 function show(){root.classList.add('open');drawHome()}
@@ -75,10 +75,10 @@ async function send(){
  if(!active)return;const m=mode(active),question=input.value.trim();if(!question&&!upload)return;
  const schemeInput=active==='schemes'?{age:$('#nmAge')?.value,state:$('#nmState')?.value.trim(),work:$('#nmWork')?.value.trim(),income:$('#nmIncome')?.value}:null;
  const d=data(),h=d.histories[active]||(d.histories[active]=[]),now=Date.now();
- d.limits=d.limits||[];d.limits=d.limits.filter(t=>now-t<10*60*1000);if(d.limits.length>=20){$('#nmStatus').textContent='Please pause. The limit is 20 new requests per 10 minutes.';return}
- if(!navigator.onLine){$('#nmStatus').textContent='Offline mode: saved chats are available, but new AI replies are not.';return}
+ d.limits=d.limits||[];d.limits=d.limits.filter(t=>now-t<10*60*1000);if(d.limits.length>=20){$('#nmStatus').textContent=tr('Please pause. The limit is 20 new requests per 10 minutes.','कृपया थोड़ा रुकें। 10 मिनट में अधिकतम 20 नए अनुरोध भेज सकते हैं।');return}
+ if(!navigator.onLine){$('#nmStatus').textContent=tr('Offline mode: saved chats are available, but new AI replies are not.','ऑफलाइन मोड: सेव चैट उपलब्ध हैं, लेकिन नए AI जवाब नहीं मिलेंगे।');return}
  d.limits.push(now);saveData(d);
- let q=question||upload?.text||'Explain this content',file=upload;upload=null;$('#nmUploadName').textContent='';
+ let q=question||upload?.text||tr('Explain this content','इस सामग्री को समझाएँ'),file=upload;upload=null;$('#nmUploadName').textContent='';
  const userText=question||('📎 '+(file?.name||'Uploaded file'));h.push({role:'user',text:userText,at:now});if(h.length>100)h.splice(0,h.length-100);saveData(d);input.value='';drawChat();$('#nmStatus').textContent=tr('Preparing your answer…','जवाब तैयार हो रहा है…');
  try{
    let extra='',profile=null,sourceLinks=[];
@@ -116,9 +116,9 @@ async function send(){
 function speak(text){if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(text);u.lang=data().voiceLang||'en-IN';speechSynthesis.cancel();speechSynthesis.speak(u)}
 function voice(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('#nmStatus').textContent=tr('Speech recognition is not available in this browser. You can type your question instead.','इस ब्राउज़र में आवाज़ पहचान उपलब्ध नहीं है। आप सवाल टाइप कर सकते हैं।');return}stopSpeech();recognition=new SR();recognition.lang=data().voiceLang||'en-IN';recognition.interimResults=false;recognition.onresult=e=>{input.value=e.results[0][0].transcript;send()};recognition.onerror=()=>$('#nmStatus').textContent=tr('Microphone unavailable. Check browser permissions or type your question.','माइक उपलब्ध नहीं है। ब्राउज़र अनुमति जाँचें या सवाल टाइप करें।');recognition.start();$('#nmStatus').textContent=tr('Listening…','सुन रहा है…')}
 $('#nmClose').onclick=hide;$('#nmBack').onclick=drawHome;$('#nmSend').onclick=send;$('#nmMic').onclick=voice;
-$('#nmFile').onclick=()=>$('#nmPick').click();$('#nmPick').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;try{upload={...await extractFile(f),name:f.name};$('#nmUploadName').textContent='File ready: '+f.name+' (not stored on the server after submission)';}catch(err){$('#nmStatus').textContent=err.message}};
+$('#nmFile').onclick=()=>$('#nmPick').click();$('#nmPick').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;try{upload={...await extractFile(f),name:f.name};$('#nmUploadName').textContent=tr('File ready: ','फ़ाइल तैयार: ')+f.name+tr(' (not stored on the server after submission)',' (भेजने के बाद सर्वर पर सेव नहीं होती)');}catch(err){$('#nmStatus').textContent=err.message}};
 input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
-document.querySelector('#lang')?.addEventListener('change',()=>{if(root.classList.contains('open')){if(active)drawChat();else drawHome();}});
+document.querySelector('#lang')?.addEventListener('change',()=>{const b1=$('#novaModesTop'),b2=$('#novaModesSide'),b3=$('#novaModesHome');if(b1)b1.textContent=tr('☷ Modes','☷ मोड्स');if(b2)b2.textContent=tr('☷ Open Modes','☷ मोड्स खोलें');if(b3)b3.textContent=tr('☷ Open All Modes','☷ सभी मोड्स खोलें');if(root.classList.contains('open')){if(active)drawChat();else drawHome();}});
 window.addEventListener('online',()=>{offline=false;if(active)drawChat()});window.addEventListener('offline',()=>{offline=true;if(active)drawChat()});
 function addLaunchers(){
  const top=$('#top'),side=$('#side');
