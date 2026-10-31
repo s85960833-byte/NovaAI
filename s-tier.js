@@ -5,7 +5,8 @@ let prefs={...defaults};try{prefs={...prefs,...JSON.parse(localStorage.getItem(K
 const $=id=>document.getElementById(id),hi=()=>($('lang')?.value||'Auto')==='Hindi',tr=(a,b)=>hi()?b:a;
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(prefs))}catch{}};
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
-const lite=()=>prefs.dataSaver||navigator.connection?.saveData||/2g|3g/.test(navigator.connection?.effectiveType||'')||(navigator.deviceMemory&&navigator.deviceMemory<=2)||reduced();\nif(lite())document.documentElement.classList.add('nova-lite-motion');
+const lite=()=>prefs.dataSaver||navigator.connection?.saveData||/2g|3g/.test(navigator.connection?.effectiveType||'')||(navigator.deviceMemory&&navigator.deviceMemory<=2)||reduced();
+if(lite())document.documentElement.classList.add('nova-lite-motion');
 const css=[
 ':root{--nova-night:#10142d;--nova-ivory:#f8f4e9;--nova-saffron:#e8a34b;--nova-emerald:#4aa58a;--nova-peacock:#36a6a0;--nova-ganga:#72b9c9}',
 'body{background-image:radial-gradient(ellipse at 12% 8%,rgba(75,119,166,.12),transparent 42%),radial-gradient(ellipse at 88% 84%,rgba(232,163,75,.08),transparent 38%)!important}',
