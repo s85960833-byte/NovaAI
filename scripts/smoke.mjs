@@ -29,7 +29,6 @@ if (!tier.ok || !['Nova Study','Nova Build','Nova Chat','Nova Voice','data-cat="
 if(!['A NEW EXPRESSION OF INTELLIGENCE','LEARN · MASTER · GROW','IMAGINE · CREATE · LAUNCH','THINK · DISCOVER · SOLVE','SPEAK · LISTEN · CONNECT','ncard-enter','@media(max-width:600px)','novaAuroraSweep','novaCardRise','novaHomeGlow','n-brandbar','n-orbit-seal','DESIGNED IN INDIA · BUILT FOR THE WORLD'].every(x=>tierJs.includes(x)))throw new Error('Royal four-workspace premium interface or enhanced motion is missing');
 console.log('PASS royal responsive four-workspace home: Study, Build, Chat and Voice');
 if(!tierJs.includes('smooth-performance layer')||!tierJs.includes('setTimeout(finish,320)')||!tierJs.includes('animation:none!important'))throw new Error('Nova lightweight motion/performance layer is missing');
-if(!homeHtml.includes('nova-performance-polish')||!homeHtml.includes('novaFastReveal')||!homeHtml.includes('.skel{animation:none!important'))throw new Error('Nova fast rendering overrides are missing');
 console.log('PASS lightweight mobile motion, splash timing, reveal and skeleton rendering');
 const registryResponse=await request('/mode-registry.js');const registryJs=await registryResponse.text();
 if(!registryResponse.ok||!['Nova Study','Nova Build','Nova Chat','Nova Voice · Voice Chat'].every(x=>registryJs.includes(x))||!registryJs.includes("id:'builder',group:'build'"))throw new Error('Four isolated mode groups are missing');
@@ -56,6 +55,7 @@ console.log('PASS /icons/nova-emblem.svg (custom NOVA identity)');
 
 const home = await request('/');
 const homeHtml = await home.text();
+if(!homeHtml.includes('nova-performance-polish')||!homeHtml.includes('novaFastReveal')||!homeHtml.includes('.skel{animation:none!important'))throw new Error('Nova fast rendering overrides are missing');
 if (!homeHtml.includes('id="novaSplash"') || !homeHtml.includes('class="nova-royal-indian"') || !homeHtml.includes('class="nova-jaali"') || !homeHtml.includes('class="nova-yantra"') || !homeHtml.includes('nova-wordmark') || !homeHtml.includes('DESIGNED IN INDIA') || !homeHtml.includes('novaOrbitTurn')) throw new Error('Royal Indian first-paint motion splash is missing');
 if (tierJs.includes('novaJagran') || tierJs.includes('nova_splash_seen')) throw new Error('Legacy startup overlay or one-time splash suppression remains');
 if (!tierJs.includes("const e=$('novaSplash')") || !tierJs.includes('async function wake(){await splash()}')) throw new Error('Splash must not wait for backend readiness');
