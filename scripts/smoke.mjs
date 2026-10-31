@@ -22,14 +22,14 @@ console.log('PASS /api/config');
 const manifest = await request('/manifest.webmanifest');
 if (!manifest.ok) throw new Error('Manifest returned HTTP ' + manifest.status);
 const manifestData = await json(manifest);
-if (manifestData.lang !== 'en' || manifestData.display !== 'standalone') throw new Error('PWA manifest is not configured for the English installable app');
-console.log('PASS /manifest.webmanifest (English PWA)');
+if (manifestData.lang !== 'hi' || manifestData.display !== 'standalone') throw new Error('PWA manifest is not configured for the English installable app');
+console.log('PASS /manifest.webmanifest (Hindi and English PWA)');
 
 const home = await request('/');
 const homeHtml = await home.text();
-if (!home.ok || !homeHtml.includes('<html lang="en">') || !homeHtml.includes('Install App') || !homeHtml.includes("const L=['English'];")) throw new Error('English-only homepage or install action is missing');
-if (Array.from(homeHtml).some(ch => ch.codePointAt(0) >= 0x0900 && ch.codePointAt(0) <= 0x097F)) throw new Error('Non-English text remains in the shipped homepage');
-console.log('PASS English homepage and PWA install action');
+if (!home.ok || !homeHtml.includes('<html lang="en">') || !homeHtml.includes('Install App') || !homeHtml.includes("const L=['English','हिन्दी|Hindi'];")) throw new Error('English-only homepage or install action is missing');
+if (!homeHtml.includes('hi:{')) throw new Error('Hindi UI dictionary is missing');
+console.log('PASS Bilingual homepage and PWA install action');
 
 for (const [path, marker] of [['/mode-registry.js', 'NovaModeRegistry'], ['/mode-workspace.js', 'nova_modes_v1']]) {
   const response = await request(path);
