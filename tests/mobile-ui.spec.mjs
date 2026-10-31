@@ -29,6 +29,8 @@ for (const size of sizes) {
     await expect(page.locator('#box')).toBeVisible();
     await expect(page.locator('#novaSHome .ncat')).toHaveCount(4);
     await expect(page.getByText("Namaste! I'm Nova AI. How can I help you today?", { exact: true })).toBeVisible();
+    const englishVisibleText=await page.locator('#novaApp').innerText();
+    expect(englishVisibleText).not.toMatch(/[\\u0900-\\u097F]/);
     await page.waitForTimeout(1500);
     await page.screenshot({ path: `artifacts/${browserName}-${size.width}-5s.png`, fullPage: true });
     const layout = await page.evaluate(() => {
@@ -49,7 +51,7 @@ test('Hindi toggle changes only interface language and preserves the reply-langu
   await page.waitForTimeout(3200);
   await page.locator('#novaUiLang').click();
   await expect(page.locator('#novaSHome')).toContainText('नमस्ते');
-  await expect(page.locator('#novaApp :lang(hi)')).toHaveCSS('letter-spacing', '0px');
+  await expect(page.locator('#novaSHome .ngreet')).toHaveCSS('letter-spacing', '0px');
 });
 
 test('upgrade from old service-worker cache removes previous cache and does not cache index', async ({ page }) => {
