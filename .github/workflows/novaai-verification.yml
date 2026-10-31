@@ -24,9 +24,11 @@ jobs:
           echo $! > /tmp/novaai-test.pid
       - name: Exercise local routes and PWA assets
         run: node scripts/runtime-smoke.mjs
-      - name: Wait for Render auto-deploy
+      - name: Wait for the merged bilingual revision to become live on Render
         if: github.ref == 'refs/heads/main'
-        run: sleep 60
+        env:
+          NOVAAI_URL: https://novaai-4auo.onrender.com
+        run: node scripts/wait-live.mjs
       - name: Smoke-test live website and providers
         if: github.ref == 'refs/heads/main'
         env:
