@@ -7,6 +7,7 @@ await expect('bilingual frontend shell','/',{},(r,b)=>r.ok&&b.includes('<html la
 await expect('instant health endpoint','/health',{},(r,b)=>r.ok&&JSON.parse(b).status==='ok'&&JSON.parse(b).ready===true);
 await expect('S-tier experience bundle','/s-tier.js',{},(r,b)=>r.ok&&b.includes('Nova Jagran')&&b.includes('Chat & Study')&&b.includes('nova_feedback_v1'));
 await expect('S-Tier Studio bundle','/nova-suite.js',{},(r,b)=>r.ok&&['Project Brain','Reality Check','AI Council','Digital Hands','Time Machine','Model Arena','Watchtower','Knowledge Vault','Trust Shield','Idea-to-Business'].every(x=>b.includes(x)));
+await expect('evidence-led AI Council','/nova-suite.js',{},(r,b)=>r.ok&&b.includes('Final evidence audit')&&b.includes('/api/search')&&b.includes('NOT VERIFIED')&&b.includes('Search-result excerpt')&&b.includes('renderCouncilText'));
 await expect('bilingual mode registry asset','/mode-registry.js',{},(r,b)=>r.ok&&b.includes('NovaModeRegistry')&&b.includes('Government Scheme Finder')&&b.includes('योजना ढूँढो'));
 await expect('mode workspace asset','/mode-workspace.js',{},(r,b)=>r.ok&&b.includes('nova_modes_v1')&&b.includes('nova_mode_cache_v1')&&b.includes('फ़ाइल तैयार:'));
 const config=JSON.parse(await expect('server config','/api/config',{},(r,b)=>r.ok&&JSON.parse(b).model==='test-model'));
