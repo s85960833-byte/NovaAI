@@ -109,3 +109,14 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Increased the Council request timeout to 90 seconds and bounded its output token budget. Added static regression checks, local runtime asset checks, and a production smoke assertion for the Council safeguards.
 - Verification branch: `feature-ai-council-evidence`. Do not merge or deploy until the branch workflow is green. The next production workflow must verify the deployed Council asset and live search integration.
 - Important limitation: the existing `/api/search` endpoint returns search-result excerpts, not full-page authenticated source review. The Council now discloses this limitation; high-impact decisions still require opening primary sources. Perfect correctness cannot be guaranteed by an LLM.
+
+
+## Corrected four-section NOVA home (2026-10-31)
+- Keep the current S-Tier / Nova Bloom royal motion-graphics front page as the public home; do not restore the legacy chat-first home.
+- Replace the incorrect Study / Build / Chat / Voice card grouping with exactly four user-facing sections: Chat & Study, Voice Chat, Create, Explore.
+- Chat & Study contains General Chat plus Math, Photo, NCERT, Board, SSC, UPSC and English learning modes.
+- Voice Chat retains the existing live voice entry point.
+- Create opens the existing Nova Build Studio (including Image Studio, App & Website Builder and the ten Studio tools); the Builder mode is also available in its scoped mode group.
+- Explore contains Document Explainer, Government Scheme Finder and Shopkeeper Assistant modes.
+- Existing API routes, legacy chat storage, settings and Studio functionality remain additive and unchanged.
+- Bump the PWA shell cache version so Android installations fetch the corrected home and workspace registry instead of stale cached assets.
