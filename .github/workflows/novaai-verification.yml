@@ -1,7 +1,9 @@
 name: NovaAI verification
 on:
   push:
-    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability]
+    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 jobs:
   verify:
