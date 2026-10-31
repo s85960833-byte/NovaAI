@@ -44,8 +44,12 @@ console.log('PASS S-Tier Studio bundle and ten feature modules');
 const manifest = await request('/manifest.webmanifest');
 if (!manifest.ok) throw new Error('Manifest returned HTTP ' + manifest.status);
 const manifestData = await json(manifest);
-if (manifestData.lang !== 'hi' || manifestData.display !== 'standalone') throw new Error('PWA manifest is not configured for the bilingual installable app');
-console.log('PASS /manifest.webmanifest (Hindi and English PWA)');
+if (manifestData.lang !== 'en-IN' || manifestData.display !== 'standalone' || manifestData.short_name !== 'NOVA' || !manifestData.icons.some(x => x.src === '/icons/nova-emblem.svg')) throw new Error('Premium NOVA PWA identity or install manifest is missing');
+console.log('PASS /manifest.webmanifest (NOVA royal identity and bilingual app)');
+const brandIcon = await request('/icons/nova-emblem.svg');
+const brandSvg = await brandIcon.text();
+if (!brandIcon.ok || !brandSvg.includes('<svg') || !brandSvg.includes('viewBox="0 0 512 512"')) throw new Error('NOVA brand SVG icon is missing');
+console.log('PASS /icons/nova-emblem.svg (custom NOVA identity)');
 
 const home = await request('/');
 const homeHtml = await home.text();
