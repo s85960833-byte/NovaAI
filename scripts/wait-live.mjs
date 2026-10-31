@@ -10,7 +10,7 @@ for(let i=0;i<36;i++){
     const manifest=await m.json().catch(()=>({}));
     const html=await h.text();
     last='manifest HTTP '+m.status+' lang='+manifest.lang+', homepage HTTP '+h.status;
-    if(m.ok&&h.ok&&manifest.lang==='hi'&&manifest.display==='standalone'&&html.includes("const L=['English','हिन्दी|Hindi'];")&&html.includes('hi:{')&&html.includes('nova_modes_v1')){
+    if(m.ok&&h.ok&&manifest.lang==='hi'&&manifest.display==='standalone'&&html.includes("const L=['English','हिन्दी|Hindi'];")&&html.includes('hi:{')&&html.includes('/mode-workspace.js')&&html.includes('/mode-registry.js')){
       console.log('PASS Render serves merged bilingual revision');
       process.exit(0);
     }
