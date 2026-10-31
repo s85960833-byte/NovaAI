@@ -45,6 +45,7 @@ syntaxCheck('mode-registry', modeRegistry);
 syntaxCheck('mode-workspace', modeWorkspace);
 syntaxCheck('runtime-smoke-test', readFileSync('scripts/runtime-smoke.mjs','utf8'));
 syntaxCheck('production-smoke-test', readFileSync('scripts/smoke.mjs','utf8'));
+syntaxCheck('wait-live-test', readFileSync('scripts/wait-live.mjs','utf8'));
 
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(x => x.trim());
 if (!scripts.length) throw new Error('No inline frontend JavaScript was found');
