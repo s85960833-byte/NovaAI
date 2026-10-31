@@ -1,8 +1,8 @@
 name: NovaAI verification
 on:
   push:
-    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability]
-  workflow_dispatch:
+    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier]
+  pull_request:\n    branches: [main]\n  workflow_dispatch:
 jobs:
   verify:
     runs-on: ubuntu-latest
