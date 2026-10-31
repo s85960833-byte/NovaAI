@@ -1,4 +1,5 @@
 // Nova AI backend. Hosts index.html and provides the server-side API.
+// Production upgrade marker: asynchronous, free image-generation jobs.
 // AI chat proxy (key stays on the server), web search, image generation and live data.
 // Setup: keep nova-server.txt, package.json and index.html together in the same folder, then
 //   npm install        (uses package.json)
