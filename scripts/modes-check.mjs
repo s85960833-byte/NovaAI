@@ -30,11 +30,11 @@ assert.ok(workspace.includes('(lowData()?1.5:4)*1024*1024'),'image upload size g
 assert.ok(workspace.includes('Calculation check (user-provided rate)'),'GST instruction must preserve multimodal image content');
 assert.ok(workspace.includes('file?.image?null:cacheGet(ck)'),'image-specific answers must bypass text-only cache');
 assert.ok(workspace.includes('Low Data Mode')&&workspace.includes('कम डेटा मोड'),'low-data mode toggle must be bilingual');
-assert.ok(workspace.includes("document.querySelector('#lang')?.addEventListener('change'"),'mode workspace must react to the app language selector');
+assert.ok(workspace.includes("window.addEventListener('nova-ui-language-change'"),'mode workspace must react to the app language selector');
 assert.ok(server.includes('HORDE_API_KEY')&&server.includes('/generate/async')&&server.includes('/generate/check/')&&server.includes('/generate/status/'),'free community image fallback is missing');
 assert.ok(server.includes('censor_nsfw: true')&&server.includes('nsfw: false'),'image safety settings are missing');
 assert.ok(server.includes("app.get('/api/image/status/:id'")&&server.includes('UUID job IDs are unguessable'),'image status polling must tolerate proxy IP rotation');
-assert.ok(html.includes("const L=['English','हिन्दी|Hindi'];")&&html.includes("S.rl=S.rl==='English'?'English':'Hindi';"),'Hindi/English app language selector missing');
+assert.ok(html.includes("const L=['English',S.ui==='Hindi'?'हिन्दी|Hindi':'Hindi|Hindi'];")&&html.includes("S.rl=S.rl==='English'?'English':'Hindi';"),'Hindi/English app language selector missing');
 assert.ok(html.includes('hi:{'),'Hindi UI dictionary missing');
 assert.ok(html.includes('installAppBtn')&&html.includes('beforeinstallprompt'),'PWA install action missing');
 assert.ok(html.includes("localStorage.getItem('nova')")&&html.includes("localStorage.setItem('nova',JSON.stringify(S))"),'legacy chat storage key changed');

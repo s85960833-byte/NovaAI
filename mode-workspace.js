@@ -10,7 +10,7 @@ const data=()=>read(STORE,{version:1,histories:{},lastMode:'general'});
 const saveData=x=>write(STORE,x);
 const lowData=()=>data().lowData!==false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const language=()=>document.querySelector('#lang')?.value||'Hindi';
+const language=()=>localStorage.getItem('nova_ui_language')==='hi'?'Hindi':'English';
 const isHi=()=>language()==='Hindi';
 const tr=(en,hi)=>isHi()?hi:en;
 const mode=id=>{const m=REG.modes.find(x=>x.id===id)||REG.modes[0];return {...m,name:isHi()?(m.nameHi||m.name):m.name,desc:isHi()?(m.descHi||m.desc):m.desc,prompt:isHi()?(m.promptHi||m.prompt):m.prompt};};
@@ -118,6 +118,7 @@ function voice(){const SR=window.SpeechRecognition||window.webkitSpeechRecogniti
 $('#nmClose').onclick=hide;$('#nmBack').onclick=drawHome;$('#nmSend').onclick=send;$('#nmMic').onclick=voice;
 $('#nmFile').onclick=()=>$('#nmPick').click();$('#nmPick').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;try{upload={...await extractFile(f),name:f.name};$('#nmUploadName').textContent=tr('File ready: ','फ़ाइल तैयार: ')+f.name+tr(' (not stored on the server after submission)',' (भेजने के बाद सर्वर पर सेव नहीं होती)');}catch(err){$('#nmStatus').textContent=err.message}};
 input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+window.addEventListener('nova-ui-language-change',()=>{const b1=$('#novaModesTop'),b2=$('#novaModesSide'),b3=$('#novaModesHome');if(b1)b1.textContent=tr('☷ Modes','☷ मोड्स');if(b2)b2.textContent=tr('☷ Open Modes','☷ मोड्स खोलें');if(b3)b3.textContent=tr('☷ Open All Modes','☷ सभी मोड्स खोलें');if(root.classList.contains('open')){if(active)drawChat();else drawHome();}});
 document.querySelector('#lang')?.addEventListener('change',()=>{const b1=$('#novaModesTop'),b2=$('#novaModesSide'),b3=$('#novaModesHome');if(b1)b1.textContent=tr('☷ Modes','☷ मोड्स');if(b2)b2.textContent=tr('☷ Open Modes','☷ मोड्स खोलें');if(b3)b3.textContent=tr('☷ Open All Modes','☷ सभी मोड्स खोलें');if(root.classList.contains('open')){if(active)drawChat();else drawHome();}});
 window.addEventListener('online',()=>{offline=false;if(active)drawChat()});window.addEventListener('offline',()=>{offline=true;if(active)drawChat()});
 function addLaunchers(){
