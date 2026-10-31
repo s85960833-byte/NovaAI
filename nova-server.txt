@@ -305,7 +305,8 @@ app.post('/api/image', (q, r) => {
 app.get('/api/image/status/:id', (q, r) => {
   pruneImageJobs();
   const job = imageJobs.get(String(q.params.id || ''));
-  if (!job || job.ip !== q.ip) return r.status(404).json({ error: 'Image job not found' });
+  // UUID job IDs are unguessable; do not bind polling to q.ip because Render/client proxies may rotate IPs between requests.
+  if (!job) return r.status(404).json({ error: 'Image job not found' });
   if (job.status === 'done') return r.json({ status: 'done', image: job.image, provider: job.provider });
   if (job.status === 'error') return r.status(502).json({ status: 'error', error: job.error || 'Image generation failed' });
   r.json({ status: job.status, updatedAt: job.updatedAt });
