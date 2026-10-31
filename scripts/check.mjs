@@ -45,14 +45,14 @@ if (!server.includes("app.get('/health'") || !server.includes("app.get('/s-tier.
 if (!html.includes('/nova-suite.js')) throw new Error('S-Tier Studio bundle is not loaded');
 if (!server.includes('You are Nova AI, a free, India-first AI assistant.') || !server.includes("timeZone: 'Asia/Kolkata'")) throw new Error('Truth-first IST system prompt missing');
 if (!html.includes('/s-tier.js')) throw new Error('S-tier experience bundle is not loaded');
-for (const marker of ['Nova Study','Nova Build','Nova Chat','Nova Voice','data-cat="study"','data-cat="build"','data-cat="chat"','data-cat="voice"','n-brandbar','n-orbit-seal','DESIGNED IN INDIA · BUILT FOR THE WORLD','LEARN · MASTER · GROW','IMAGINE · CREATE · LAUNCH','THINK · DISCOVER · SOLVE','SPEAK · LISTEN · CONNECT','ncard-enter','@media(max-width:600px)']) if (!readFileSync('s-tier.js','utf8').includes(marker)) throw new Error('Royal four-workspace home missing: '+marker);
+for (const marker of ['Chat &amp; Study','Voice Chat','Create','Explore','data-cat="chat-study"','data-cat="voice"','data-cat="create"','data-cat="explore"','n-brandbar','n-orbit-seal','DESIGNED IN INDIA · BUILT FOR THE WORLD','CHAT · LEARN · MASTER','IMAGINE · DESIGN · CREATE','RESEARCH · DISCOVER · EXPLORE','SPEAK · LISTEN · CONNECT','ncard-enter','@media(max-width:600px)']) if (!readFileSync('s-tier.js','utf8').includes(marker)) throw new Error('Royal four-workspace home missing: '+marker);
 if (!readFileSync('s-tier.js','utf8').includes('#mode{display:none!important}')) throw new Error('Legacy mode dropdown must be hidden to keep the four-workspace home clear');
 if (!readFileSync('s-tier.js','utf8').includes('hiEl.replaceChildren(e)') || !readFileSync('s-tier.js','utf8').includes("n.id==='hi'")) throw new Error('The four-workspace home must replace the old dashboard and return after New Chat');
-if (!modeRegistry.includes("id:'study'") || !modeRegistry.includes("id:'build'") || !modeRegistry.includes("id:'chat'") || !modeRegistry.includes("id:'voice'")) throw new Error('Four mode groups are not registered');
+if (!modeRegistry.includes("id:'chat-study'") || !modeRegistry.includes("id:'create'") || !modeRegistry.includes("id:'explore'") || !modeRegistry.includes("id:'voice'")) throw new Error('Four mode groups are not registered');
 if (!modeWorkspace.includes('openGroup(group)') || modeWorkspace.includes("add(top,'novaModesTop'")) throw new Error('Mode workspace must open only the selected group without the all-modes launcher');
 if (!readFileSync('nova-suite.js','utf8').includes('window.NovaSuite=Object.freeze({open,close})')) throw new Error('Nova Build launcher API is missing');
 if (!readFileSync('nova-suite.js','utf8').includes('nsAppBuilder') || !readFileSync('nova-suite.js','utf8').includes("openMode('builder')")) throw new Error('App and Website Builder shortcut is missing from Nova Build');
-if (!modeRegistry.includes("id:'builder',group:'build'")) throw new Error('App and Website Builder mode is not assigned to Nova Build');
+if (!modeRegistry.includes("id:'builder',group:'create'")) throw new Error('App and Website Builder mode is not assigned to Nova Build');
 syntaxCheck('mode-registry', modeRegistry);
 syntaxCheck('mode-workspace', modeWorkspace);
 for (const marker of ["return 'English'",'function syncStaticLabels()','Attach file/photo','The AI service is not configured yet.']) if (!modeWorkspace.includes(marker)) throw new Error('Bilingual Study Mode language regression guard missing: '+marker);

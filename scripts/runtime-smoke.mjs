@@ -5,11 +5,11 @@ let ready=false;for(let i=0;i<30;i++){try{const r=await req('/api/config');if(r.
 if(!ready)throw new Error('local Express server did not become ready');
 await expect('bilingual frontend shell','/',{},(r,b)=>r.ok&&b.includes('<html lang="en">')&&b.includes('/mode-registry.js')&&b.includes('/mode-workspace.js')&&b.includes('/s-tier.js')&&b.includes('/nova-suite.js')&&b.includes('Install App')&&b.includes("const L=['English','हिन्दी|Hindi'];")&&b.includes('hi:{'));
 await expect('instant health endpoint','/health',{},(r,b)=>r.ok&&JSON.parse(b).status==='ok'&&JSON.parse(b).ready===true);
-await expect('four-workspace home','/s-tier.js',{},(r,b)=>r.ok&&['Nova Study','Nova Build','Nova Chat','Nova Voice','data-cat="study"','data-cat="build"','data-cat="chat"','data-cat="voice"'].every(x=>b.includes(x))&&!b.includes('Chat & Study')&&b.includes('hiEl.replaceChildren(e)')&&b.includes("n.id==='hi'"));
+await expect('four-workspace home','/s-tier.js',{},(r,b)=>r.ok&&['Chat &amp; Study','Voice Chat','Create','Explore','data-cat="chat-study"','data-cat="create"','data-cat="explore"','data-cat="voice"'].every(x=>b.includes(x))&&b.includes('hiEl.replaceChildren(e)')&&b.includes("n.id==='hi'"));
 await expect('lightweight home motion','/s-tier.js',{},(r,b)=>r.ok&&b.includes('S-tier motion system')&&b.includes('setTimeout(finish,1450)')&&b.includes('novaTurn 48s linear infinite')&&b.includes('novaSealTurn 34s linear infinite')&&b.includes('novaCardGlint')&&b.includes('novaGlyphFloat')&&b.includes('nova-lite-motion')&&b.includes('prefers-reduced-motion:no-preference'));
 await expect('fast rendering and static skeletons','/',{},(r,b)=>r.ok&&b.includes('nova-performance-polish')&&b.includes('novaFastReveal')&&b.includes('.skel{animation:none!important'));
 await expect('Nova Build launcher','/nova-suite.js',{},(r,b)=>r.ok&&b.includes('Nova Build Studio')&&b.includes('nsImageStudio')&&b.includes('nsAppBuilder')&&b.includes("openMode('builder')")&&b.includes('window.NovaSuite=Object.freeze({open,close})'));
-await expect('four isolated mode groups','/mode-registry.js',{},(r,b)=>r.ok&&['Nova Study','Nova Build','Nova Chat','Nova Voice · Voice Chat'].every(x=>b.includes(x))&&b.includes("id:'builder',group:'build'"));
+await expect('four isolated mode groups','/mode-registry.js',{},(r,b)=>r.ok&&['Chat & Study','Voice Chat','Create','Explore'].every(x=>b.includes(x))&&b.includes("id:'builder',group:'create'"));
 await expect('mode workspace scoped launcher','/mode-workspace.js',{},(r,b)=>r.ok&&b.includes('openGroup(group)')&&b.includes('window.NovaModeWorkspace=Object.freeze')&&!b.includes("add(top,'novaModesTop'"));
 await expect('S-Tier Studio bundle','/nova-suite.js',{},(r,b)=>r.ok&&['Project Brain','Reality Check','AI Council','Digital Hands','Time Machine','Model Arena','Watchtower','Knowledge Vault','Trust Shield','Idea-to-Business'].every(x=>b.includes(x)));
 await expect('evidence-led AI Council','/nova-suite.js',{},(r,b)=>r.ok&&b.includes('Final evidence audit')&&b.includes('/api/search')&&b.includes('NOT VERIFIED')&&b.includes('Search-result excerpt')&&b.includes('renderCouncilText'));
@@ -18,7 +18,7 @@ await expect('mode workspace asset','/mode-workspace.js',{},(r,b)=>r.ok&&b.inclu
 const config=JSON.parse(await expect('server config','/api/config',{},(r,b)=>r.ok&&JSON.parse(b).model==='test-model'));
 const manifest=JSON.parse(await expect('NOVA royal PWA manifest','/manifest.webmanifest',{},(r,b)=>r.ok&&JSON.parse(b).name==='NOVA AI — Indian Intelligence'&&JSON.parse(b).lang==='en-IN'&&JSON.parse(b).short_name==='NOVA'&&JSON.parse(b).icons.some(x=>x.src==='/icons/nova-emblem.svg')));
 await expect('custom NOVA SVG identity','/icons/nova-emblem.svg',{},(r,b)=>r.ok&&b.includes('viewBox="0 0 512 512"'));
-await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v9-s-tier-motion')&&b.includes("u.pathname.startsWith('/api/')")&&b.includes("/icons/icon-512.png")&&b.includes('/icons/nova-emblem.svg'));
+await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v10-four-sections')&&b.includes("u.pathname.startsWith('/api/')")&&b.includes("/icons/icon-512.png")&&b.includes('/icons/nova-emblem.svg'));
 await expect('PWA icon 192','/icons/icon-192.png',{},(r,b)=>r.ok);
 await expect('PWA icon 512','/icons/icon-512.png',{},(r,b)=>r.ok);
 await expect('chat validation','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
