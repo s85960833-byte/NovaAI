@@ -184,86 +184,130 @@ app.post('/api/search', async (q, r) => {
   } catch (e) { r.status(502).json({ error: 'Live internet search is temporarily unavailable' }); }
 });
 
-app.post('/api/image', async (q, r) => {
-  const body = q.body || {}, prompt = String(body.prompt || '').slice(0, 1000);
-  if (!prompt) return r.status(400).json({ error: 'No prompt' });
-  const unsafeImagePrompt = /\b(?:firearm|gun|rifle|pistol|knife|sword|explosive|bomb|weapon|porn|pornography|nude|nudity|sexual|erotic|gore|graphic violence|self-harm|suicide)\b/i;
-  if (unsafeImagePrompt.test(prompt)) return r.status(400).json({ error: 'This image prompt is not supported. Choose a safe, non-graphic subject.' });
-  if (E.IMAGE_KEY && E.IMAGE_MODEL) {
+// Image jobs run in the background so Render's HTTP request timeout cannot cancel a free queue wait.
+const imageJobs = new Map();
+const imageJobHits = new Map();
+function pruneImageJobs() {
+  const now = Date.now();
+  for (const [id, job] of imageJobs) if (now - job.createdAt > 15 * 60 * 1000) imageJobs.delete(id);
+  if (imageJobs.size > 80) {
+    const oldest = [...imageJobs.values()].sort((a, b) => a.createdAt - b.createdAt);
+    for (const job of oldest.slice(0, imageJobs.size - 80)) imageJobs.delete(job.id);
+  }
+}
+async function generateFreeImage(prompt, body) {
+  // Existing optional paid provider is disabled unless explicitly opted in by the service owner.
+  if (E.ALLOW_PAID_IMAGE === 'true' && E.IMAGE_KEY && E.IMAGE_MODEL) {
     try {
-      const u = await fetch((E.IMAGE_BASE || 'https://api.openai.com/v1').replace(/\/$/, '') + '/images/generations', {
+      const u = await fetch((E.IMAGE_BASE || 'https://api.openai.com/v1').replace(/\\/$/, '') + '/images/generations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.IMAGE_KEY },
         body: JSON.stringify({ model: E.IMAGE_MODEL, prompt, size: '1024x1024', response_format: 'b64_json' }),
         signal: AbortSignal.timeout(60000)
       });
-      const j = await u.json();
+      const j = await u.json().catch(() => ({}));
       const b = j.data && j.data[0] && j.data[0].b64_json;
-      if (!u.ok || !b) return r.status(u.status || 502).json({ error: 'Image failed' });
-      return r.json({ image: 'data:image/png;base64,' + b });
-    } catch (e) { return r.status(502).json({ error: 'Image failed' }); }
+      if (u.ok && b) return { image: 'data:image/png;base64,' + b, provider: 'configured-image-provider' };
+    } catch (e) { console.warn('Optional image provider failed:', String(e && e.message || e).slice(0, 120)); }
   }
-  if (E.IMAGE_OFF) return r.status(404).end();
-  // Free image service (Pollinations). A free key in POLLI_KEY makes it more reliable.
-  const w = Math.min(1536, Number(body.width) || 1024), h = Math.min(1536, Number(body.height) || 1024), seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
+  if (E.IMAGE_OFF) throw new Error('Image generation is disabled');
+  const w = Math.min(1024, Number(body.width) || 768), h = Math.min(1024, Number(body.height) || 768);
+  const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
   const qs = 'width=' + w + '&height=' + h + '&seed=' + seed + '&nologo=true&safe=true&enhance=false' + (E.POLLI_KEY ? '&key=' + encodeURIComponent(E.POLLI_KEY) : '');
-  const tries = E.POLLI_KEY ? [['https://gen.pollinations.ai/image/', 'flux'], ['https://image.pollinations.ai/prompt/', 'flux']] : [['https://image.pollinations.ai/prompt/', 'flux']];
-  let last = 502;
+  const tries = E.POLLI_KEY
+    ? [['https://gen.pollinations.ai/image/', 'flux'], ['https://image.pollinations.ai/prompt/', 'flux']]
+    : [['https://image.pollinations.ai/prompt/', 'flux']];
   for (const [host, model] of tries) {
     try {
-      const u = await fetch(host + encodeURIComponent(prompt) + '?' + qs + '&model=' + model, { headers: E.POLLI_KEY ? { Authorization: 'Bearer ' + E.POLLI_KEY } : {}, signal: AbortSignal.timeout(18000) });
-      const type = String(u.headers.get('content-type') || '').split(';')[0];
-      if (u.ok && /^image\//.test(type)) {
-        const buf = Buffer.from(await u.arrayBuffer());
-        if (buf.length > 1000) return r.json({ image: 'data:' + type + ';base64,' + buf.toString('base64') });
-      }
-      last = u.status;
-    } catch (e) { last = 504; }
-  }
-  // Free community fallback. The anonymous Horde key is configured only in Render env vars.
-  if (E.HORDE_API_KEY) {
-    try {
-      const base = (E.HORDE_BASE || 'https://aihorde.net/api/v2').replace(/\/$/, '');
-      const headers = { 'Content-Type': 'application/json', apikey: E.HORDE_API_KEY, 'Client-Agent': 'NovaAI:1.0:https://novaai-4auo.onrender.com' };
-      const submit = await fetch(base + '/generate/async', {
-        method: 'POST', headers,
-        body: JSON.stringify({
-          prompt, params: { width: 512, height: 512, n: 1, steps: 20, cfg_scale: 7 },
-          nsfw: false, censor_nsfw: true, replacement_filter: true, r2: true, shared: false
-        }),
-        signal: AbortSignal.timeout(10000)
+      const u = await fetch(host + encodeURIComponent(prompt) + '?' + qs + '&model=' + model, {
+        headers: E.POLLI_KEY ? { Authorization: 'Bearer ' + E.POLLI_KEY } : {},
+        signal: AbortSignal.timeout(12000)
       });
-      const accepted = await submit.json().catch(() => ({}));
-      if (!submit.ok || !accepted.id) throw new Error('Community image queue rejected the request');
-      let complete = false;
-      for (let attempt = 0; attempt < 35; attempt++) {
-        await sleep(2000);
-        const check = await fetch(base + '/generate/check/' + encodeURIComponent(accepted.id), { headers, signal: AbortSignal.timeout(8000) });
-        const state = await check.json().catch(() => ({}));
-        if (!check.ok || state.faulted) throw new Error('Community image generation failed');
-        if (state.done) { complete = true; break; }
+      const type = String(u.headers.get('content-type') || '').split(';')[0];
+      if (u.ok && /^image\\//.test(type)) {
+        const buf = Buffer.from(await u.arrayBuffer());
+        if (buf.length > 1000) return { image: 'data:' + type + ';base64,' + buf.toString('base64'), provider: 'pollinations' };
       }
-      if (!complete) throw new Error('Community image queue is busy; try again shortly');
-      const status = await fetch(base + '/generate/status/' + encodeURIComponent(accepted.id), { headers, signal: AbortSignal.timeout(10000) });
-      const result = await status.json().catch(() => ({}));
-      const generated = result.generations && result.generations[0] && result.generations[0].img;
-      if (!status.ok || !generated) throw new Error('Community image result was empty');
-      if (/^data:image\//i.test(generated)) return r.json({ image: generated, provider: 'community-free' });
-      if (/^https?:\/\//i.test(generated)) {
-        const imageResponse = await fetch(generated, { signal: AbortSignal.timeout(15000) });
-        const type = String(imageResponse.headers.get('content-type') || 'image/webp').split(';')[0];
-        if (!imageResponse.ok || !/^image\//i.test(type)) throw new Error('Community image download failed');
-        const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-        if (imageBuffer.length > 1000) return r.json({ image: 'data:' + type + ';base64,' + imageBuffer.toString('base64'), provider: 'community-free' });
-      } else if (/^[A-Za-z0-9+/=]+$/.test(generated)) {
-        return r.json({ image: 'data:image/webp;base64,' + generated, provider: 'community-free' });
-      }
-      throw new Error('Community image format was not supported');
-    } catch (e) {
-      return r.status(502).json({ error: 'Free image providers are temporarily busy. Please try again later.' });
-    }
+    } catch (e) { /* continue to the community fallback */ }
   }
-  r.status(last === 401 || last === 402 || last === 403 ? 401 : 502).json({ error: 'Image service unavailable' });
+  // Free community queue. Anonymous requests have the lowest priority and may take several minutes.
+  if (!E.HORDE_API_KEY) throw new Error('No free image provider is currently configured');
+  const base = (E.HORDE_BASE || 'https://aihorde.net/api/v2').replace(/\\/$/, '');
+  const headers = { 'Content-Type': 'application/json', apikey: E.HORDE_API_KEY, 'Client-Agent': 'NovaAI:1.0:https://novaai-4auo.onrender.com' };
+  const submit = await fetch(base + '/generate/async', {
+    method: 'POST', headers,
+    body: JSON.stringify({
+      prompt, params: { width: 512, height: 512, n: 1, steps: 20, cfg_scale: 7 },
+      nsfw: false, censor_nsfw: true, replacement_filter: true, r2: true, shared: true
+    }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const accepted = await submit.json().catch(() => ({}));
+  if (!submit.ok || !accepted.id) throw new Error('Free community image queue rejected the request');
+  let complete = false;
+  // AI Horde keeps asynchronous requests for up to ten minutes; poll the lightweight check route.
+  for (let attempt = 0; attempt < 270; attempt++) {
+    await sleep(2000);
+    const check = await fetch(base + '/generate/check/' + encodeURIComponent(accepted.id), {
+      headers, signal: AbortSignal.timeout(8000)
+    });
+    const state = await check.json().catch(() => ({}));
+    if (!check.ok || state.faulted) throw new Error('Free community image generation failed');
+    if (state.done || Number(state.finished) >= 1) { complete = true; break; }
+  }
+  if (!complete) throw new Error('Free image queue is still busy; please retry later');
+  const status = await fetch(base + '/generate/status/' + encodeURIComponent(accepted.id), {
+    headers, signal: AbortSignal.timeout(12000)
+  });
+  const result = await status.json().catch(() => ({}));
+  const generated = result.generations && result.generations[0] && result.generations[0].img;
+  if (!status.ok || !generated) throw new Error('Free community image result was empty');
+  if (/^data:image\\//i.test(generated)) return { image: generated, provider: 'community-free' };
+  if (/^https?:\\/\\//i.test(generated)) {
+    const imageResponse = await fetch(generated, { signal: AbortSignal.timeout(15000) });
+    const type = String(imageResponse.headers.get('content-type') || 'image/webp').split(';')[0];
+    if (!imageResponse.ok || !/^image\\//i.test(type)) throw new Error('Free community image download failed');
+    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+    if (imageBuffer.length > 1000) return { image: 'data:' + type + ';base64,' + imageBuffer.toString('base64'), provider: 'community-free' };
+  } else if (/^[A-Za-z0-9+/=]+$/.test(generated)) {
+    return { image: 'data:image/webp;base64,' + generated, provider: 'community-free' };
+  }
+  throw new Error('Free community image format was not supported');
+}
+app.post('/api/image', (q, r) => {
+  const body = q.body || {}, prompt = String(body.prompt || '').trim().slice(0, 1000);
+  if (!prompt) return r.status(400).json({ error: 'No prompt' });
+  const unsafeImagePrompt = /\\b(?:firearm|gun|rifle|pistol|knife|sword|explosive|bomb|weapon|porn|pornography|nude|nudity|sexual|erotic|gore|graphic violence|self-harm|suicide)\\b/i;
+  if (unsafeImagePrompt.test(prompt)) return r.status(400).json({ error: 'This image prompt is not supported. Choose a safe, non-graphic subject.' });
+  if (E.IMAGE_OFF) return r.status(404).end();
+  const now = Date.now(), a = rateWindow(imageJobHits, q.ip, now, 10 * 60 * 1000);
+  if (a.length >= 3) return r.status(429).json({ error: 'Image generation limit reached. Please try again later.' });
+  a.push(now); imageJobHits.set(q.ip, a);
+  pruneImageJobs();
+  if (imageJobs.size >= 80) return r.status(503).json({ error: 'The image queue is busy. Please retry shortly.' });
+  const id = require('crypto').randomUUID();
+  const job = { id, ip: q.ip, status: 'queued', image: null, error: null, provider: null, createdAt: now, updatedAt: now };
+  imageJobs.set(id, job);
+  setImmediate(async () => {
+    job.status = 'processing'; job.updatedAt = Date.now();
+    try {
+      const result = await generateFreeImage(prompt, body);
+      job.image = result.image; job.provider = result.provider; job.status = 'done';
+    } catch (e) {
+      job.error = String(e && e.message || e).slice(0, 180);
+      job.status = 'error';
+      console.warn('Nova image job failed:', job.error);
+    } finally { job.updatedAt = Date.now(); }
+  });
+  r.status(202).json({ jobId: id, status: job.status });
+});
+app.get('/api/image/status/:id', (q, r) => {
+  pruneImageJobs();
+  const job = imageJobs.get(String(q.params.id || ''));
+  if (!job || job.ip !== q.ip) return r.status(404).json({ error: 'Image job not found' });
+  if (job.status === 'done') return r.json({ status: 'done', image: job.image, provider: job.provider });
+  if (job.status === 'error') return r.status(502).json({ status: 'error', error: job.error || 'Image generation failed' });
+  r.json({ status: job.status, updatedAt: job.updatedAt });
 });
 
 // Home-screen install (PWA): manifest and icons are served from here.
