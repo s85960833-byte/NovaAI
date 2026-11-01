@@ -178,8 +178,9 @@ test('NOVA BI company cloud uses authenticated Edge Function routes and session-
  assert.ok(edge.includes('withSupabase({ auth: "user" }'));
  assert.ok(edge.includes('ctx.jwtClaims?.sub'));
  assert.ok(edge.includes('functions\\/v1\\/nova-bi-api'));
- assert.ok(edge.includes('nova_bi_create_organization'));
- assert.ok(edge.includes('nova_bi_decide_workflow'));
+ assert.ok(edge.includes('db.from("nova_bi_organizations")'));
+ assert.ok(edge.includes('ctx.supabaseAdmin.from("nova_bi_memberships")'));
+ assert.ok(edge.includes('.update({ status: input.decision })'));
  assert.ok(index.includes('@supabase/supabase-js@2.80.0'));
  assert.ok(index.includes('https://cdn.jsdelivr.net'));
 });
@@ -209,4 +210,19 @@ test('NOVA BI organization bootstrap and approval routines enforce authenticated
  assert.ok(recursion.includes('security definer'));
  assert.ok(recursion.includes('set search_path = \'\''));
  assert.ok(recursion.includes('nova_bi_membership_read_self_or_admin'));
+});
+
+test('NOVA BI organization and workflow writes are protected by RLS and trigger guards',()=>{
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000006_nova_bi_trigger_guarded_mutations.sql'),'utf8');
+ assert.ok(migration.includes('revoke all on function public.nova_bi_create_organization(text) from public, anon, authenticated'));
+ assert.ok(migration.includes('revoke all on function public.nova_bi_decide_workflow(uuid, text, text) from public, anon, authenticated'));
+ assert.ok(migration.includes('nova_bi_org_insert_self'));
+ assert.ok(migration.includes('new.created_by <> auth.uid()'));
+ assert.ok(migration.includes('nova_bi_organization_bootstrap'));
+ assert.ok(migration.includes('grant update(status) on public.nova_bi_workflow_proposals to authenticated'));
+ assert.ok(migration.includes('nova_bi_workflow_decide_admin'));
+ assert.ok(migration.includes('old.created_by = v_actor'));
+ assert.ok(migration.includes('nova_bi_workflow_approvals'));
+ assert.ok(migration.includes('nova_bi_audit_events'));
+ assert.ok(migration.includes('revoke all on function public.nova_bi_workflow_decision_guard() from public, anon, authenticated'));
 });
