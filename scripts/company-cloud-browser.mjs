@@ -6,6 +6,13 @@ const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const pageErrors = [];
 const calls = [];
 let accepted = false;
+let datasets = [
+  { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', organization_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', name: 'Linked dataset', row_count: 12, created_at: '2026-11-01T00:00:00Z' },
+  { id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', organization_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', name: 'Unused dataset', row_count: 4, created_at: '2026-11-01T00:00:00Z' }
+];
+let analyses = [
+  { id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', organization_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', dataset_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', analysis_type: 'cost_leaks', calculation_version: 'test-1', created_at: '2026-11-01T00:00:00Z' }
+];
 let branding = {
   organization_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
   brand_name: 'Test Company',
@@ -15,6 +22,7 @@ let branding = {
   accent_color: '#14B8A6'
 };
 page.on('pageerror', error => pageErrors.push(error.message));
+page.on('dialog', dialog => dialog.accept());
 
 await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.80.0/dist/umd/supabase.min.js', route =>
   route.fulfill({ status: 200, contentType: 'application/javascript', body: "let testSession = null;\nwindow.supabase = {\n  createClient: function () {\n    return {\n      auth: {\n        getSession: async () => ({ data: { session: testSession } }),\n        onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),\n        signInWithPassword: async ({ email }) => {\n          testSession = { access_token: 'fake-test-access-token', user: { id: '11111111-1111-4111-8111-111111111111', email } };\n          return { data: { session: testSession, user: testSession.user }, error: null };\n        },\n        signUp: async ({ email }) => ({ data: { session: null, user: { id: '11111111-1111-4111-8111-111111111111', email } }, error: null }),\n        signOut: async () => { testSession = null; return { error: null }; }\n      }\n    };\n  }\n};" })
@@ -48,8 +56,13 @@ await page.route('**/functions/v1/nova-bi-api/**', async route => {
       status: 'invited',
       organization: { id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', name: 'Invited Company' }
     }] };
-  } else if (path.startsWith('datasets')) payload = { datasets: [] };
-  else if (path.startsWith('analyses')) payload = { analyses: [] };
+  } else if (path.startsWith('datasets')) {
+    if (method === 'DELETE') { datasets = datasets.filter(x => x.id !== path.split('/')[1]); payload = { deleted: true }; }
+    else payload = { datasets };
+  } else if (path.startsWith('analyses')) {
+    if (method === 'DELETE') { analyses = analyses.filter(x => x.id !== path.split('/')[1]); payload = { deleted: true }; }
+    else payload = { analyses };
+  }
   else if (path.startsWith('workflows')) {
     if (method === 'POST') payload = { decided: true, workflow: { id: 'ffffffff-ffff-4fff-8fff-ffffffffffff', status: 'approved' } };
     else payload = { workflows: [{
@@ -91,6 +104,9 @@ await page.locator('#ncbBranding').waitFor({ timeout: 15000 });
 await page.locator('#ncbInviteForm').waitFor();
 await page.locator('[data-accept-invite]').waitFor();
 await page.locator('[data-decision="approved"]').waitFor();
+await page.locator('[data-delete-analysis="cccccccc-cccc-4ccc-8ccc-cccccccccccc"]').waitFor();
+await page.locator('[data-delete-dataset="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"]').waitFor();
+assert.equal(await page.locator('[data-delete-dataset="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"]').isDisabled(), true);
 
 await page.locator('#ncbBrandName').fill('Test Company International');
 await page.locator('#ncbBranding button[type="submit"]').click();
@@ -106,6 +122,11 @@ assert.ok(calls.some(call => call.path.endsWith('/accept') && call.method === 'P
 
 await page.locator('[data-decision="approved"]').click();
 assert.ok(calls.some(call => call.path.includes('/decision') && call.method === 'POST'));
+
+await page.locator('[data-delete-analysis="cccccccc-cccc-4ccc-8ccc-cccccccccccc"]').click();
+assert.ok(calls.some(call => call.path.startsWith('analyses/') && call.method === 'DELETE'));
+await page.locator('[data-delete-dataset="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"]').click();
+assert.ok(calls.some(call => call.path.startsWith('datasets/') && call.method === 'DELETE'));
 
 const downloadPromise = page.waitForEvent('download');
 await page.locator('#ncbExport').click();
