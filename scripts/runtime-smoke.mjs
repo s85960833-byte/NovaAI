@@ -22,7 +22,7 @@ await expect('mode workspace asset','/mode-workspace.js',{},(r,b)=>r.ok&&b.inclu
 const config=JSON.parse(await expect('server config','/api/config',{},(r,b)=>r.ok&&JSON.parse(b).model==='test-model'));
 const manifest=JSON.parse(await expect('NOVA royal PWA manifest','/manifest.webmanifest',{},(r,b)=>r.ok&&JSON.parse(b).name==='NOVA AI — Indian Intelligence'&&JSON.parse(b).lang==='en-IN'&&JSON.parse(b).short_name==='NOVA'&&JSON.parse(b).icons.some(x=>x.src==='/icons/nova-emblem.svg')));
 await expect('custom NOVA SVG identity','/icons/nova-emblem.svg',{},(r,b)=>r.ok&&b.includes('viewBox="0 0 512 512"'));
-await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v13-root-ambient')&&b.includes("u.pathname.startsWith('/api/')")&&b.includes("/icons/icon-512.png")&&b.includes('/icons/nova-emblem.svg'));
+await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v14-settings-modal')&&b.includes("u.pathname.startsWith('/api/')")&&b.includes("/icons/icon-512.png")&&b.includes('/icons/nova-emblem.svg'));
 await expect('PWA icon 192','/icons/icon-192.png',{},(r,b)=>r.ok);
 await expect('PWA icon 512','/icons/icon-512.png',{},(r,b)=>r.ok);
 await expect('chat validation','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
