@@ -228,7 +228,7 @@ body:before{
  background-image:linear-gradient(rgba(126,178,191,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(126,178,191,.08) 1px,transparent 1px);
  background-size:54px 54px;mask-image:radial-gradient(ellipse at 50% 36%,#000 0%,transparent 78%);
 }
-#side,#main,#live,#photo,#zoom,#toast,dialog{position:relative;z-index:1}
+#side,#main{position:relative;z-index:1}
 #side{
  width:286px;padding:20px 15px;background:rgba(7,17,31,.86);
  border-inline-end:1px solid var(--bd);backdrop-filter:blur(18px);
@@ -390,6 +390,18 @@ button:focus-visible,textarea:focus-visible,select:focus-visible,input:focus-vis
  .nova-hero-art:before,.nova-hero-art:after,.nova-living-core,.nova-core-ring{animation:none!important}
  .nova-work-card,.nova-primary{transition:none!important}
 }
+
+:root[data-theme=light] body{background:radial-gradient(900px 600px at 78% -12%,rgba(22,127,128,.1),transparent 65%),radial-gradient(680px 520px at 0% 100%,rgba(167,119,50,.07),transparent 62%),linear-gradient(145deg,#f6f9fb 0%,#edf3f7 55%,#e7f0f4 100%)}
+:root[data-theme=light] #side{background:rgba(245,249,251,.94);box-shadow:8px 0 30px rgba(27,53,77,.06)}
+:root[data-theme=light] #top{background:rgba(246,250,252,.78)}
+:root[data-theme=light] .nova-hero{background:linear-gradient(115deg,rgba(255,255,255,.98),rgba(239,248,248,.96) 55%,rgba(247,245,237,.98));border-color:rgba(34,92,108,.17)}
+:root[data-theme=light] .nova-hero-copy h1{color:#132538}
+:root[data-theme=light] .nova-tagline{color:#167f80}
+:root[data-theme=light] .nova-desc,:root[data-theme=light] .nova-work-card small{color:#60778c}
+:root[data-theme=light] .nova-stat,:root[data-theme=light] .nova-work-card,:root[data-theme=light] .nova-tools,:root[data-theme=light] .nova-quick,:root[data-theme=light] .nova-recent{background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(241,247,249,.96));color:#132538}
+:root[data-theme=light] .nova-section-head h2,:root[data-theme=light] .nova-work-card b{color:#132538}
+:root[data-theme=light] .nova-core-caption{color:#326b72}
+:root[data-theme=light] #box{background:rgba(255,255,255,.94)}
 </style></head><body>
 <aside id="side"><div class="brand"><span class="logo">✦</span><b>Nova AI</b></div>
 <button id="new" data-i="new">＋ New chat</button><nav class="nav"><button id="nHome" data-i="nHome"></button><button id="nPhoto" data-i="nPhoto"></button><button id="nArch" data-i="nArch"></button><button id="nImg" data-i="nImg" hidden></button><button id="nLive" data-i="nLive" hidden></button></nav><input id="q" type="search" data-p="search" aria-label="Search chats"><div id="list"></div>
