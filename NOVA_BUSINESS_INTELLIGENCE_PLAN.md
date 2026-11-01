@@ -106,3 +106,10 @@ The current app has no real login, tenant isolation, business-data database or r
 - Numeric overflow now fails safely instead of allowing Infinity into exports.
 - Tests cover these behaviors, including malformed-row source references and dashboard accessibility status announcements.
 - GitHub Actions run 41311965642 passed after the dashboard syntax correction; later source-evidence tests are running on the newest commit and must pass before this update is treated as fully verified.
+
+
+## Security design checkpoint
+- Added `NOVA_BUSINESS_INTELLIGENCE_SECURITY.md` as a threat model and release gate covering authentication, tenant isolation, role-based authorization, audit events, consent for AI data sharing, export/deletion and cross-tenant security tests.
+- This is a design checklist only. No authentication/database provider has been selected or connected, and no shared company data should be stored yet.
+- Added keyboard focus trapping, Escape-to-close, focus restoration, visible focus styles and current-page navigation semantics to the workspace dialog.
+- GitHub Actions run `41312254421` passed after the accessibility changes.
