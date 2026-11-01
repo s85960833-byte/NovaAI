@@ -20,6 +20,8 @@ jobs:
         run: node scripts/check.mjs
       - name: Check isolated mode registry
         run: node scripts/modes-check.mjs
+      - name: Test NOVA Business Intelligence calculations and CSV validation
+        run: node --test scripts/business-intelligence.test.cjs
       - name: Start local server with test-only credentials
         run: |
           LLM_KEY=test LLM_MODEL=test-model PORT=8787 node nova-server.txt > /tmp/novaai-test.log 2>&1 &
