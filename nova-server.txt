@@ -998,3 +998,86 @@ app.get('/api/live/selftest', async (q, r) => {
   const y = new Date(nw - 864e5), probes = [
     ['Google News', () => gnews('india', { n: 3 })], ['BBC News feed', () => fetchFeed('BBC News', FEEDS.world[0][1])], ['The Hindu feed', () => fetchFeed('The Hindu', FEEDS.india[0][1])],
     ['GDELT / Google News fallback', async () => { try { const items = await gdelt('india', { n: 3, timespan: '1d' }); return { items, via: 'gdelt' }; } catch (e) { const items = await gnews('india', { n: 3 }); if (!items.length) throw e; return { items, via: 'google-news-fallback', note: 'GDELT upstream timeout; live Google News fallback active' }; } }],
+    ['GDELT fallback path', async () => { try { return { items: await gdelt('india', { n: 3, timespan: '1d' }), via: 'gdelt' }; } catch (e) { const items = await gnews('india', { n: 3 }); if (!items.length) throw e; return { items, via: 'google-news-fallback' }; } }],
+    ['Web search', () => webSearch('nasa', { lang: 'en' })], ['Brave context / web-search fallback', async () => { if (E.BRAVE_KEY) return braveContext('latest NASA news', { lang: 'en' }); const result = await webSearch('latest NASA news', { lang: 'en' }); if (!result.items || !result.items.length) throw new Error('No Brave key and web-search fallback unavailable'); return { ...result, note: 'BRAVE_KEY not configured; general live web search fallback active' }; }], ['Wikipedia', () => wikiSearch('India', 'en', 2)], ['Wikipedia current events', () => currentEvents(y.getUTCFullYear(), y.getUTCMonth() + 1, y.getUTCDate())],
+    ['Open-Meteo geocoding direct', () => lhttp('https://geocoding-api.open-meteo.com/v1/search?name=Delhi&count=1&format=json', { json: true, timeout: 8000, tries: 1 })], ['Open-Meteo forecast / wttr.in fallback', async () => { try { return await lhttp('https://api.open-meteo.com/v1/forecast?latitude=28.6139&longitude=77.2090&current=temperature_2m&timezone=auto', { json: true, timeout: 8000, tries: 1 }); } catch (e) { const value = await weatherFallback('Delhi'); return { ...value, via: 'wttr.in-fallback', note: 'Open-Meteo rate-limited this request; independent weather fallback active' }; } }], ['Weather (Open-Meteo / fallback)', () => weather('Delhi', 'en')], ['Yahoo Finance', () => yahooQuote('^NSEI', 'Nifty 50')], ['CoinGecko / Coinbase fallback', () => coingecko(CRYPTO.slice(0, 2))], ['Coinbase fallback', () => coinbaseFallback(CRYPTO.slice(0, 2))], ['Crypto price routing', () => coingecko(CRYPTO.slice(0, 2))], ['Exchange rates', () => fxRate('usd to inr')],
+    ['USGS earthquakes', () => quakes()], ['arXiv', () => arxiv('quantum')], ['World Bank', () => worldBank('gdp of india')], ['OpenAlex direct', () => openalex('artificial intelligence')], ['OpenAlex fallback', async () => { try { const items = await openalex('artificial intelligence'); return { items, via: 'openalex' }; } catch (e) { const [papers, feed] = await Promise.all([arxiv('artificial intelligence'), feedCat('science', 5)]); const items = [...papers, ...(feed.items || [])]; if (!items.length) throw e; return { items, via: 'arxiv+science-rss' }; } }], ['Science RSS feeds', async () => { const v = await feedCat('science', 5); if (!v.items.length) throw new Error('no science feed items'); return v; }],
+    ['ESPN / TheSportsDB fallback', async () => { try { return await lhttp('https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard', { json: true, timeout: 8000, tries: 1 }); } catch (e) { const value = await sportsDbFallback(LEAGUES.find(l => l[2] === 'Premier League')); return { ...value, via: 'thesportsdb-fallback', note: 'ESPN upstream denied this server request; TheSportsDB schedule fallback active' }; } }], ['TheSportsDB fallback', () => sportsDbFallback(LEAGUES.find(l => l[2] === 'Premier League'))], ['ESPN scoreboard', () => espn('premier league')], ['Hacker News', () => hackerNews()]];
+  const results = await Promise.all(probes.map(async ([name, fn]) => {
+    const t0 = Date.now();
+    try {
+      const value = await withTimeout(fn(), 30000, name);
+      const sample = Array.isArray(value) ? value[0] : value && value.items ? value.items[0] : null;
+      const source = (value && value.source) || sample || null;
+      const via = (value && value.via) || (source && (source.connector || source.publisher)) || '';
+      return { name, ok: true, ms: Date.now() - t0, provider: via || '', note: String(value && value.note || '') };
+    } catch (e) { return { name, ok: false, ms: Date.now() - t0, status: e && e.status || null, note: String(e && e.message).slice(0, 60) }; }
+  }));
+  r.json({ at: new Date().toISOString(), results });
+});
+const CATS = ['world', 'india', 'tech', 'science', 'business', 'sports', 'health'];
+app.get('/api/feed', async (q, r) => {
+  try {
+    const cat = String(q.query.cat || 'all'), hi = q.query.lang === 'hi';
+    const pick = x => ({ title: x.title, url: x.url, publisher: x.publisher, date: x.date, kind: x.kind });
+    if (cat === 'all') {
+      const cats = hi ? ['hindi', 'world', 'tech', 'science', 'business', 'sports'] : ['world', 'india', 'tech', 'science', 'business', 'sports'];
+      const rs = await Promise.allSettled(cats.map(c => cached('fc:' + c, 8 * 6e4, () => feedCat(c, 6)).then(v => [c, v])));
+      const out = {}; rs.forEach(x => { if (x.status === 'fulfilled' && x.value[1].items.length) out[x.value[0]] = x.value[1].items.map(pick); });
+      return r.json({ at: new Date().toISOString(), cats: out });
+    }
+    if (!FEEDS[cat]) return r.status(400).json({ error: 'Unknown category' });
+    const v = await cached('fc:' + cat, 8 * 6e4, () => feedCat(cat, 12));
+    r.json({ at: new Date().toISOString(), cat, items: v.items.map(pick), failed: v.failed });
+  } catch (e) { r.status(502).json({ error: 'Feed unavailable' }); }
+});
+setTimeout(() => { CATS.slice(0, 2).forEach(c => cached('fc:' + c, 8 * 6e4, () => feedCat(c, 6)).catch(() => {})); }, 6000).unref();
+setInterval(() => { ['world', 'india'].forEach(c => cached('fc:' + c, 0, () => feedCat(c, 6)).catch(() => {})); }, 10 * 6e4).unref();
+
+const PORT = Number(E.PORT) || 3000;
+app.listen(PORT, () => console.log('Nova AI running on port ' + PORT));
+console.log('NovaAI startup audit flag: ' + (E.SELFTEST_ON_START === '1' ? 'enabled' : 'disabled'));
+
+// Optional one-time live verification, enabled only temporarily through Render env.
+if (E.SELFTEST_ON_START === '1') {
+  console.log('NOVA_SELFTEST_SCHEDULED');
+  setTimeout(() => {
+    console.log('NOVA_SELFTEST_TIMER_FIRED');
+    (async () => {
+      console.log('NOVA_SELFTEST_BEGIN');
+      const origin = 'http://127.0.0.1:' + PORT, results = [];
+      async function probe(name, path, options = {}, check = r => r.ok) {
+        const started = Date.now(), { timeout = 90000, ...init } = options;
+        try {
+          const r = await fetch(origin + path, { ...init, signal: AbortSignal.timeout(timeout) });
+          const body = await r.text(); let data = {};
+          try { data = JSON.parse(body); } catch (e) {}
+          const ok = !!check(r, data, body);
+          results.push({ name, ok, status: r.status, ms: Date.now() - started });
+          return { response: r, data, body };
+        } catch (e) {
+          results.push({ name, ok: false, status: e && e.status || null, ms: Date.now() - started, note: String(e && e.message || e).slice(0, 80) });
+          return null;
+        }
+      }
+      const config = await probe('config', '/api/config', {}, (r, j) => r.ok && !!j.model);
+      console.log('NOVA_SELFTEST_CONFIG ' + JSON.stringify(results[results.length - 1]));
+      await probe('frontend', '/', {}, (r, j, body) => r.ok && body.includes('<title>Nova AI</title>'));
+      await probe('manifest', '/manifest.webmanifest', {}, (r, j) => r.ok && j.name === 'Nova AI');
+      await probe('PWA icon', '/icons/icon-192.png', {}, r => r.ok && (r.headers.get('content-type') || '').includes('image/png'));
+      await probe('service worker', '/sw.js', {}, r => r.ok);
+      await probe('news feed', '/api/feed?cat=all&lang=en', {}, (r, j) => r.ok && Object.keys(j.cats || {}).length > 0);
+      const self = await probe('provider self-test endpoint', '/api/live/selftest', { timeout: 120000 }, (r, j) => r.ok && Array.isArray(j.results));
+      console.log('NOVA_SELFTEST_PROVIDERS ' + JSON.stringify(self && self.data && self.data.results || []));
+      if (self && self.data.results) self.data.results.forEach(x => results.push({ name: 'provider: ' + x.name, ok: !!x.ok, status: x.status || null, ms: x.ms, provider: x.provider || '', note: x.note || '' }));
+      await probe('live retrieval', '/api/live', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: 'Latest NASA news', mode: 'always', lang: 'en', tz: 'Asia/Kolkata' }), timeout: 60000 }, (r, j) => r.ok && j.ok && !!j.context);
+      await probe('AI chat', '/api/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: (config && config.data.model) || E.LLM_MODEL, stream: false, max_tokens: 16, messages: [{ role: 'user', content: 'Reply exactly NOVAAI_OK.' }] }), timeout: 60000 }, (r, j) => r.ok && !!(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content));
+      if (config && config.data.providers && config.data.providers.tavily) {
+        await probe('Tavily search route', '/api/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: 'NASA' }), timeout: 15000 }, (r, j) => r.ok && Array.isArray(j.results));
+      } else results.push({ name: 'Tavily search route', ok: true, status: 404, note: 'No Tavily key configured; general search uses fallback providers.' });
+      await probe('image input validation', '/api/image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }, r => r.status === 400);
+      await probe('voice input validation', '/api/transcribe', { method: 'POST', headers: { 'Content-Type': 'audio/webm' }, body: new Uint8Array() }, r => r.status === 400);
+      console.log('NOVA_SELFTEST ' + JSON.stringify({ at: new Date().toISOString(), results }));
+    })().catch(e => console.error('NOVA_SELFTEST_ERROR', String(e && e.message || e)));
+  }, 10000);
+}
