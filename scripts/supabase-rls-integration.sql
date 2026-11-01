@@ -187,7 +187,7 @@ begin
 end $$;
 
 
-do $
+do $$
 begin
   if has_table_privilege('authenticated','public.nova_bi_rate_limits','select') then
     raise exception 'Authenticated clients must not read API rate-limit counters';
@@ -198,11 +198,19 @@ begin
   if not has_function_privilege('service_role','public.nova_bi_consume_rate_limit(uuid,text,integer,integer)','execute') then
     raise exception 'Service role must be able to execute the rate-limit function';
   end if;
-end $;
+  if not exists (
+    select 1 from pg_policies
+    where schemaname='public' and tablename='nova_bi_rate_limits'
+      and policyname='nova_bi_rate_limits_deny_client_access'
+      and qual='false' and with_check='false'
+  ) then
+    raise exception 'Rate-limit counters must have an explicit deny-all client policy';
+  end if;
+end $$;
 
 begin;
 set local role service_role;
-do $
+do $$
 declare
   v_user uuid := 'd1111111-1111-4111-8111-111111111111';
 begin
@@ -211,7 +219,7 @@ begin
   if public.nova_bi_consume_rate_limit(v_user,'integration-test',2,1) is not false then raise exception 'third rate-limit request should be denied'; end if;
   perform pg_sleep(1.1);
   if public.nova_bi_consume_rate_limit(v_user,'integration-test',2,1) is not true then raise exception 'rate-limit window did not reset'; end if;
-end $;
+end $$;
 reset role;
 rollback;
 
