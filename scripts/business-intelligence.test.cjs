@@ -243,3 +243,20 @@ test('NOVA BI white-label settings are tenant-scoped and owner/admin writable on
  assert.ok(cloud.includes('Custom domains'));
  assert.ok(cloud.includes('primary_color'));
 });
+
+test('NOVA BI team invitations are owner/admin gated and accepted only by the invited user',()=>{
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000008_nova_bi_team_invitations.sql'),'utf8');
+ const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ const cloud=readFileSync(path.join(__dirname,'..','nova-business-cloud.js'),'utf8');
+ assert.ok(migration.includes('status = \'invited\''));
+ assert.ok(migration.includes('new.user_id <> auth.uid()'));
+ assert.ok(migration.includes('nova_bi_invite_accept_guard'));
+ assert.ok(migration.includes('grant update(status) on public.nova_bi_memberships to authenticated'));
+ assert.ok(edge.includes('auth.admin.inviteUserByEmail'));
+ assert.ok(edge.includes('role === "admin" && actor.role !== "owner"'));
+ assert.ok(edge.includes('path === "invitations"'));
+ assert.ok(edge.includes('acceptParts[2] === "accept"'));
+ assert.ok(cloud.includes('Pending company invitations'));
+ assert.ok(cloud.includes('Send invitation'));
+ assert.ok(cloud.includes('Accept invitation'));
+});
