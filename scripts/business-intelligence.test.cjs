@@ -108,3 +108,12 @@ test('team productivity results retain source-row references',()=>{
  const r=core.analyzeTasks(parsed.rows,{team:'team',status:'status'},'2026-01-01');
  assert.deepEqual(r.byTeam.find(x=>x.team==='Alpha').sourceRows,[2,4]);
 });
+
+test('business dialog supports keyboard focus management and visible focus styles',()=>{
+ const ui=readFileSync(path.join(__dirname,'..','nova-business.js'),'utf8');
+ assert.match(ui,/aria-modal/);
+ assert.match(ui,/if\(e\.key==='Tab'\)/);
+ assert.match(ui,/returnFocus\.focus\(\)/);
+ assert.match(ui,/focus-visible/);
+ assert.match(ui,/aria-current=/);
+});
