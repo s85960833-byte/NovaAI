@@ -3,7 +3,7 @@ import { withSupabase } from "@supabase/server";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, idempotency-key",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
   "Content-Type": "application/json",
 };
 
@@ -129,6 +129,28 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
         return json({ members: data || [] });
       }
       return json({ members: [ownMembership] });
+    }
+
+    const datasetDelete = path.match(/^datasets\\/([0-9a-f-]{36})$/i);
+    if (req.method === "DELETE" && datasetDelete) {
+      const orgId = url.searchParams.get("organization_id") || "";
+      if (!uuid(orgId)) return fail("A valid organization_id is required");
+      const { data, error } = await db.from("nova_bi_datasets")
+        .delete().eq("id", datasetDelete[1]).eq("organization_id", orgId)
+        .select("id").single();
+      if (error) throw error;
+      return json({ deleted: true, dataset_id: data.id });
+    }
+
+    const analysisDelete = path.match(/^analyses\\/([0-9a-f-]{36})$/i);
+    if (req.method === "DELETE" && analysisDelete) {
+      const orgId = url.searchParams.get("organization_id") || "";
+      if (!uuid(orgId)) return fail("A valid organization_id is required");
+      const { data, error } = await db.from("nova_bi_analyses")
+        .delete().eq("id", analysisDelete[1]).eq("organization_id", orgId)
+        .select("id").single();
+      if (error) throw error;
+      return json({ deleted: true, analysis_id: data.id });
     }
 
     if (req.method === "GET" && path === "datasets") {
