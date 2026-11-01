@@ -94,14 +94,14 @@
   function analyzeClients(rows,mapping){
     if(!Array.isArray(rows))fail('Client rows must be an array.');
     const clientKey=requireField(mapping,'client'),revenueKey=requireField(mapping,'revenue'),costKey=requireField(mapping,'directCost');
-    const groups=new Map();let valid=0,invalid=0;
-    for(const row of rows){
-      const name=text(row[clientKey])||'Unassigned',revenue=number(row[revenueKey]),cost=number(row[costKey]);
+    const groups=new Map(),sourceRows=new Map();let valid=0,invalid=0;
+    for(let index=0;index<rows.length;index++){
+      const row=rows[index],rowNumber=Number(row.__novaSourceRowNumber)||index+2,name=text(row[clientKey])||'Unassigned',revenue=number(row[revenueKey]),cost=number(row[costKey]);
       if(revenue===null||cost===null||revenue<0||cost<0){invalid++;continue}
-      const g=groups.get(name)||{client:name,revenue:0,directCost:0};g.revenue+=revenue;g.directCost+=cost;groups.set(name,g);valid++;
+      const g=groups.get(name)||{client:name,revenue:0,directCost:0};g.revenue+=revenue;g.directCost+=cost;groups.set(name,g);if(!sourceRows.has(name))sourceRows.set(name,[]);sourceRows.get(name).push(rowNumber);valid++;
     }
     const clients=[...groups.values()].map(g=>({client:g.client,revenue:round(g.revenue),directCost:round(g.directCost),contribution:round(g.revenue-g.directCost),marginPct:g.revenue?round((g.revenue-g.directCost)/g.revenue*100):null})).sort((a,b)=>b.contribution-a.contribution);
-    return {kind:'clients',validRows:valid,invalidRows:invalid,clients,totalRevenue:round(clients.reduce((s,x)=>s+x.revenue,0)),totalDirectCost:round(clients.reduce((s,x)=>s+x.directCost,0)),totalContribution:round(clients.reduce((s,x)=>s+x.contribution,0)),note:'Contribution is revenue minus supplied direct costs only; overhead, tax and other unprovided costs are excluded.'};
+    return {kind:'clients',validRows:valid,invalidRows:invalid,clients,evidenceByClient:[...sourceRows.entries()].map(([client,sourceRows])=>({client,sourceRows,rowCount:sourceRows.length})),totalRevenue:round(clients.reduce((s,x)=>s+x.revenue,0)),totalDirectCost:round(clients.reduce((s,x)=>s+x.directCost,0)),totalContribution:round(clients.reduce((s,x)=>s+x.contribution,0)),note:'Contribution is revenue minus supplied direct costs only; overhead, tax and other unprovided costs are excluded.'};
   }
   function analyzeTasks(rows,mapping,nowValue){
     if(!Array.isArray(rows))fail('Task rows must be an array.');
@@ -111,13 +111,13 @@
     for(const row of rows){
       const status=text(row[statusKey]);if(!status){invalidRows++;continue}
       const isDone=done.test(status),team=teamKey?(text(row[teamKey])||'Unassigned'):'All teams';
-      const g=teams.get(team)||{team,total:0,completed:0,open:0,overdue:0,cycleDays:[]};g.total++;
+      const g=teams.get(team)||{team,total:0,completed:0,open:0,overdue:0,cycleDays:[],sourceRows:[]};g.total++;g.sourceRows.push(Number(row.__novaSourceRowNumber)||rows.indexOf(row)+2);
       if(isDone){completed++;g.completed++;const a=createdKey?date(row[createdKey]):null,b=completedKey?date(row[completedKey]):null;if(a!==null&&b!==null&&b>=a){const days=(b-a)/86400000;cycleTotal+=days;cycleCount++;g.cycleDays.push(days)}else if(createdKey||completedKey)invalidDates++}
       else{open++;g.open++;const due=dueKey?date(row[dueKey]):null;if(dueKey&&due===null)invalidDates++;if(due!==null&&due<now){overdue++;g.overdue++}}
       teams.set(team,g);
     }
     const sourceRows=rows.length,total=sourceRows-invalidRows;
-    return {kind:'tasks',total,sourceRows,validRows:total,invalidRows,completed,open,overdue,completionPct:total?round(completed/total*100):0,overdueOpenPct:open?round(overdue/open*100):0,averageCycleDays:cycleCount?round(cycleTotal/cycleCount,2):null,invalidDateRows:invalidDates,byTeam:[...teams.values()].map(g=>({team:g.team,total:g.total,completed:g.completed,open:g.open,overdue:g.overdue,averageCycleDays:g.cycleDays.length?round(g.cycleDays.reduce((a,b)=>a+b,0)/g.cycleDays.length,2):null})).sort((a,b)=>a.team.localeCompare(b.team)),note:'Team-level operational indicators only. They do not measure individual employee effort or performance.'};
+    return {kind:'tasks',total,sourceRows,validRows:total,invalidRows,completed,open,overdue,completionPct:total?round(completed/total*100):0,overdueOpenPct:open?round(overdue/open*100):0,averageCycleDays:cycleCount?round(cycleTotal/cycleCount,2):null,invalidDateRows:invalidDates,byTeam:[...teams.values()].map(g=>({team:g.team,total:g.total,completed:g.completed,open:g.open,overdue:g.overdue,averageCycleDays:g.cycleDays.length?round(g.cycleDays.reduce((a,b)=>a+b,0)/g.cycleDays.length,2):null,sourceRows:g.sourceRows})).sort((a,b)=>a.team.localeCompare(b.team)),note:'Team-level operational indicators only. They do not measure individual employee effort or performance.'};
   }
   function scoreProjectRisk(project,nowValue){
     const p=project||{},due=date(p.dueDate),reference=nowValue==null?Date.now():date(nowValue);
