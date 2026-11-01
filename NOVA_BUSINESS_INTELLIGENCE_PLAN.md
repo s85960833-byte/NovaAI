@@ -107,11 +107,14 @@ Initial target segment: small IT services companies and software agencies. Do no
 - ISO calendar dates are validated (e.g. impossible dates are rejected); missing task statuses are excluded from completion denominators and counted as invalid.
 - Numeric overflow now fails safely instead of allowing Infinity into exports.
 - Tests cover these behaviors, including malformed-row source references and dashboard accessibility status announcements.
-- GitHub Actions run 41311965642 passed after the dashboard syntax correction; later source-evidence tests are running on the newest commit and must pass before this update is treated as fully verified.
+- Verified code commit `d2671cc94416226e796951f59b14de655f163fee`; GitHub Actions run [41326890751](https://github.com/s85960833-byte/NovaAI/actions/runs/41326890751) passed 36/36 BI tests, PostgreSQL 17 migration/RLS integration, Deno type-check, Edge Function auth/CORS smoke checks, local server/PWA checks and the Playwright mobile Company Cloud flow.
 
 
-## Security design checkpoint
-- Added `NOVA_BUSINESS_INTELLIGENCE_SECURITY.md` as a threat model and release gate covering authentication, tenant isolation, role-based authorization, audit events, consent for AI data sharing, export/deletion and cross-tenant security tests.
-- This is a design checklist only. No authentication/database provider has been selected or connected, and no shared company data should be stored yet.
-- Added keyboard focus trapping, Escape-to-close, focus restoration, visible focus styles and current-page navigation semantics to the workspace dialog.
-- GitHub Actions run `41312254421` passed after the accessibility changes.
+## Security implementation checkpoint (2026-11-01)
+- The user approved Supabase project `qrfwsewppafhxibdboam`; nine migrations and nine RLS-protected NOVA BI tables are deployed. The separate Research-to-Code project remains untouched.
+- Supabase Security Advisor reports zero findings. Edge Function `nova-bi-api` is ACTIVE at version 12 with JWT verification enabled.
+- Live transaction-scoped RLS checks passed for owner bootstrap, tenant isolation, viewer write/delete denial, analyst approval/branding denial, admin approval separation and owner-role escalation denial, invitation acceptance and audited deletion. All test rows/users were rolled back and follow-up counts confirmed zero leftovers.
+- `NOVA_BUSINESS_INTELLIGENCE_SECURITY.md` now documents implemented controls and remaining security/release gates; it is not a security certification.
+- Keyboard focus trapping, Escape-to-close, focus restoration, visible focus styles and current-page navigation semantics are implemented and covered by mobile Playwright CI.
+- Remaining gates: real account signup/email confirmation, real two-account invitation/email flow, Auth SMTP/redirect configuration, retention/backup/restore, rate limiting, manual Android/accessibility/performance checks and production regression/live smoke tests.
+- Keep PR #46 Draft and production unchanged until the remaining gates pass and the owner explicitly approves release.
