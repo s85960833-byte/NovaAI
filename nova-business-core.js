@@ -24,42 +24,47 @@
     const opts=options||{},maxBytes=opts.maxBytes||MAX_CSV_BYTES,maxRows=opts.maxRows||MAX_ROWS;
     if(typeof input!=='string')fail('CSV input must be text.');
     if(new TextEncoder().encode(input).length>maxBytes)fail('CSV exceeds the 5 MB import limit.');
-    const src=input.replace(/^\uFEFF/,'');if(!src.trim())fail('CSV is empty.');
-    const matrix=[];let row=[],cell='',quoted=false,closed=false;
+    const src=input.replace(/^\\uFEFF/,'');if(!src.trim())fail('CSV is empty.');
+    const matrix=[];let row=[],cell='',quoted=false,closed=false,physicalLine=1,rowStartLine=1;
     for(let i=0;i<src.length;i++){
       const ch=src[i],next=src[i+1];
       if(quoted){
         if(ch==='"'&&next==='"'){cell+='"';i++}
         else if(ch==='"'){quoted=false;closed=true}
-        else cell+=ch;
+        else{
+          cell+=ch;
+          if(ch==='\\r'&&next==='\\n'){cell+='\\n';i++;physicalLine++}
+          else if(ch==='\\n'||ch==='\\r')physicalLine++;
+        }
       }else if(ch===','){
         row.push(cell);cell='';closed=false;
-      }else if(ch==='\n'||ch==='\r'){
-        if(ch==='\r'&&next==='\n')i++;
+      }else if(ch==='\\n'||ch==='\\r'){
+        if(ch==='\\r'&&next==='\\n')i++;
         row.push(cell);cell='';closed=false;
-        if(row.some(v=>text(v)))matrix.push(row);
-        row=[];
+        if(row.some(v=>text(v)))matrix.push({cells:row,line:rowStartLine});
+        row=[];physicalLine++;rowStartLine=physicalLine;
         if(matrix.length>maxRows+1)fail('CSV contains too many rows.');
       }else if(ch==='"'){
         if(cell.length||closed)fail('CSV contains a quote in an invalid position.');
         quoted=true;
       }else{
-        if(closed&&!/\s/.test(ch))fail('Unexpected text after a quoted CSV value.');
+        if(closed&&!/\\s/.test(ch))fail('Unexpected text after a quoted CSV value.');
         if(!closed)cell+=ch;
       }
     }
     if(quoted)fail('CSV has an unclosed quoted value.');
-    row.push(cell);if(row.some(v=>text(v)))matrix.push(row);
+    row.push(cell);if(row.some(v=>text(v)))matrix.push({cells:row,line:rowStartLine});
     if(!matrix.length)fail('CSV has no header row.');
-    const headers=matrix.shift().map((h)=>text(h));
+    const header=matrix.shift().cells,headers=header.map(h=>text(h));
     if(headers.some(h=>!h))fail('CSV headers cannot be blank.');
     const norm=headers.map(h=>h.toLowerCase());
     if(new Set(norm).size!==norm.length)fail('CSV has duplicate column names.');
     if(matrix.length>maxRows)fail('CSV contains too many rows.');
     const warnings=[],records=[];
-    matrix.forEach((cells,index)=>{
-      if(cells.length!==headers.length){warnings.push('Row '+(index+2)+' has '+cells.length+' columns; expected '+headers.length+'.');return}
-      const item={};headers.forEach((h,i)=>item[h]=cells[i]);Object.defineProperty(item,'__novaSourceRowNumber',{value:index+2,enumerable:false});records.push(item);
+    matrix.forEach(entry=>{
+      const cells=entry.cells,line=entry.line;
+      if(cells.length!==headers.length){warnings.push('Row '+line+' has '+cells.length+' columns; expected '+headers.length+'.');return}
+      const item={};headers.forEach((h,i)=>item[h]=cells[i]);Object.defineProperty(item,'__novaSourceRowNumber',{value:line,enumerable:false});records.push(item);
     });
     if(!records.length)warnings.push('No valid data rows were found.');
     return {headers,rows:records,warnings,rowCount:records.length,sourceRowCount:matrix.length};
