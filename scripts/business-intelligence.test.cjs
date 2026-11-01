@@ -42,12 +42,12 @@ test('action proof never marks incomplete checks as passed',()=>{
 });
 
 test('CSV import enforces configurable byte and row limits',()=>{
- assert.throws(()=>core.parseCSV('a\\n1',{maxBytes:1}),/import limit/);
- assert.throws(()=>core.parseCSV('a\\n1\\n2',{maxRows:1}),/too many rows/);
+ assert.throws(()=>core.parseCSV(['a','1'].join(String.fromCharCode(10)),{maxBytes:1}),/import limit/);
+ assert.throws(()=>core.parseCSV(['a','1','2'].join(String.fromCharCode(10)),{maxRows:1}),/too many rows/);
 });
 test('business workspace does not upload or persist raw company CSV data',()=>{
  const ui=readFileSync(require('node:path').join(__dirname,'..','nova-business.js'),'utf8');
- assert.doesNotMatch(ui,/\\bfetch\\s*\\(|XMLHttpRequest|localStorage/);
+ assert.equal(ui.includes('fetch('),false);assert.equal(ui.includes('XMLHttpRequest'),false);assert.equal(ui.includes('localStorage'),false);
  assert.match(ui,/Raw rows are not uploaded to NOVA/);
 });
 test('invalid numeric values are never silently treated as zero',()=>{
