@@ -137,3 +137,15 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Not deployed. Physical browser/Android UI testing is still pending.
 - Not enterprise-ready yet: no account authentication, tenant isolation, durable company database, role-based access, shared audit log, integrations or real external workflow execution exists. Do not accept sensitive company uploads or claim multi-user/enterprise readiness until those controls are implemented and verified.
 - Current workflow planner produces an approval-gated checklist only; it does not execute external actions. Project risk is heuristic, and savings are user-assumption-based scenarios, not predictions or guarantees.
+
+
+## Business Intelligence dashboard and traceability follow-up (2026-11-01)
+- Added dashboard data-quality summary: accepted source rows, calculation coverage, invalid field records and parser warnings.
+- Added readable project-risk contributing factors.
+- Expense, client and team analysis now link summary findings to original CSV source row numbers; malformed lines do not shift the references.
+- Tightened strict ISO date validation, task completion denominator handling and numeric overflow behavior.
+- Added tests for these behaviors and for dashboard status announcements.
+- Latest verified branch commit at this checkpoint: `42024f274869c33235318edf3aa5297d97a18934`.
+- GitHub Actions run `41312149246` passed syntax checks, mode-registry checks, Business Intelligence unit tests, local Express route checks and PWA asset smoke tests.
+- Subsequent plan-document-only update recorded the work; no production deployment or merge occurred.
+- Still blocked from enterprise use: no authentication, tenant isolation, durable business database, role permissions, audit log, real integrations or external workflow execution.
