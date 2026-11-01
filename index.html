@@ -1047,4 +1047,4 @@ function syncAcc(){const on=S.acc!==false;$('acc').classList.toggle('on',on);$('
 const setAcc=v=>{S.acc=v;save();syncAcc()};
 $('acc').onclick=()=>{setAcc(S.acc===false);toast(t(S.acc!==false?'accOn':'accOff'))};$('accset').onchange=e=>setAcc(e.target.checked);$('ultset').onchange=e=>{S.ult=e.target.checked;save()};
 applyUI();syncFeatures();const WAIT=!!(window.claude&&window.claude.use)||location.protocol.startsWith('http');if(WAIT)setTimeout(()=>{if(!first){first=true;render()}},450);else{first=true;render()}
-</script></body></html>
+</script><script src="/nova-business-core.js" defer></script><script src="/nova-business.js" defer></script></body></html>
