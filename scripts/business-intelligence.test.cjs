@@ -226,3 +226,20 @@ test('NOVA BI organization and workflow writes are protected by RLS and trigger 
  assert.ok(migration.includes('nova_bi_audit_events'));
  assert.ok(migration.includes('revoke all on function public.nova_bi_workflow_decision_guard() from public, anon, authenticated'));
 });
+
+test('NOVA BI white-label settings are tenant-scoped and owner/admin writable only',()=>{
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000007_nova_bi_white_label_branding.sql'),'utf8');
+ const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ const cloud=readFileSync(path.join(__dirname,'..','nova-business-cloud.js'),'utf8');
+ assert.ok(migration.includes('create table if not exists public.nova_bi_branding'));
+ assert.ok(migration.includes('alter table public.nova_bi_branding enable row level security'));
+ assert.ok(migration.includes('nova_bi_branding_read_member'));
+ assert.ok(migration.includes('nova_bi_branding_update_admin'));
+ assert.ok(migration.includes('logo_url ~'));
+ assert.ok(migration.includes('primary_color ~'));
+ assert.ok(edge.includes('path === "branding"'));
+ assert.ok(edge.includes('nova_bi_branding'));
+ assert.ok(cloud.includes('White-label workspace appearance'));
+ assert.ok(cloud.includes('Custom domains'));
+ assert.ok(cloud.includes('primary_color'));
+});
