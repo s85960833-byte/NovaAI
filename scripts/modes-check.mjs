@@ -30,7 +30,7 @@ assert.ok(r.modes.find(x=>x.id==='math').prompt.includes('step'));
 assert.ok(r.modes.find(x=>x.id==='math').promptHi.includes('चरण'));
 for(const token of ['nova_modes_v1','nova_mode_cache_v1','SpeechRecognition','speechSynthesis','pdfjsLib','gov','nic'])assert.ok(workspace.includes(token)||source.includes(token),'missing workspace capability '+token);
 assert.ok(workspace.includes('navigator.onLine'),'offline-aware saved chat mode missing');
-assert.ok(html.includes('imageViaApi')&&html.includes('/image/status/'),'image studio must poll asynchronous image jobs');
+assert.ok(html.includes('id="photo"')&&server.includes("app.get('/api/image/status/:id'"),'standard UI image panel and asynchronous image API must remain available');
 assert.ok(workspace.includes("voiceLabels={'hi-IN':'Hindi (India)','en-IN':'English (India)'"),'Hindi and English voice options missing');
 assert.ok(workspace.includes('10*60*1000'),'per-user rolling request limit missing');
 assert.ok(workspace.includes('(lowData()?1.5:4)*1024*1024'),'image upload size guard missing');
