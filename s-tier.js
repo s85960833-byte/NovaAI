@@ -92,7 +92,7 @@ function home(){
   if(c==='chat-study'){if(!window.NovaModeWorkspace?.openGroup('chat-study'))toast('Chat & Study is unavailable. Reload and try again.')}
    else if(c==='create'){if(!window.NovaModeWorkspace?.openGroup('create'))toast('Create is unavailable. Reload and try again.')}
    else if(c==='explore'){if(!window.NovaModeWorkspace?.openGroup('explore'))toast('Explore is unavailable. Reload and try again.')}
-   else if(c==='voice'){if(!window.NovaModeWorkspace?.openGroup('voice'))toast('Voice Chat is unavailable. Reload and try again.')}
+   else if(c==='voice'){const live=$('lv');if(live&&!live.hidden)live.click();else if(!window.NovaModeWorkspace?.openGroup('voice'))toast('Voice Chat is unavailable. Reload and try again.')}
  });
  if(prefs.festivals){const d=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',day:'2-digit',month:'2-digit'}).format(new Date());const fixed={'26/01':'Happy Republic Day','15/08':'Happy Independence Day','02/10':'Today is Gandhi Jayanti'};if(fixed[d]){const f=document.createElement('p');f.className='nsub';f.textContent=fixed[d];e.querySelector('.nhero').append(f)}}
  streak();settings();
