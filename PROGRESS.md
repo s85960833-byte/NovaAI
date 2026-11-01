@@ -133,3 +133,13 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Confirmed the existing service worker already uses cache key `nova-shell-v15-indian-future-ui` and pre-caches all four UI scripts; no server cache-key change was needed.
 - Added static, local-runtime and live-smoke assertions for the script wiring and enabled CI on this feature branch.
 - Status: integration committed on the feature branch; CI and browser/Android interaction verification are pending. Do not merge or deploy until tests pass and all four entry points plus legacy chat/settings/voice/image flows are checked.
+
+
+
+## NOVA UI integration follow-up (2026-11-01)
+- Kept all new S-Tier home and Modes workspace interface labels in English, including festival greetings; the legacy app's existing reply-language controls and chat behavior remain intact.
+- Connected the Voice Chat home card to the dedicated Voice Chat mode group rather than relying on the optional Live Voice button being enabled.
+- Connected Create to the dedicated Create mode group containing App & Website Builder; S-Tier Studio remains available from its own sidebar launcher.
+- Expanded CI assertions for all four workspace entry points, English labels, the dynamic home mount point, and the App & Website Builder / Voice mode registry entries.
+- Latest local syntax/runtime checks were green on the preceding commit. The current commit's GitHub Actions run is in progress; Android/browser interaction testing remains outstanding.
+- Production Render service is still configured to deploy from `main`; this feature branch has not been deployed or merged.
