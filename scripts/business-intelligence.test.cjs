@@ -162,6 +162,7 @@ test('date-only task deadlines remain due through the end of their calendar day'
 });
 test('date-only project deadlines are not marked passed during the due date',()=>{
  const r=core.scoreProjectRisk({dueDate:'2026-01-04',progressPct:50,blockers:0},'2026-01-04T12:00:00Z');
- assert.equal(r.score,0);
+ assert.equal(r.score,25);
  assert.ok(r.daysUntilDue>0);
+ assert.equal(r.factors.some(x=>x.factor==='Deadline passed'),false);
 });
