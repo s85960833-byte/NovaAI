@@ -1,7 +1,7 @@
 name: NovaAI verification
 on:
   push:
-    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101]
+    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101, feature-indian-future-ui]
   pull_request:
     branches: [main]
   workflow_dispatch:
