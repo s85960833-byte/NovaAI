@@ -122,3 +122,18 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Bump the PWA shell cache version so Android installations fetch the corrected home and workspace registry instead of stale cached assets.
 
 - Verification follow-up: corrected the S-Tier script's escaped newline syntax and aligned the runtime PWA cache assertion with `nova-shell-v10-four-sections`.
+
+
+## NOVA Business Intelligence implementation (2026-11-01)
+- Work is isolated on `feature/nova-business-intelligence`; production `main` and Render have not been changed by this initiative.
+- Added `NOVA_BUSINESS_INTELLIGENCE_PLAN.md` with the target segment, scope, data/privacy rules, security gate and delivery checklist.
+- Added `nova-business-core.js`: bounded CSV parsing (5 MB / 20,000 rows), expense/category/month summaries, optional budget-overrun and month-spend review signals, client contribution calculations, team-level task metrics, explainable project-risk heuristics, what-if scenario calculations and evidence-based proof objects.
+- Added `nova-business.js`: separate mobile-responsive Business Intelligence workspace, browser-local CSV import/mapping, analysis views, risk/scenario/workflow planner and downloadable JSON analysis/proof reports.
+- Business CSV data is currently processed in browser memory only; the new workspace does not upload raw rows or persist them to local storage.
+- Added server asset routes and PWA shell caching for the new scripts; the existing chat storage key and current home UI remain unchanged.
+- Added Node tests for CSV parsing/bounds, calculations, invalid values, risk, scenario, proof and local-only data handling.
+- Fixed a stale existing UI-layout assertion in `scripts/check.mjs` that caused CI to fail even though the restored standard UI was present.
+- Verified on branch commit `df672619240e43321ecdd3275c46562c67a7c1e4`: GitHub Actions run `41311201591` passed syntax, mode registry, Business Intelligence tests, local Express routes and PWA asset checks.
+- Not deployed. Physical browser/Android UI testing is still pending.
+- Not enterprise-ready yet: no account authentication, tenant isolation, durable company database, role-based access, shared audit log, integrations or real external workflow execution exists. Do not accept sensitive company uploads or claim multi-user/enterprise readiness until those controls are implemented and verified.
+- Current workflow planner produces an approval-gated checklist only; it does not execute external actions. Project risk is heuristic, and savings are user-assumption-based scenarios, not predictions or guarantees.
