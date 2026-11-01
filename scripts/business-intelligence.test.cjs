@@ -148,3 +148,8 @@ test('CSV malformed-row warnings report physical source line numbers after blank
  assert.deepEqual(parsed.warnings,['Row 4 has 1 columns; expected 2.']);
  assert.deepEqual(parsed.rows.map(row=>row.__novaSourceRowNumber),[2,5]);
 });
+
+test('CSV file size is checked before reading the selected file into memory',()=>{
+ const ui=readFileSync(path.join(__dirname,'..','nova-business.js'),'utf8');
+ assert.ok(ui.indexOf('f.size>core.MAX_CSV_BYTES')<ui.indexOf('await f.text()'));
+});
