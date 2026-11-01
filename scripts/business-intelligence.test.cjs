@@ -17,8 +17,8 @@ test('CSV flags inconsistent row widths without silently mapping them',()=>{
  const r=core.parseCSV(['a,b','1,2','3'].join(LF));assert.equal(r.rowCount,1);assert.equal(r.warnings.length,1);
 });
 test('expense analysis totals categories and months with invalid-row accounting',()=>{
- const r=core.analyzeExpenses([{date:'2026-01-03',category:'Cloud',amount:'100.50'},{date:'2026-01-14',category:'Cloud',amount:'50'},{date:'bad',category:'Travel',amount:'-2'}],{date:'date',category:'category',amount:'amount',currency:'INR'});
- assert.equal(r.total,150.5);assert.equal(r.validRows,2);assert.equal(r.invalidRows,1);assert.equal(r.byCategory[0].name,'Cloud');assert.equal(r.byMonth[0].name,'2026-01');
+ const r=core.analyzeExpenses([{date:'2026-01-03',category:'Cloud',amount:'100.50'},{date:'2026-01-14',category:'Cloud',amount:'50'},{date:'bad',category:'Travel',amount:'-2'},{date:'bad',category:'Cloud',amount:'10'}],{date:'date',category:'category',amount:'amount',currency:'INR'});
+ assert.equal(r.total,160.5);assert.equal(r.validRows,3);assert.equal(r.invalidRows,1);assert.equal(r.invalidDateRows,1);assert.equal(r.byCategory[0].name,'Cloud');assert.equal(r.byMonth[0].name,'2026-01');
 });
 test('client profitability excludes invalid rows and labels contribution honestly',()=>{
  const r=core.analyzeClients([{client:'A',revenue:'1000',cost:'600'},{client:'B',revenue:'500',cost:'700'},{client:'C',revenue:'bad',cost:'1'}],{client:'client',revenue:'revenue',directCost:'cost'});
