@@ -186,4 +186,33 @@ begin
   end if;
 end $$;
 
-select 'PASS: migrations, RLS isolation, invitation acceptance, approval separation, branding, and audited deletion' as result;
+
+do $
+begin
+  if has_table_privilege('authenticated','public.nova_bi_rate_limits','select') then
+    raise exception 'Authenticated clients must not read API rate-limit counters';
+  end if;
+  if has_function_privilege('authenticated','public.nova_bi_consume_rate_limit(uuid,text,integer,integer)','execute') then
+    raise exception 'Authenticated clients must not execute the server rate-limit function';
+  end if;
+  if not has_function_privilege('service_role','public.nova_bi_consume_rate_limit(uuid,text,integer,integer)','execute') then
+    raise exception 'Service role must be able to execute the rate-limit function';
+  end if;
+end $;
+
+begin;
+set local role service_role;
+do $
+declare
+  v_user uuid := 'd1111111-1111-4111-8111-111111111111';
+begin
+  if public.nova_bi_consume_rate_limit(v_user,'integration-test',2,1) is not true then raise exception 'first rate-limit request should pass'; end if;
+  if public.nova_bi_consume_rate_limit(v_user,'integration-test',2,1) is not true then raise exception 'second rate-limit request should pass'; end if;
+  if public.nova_bi_consume_rate_limit(v_user,'integration-test',2,1) is not false then raise exception 'third rate-limit request should be denied'; end if;
+  perform pg_sleep(1.1);
+  if public.nova_bi_consume_rate_limit(v_user,'integration-test',2,1) is not true then raise exception 'rate-limit window did not reset'; end if;
+end $;
+reset role;
+rollback;
+
+select 'PASS: migrations, tenant RLS, invitation, approval, branding, audited deletion and server-only rate limiting' as result;
