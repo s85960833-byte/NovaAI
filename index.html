@@ -44,7 +44,7 @@ textarea{flex:1;border:0;background:none;color:var(--fg);font:inherit;resize:non
 #hi h1{grid-column:1/-1;margin:10px 0 8px;font:600 31px/1.2 Fraunces,Georgia,serif}
 #hi button{padding:14px 12px;border-radius:18px;background:var(--card);line-height:1.35}#hi button:hover{transform:translateY(-2px);box-shadow:0 8px 24px -8px var(--glow)}
 dialog{background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:22px;width:min(94vw,460px);box-shadow:var(--shadow)}dialog::backdrop{background:rgba(10,5,20,.55);}dialog label{display:block;margin-top:10px;font-size:14px;color:var(--mut)}
-@media(max-width:760px){#side{position:fixed;inset:0 auto 0 0;z-index:5;transform:translateX(-100%);transition:transform .2s;padding-top:calc(14px + env(safe-area-inset-top,0px));background:var(--panel)}[dir=rtl] #side{inset:0 0 0 auto;transform:translateX(100%)}#side.open{transform:none}#top{display:flex}#hi{margin-top:5vh}}
+@media(max-width:760px){#side{position:fixed;inset:0 auto 0 0;width:min(84vw,320px);height:100dvh;z-index:1001;isolation:isolate;transform:translateX(-105%);transition:transform .22s ease;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(14px + env(safe-area-inset-bottom,0px));background-color:var(--panel)!important;background-image:none;box-shadow:18px 0 48px rgba(0,0,0,.48);opacity:1;backface-visibility:hidden}[dir=rtl] #side{inset:0 0 0 auto;transform:translateX(105%);box-shadow:-18px 0 48px rgba(0,0,0,.48)}#side.open{transform:translateX(0)}#scrim{z-index:1000;background:rgba(5,2,12,.62)}#side.open+#scrim{opacity:1;pointer-events:auto}#top{display:flex}#hi{margin-top:5vh}}
 
 #docbar,#imbar{cursor:pointer;width:calc(100% - 24px);font-size:13px;padding:6px 14px;margin-bottom:2px;background:var(--panel);border:1px solid var(--bd);border-radius:14px;color:var(--mut)}
 #hi{display:block;max-width:880px;margin:3vh auto 24px;text-align:center}#hi::before{content:none}
@@ -542,7 +542,7 @@ else{if(f.size>102400)return toast(t('max100'));doc={n:f.name,t:(await f.text())
 catch(x){doc=null;toast(t(x.message==='scan'?'scan':'rdfail'))}};
 L.forEach(x=>{const p=x.split('|'),o=document.createElement('option');o.value=p[1]||p[0];o.textContent=p[0]==='Auto'?'🌐 Auto':p[0];$('lang').append(o)});
 $('lang').value=S.rl||'Auto';$('lang').onchange=e=>{S.rl=e.target.value;save();applyUI();render();trUI()};
-$('send').onclick=go;$('new').onclick=newChat;$('menu').onclick=()=>$('side').classList.toggle('open');
+$('send').onclick=go;$('new').onclick=()=>{closeMobileNav();newChat()};function closeMobileNav(){$('side').classList.remove('open')} $('menu').onclick=()=>$('side').classList.toggle('open');$('scrim').onclick=closeMobileNav;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileNav()});
 $('in').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();if(!busy)go()}};
 let dT=0;$('in').oninput=e=>{e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';clearTimeout(dT);dT=setTimeout(()=>{S.draft=$('in').value;save()},500)};
 $('theme').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='light'?'dark':'light';S.theme=r.dataset.theme;save()};
