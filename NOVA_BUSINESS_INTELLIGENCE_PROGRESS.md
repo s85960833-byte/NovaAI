@@ -2,70 +2,50 @@
 
 Updated: 2026-11-01
 
-## Current status
-- Workspace prototype and deterministic calculation engine are in the existing Draft PR #46.
-- Current implementation branch: `feature/nova-business-intelligence`.
-- Production `main` and Render have not been changed by this work.
-- No company login, live shared storage, production database, integrations, or external automation is enabled.
+## Current release state
+- Feature branch: `feature/nova-business-intelligence`.
+- Review: [Draft PR #46](https://github.com/s85960833-byte/NovaAI/pull/46).
+- Latest commit at this checkpoint: `833c51b8dc2e6c0619322e8c1e67054173e3af77`.
+- Production `main` and Render service `srv-dbidhpc9v7es73d6ia80` remain untouched. No merge or production deployment has been performed.
+- Approved NOVA BI Supabase project: `qrfwsewppafhxibdboam`. The separate Research-to-Code project has not been used.
 
-## Completed in this work session
-- Added a Supabase/Postgres schema draft for organizations, memberships, dataset metadata, analyses, workflow proposals, approvals, audit events and workflow execution evidence.
-- Added tenant-scoped composite foreign keys for datasets/analyses and workflow proposals/approvals/executions.
-- Enabled RLS on all proposed tables.
-- Added active-membership-based read/write policies and least-privilege role checks.
-- Kept organization creation, membership writes, workflow approvals/state changes, audit writes and execution writes server-only.
-- Restricted dataset metadata updates to the name column; original creator and soft-delete metadata cannot be rewritten by ordinary authenticated clients.
-- Added static migration-contract tests to the existing BI test suite.
+## Implemented and deployed to the approved Supabase project
+- Nine migrations are recorded and nine NOVA BI tables exist.
+- All nine tenant tables have RLS enabled with active-membership and role-scoped policies.
+- Supabase Security Advisor currently reports zero security findings.
+- Edge Function `nova-bi-api` is ACTIVE at version 12 with JWT verification enabled.
+- The authenticated server API supports organization bootstrap, own invitation acceptance, owner/admin invitations and roster access, dataset/analysis metadata, workflow proposals and approval decisions, branding, audit reads, and audited dataset/analysis deletion.
+- Service-role operations remain in the server-side Edge Function; the browser uses only the publishable key and user session.
+- Original CSV contents are parsed locally and are not uploaded. Cloud persistence stores metadata, calculation outputs, assumptions and evidence.
+- Workflow plans require approval records but do not execute external company actions.
 
-## Verification
-- GitHub Actions run: [41318838371](https://github.com/s85960833-byte/NovaAI/actions/runs/41318838371)
-- Result: PASS.
-- Verified steps: backend/frontend syntax, mode registry, BI calculations and CSV validation tests (including tenant-schema contract assertions), local Express startup, local routes and PWA assets.
-- Live Render smoke tests were skipped because this is a feature-branch run.
-- SQL has **not** yet been executed against a Postgres database. Static tests verify expected security clauses are present; they do not prove the migration executes or that live RLS behavior is correct.
+## Product scope and truthful limitations
+- Cost Leak Detector, client profitability analysis, team-level productivity indicators, heuristic project risk, assumption-based Digital Twin scenarios, workflow proposal planner, Action Proof export and company cloud workspace are implemented on the feature branch.
+- Risk scoring is an explainable heuristic, not a trained/calibrated prediction.
+- Digital Twin calculations are based on user-entered assumptions, not guaranteed savings or forecasts.
+- Productivity output is team-level and is not an individual employee ranking or surveillance feature.
+- Workflow Automation currently creates approval-gated plans/records; no external workflow connector or execution engine is connected.
+- White-label controls update workspace name/tagline/logo/colors; custom domains and complete NOVA brand removal are not implemented.
+- External accounting, HR, CRM, payment and project-management integrations are not implemented.
 
-## Provider / database gate
-- The user has an existing empty Supabase project, but its intended use for NOVA BI has not been confirmed.
-- No Supabase project was modified and no new project, paid resource, secret, or environment variable was created.
-- Before applying migrations, confirm which existing project is intended for NOVA BI and inspect its plan, region, backups, API exposure settings and current schema.
-- Supabase changed Data API exposure defaults on 2026-10-30: do not assume new public tables are automatically exposed. Explicit schema exposure and grants must be reviewed together with RLS.
-- Do not store raw CSV rows by default. Persist only user-approved metadata, aggregate results and evidence.
+## Automated verification
+- CI applies the committed migrations to a fresh PostgreSQL 17 instance and exercises tenant-isolation, membership, invitation, approval-separation, branding and audited-deletion behavior.
+- CI type-checks the Edge Function and checks the deployed endpoint for unauthenticated 401 behavior and CORS preflight, including DELETE.
+- CI runs the calculation/CSV tests, local server and PWA smoke checks.
+- A Playwright mobile-viewport test now exercises the local BI workspace and Company Cloud mock API flow, including CSV analysis, project risk, scenario calculation, workflow proposal, Action Proof export, cloud persistence without raw CSV rows, branding, and delete-control states. Latest browser run exposed a sidebar-test sequencing issue; the test was corrected and the new run is pending. Do not count it as passed until the matching latest commit's Actions run completes successfully.
+- Live Render smoke tests are skipped on the feature branch; no production deployment has been performed.
 
-## Remaining work
-1. Confirm provider/project and authentication/session model.
-2. Apply migrations only to the confirmed project, then run SQL syntax, RLS role-matrix and cross-tenant integration tests against it.
-3. Implement server-side authentication, trusted membership loading, tenant-scoped repository methods and audit writes.
-4. Add secure organization onboarding and invitations; do not create client-writable membership/approval endpoints.
-5. Add durable dataset/analysis metadata persistence with export/deletion/retention controls.
-6. Implement tested end-to-end workflow approval and execution records; no real external action until connector scopes and approval UX exist.
-7. Complete mobile/manual accessibility, security, regression and production smoke tests.
-8. Keep PR #46 draft until all release gates pass. Do not merge or deploy automatically.
+## Release blockers that still require real-world verification
+1. Perform real signup, email confirmation, sign-in, sign-out and session-refresh tests in a browser.
+2. Verify two real users in separate organizations, cross-tenant denial, role downgrade/removal and the complete invitation-email acceptance flow. CI uses a mock email/API path and does not prove SMTP delivery.
+3. Confirm Auth site URL, allowed redirect URLs, email provider/SMTP and invitation template behavior before opening signups to customers.
+4. Define retention periods, backups, restore testing, organization closure and full deletion semantics. Current UI deletion covers saved analyses and dataset metadata; it is not a complete company-account erasure workflow.
+5. Add and verify rate limiting/abuse monitoring before broad public exposure.
+6. Complete manual Android checks for touch targets, keyboard/screen-reader navigation, contrast, reduced motion, low bandwidth and performance.
+7. Complete production regression and live smoke tests only after an explicitly approved release.
+8. Review privacy notice, data processing terms, incident response and secret-rotation procedures before using real or regulated company data.
 
- 
-## Verification update (2026-11-01)
-- Latest feature-branch commit: `2b2cfea91a955fb833c38349b09daadb76cfd72f`.
-- GitHub Actions run [41320123885](https://github.com/s85960833-byte/NovaAI/actions/runs/41320123885) passed all 28 BI tests, syntax checks, mode registry checks, local server startup, local route smoke tests and PWA asset checks.
-- Fixed CSV source-row evidence so physical line numbers remain correct across blank lines and quoted multiline cells; malformed-row warnings now report physical line numbers.
-- Added a file-size check before reading an uploaded CSV into browser memory.
-- Date-only task/project deadlines are treated as due through the end of their calendar day rather than as overdue from midnight.
-- Feature-branch CI does not run live Render smoke tests; no production deployment was performed.
-- SQL migrations remain unexecuted; no Supabase project has been selected or modified. Authentication, trusted membership loading, tenant-scoped server APIs, durable shared storage, audit writes, onboarding, integrations and real workflow execution remain release blockers.
-
- 
-## Provider discovery checkpoint (read-only)
-- Supabase project `qrfwsewppafhxibdboam` is named `thakurshreyanshthakurshreyansh-eng's Project`, is ACTIVE_HEALTHY in `eu-west-1`, has no recorded migrations and currently has no tables in the `public` schema.
-- Supabase project `tfpltqrikyqbuqmbrgln` is named `research-to-code` and already has five migrations; it is not to be reused for NOVA BI.
-- No project was modified. The generic empty project is only a possible candidate, not a confirmed NOVA BI database. Obtain explicit confirmation before applying any migration or configuring app credentials.
-
-
-## Current status supersedes earlier provider gate
-The user approved the empty Supabase project `qrfwsewppafhxibdboam`. Eight migrations are applied; nine NOVA BI tables exist with RLS enabled. Security Advisor reports zero findings. Edge Function `nova-bi-api` is deployed with JWT verification. Company Cloud includes account sign-in, organizations, cloud dataset/analysis storage, workflow approval records, team invitations and branding settings. Raw CSV rows remain local. Latest CI run `41323331945` passed 35/35 tests plus Deno type-check and local smoke checks. Remaining gates: real auth and two-tenant browser tests, invitation email verification, retention/export/deletion, full custom-domain white-label, external connectors/execution, manual accessibility/performance, and live production smoke tests. Production remains unchanged and PR #46 remains Draft.
-
-
-## Latest verified checkpoint (2026-11-01)
-- Approved Supabase project `qrfwsewppafhxibdboam` now has nine applied NOVA BI migrations and nine tenant tables; RLS is enabled on every table and Security Advisor reports zero findings.
-- Supabase Edge Function `nova-bi-api` is ACTIVE at version 9 with JWT verification enabled.
-- PostgreSQL CI applies every committed migration to a fresh Postgres 17 instance and passes tenant-isolation, invitation acceptance, creator/approver separation, branding and audited deletion checks.
-- GitHub Actions run `41324374911` on commit `8db500730582188ff57d8edf56b3ba6cae36d01e` passed 36/36 BI tests, Deno type-check, live Edge Function unauthenticated 401/CORS checks, local server and PWA smoke tests.
-- Live Render checks are skipped on the feature branch; production remains unchanged and PR #46 remains Draft.
-- Not yet release-ready: actual account signup/sign-in and two-account invitation email delivery have not been tested; custom domains/full white-label, external company integrations and live workflow execution are not implemented; user-facing deletion controls and full mobile/accessibility/performance testing remain incomplete.
+## Release controls
+- Keep PR #46 Draft until all automated and manual release gates pass.
+- Do not merge to `main`, deploy to Render, enable public customer onboarding, or represent the system as enterprise-certified without explicit owner approval and verified evidence.
+- No paid resource or external service purchase has been authorized.
