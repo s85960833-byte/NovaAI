@@ -75,7 +75,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       const email = typeof input.email === "string" ? input.email.trim().toLowerCase() : "";
       const role = String(input.role || "viewer");
       if (!uuid(orgId)) return fail("A valid organization_id is required");
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254) return fail("Enter a valid email address");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return fail("Enter a valid email address");
       if (!["admin", "analyst", "viewer"].includes(role)) return fail("Unsupported invitation role");
       const { data: actor, error: actorError } = await db.from("nova_bi_memberships")
         .select("role").eq("organization_id", orgId).eq("user_id", userId).eq("status", "active").maybeSingle();
@@ -244,7 +244,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       const accent = String(input.accent_color || "");
       if (brandName.length < 2 || brandName.length > 160) return fail("Brand name must be 2 to 160 characters");
       if (tagline.length > 160) return fail("Tagline must be 160 characters or fewer");
-      if (logoUrl && (!logoUrl.startsWith("https://") || logoUrl.length > 500 || /\\s/.test(logoUrl))) return fail("Logo URL must be a valid HTTPS URL under 500 characters");
+      if (logoUrl && (!logoUrl.startsWith("https://") || logoUrl.length > 500 || /\s/.test(logoUrl))) return fail("Logo URL must be a valid HTTPS URL under 500 characters");
       if (!/^#[0-9a-f]{6}$/i.test(primary) || !/^#[0-9a-f]{6}$/i.test(accent)) return fail("Brand colors must be six-digit hex colors");
       const { data, error } = await db.from("nova_bi_branding")
         .update({ brand_name: brandName, tagline, logo_url: logoUrl, primary_color: primary, accent_color: accent })
