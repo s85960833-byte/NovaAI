@@ -174,6 +174,7 @@ assert.ok(calls.some(call => call.path === 'analyses' && call.method === 'POST' 
 await page.locator('#ncbBrandName').fill('Test Company International');
 await page.locator('#ncbTagline').fill('Operations with proof');
 await page.locator('#ncbBranding button[type="submit"]').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Company branding settings saved.'), null, { timeout: 10000 });
 assert.ok(calls.some(call => call.path === 'branding' && call.method === 'POST'));
 assert.equal(await page.locator('#ncbBrandTitle').textContent(), 'Test Company International');
 assert.equal(await page.locator('#ncbBrandTagline').textContent(), 'Operations with proof');
@@ -181,17 +182,22 @@ assert.equal(await page.locator('#ncbBrandTagline').textContent(), 'Operations w
 await page.locator('#ncbInviteEmail').fill('analyst@example.test');
 await page.locator('#ncbInviteRole').selectOption('analyst');
 await page.locator('#ncbInviteForm button[type="submit"]').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Invitation sent'), null, { timeout: 10000 });
 assert.ok(calls.some(call => call.path === 'members/invite' && call.method === 'POST' && call.body.role === 'analyst'));
 
 await page.locator('[data-accept-invite]').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Company invitation accepted.'), null, { timeout: 10000 });
 assert.ok(calls.some(call => call.path.endsWith('/accept') && call.method === 'POST'));
 
 await page.locator('[data-decision="approved"]').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Workflow decision recorded.'), null, { timeout: 10000 });
 assert.ok(calls.some(call => call.path.includes('/decision') && call.method === 'POST'));
 
 await page.locator('[data-delete-analysis="cccccccc-cccc-4ccc-8ccc-cccccccccccc"]').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Saved analysis deleted'), null, { timeout: 10000 });
 assert.ok(calls.some(call => call.path.startsWith('analyses/') && call.method === 'DELETE'));
 await page.locator('[data-delete-dataset="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"]').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Dataset metadata deleted'), null, { timeout: 10000 });
 assert.ok(calls.some(call => call.path.startsWith('datasets/') && call.method === 'DELETE'));
 
 const downloadPromise = page.waitForEvent('download');
