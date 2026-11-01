@@ -62,3 +62,10 @@ test('expense analysis flags budget overruns and large month-to-month increases 
  const r=core.analyzeExpenses([{d:'2026-01-02',c:'Cloud',a:'100'},{d:'2026-02-02',c:'Cloud',a:'140'},{d:'2026-03-02',c:'Cloud',a:'90'}],{date:'d',category:'c',amount:'a',monthlyBudget:'120'});
  assert.equal(r.budgetOverruns.length,1);assert.equal(r.budgetOverruns[0].overrun,20);assert.equal(r.spendAlerts.length,1);assert.equal(r.spendAlerts[0].changePct,40);assert.match(r.note,/do not prove fraud/);
 });
+
+test('dataset fingerprint is stable for identical input and changes when input changes',()=>{
+ const a=core.fingerprint([{amount:10},{amount:20}]);
+ assert.equal(a,core.fingerprint([{amount:10},{amount:20}]));
+ assert.notEqual(a,core.fingerprint([{amount:10},{amount:21}]));
+ assert.match(a,/^fnv1a64:/);
+});
