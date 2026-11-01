@@ -173,8 +173,11 @@ assert.ok(calls.some(call => call.path === 'datasets' && call.method === 'POST' 
 assert.ok(calls.some(call => call.path === 'analyses' && call.method === 'POST' && !Object.hasOwn(call.body, 'rows')));
 
 await page.locator('#ncbBrandName').fill('Test Company International');
+await page.locator('#ncbTagline').fill('Operations with proof');
 await page.locator('#ncbBranding button[type="submit"]').click();
 assert.ok(calls.some(call => call.path === 'branding' && call.method === 'POST'));
+assert.equal(await page.locator('#ncbBrandTitle').textContent(), 'Test Company International');
+assert.equal(await page.locator('#ncbBrandTagline').textContent(), 'Operations with proof');
 
 await page.locator('#ncbInviteEmail').fill('analyst@example.test');
 await page.locator('#ncbInviteRole').selectOption('analyst');
