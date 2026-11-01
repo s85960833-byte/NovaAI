@@ -115,6 +115,10 @@ await page.locator('#nbFile').setInputFiles({
   buffer: Buffer.from('amount,category,date\n100,Software,2026-10-01\n200,Travel,2026-10-02\n')
 });
 await page.locator('#nbAnalyze').waitFor();
+await page.waitForFunction(() => {
+  const button = document.querySelector('#nbAnalyze');
+  return !!button && !button.disabled;
+}, null, { timeout: 10000 });
 assert.equal(await page.locator('#nbAnalyze').isDisabled(), false, await page.locator('#nbDataStatus').textContent());
 await page.locator('#nbAnalyze').click();
 await page.locator('#nbBody').getByText('Verified calculation summary').waitFor();
