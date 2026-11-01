@@ -4,15 +4,22 @@ const assert=require('node:assert/strict');
 const core=require('../nova-business-core.js');
 const {readFileSync}=require('node:fs');
 test('CSV parses quoted commas, escaped quotes and CRLF',()=>{
- const r=core.parseCSV('Name,Note,Amount\r\nAcme,"Support, hosting",1,200\r\nWidget,"said ""hello""",25\r\n'.replace('1,200','1200'));
+ const r=core.parseCSV('Name,Note,Amount\r
+Acme,"Support, hosting",1,200\r
+Widget,"said ""hello""",25\r
+'.replace('1,200','1200'));
  assert.deepEqual(r.headers,['Name','Note','Amount']);assert.equal(r.rows[0].Note,'Support, hosting');assert.equal(r.rows[1].Note,'said "hello"');
 });
 test('CSV rejects malformed quotes and duplicate headers',()=>{
- assert.throws(()=>core.parseCSV('a,b\n"x,2'),/unclosed quoted/);
- assert.throws(()=>core.parseCSV('A,a\n1,2'),/duplicate column/);
+ assert.throws(()=>core.parseCSV('a,b
+"x,2'),/unclosed quoted/);
+ assert.throws(()=>core.parseCSV('A,a
+1,2'),/duplicate column/);
 });
 test('CSV flags inconsistent row widths without silently mapping them',()=>{
- const r=core.parseCSV('a,b\n1,2\n3');assert.equal(r.rowCount,1);assert.equal(r.warnings.length,1);
+ const r=core.parseCSV('a,b
+1,2
+3');assert.equal(r.rowCount,1);assert.equal(r.warnings.length,1);
 });
 test('expense analysis totals categories and months with invalid-row accounting',()=>{
  const r=core.analyzeExpenses([{date:'2026-01-03',category:'Cloud',amount:'100.50'},{date:'2026-01-14',category:'Cloud',amount:'50'},{date:'bad',category:'Travel',amount:'-2'}],{date:'date',category:'category',amount:'amount',currency:'INR'});
@@ -53,5 +60,7 @@ test('business workspace does not upload or persist raw company CSV data',()=>{
 test('invalid numeric values are never silently treated as zero',()=>{
  assert.equal(core.number('not-a-number'),null);
  assert.equal(core.number('Infinity'),null);
- const r=core.analyzeExpenses([{amount:'bad',category:'Cloud'}],{amount:'amount',category:'category'});\n assert.equal(r.validRows,0);assert.equal(r.invalidRows,1);assert.equal(r.total,0);\n assert.throws(()=>core.analyzeExpenses([],{ }),/Choose a column for amount/);
+ const r=core.analyzeExpenses([{amount:'bad',category:'Cloud'}],{amount:'amount',category:'category'});
+ assert.equal(r.validRows,0);assert.equal(r.invalidRows,1);assert.equal(r.total,0);
+ assert.throws(()=>core.analyzeExpenses([],{ }),/Choose a column for amount/);
 });
