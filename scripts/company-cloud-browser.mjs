@@ -112,7 +112,7 @@ await page.locator('#nbNav [data-view="data"]').click();
 await page.locator('#nbFile').setInputFiles({
   name: 'expenses.csv',
   mimeType: 'text/csv',
-  buffer: Buffer.from('amount,category,date\\n100,Software,2026-10-01\\n200,Travel,2026-10-02\\n')
+  buffer: Buffer.from('amount,category,date\n100,Software,2026-10-01\n200,Travel,2026-10-02\n')
 });
 await page.locator('#nbAnalyze').waitFor();
 assert.equal(await page.locator('#nbAnalyze').isDisabled(), false);
@@ -143,7 +143,7 @@ await page.locator('#nbProofExport').waitFor();
 const proofDownloadPromise = page.waitForEvent('download');
 await page.locator('#nbProofExport').click();
 const proofDownload = await proofDownloadPromise;
-assert.match(proofDownload.suggestedFilename(), /nova-action-proof\\.json$/);
+assert.match(proofDownload.suggestedFilename(), /nova-action-proof\.json$/);
 await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaBusiness').evaluate(el => el.classList.contains('show')), false);
 await page.locator('#menu').click();
