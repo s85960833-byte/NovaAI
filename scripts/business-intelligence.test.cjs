@@ -290,6 +290,10 @@ test('NOVA BI supports explicit company JSON export and audited admin data delet
 test('NOVA BI API rate limits are atomic, server-only and stricter for invitations',()=>{
  const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000010_nova_bi_api_rate_limits.sql'),'utf8');
  const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ const denyPolicy=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000011_nova_bi_rate_limit_deny_policy.sql'),'utf8');
+ assert.ok(denyPolicy.includes('to anon, authenticated'));
+ assert.ok(denyPolicy.includes('using (false)'));
+ assert.ok(denyPolicy.includes('with check (false)'));
  assert.ok(migration.includes('create table if not exists public.nova_bi_rate_limits'));
  assert.ok(migration.includes('alter table public.nova_bi_rate_limits enable row level security'));
  assert.ok(migration.includes('revoke all on table public.nova_bi_rate_limits from public, anon, authenticated'));
