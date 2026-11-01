@@ -31,11 +31,14 @@ for (const [label, fragment] of [
 ]) if (!tier.includes(fragment)) throw new Error('Workspace entry point missing: ' + label);
 if (!workspace.includes("openGroup(group){if(!REG.groups.some(g=>g.id===group))return false;show(group);return true;}")) throw new Error('Workspace group launcher contract missing');
 if (!registry.includes("{id:'builder',group:'create'")) throw new Error('Create workspace has no App & Website Builder mode');
+if (!registry.includes("{id:'voice',group:'voice'")) throw new Error('Voice workspace has no dedicated voice mode');
+if (!tier.includes("tr=(a,b)=>a") || !workspace.includes("tr=(en,hi)=>en")) throw new Error('New workspace UI must use English labels');
+if (!html.includes("h.id='hi'")) throw new Error('Legacy home renderer no longer creates the S-Tier mount point');
+
 
 for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
 
 if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
-if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>html.includes(x))) throw new Error('homepage does not load the four-workspace scripts');
 if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>html.includes(x))) throw new Error('NOVA four-workspace UI scripts are not connected in the homepage');
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>html.includes(x))) throw new Error('Cosmic India dashboard UI components missing');
 if (!html.includes('localStorage.getItem(\'nova\')') || !html.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Existing Nova chat storage contract changed');
