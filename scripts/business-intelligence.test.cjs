@@ -57,3 +57,8 @@ test('invalid numeric values are never silently treated as zero',()=>{
  assert.equal(r.validRows,0);assert.equal(r.invalidRows,1);assert.equal(r.total,0);
  assert.throws(()=>core.analyzeExpenses([],{ }),/Choose a column for amount/);
 });
+
+test('expense analysis flags budget overruns and large month-to-month increases as review signals',()=>{
+ const r=core.analyzeExpenses([{d:'2026-01-02',c:'Cloud',a:'100'},{d:'2026-02-02',c:'Cloud',a:'140'},{d:'2026-03-02',c:'Cloud',a:'90'}],{date:'d',category:'c',amount:'a',monthlyBudget:'120'});
+ assert.equal(r.budgetOverruns.length,1);assert.equal(r.budgetOverruns[0].overrun,20);assert.equal(r.spendAlerts.length,1);assert.equal(r.spendAlerts[0].changePct,40);assert.match(r.note,/do not prove fraud/);
+});
