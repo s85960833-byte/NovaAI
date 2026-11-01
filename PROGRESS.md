@@ -150,3 +150,5 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Both push and pull-request GitHub Actions runs passed on `abd466aca2d6d65a81cd279db34105290c9ddf76`; the PR run's local verification job passed, while live Render smoke steps were skipped.
 - Updated the answer-feedback action label to `Report incorrect answer` to keep the new interface English-only.
 - Full Android/browser interaction checks for workspace routing, legacy chat, Settings, microphone permissions and image flow remain unverified. Keep this PR in Draft and do not merge or deploy until those checks are completed.
+
+- Follow-up: the Voice Chat home card now opens the existing full Live Voice flow (speech recognition plus spoken replies) when available, with the dedicated Voice mode group as fallback. Added a CI assertion so future changes cannot silently bypass the existing live voice path.
