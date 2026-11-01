@@ -3,7 +3,8 @@ insert into auth.users(id,email) values
  ('11111111-1111-4111-8111-111111111111','bi-owner@example.invalid'),
  ('22222222-2222-4222-8222-222222222222','bi-outsider@example.invalid'),
  ('33333333-3333-4333-8333-333333333333','bi-admin@example.invalid'),
- ('44444444-4444-4444-8444-444444444444','bi-invitee@example.invalid');
+ ('44444444-4444-4444-8444-444444444444','bi-invitee@example.invalid'),
+ ('55555555-5555-4555-8555-555555555555','bi-analyst@example.invalid');
 
 set role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
@@ -53,6 +54,12 @@ insert into public.nova_bi_memberships(organization_id,user_id,role,status)
 values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','33333333-3333-4333-8333-333333333333','admin','active');
 insert into public.nova_bi_memberships(organization_id,user_id,role,status)
 values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','44444444-4444-4444-8444-444444444444','viewer','invited');
+insert into public.nova_bi_memberships(organization_id,user_id,role,status)
+values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','55555555-5555-4555-8555-555555555555','analyst','active');
+insert into public.nova_bi_workflow_proposals(id,organization_id,created_by,title,status,proposal_json,idempotency_key)
+values('abababab-abab-4bab-8bab-abababababab','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+'11111111-1111-4111-8111-111111111111','Analyst role approval test','proposed',
+'{"steps":["review"]}'::jsonb,'idempotency-acme-analyst-001');
 
 set role authenticated;
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
@@ -87,6 +94,23 @@ end $$;
 reset role;
 
 set role authenticated;
+select set_config('request.jwt.claim.sub','55555555-5555-4555-8555-555555555555',false);
+update public.nova_bi_workflow_proposals set status='approved'
+where id='abababab-abab-4bab-8bab-abababababab';
+update public.nova_bi_branding set brand_name='Analyst Must Not Rebrand'
+where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+do $
+begin
+  if (select status from public.nova_bi_workflow_proposals where id='abababab-abab-4bab-8bab-abababababab') <> 'proposed' then
+    raise exception 'Analyst unexpectedly approved a workflow';
+  end if;
+  if (select brand_name from public.nova_bi_branding where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') = 'Analyst Must Not Rebrand' then
+    raise exception 'Analyst unexpectedly changed company branding';
+  end if;
+end $;
+reset role;
+
+set role authenticated;
 select set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',false);
 do $$
 begin
@@ -100,12 +124,29 @@ end $$;
 update public.nova_bi_memberships set status='active'
 where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
   and user_id='44444444-4444-4444-8444-444444444444' and status='invited';
-do $$
+do $
 begin
   if (select count(*) from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd') <> 1 then
     raise exception 'Accepted member should now read tenant datasets';
   end if;
-end $$;
+end $;
+do $
+begin
+  begin
+    insert into public.nova_bi_datasets(organization_id,created_by,name,source_type,fingerprint,row_count,column_names)
+    values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','44444444-4444-4444-8444-444444444444',
+      'Viewer write must fail','csv','viewer-write-denied-001',1,'["amount"]'::jsonb);
+    raise exception 'Viewer unexpectedly created a dataset';
+  exception when insufficient_privilege then null;
+  end;
+end $;
+delete from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+do $
+begin
+  if (select count(*) from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd') <> 1 then
+    raise exception 'Viewer unexpectedly deleted a dataset';
+  end if;
+end $;
 reset role;
 
 set role authenticated;
