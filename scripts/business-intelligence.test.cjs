@@ -253,6 +253,8 @@ test('NOVA BI team invitations are owner/admin gated and accepted only by the in
  assert.ok(migration.includes('nova_bi_invite_accept_guard'));
  assert.ok(migration.includes('grant update(status) on public.nova_bi_memberships to authenticated'));
  assert.ok(edge.includes('auth.admin.inviteUserByEmail'));
+ assert.ok(edge.includes('error: auditError'));
+ assert.ok(edge.includes('invitation was issued, but its audit record could not be saved'));
  assert.ok(edge.includes(String.raw`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`));
  assert.ok(edge.includes(String.raw`/\s/.test(logoUrl)`));
  assert.ok(edge.includes('role === "admin" && actor.role !== "owner"'));
