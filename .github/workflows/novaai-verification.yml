@@ -20,6 +20,11 @@ jobs:
         run: node scripts/check.mjs
       - name: Check isolated mode registry
         run: node scripts/modes-check.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check authenticated NOVA BI Edge Function
+        run: deno check --no-lock supabase/functions/nova-bi-api/index.ts
       - name: Test NOVA Business Intelligence calculations and CSV validation
         run: node --test scripts/business-intelligence.test.cjs
       - name: Start local server with test-only credentials
