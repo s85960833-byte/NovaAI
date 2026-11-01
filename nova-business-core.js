@@ -16,6 +16,8 @@
   };
   const date=(v)=>{
     const s=text(v);if(!/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?)?$/.test(s))return null;
+    const parts=s.slice(0,10).split('-').map(Number),check=new Date(Date.UTC(parts[0],parts[1]-1,parts[2]));
+    if(check.getUTCFullYear()!==parts[0]||check.getUTCMonth()!==parts[1]-1||check.getUTCDate()!==parts[2])return null;
     const n=Date.parse(s);return Number.isFinite(n)?n:null;
   };
   function parseCSV(input,options){
@@ -60,7 +62,7 @@
       const item={};headers.forEach((h,i)=>item[h]=cells[i]);records.push(item);
     });
     if(!records.length)warnings.push('No valid data rows were found.');
-    return {headers,rows:records,warnings,rowCount:records.length};
+    return {headers,rows:records,warnings,rowCount:records.length,sourceRowCount:matrix.length};
   }
   function requireField(mapping,key){
     const value=text(mapping&&mapping[key]);if(!value)fail('Choose a column for '+key+'.');return value;
@@ -103,16 +105,17 @@
     if(!Array.isArray(rows))fail('Task rows must be an array.');
     const statusKey=requireField(mapping,'status'),teamKey=text(mapping&&mapping.team),createdKey=text(mapping&&mapping.createdAt),completedKey=text(mapping&&mapping.completedAt),dueKey=text(mapping&&mapping.dueDate);
     const now=nowValue==null?Date.now():date(nowValue);if(now===null)fail('Reference date must be an ISO date.');
-    const done=/^(done|complete|completed|closed|resolved)$/i,teams=new Map();let completed=0,overdue=0,open=0,cycleTotal=0,cycleCount=0,invalidDates=0;
+    const done=/^(done|complete|completed|closed|resolved)$/i,teams=new Map();let completed=0,overdue=0,open=0,cycleTotal=0,cycleCount=0,invalidDates=0,invalidRows=0;
     for(const row of rows){
-      const status=text(row[statusKey]),isDone=done.test(status),team=teamKey?(text(row[teamKey])||'Unassigned'):'All teams';
+      const status=text(row[statusKey]);if(!status){invalidRows++;continue}
+      const isDone=done.test(status),team=teamKey?(text(row[teamKey])||'Unassigned'):'All teams';
       const g=teams.get(team)||{team,total:0,completed:0,open:0,overdue:0,cycleDays:[]};g.total++;
       if(isDone){completed++;g.completed++;const a=createdKey?date(row[createdKey]):null,b=completedKey?date(row[completedKey]):null;if(a!==null&&b!==null&&b>=a){const days=(b-a)/86400000;cycleTotal+=days;cycleCount++;g.cycleDays.push(days)}else if(createdKey||completedKey)invalidDates++}
       else{open++;g.open++;const due=dueKey?date(row[dueKey]):null;if(dueKey&&due===null)invalidDates++;if(due!==null&&due<now){overdue++;g.overdue++}}
       teams.set(team,g);
     }
     const total=rows.length;
-    return {kind:'tasks',total,completed,open,overdue,completionPct:total?round(completed/total*100):0,overdueOpenPct:open?round(overdue/open*100):0,averageCycleDays:cycleCount?round(cycleTotal/cycleCount,2):null,invalidDateRows:invalidDates,byTeam:[...teams.values()].map(g=>({team:g.team,total:g.total,completed:g.completed,open:g.open,overdue:g.overdue,averageCycleDays:g.cycleDays.length?round(g.cycleDays.reduce((a,b)=>a+b,0)/g.cycleDays.length,2):null})).sort((a,b)=>a.team.localeCompare(b.team)),note:'Team-level operational indicators only. They do not measure individual employee effort or performance.'};
+    return {kind:'tasks',total,validRows:total-invalidRows,invalidRows,completed,open,overdue,completionPct:total?round(completed/total*100):0,overdueOpenPct:open?round(overdue/open*100):0,averageCycleDays:cycleCount?round(cycleTotal/cycleCount,2):null,invalidDateRows:invalidDates,byTeam:[...teams.values()].map(g=>({team:g.team,total:g.total,completed:g.completed,open:g.open,overdue:g.overdue,averageCycleDays:g.cycleDays.length?round(g.cycleDays.reduce((a,b)=>a+b,0)/g.cycleDays.length,2):null})).sort((a,b)=>a.team.localeCompare(b.team)),note:'Team-level operational indicators only. They do not measure individual employee effort or performance.'};
   }
   function scoreProjectRisk(project,nowValue){
     const p=project||{},due=date(p.dueDate),reference=nowValue==null?Date.now():date(nowValue);
@@ -151,6 +154,6 @@
     return {kind:'action-proof',createdAt:new Date().toISOString(),metadata:metadata||{},passed:items.filter(x=>x.passed).length,failed:items.filter(x=>!x.passed).length,total:items.length,status:items.length&&items.every(x=>x.passed)?'PASS':'INCOMPLETE',checks:items,note:'This proves only that the listed software checks ran and passed; it does not prove real-world savings or business outcomes.'};
   }
   function sortedMap(map){return [...map.entries()].map(([name,value])=>({name,value:round(value)})).sort((a,b)=>b.value-a.value)}
-  function round(n,places){const p=10**(places==null?2:places);return Math.round((n+Number.EPSILON)*p)/p}
+  function round(n,places){if(!Number.isFinite(n))fail('Calculation exceeded the supported numeric range.');const p=10**(places==null?2:places),result=Math.round((n+Number.EPSILON)*p)/p;if(!Number.isFinite(result))fail('Calculation exceeded the supported numeric range.');return result}
   return Object.freeze({parseCSV,analyzeExpenses,analyzeClients,analyzeTasks,scoreProjectRisk,simulateScenario,makeProof,fingerprint,number,date,MAX_CSV_BYTES,MAX_ROWS});
 });
