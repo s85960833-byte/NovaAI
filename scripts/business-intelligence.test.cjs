@@ -96,3 +96,15 @@ test('expense findings cite original CSV source rows, including after malformed 
  assert.deepEqual(r.evidenceByMonth.map(x=>x.sourceRows[0]),[2,4]);
  assert.equal(r.spendAlerts[0].sourceRows[0],4);
 });
+
+test('client profitability findings retain source-row references',()=>{
+ const parsed=core.parseCSV(['client,revenue,cost','A,1000,600','B,500,700','A,200,50'].join(LF));
+ const r=core.analyzeClients(parsed.rows,{client:'client',revenue:'revenue',directCost:'cost'});
+ assert.deepEqual(r.evidenceByClient.find(x=>x.client==='A').sourceRows,[2,4]);
+ assert.equal(r.evidenceByClient.find(x=>x.client==='A').rowCount,2);
+});
+test('team productivity results retain source-row references',()=>{
+ const parsed=core.parseCSV(['team,status','Alpha,Done','Beta,Open','Alpha,Open'].join(LF));
+ const r=core.analyzeTasks(parsed.rows,{team:'team',status:'status'},'2026-01-01');
+ assert.deepEqual(r.byTeam.find(x=>x.team==='Alpha').sourceRows,[2,4]);
+});
