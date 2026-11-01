@@ -36,10 +36,10 @@ function analysisView(a){
  if(a.kind==='expenses'){
   html+=kpi('Total valid spend',(a.currency||'')+' '+fmt(a.total))+kpi('Valid / invalid rows',a.validRows+' / '+a.invalidRows);
   if(a.monthlyBudget!==null)html+=kpi('Monthly budget',fmt(a.monthlyBudget))+kpi('Months over budget',a.budgetOverruns.length);
-  html+='</div><h3>Spend by category</h3>'+table(['Category','Amount'],a.byCategory.map(x=>[x.name,fmt(x.value)]));
-  html+='<h3>Monthly spend</h3>'+table(['Month','Spend'],[...a.byMonth].map(x=>[x.name,fmt(x.value)]));
-  if(a.budgetOverruns.length)html+='<h3>Budget overruns to review</h3>'+table(['Month','Spend','Budget','Overrun'],a.budgetOverruns.map(x=>[x.month,fmt(x.spend),fmt(x.budget),fmt(x.overrun)]));
-  if(a.spendAlerts.length)html+='<h3>Spend increases to review</h3>'+table(['Month','Change','Change %'],a.spendAlerts.map(x=>[x.month,fmt(x.change),x.changePct===null?'N/A':fmt(x.changePct)+'%']));
+  html+='</div><h3>Spend by category</h3>'+table(['Category','Amount','Source rows'],a.byCategory.map(x=>{const e=a.evidenceByCategory.find(y=>y.name===x.name);return [x.name,fmt(x.value),e?e.sourceRows.join(', '):'Not available']}));
+  html+='<h3>Monthly spend</h3>'+table(['Month','Spend','Source rows'],a.byMonth.map(x=>{const e=a.evidenceByMonth.find(y=>y.month===x.name);return [x.name,fmt(x.value),e?e.sourceRows.join(', '):'Not available']}));
+  if(a.budgetOverruns.length)html+='<h3>Budget overruns to review</h3>'+table(['Month','Spend','Budget','Overrun','Source rows'],a.budgetOverruns.map(x=>[x.month,fmt(x.spend),fmt(x.budget),fmt(x.overrun),x.sourceRows.join(', ')]));
+  if(a.spendAlerts.length)html+='<h3>Spend increases to review</h3>'+table(['Month','Change','Change %','Source rows'],a.spendAlerts.map(x=>[x.month,fmt(x.change),x.changePct===null?'N/A':fmt(x.changePct)+'%',x.sourceRows.join(', ')]));
  }else if(a.kind==='clients'){
   html+=kpi('Revenue',fmt(a.totalRevenue))+kpi('Direct costs',fmt(a.totalDirectCost))+kpi('Contribution',fmt(a.totalContribution))+kpi('Clients',a.clients.length)+'</div><h3>Client contribution</h3>'+table(['Client','Revenue','Direct cost','Contribution','Margin'],a.clients.map(x=>[x.client,fmt(x.revenue),fmt(x.directCost),fmt(x.contribution),x.marginPct===null?'N/A':fmt(x.marginPct)+'%']));
  }else{
