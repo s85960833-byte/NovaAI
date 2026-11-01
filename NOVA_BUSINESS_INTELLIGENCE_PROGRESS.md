@@ -5,7 +5,7 @@ Updated: 2026-11-01
 ## Current release state
 - Feature branch: `feature/nova-business-intelligence`.
 - Review: [Draft PR #46](https://github.com/s85960833-byte/NovaAI/pull/46).
-- Latest commit at this checkpoint: `833c51b8dc2e6c0619322e8c1e67054173e3af77`.
+- Latest verified commit: `d2671cc94416226e796951f59b14de655f163fee`.
 - Production `main` and Render service `srv-dbidhpc9v7es73d6ia80` remain untouched. No merge or production deployment has been performed.
 - Approved NOVA BI Supabase project: `qrfwsewppafhxibdboam`. The separate Research-to-Code project has not been used.
 
@@ -31,8 +31,11 @@ Updated: 2026-11-01
 ## Automated verification
 - CI applies the committed migrations to a fresh PostgreSQL 17 instance and exercises tenant-isolation, membership, invitation, approval-separation, branding and audited-deletion behavior.
 - CI type-checks the Edge Function and checks the deployed endpoint for unauthenticated 401 behavior and CORS preflight, including DELETE.
-- CI runs the calculation/CSV tests, local server and PWA smoke checks.
-- A Playwright mobile-viewport test now exercises the local BI workspace and Company Cloud mock API flow, including CSV analysis, project risk, scenario calculation, workflow proposal, Action Proof export, cloud persistence without raw CSV rows, branding, and delete-control states. Latest browser run exposed a sidebar-test sequencing issue; the test was corrected and the new run is pending. Do not count it as passed until the matching latest commit's Actions run completes successfully.
+- GitHub Actions run [41326890751](https://github.com/s85960833-byte/NovaAI/actions/runs/41326890751) passed on the latest verified commit: 36/36 BI tests, fresh PostgreSQL 17 migrations/RLS integration, Deno type-check, deployed Edge Function unauthenticated 401/CORS checks, local server/PWA smoke tests, and the Playwright 390×844 mobile browser flow.
+- The Playwright flow exercises CSV analysis, project risk, scenario calculation, workflow planning, Action Proof export, cloud save without raw CSV rows, branding, invitations, invite acceptance UI, approval, audited deletion controls, JSON export and Escape-key dialog close.
+- Live Supabase SQL checks were also run inside transactions and rolled back. They verified tenant isolation, owner bootstrap, viewer write/delete denial, analyst approval/branding denial, admin approval of another member's proposal, admin owner-role escalation denial, invite acceptance and deletion audit evidence. A follow-up count confirmed zero test organizations/users remained.
+- Latest live Edge Function logs show unauthenticated `GET /me` requests return 401 and CORS preflight returns 204, on deployed function version 12.
+- Security Advisor reports zero findings. Performance Advisor currently reports 17 unused-index INFO notices on the newly created low-traffic schema; these are observations, not security findings or runtime failures.
 - Live Render smoke tests are skipped on the feature branch; no production deployment has been performed.
 
 ## Release blockers that still require real-world verification
