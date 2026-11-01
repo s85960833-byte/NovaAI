@@ -108,10 +108,10 @@
     const statusKey=requireField(mapping,'status'),teamKey=text(mapping&&mapping.team),createdKey=text(mapping&&mapping.createdAt),completedKey=text(mapping&&mapping.completedAt),dueKey=text(mapping&&mapping.dueDate);
     const now=nowValue==null?Date.now():date(nowValue);if(now===null)fail('Reference date must be an ISO date.');
     const done=/^(done|complete|completed|closed|resolved)$/i,teams=new Map();let completed=0,overdue=0,open=0,cycleTotal=0,cycleCount=0,invalidDates=0,invalidRows=0;
-    for(const row of rows){
-      const status=text(row[statusKey]);if(!status){invalidRows++;continue}
+    for(let index=0;index<rows.length;index++){
+      const row=rows[index],status=text(row[statusKey]);if(!status){invalidRows++;continue}
       const isDone=done.test(status),team=teamKey?(text(row[teamKey])||'Unassigned'):'All teams';
-      const g=teams.get(team)||{team,total:0,completed:0,open:0,overdue:0,cycleDays:[],sourceRows:[]};g.total++;g.sourceRows.push(Number(row.__novaSourceRowNumber)||rows.indexOf(row)+2);
+      const g=teams.get(team)||{team,total:0,completed:0,open:0,overdue:0,cycleDays:[],sourceRows:[]};g.total++;g.sourceRows.push(Number(row.__novaSourceRowNumber)||index+2);
       if(isDone){completed++;g.completed++;const a=createdKey?date(row[createdKey]):null,b=completedKey?date(row[completedKey]):null;if(a!==null&&b!==null&&b>=a){const days=(b-a)/86400000;cycleTotal+=days;cycleCount++;g.cycleDays.push(days)}else if(createdKey||completedKey)invalidDates++}
       else{open++;g.open++;const due=dueKey?date(row[dueKey]):null;if(dueKey&&due===null)invalidDates++;if(due!==null&&due<now){overdue++;g.overdue++}}
       teams.set(team,g);
