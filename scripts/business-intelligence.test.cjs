@@ -285,3 +285,23 @@ test('NOVA BI supports explicit company JSON export and audited admin data delet
  assert.ok(cloud.includes('Permanently delete this saved analysis?'));
  assert.ok(cloud.includes('Permanently delete this dataset metadata?'));
 });
+
+
+test('NOVA BI API rate limits are atomic, server-only and stricter for invitations',()=>{
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000010_nova_bi_api_rate_limits.sql'),'utf8');
+ const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ assert.ok(migration.includes('create table if not exists public.nova_bi_rate_limits'));
+ assert.ok(migration.includes('alter table public.nova_bi_rate_limits enable row level security'));
+ assert.ok(migration.includes('revoke all on table public.nova_bi_rate_limits from public, anon, authenticated'));
+ assert.ok(migration.includes('security definer'));
+ assert.ok(migration.includes('set search_path = public, pg_temp'));
+ assert.ok(migration.includes('revoke all on function public.nova_bi_consume_rate_limit(uuid, text, integer, integer) from public, anon, authenticated'));
+ assert.ok(migration.includes('to service_role'));
+ assert.ok(edge.includes('nova_bi_consume_rate_limit'));
+ assert.ok(edge.includes('p_bucket: "api"'));
+ assert.ok(edge.includes('p_limit: 120'));
+ assert.ok(edge.includes('p_bucket: "invite"'));
+ assert.ok(edge.includes('p_limit: 5'));
+ assert.ok(edge.includes('return rateLimited(60)'));
+ assert.ok(edge.includes('return rateLimited(3600)'));
+});
