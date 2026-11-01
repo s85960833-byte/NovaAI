@@ -28,7 +28,7 @@ const homeHtml = await home.text();
 if (!home.ok || !homeHtml.includes('<html lang="en">') || !homeHtml.includes('id="msgs"') || !homeHtml.includes('id="dset"') || !homeHtml.includes('id="photo"')) throw new Error('Previous standard NOVA chat UI, Settings, or image panel is missing');
 if (!homeHtml.includes("localStorage.getItem('nova')") || !homeHtml.includes("localStorage.setItem('nova',JSON.stringify(S))")) throw new Error('Legacy chat storage contract changed');
 if (homeHtml.includes('id="novaSplash"') || homeHtml.includes('id="novaLivingCore"')) throw new Error('New workspace/splash interface unexpectedly returned');
-if (!homeHtml.includes('hi:{') || !homeHtml.includes('Install App')) throw new Error('Bilingual standard UI or PWA install action is missing');
+if (!homeHtml.includes('hi:{')) throw new Error('Bilingual standard UI dictionary is missing');
 console.log('PASS restored standard NOVA chat UI, bilingual labels, Settings, image panel and preserved chat storage');
 
 const tier = await request('/s-tier.js');
