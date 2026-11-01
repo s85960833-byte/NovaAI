@@ -20,6 +20,7 @@
     if(check.getUTCFullYear()!==parts[0]||check.getUTCMonth()!==parts[1]-1||check.getUTCDate()!==parts[2])return null;
     const n=Date.parse(s);return Number.isFinite(n)?n:null;
   };
+  const deadlineDate=(v)=>{const value=text(v);if(/^\\d{4}-\\d{2}-\\d{2}$/.test(value)){const stamp=date(value);return stamp===null?null:stamp+86400000-1;}return date(value);};
   function parseCSV(input,options){
     const opts=options||{},maxBytes=opts.maxBytes||MAX_CSV_BYTES,maxRows=opts.maxRows||MAX_ROWS;
     if(typeof input!=='string')fail('CSV input must be text.');
@@ -118,14 +119,14 @@
       const isDone=done.test(status),team=teamKey?(text(row[teamKey])||'Unassigned'):'All teams';
       const g=teams.get(team)||{team,total:0,completed:0,open:0,overdue:0,cycleDays:[],sourceRows:[]};g.total++;g.sourceRows.push(Number(row.__novaSourceRowNumber)||index+2);
       if(isDone){completed++;g.completed++;const a=createdKey?date(row[createdKey]):null,b=completedKey?date(row[completedKey]):null;if(a!==null&&b!==null&&b>=a){const days=(b-a)/86400000;cycleTotal+=days;cycleCount++;g.cycleDays.push(days)}else if(createdKey||completedKey)invalidDates++}
-      else{open++;g.open++;const due=dueKey?date(row[dueKey]):null;if(dueKey&&due===null)invalidDates++;if(due!==null&&due<now){overdue++;g.overdue++}}
+      else{open++;g.open++;const due=dueKey?deadlineDate(row[dueKey]):null;if(dueKey&&due===null)invalidDates++;if(due!==null&&due<now){overdue++;g.overdue++}}
       teams.set(team,g);
     }
     const sourceRows=rows.length,total=sourceRows-invalidRows;
     return {kind:'tasks',total,sourceRows,validRows:total,invalidRows,completed,open,overdue,completionPct:total?round(completed/total*100):0,overdueOpenPct:open?round(overdue/open*100):0,averageCycleDays:cycleCount?round(cycleTotal/cycleCount,2):null,invalidDateRows:invalidDates,byTeam:[...teams.values()].map(g=>({team:g.team,total:g.total,completed:g.completed,open:g.open,overdue:g.overdue,averageCycleDays:g.cycleDays.length?round(g.cycleDays.reduce((a,b)=>a+b,0)/g.cycleDays.length,2):null,sourceRows:g.sourceRows})).sort((a,b)=>a.team.localeCompare(b.team)),note:'Team-level operational indicators only. They do not measure individual employee effort or performance.'};
   }
   function scoreProjectRisk(project,nowValue){
-    const p=project||{},due=date(p.dueDate),reference=nowValue==null?Date.now():date(nowValue);
+    const p=project||{},due=deadlineDate(p.dueDate),reference=nowValue==null?Date.now():date(nowValue);
     if(due===null)fail('A valid ISO due date is required for project risk review.');
     if(reference===null)fail('Reference date must be an ISO date.');
     const progress=number(p.progressPct);if(progress===null||progress<0||progress>100)fail('Progress must be between 0 and 100.');
