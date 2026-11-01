@@ -70,13 +70,13 @@ Initial target segment: small IT services companies and software agencies. Do no
 - Show data coverage, last import, selected date range, key metrics, warnings and links to the underlying rows.
 - Distinguish demo/sample data from user-provided data at all times.
 
-## Security and persistence gate
-The current app has no real login, tenant isolation, business-data database or role-based access. Until a secure persistence/authentication design is implemented and explicitly approved:
-- V1 imports and calculations must remain browser-local by default.
-- Do not upload raw company CSVs to the server automatically.
-- AI explanations must disclose what selected summary/context is sent to the configured model provider and require user action.
-- Do not advertise this local-only prototype as enterprise-ready or multi-user.
-- Before real company rollout, implement and test authentication, tenant-scoped authorization, server-side validation, encryption in transit/at rest through the selected provider, audit logs, retention/deletion/export and backup/restore.
+## Security and persistence status
+- Supabase Auth and a JWT-protected `nova-bi-api` Edge Function are deployed on the approved NOVA BI project.
+- Nine tenant tables have RLS enabled. Organization bootstrap, invite acceptance, approval separation and deletion audit writes are guarded by database triggers.
+- Cloud save stores dataset metadata and calculated aggregates/evidence only; raw CSV file contents remain in the browser.
+- Owner/admin controls include invitations, company branding, workflow approvals, company JSON export and audited deletion of saved analyses/dataset metadata.
+- Keep the feature on its isolated branch. Do not market it as enterprise-ready or deploy it until two-account browser testing, email delivery, retention/backup/restore, rate limiting, manual Android checks and production regression are complete.
+- The Digital Twin is assumption-based arithmetic, Project Risk is heuristic, and Workflow Automation remains a plan/checklist. None should be described as a validated prediction or live external execution.
 
 ## Delivery gates
 1. Complete source/route/UI/test audit and record baseline.
@@ -90,11 +90,13 @@ The current app has no real login, tenant isolation, business-data database or r
 9. Deploy only after CI is green; verify production routes and manual Android interactions separately.
 
 ## Known limits and open decisions
-- No paid API or database has been approved.
-- Real multi-user/company data storage is blocked until authentication, tenant isolation and persistence are selected.
-- AI model/provider availability and free-tier quotas are external dependencies and must be reported honestly.
-- Physical Android microphone/camera and touch testing cannot be replaced by CI.
-- 3–4 weeks is an estimate, not a guarantee; scope changes or provider/security blockers may extend it.
+- The approved Supabase project is configured; no paid upgrade or external provider purchase has been authorized.
+- Real SMTP invitation delivery depends on Supabase Auth email-provider configuration and needs a two-account end-to-end test.
+- External accounting, CRM, HR and project-management integrations are not implemented.
+- Custom domains/full brand removal and live workflow execution are not implemented.
+- Retention, backup/restore and incident-response procedures need owner review.
+- Physical Android touch/accessibility and production live smoke tests cannot be replaced by CI.
+- 3–4 weeks is an estimate, not a guarantee; release remains blocked until the stated gates pass.
 
 
 ## Implementation progress update (2026-11-01)
