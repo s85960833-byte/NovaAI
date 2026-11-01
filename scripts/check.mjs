@@ -27,7 +27,7 @@ for (const [label, fragment] of [
   ['Chat & Study route', "window.NovaModeWorkspace?.openGroup('chat-study')"],
   ['Create route', "window.NovaModeWorkspace?.openGroup('create')"],
   ['Explore route', "window.NovaModeWorkspace?.openGroup('explore')"],
-  ['Voice Chat route', "const v=$('lv')"]
+  ['Voice Chat route', "window.NovaModeWorkspace?.openGroup('voice')"]
 ]) if (!tier.includes(fragment)) throw new Error('Workspace entry point missing: ' + label);
 if (!workspace.includes("openGroup(group){if(!REG.groups.some(g=>g.id===group))return false;show(group);return true;}")) throw new Error('Workspace group launcher contract missing');
 if (!registry.includes("{id:'builder',group:'create'")) throw new Error('Create workspace has no App & Website Builder mode');
