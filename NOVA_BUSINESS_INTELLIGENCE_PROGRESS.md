@@ -50,3 +50,9 @@ Updated: 2026-11-01
 - Date-only task/project deadlines are treated as due through the end of their calendar day rather than as overdue from midnight.
 - Feature-branch CI does not run live Render smoke tests; no production deployment was performed.
 - SQL migrations remain unexecuted; no Supabase project has been selected or modified. Authentication, trusted membership loading, tenant-scoped server APIs, durable shared storage, audit writes, onboarding, integrations and real workflow execution remain release blockers.
+
+ 
+## Provider discovery checkpoint (read-only)
+- Supabase project `qrfwsewppafhxibdboam` is named `thakurshreyanshthakurshreyansh-eng's Project`, is ACTIVE_HEALTHY in `eu-west-1`, has no recorded migrations and currently has no tables in the `public` schema.
+- Supabase project `tfpltqrikyqbuqmbrgln` is named `research-to-code` and already has five migrations; it is not to be reused for NOVA BI.
+- No project was modified. The generic empty project is only a possible candidate, not a confirmed NOVA BI database. Obtain explicit confirmation before applying any migration or configuring app credentials.
