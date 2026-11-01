@@ -1,5 +1,5 @@
 -- NOVA Business Intelligence: tenant-isolated metadata and evidence schema.
--- This migration is intentionally not applied to any Supabase project yet.
+-- Applied only to the user-approved NOVA BI Supabase project qrfwsewppafhxibdboam; do not apply to other projects.
 -- Company CSV rows stay browser-local; only approved metadata and aggregates belong here.
 
 create extension if not exists pgcrypto;
