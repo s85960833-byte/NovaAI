@@ -130,9 +130,9 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 ## NOVA Indian Future UI integration (2026-11-01)
 - Working branch: `feature-nova-next-ui-20261101`, based on production `main` commit `bd7ce67bd4a03eeb26861d0167f2b69e51c2bbc9`; production `main` and Render have not been changed.
 - Reconnected the existing mode registry, mode workspace, Nova Build Studio and S-Tier home experience through ordered homepage script tags. The S-Tier home provides Chat & Study, Voice Chat, Create and Explore, plus the reactive Living Core and Indian-inspired visual system.
-- Confirmed the existing service worker already uses cache key `nova-shell-v15-indian-future-ui` and pre-caches all four UI scripts; no server cache-key change was needed.
+- Updated the server-served service-worker cache key from `nova-shell-v14-settings-modal` to `nova-shell-v15-indian-future-ui`; the cache pre-caches all four UI scripts.
 - Added static, local-runtime and live-smoke assertions for the script wiring and enabled CI on this feature branch.
-- Status: integration committed on the feature branch; CI and browser/Android interaction verification are pending. Do not merge or deploy until tests pass and all four entry points plus legacy chat/settings/voice/image flows are checked.
+- Status at initial integration: CI and browser/Android interaction verification were pending. Do not merge or deploy until all four entry points plus legacy chat/settings/voice/image flows are checked.
 
 
 
@@ -141,5 +141,12 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Connected the Voice Chat home card to the dedicated Voice Chat mode group rather than relying on the optional Live Voice button being enabled.
 - Connected Create to the dedicated Create mode group containing App & Website Builder; S-Tier Studio remains available from its own sidebar launcher.
 - Expanded CI assertions for all four workspace entry points, English labels, the dynamic home mount point, and the App & Website Builder / Voice mode registry entries.
-- Latest local syntax/runtime checks were green on the preceding commit. The current commit's GitHub Actions run is in progress; Android/browser interaction testing remains outstanding.
+- GitHub Actions push and pull-request runs passed on commit `abd466aca2d6d65a81cd279db34105290c9ddf76`; the verification job passed syntax, registry, local server, route and PWA asset checks. Live Render smoke steps were skipped for this PR. Android/browser interaction testing remains outstanding.
 - Production Render service is still configured to deploy from `main`; this feature branch has not been deployed or merged.
+
+
+## Follow-up review (2026-11-01)
+- PR #47 remains open as Draft, unmerged, and based on production `main` commit `bd7ce67bd4a03eeb26861d0167f2b69e51c2bbc9`.
+- Both push and pull-request GitHub Actions runs passed on `abd466aca2d6d65a81cd279db34105290c9ddf76`; the PR run's local verification job passed, while live Render smoke steps were skipped.
+- Updated the answer-feedback action label to `Report incorrect answer` to keep the new interface English-only.
+- Full Android/browser interaction checks for workspace routing, legacy chat, Settings, microphone permissions and image flow remain unverified. Keep this PR in Draft and do not merge or deploy until those checks are completed.
