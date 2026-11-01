@@ -53,5 +53,5 @@ test('business workspace does not upload or persist raw company CSV data',()=>{
 test('invalid numeric values are never silently treated as zero',()=>{
  assert.equal(core.number('not-a-number'),null);
  assert.equal(core.number('Infinity'),null);
- assert.throws(()=>core.analyzeExpenses([{amount:'bad',category:'Cloud'}],{amount:'amount',category:'category'}),/Choose a column/ .test ? /Choose a column/ : /./);
+ const r=core.analyzeExpenses([{amount:'bad',category:'Cloud'}],{amount:'amount',category:'category'});\n assert.equal(r.validRows,0);assert.equal(r.invalidRows,1);assert.equal(r.total,0);\n assert.throws(()=>core.analyzeExpenses([],{ }),/Choose a column for amount/);
 });
