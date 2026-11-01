@@ -176,6 +176,7 @@ await page.locator('#ncbExport').click();
 const download = await downloadPromise;
 assert.match(download.suggestedFilename(), /nova-bi-export\.json$/);
 
+await page.locator('#ncbClose').focus();
 await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaBICloud').evaluate(el => el.classList.contains('show')), false);
 assert.deepEqual(pageErrors, []);
