@@ -22,7 +22,7 @@ syntaxCheck('backend', server);
 for (const file of ['s-tier.js','nova-suite.js','mode-registry.js','mode-workspace.js']) syntaxCheck(file, readFileSync(file,'utf8'));
 for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
 
-if (!html.includes('id="chat"') && !html.includes('id="msg"') && !html.includes('id="input"')) throw new Error('Previous standard chat UI input was not found');
+if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
 if (!html.includes('localStorage.getItem(\'nova\')') || !html.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Existing Nova chat storage contract changed');
 if (html.includes('id="novaSplash"') || html.includes('nova-royal-indian') || html.includes('id="novaLivingCore"')) throw new Error('New animated workspace splash/core remains in restored standard UI');
 if (html.includes('CHAT · LEARN · MASTER') || html.includes('IMAGINE · DESIGN · CREATE') || html.includes('RESEARCH · DISCOVER · EXPLORE')) throw new Error('New four-workspace visual shell remains in restored standard UI');
