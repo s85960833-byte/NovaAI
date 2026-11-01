@@ -20,7 +20,7 @@
 7. Every tenant-owned API query includes the requested organization ID and relies on RLS as an independent boundary. The Edge Function also applies 120 requests/user/minute and 5 invitations/user/hour; the rate-limit table and function are server-only.
 
 ## Persisted data
-Nine NOVA BI tables are deployed with RLS enabled:
+Ten NOVA BI tables are deployed with RLS enabled (nine tenant tables plus one server-only rate-limit table):
 - `nova_bi_organizations`
 - `nova_bi_memberships`
 - `nova_bi_datasets`

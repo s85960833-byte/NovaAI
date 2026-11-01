@@ -10,8 +10,8 @@ Updated: 2026-11-01
 - Approved NOVA BI Supabase project: `qrfwsewppafhxibdboam`. The separate Research-to-Code project has not been used.
 
 ## Implemented and deployed to the approved Supabase project
-- Nine migrations are recorded and nine NOVA BI tables exist.
-- All nine tenant tables have RLS enabled with active-membership and role-scoped policies.
+- Eleven migrations are recorded; nine tenant tables plus one server-only rate-limit table (10 total) exist.
+- All ten tables have RLS enabled; tenant data tables use active-membership/role policies and the rate-limit table has an explicit deny-all client policy.
 - Supabase Security Advisor currently reports zero security findings.
 - Edge Function `nova-bi-api` is ACTIVE at version 13 with JWT verification enabled.
 - Server-enforced limits allow 120 authenticated API requests per user per minute and 5 invitation attempts per user per hour; rate-limit counters are inaccessible to client roles. IP-level abuse monitoring remains a separate release gate.
@@ -36,7 +36,7 @@ Updated: 2026-11-01
 - The Playwright flow exercises CSV analysis, project risk, scenario calculation, workflow planning, Action Proof export, cloud save without raw CSV rows, branding, invitations, invite acceptance UI, approval, audited deletion controls, JSON export and Escape-key dialog close.
 - Live Supabase SQL checks were also run inside transactions and rolled back. They verified tenant isolation, owner bootstrap, viewer write/delete denial, analyst approval/branding denial, admin approval of another member's proposal, admin owner-role escalation denial, invite acceptance and deletion audit evidence. A follow-up count confirmed zero test organizations/users remained.
 - Live rate-limit function tests passed threshold denial and window reset; authenticated/anon roles cannot read counters or execute the limiter. Latest Edge Function logs show unauthenticated `GET /me` returns 401 and CORS preflight returns 204 on deployed function version 13.
-- Security Advisor reports zero findings, including after adding the explicit deny-all client policy on the server-only rate-limit table. Performance Advisor currently reports 17 unused-index INFO notices on the newly created low-traffic schema; these are observations, not security findings or runtime failures.
+- Security Advisor reports zero findings, including after adding the explicit deny-all client policy on the server-only rate-limit table. Performance Advisor currently reports 13 unused-index INFO notices on the newly created low-traffic schema; these are observations, not security findings or runtime failures.
 - Live Render smoke tests are skipped on the feature branch; no production deployment has been performed.
 
 ## Release blockers that still require real-world verification
@@ -44,7 +44,7 @@ Updated: 2026-11-01
 2. Verify two real users in separate organizations, cross-tenant denial, role downgrade/removal and the complete invitation-email acceptance flow. CI uses a mock email/API path and does not prove SMTP delivery.
 3. Confirm Auth site URL, allowed redirect URLs, email provider/SMTP and invitation template behavior before opening signups to customers.
 4. Define retention periods, backups, restore testing, organization closure and full deletion semantics. Current UI deletion covers saved analyses and dataset metadata; it is not a complete company-account erasure workflow.
-5. Add and verify rate limiting/abuse monitoring before broad public exposure.
+5. Add IP-level abuse monitoring and alerting before broad public exposure; per-user API and invitation limits are implemented.
 6. Complete manual Android checks for touch targets, keyboard/screen-reader navigation, contrast, reduced motion, low bandwidth and performance.
 7. Complete production regression and live smoke tests only after an explicitly approved release.
 8. Review privacy notice, data processing terms, incident response and secret-rotation procedures before using real or regulated company data.
