@@ -153,3 +153,15 @@ test('CSV file size is checked before reading the selected file into memory',()=
  const ui=readFileSync(path.join(__dirname,'..','nova-business.js'),'utf8');
  assert.ok(ui.indexOf('f.size>core.MAX_CSV_BYTES')<ui.indexOf('await f.text()'));
 });
+
+test('date-only task deadlines remain due through the end of their calendar day',()=>{
+ const dueToday=core.analyzeTasks([{status:'Open',due:'2026-01-04'}],{status:'status',dueDate:'due'},'2026-01-04T12:00:00Z');
+ const overdue=core.analyzeTasks([{status:'Open',due:'2026-01-04'}],{status:'status',dueDate:'due'},'2026-01-05T00:00:00Z');
+ assert.equal(dueToday.overdue,0);
+ assert.equal(overdue.overdue,1);
+});
+test('date-only project deadlines are not marked passed during the due date',()=>{
+ const r=core.scoreProjectRisk({dueDate:'2026-01-04',progressPct:50,blockers:0},'2026-01-04T12:00:00Z');
+ assert.equal(r.score,0);
+ assert.ok(r.daysUntilDue>0);
+});
