@@ -59,7 +59,7 @@
     const warnings=[],records=[];
     matrix.forEach((cells,index)=>{
       if(cells.length!==headers.length){warnings.push('Row '+(index+2)+' has '+cells.length+' columns; expected '+headers.length+'.');return}
-      const item={};headers.forEach((h,i)=>item[h]=cells[i]);records.push(item);
+      const item={};headers.forEach((h,i)=>item[h]=cells[i]);Object.defineProperty(item,'__novaSourceRowNumber',{value:index+2,enumerable:false});records.push(item);
     });
     if(!records.length)warnings.push('No valid data rows were found.');
     return {headers,rows:records,warnings,rowCount:records.length,sourceRowCount:matrix.length};
@@ -72,7 +72,7 @@
     const amountKey=requireField(mapping,'amount'),categoryKey=requireField(mapping,'category');
     const dateKey=text(mapping&&mapping.date),groups=new Map(),months=new Map(),categoryRows=new Map(),monthRows=new Map();let total=0,valid=0,invalid=0,invalidDates=0;
     for(let index=0;index<rows.length;index++){
-      const row=rows[index],rowNumber=index+2,amount=number(row[amountKey]),category=text(row[categoryKey])||'Uncategorised';
+      const row=rows[index],rowNumber=Number(row.__novaSourceRowNumber)||index+2,amount=number(row[amountKey]),category=text(row[categoryKey])||'Uncategorised';
       if(amount===null||amount<0){invalid++;continue}
       total+=amount;valid++;
       groups.set(category,(groups.get(category)||0)+amount);
