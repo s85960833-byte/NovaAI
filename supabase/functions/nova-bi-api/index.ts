@@ -54,19 +54,29 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       const input = await body();
       const name = typeof input.name === "string" ? input.name.trim() : "";
       if (name.length < 2 || name.length > 160) return fail("Organization name must be 2 to 160 characters");
-      const { data, error } = await db.rpc("nova_bi_create_organization", { p_name: name });
+      const { data, error } = await db.from("nova_bi_organizations")
+        .insert({ name, created_by: userId })
+        .select("id,name,created_at").single();
       if (error) throw error;
-      return json({ organization_id: data }, 201);
+      return json({ organization_id: data.id, organization: data }, 201);
     }
 
     if (req.method === "GET" && path === "members") {
       const orgId = url.searchParams.get("organization_id") || "";
       if (!uuid(orgId)) return fail("A valid organization_id is required");
-      const { data, error } = await db.from("nova_bi_memberships")
+      const { data: ownMembership, error: membershipError } = await db.from("nova_bi_memberships")
         .select("id,user_id,role,status,created_at")
-        .eq("organization_id", orgId).order("created_at", { ascending: true });
-      if (error) throw error;
-      return json({ members: data || [] });
+        .eq("organization_id", orgId).eq("user_id", userId).eq("status", "active").maybeSingle();
+      if (membershipError) throw membershipError;
+      if (!ownMembership) return fail("Active organization membership required", 403);
+      if (ownMembership.role === "owner" || ownMembership.role === "admin") {
+        const { data, error } = await ctx.supabaseAdmin.from("nova_bi_memberships")
+          .select("id,user_id,role,status,created_at")
+          .eq("organization_id", orgId).order("created_at", { ascending: true });
+        if (error) throw error;
+        return json({ members: data || [] });
+      }
+      return json({ members: [ownMembership] });
     }
 
     if (req.method === "GET" && path === "datasets") {
@@ -154,12 +164,12 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
     if (req.method === "POST" && decisionMatch) {
       const input = await body();
       if (!["approved", "rejected"].includes(String(input.decision))) return fail("Decision must be approved or rejected");
-      const { data, error } = await db.rpc("nova_bi_decide_workflow", {
-        p_proposal_id: decisionMatch[1], p_decision: input.decision,
-        p_note: typeof input.note === "string" ? input.note.slice(0, 2000) : null,
-      });
+      const { data, error } = await db.from("nova_bi_workflow_proposals")
+        .update({ status: input.decision })
+        .eq("id", decisionMatch[1]).eq("status", "proposed")
+        .select("id,status").single();
       if (error) throw error;
-      return json({ decided: data === true });
+      return json({ decided: data.status === input.decision, workflow: data });
     }
 
     if (req.method === "GET" && path === "audit") {
