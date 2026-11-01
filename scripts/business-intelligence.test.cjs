@@ -88,3 +88,11 @@ test('dashboard surfaces dataset coverage and readable project risk factors',()=
  assert.match(ui,/Contributing factors/);
  assert.match(ui,/aria-live="polite"/);
 });
+
+test('expense findings cite original CSV source rows, including after malformed lines',()=>{
+ const parsed=core.parseCSV(['date,category,amount','2026-01-01,Cloud,100','bad,row','2026-02-01,Cloud,150'].join(LF));
+ const r=core.analyzeExpenses(parsed.rows,{date:'date',category:'category',amount:'amount'});
+ assert.deepEqual(r.evidenceByCategory[0].sourceRows,[2,4]);
+ assert.deepEqual(r.evidenceByMonth.map(x=>x.sourceRows[0]),[2,4]);
+ assert.equal(r.spendAlerts[0].sourceRows[0],4);
+});
