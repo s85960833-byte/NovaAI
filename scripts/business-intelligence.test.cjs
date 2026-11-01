@@ -166,3 +166,47 @@ test('date-only project deadlines are not marked passed during the due date',()=
  assert.ok(r.daysUntilDue>0);
  assert.equal(r.factors.some(x=>x.factor==='Deadline passed'),false);
 });
+
+test('NOVA BI company cloud uses authenticated Edge Function routes and session-scoped client auth',()=>{
+ const cloud=readFileSync(path.join(__dirname,'..','nova-business-cloud.js'),'utf8');
+ const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ const index=readFileSync(path.join(__dirname,'..','index.html'),'utf8');
+ assert.ok(cloud.includes('sb_publishable_'));
+ assert.ok(!/service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY/.test(cloud));
+ assert.ok(cloud.includes('storage:window.sessionStorage'));
+ assert.ok(cloud.includes('/functions/v1/\'+CFG.fn+\'/'));
+ assert.ok(edge.includes('withSupabase({ auth: "user" }'));
+ assert.ok(edge.includes('ctx.jwtClaims?.sub'));
+ assert.ok(edge.includes('functions\\/v1\\/nova-bi-api'));
+ assert.ok(edge.includes('nova_bi_create_organization'));
+ assert.ok(edge.includes('nova_bi_decide_workflow'));
+ assert.ok(index.includes('@supabase/supabase-js@2.80.0'));
+ assert.ok(index.includes('https://cdn.jsdelivr.net'));
+});
+test('NOVA BI cloud save path stores dataset metadata and aggregate analysis, not raw CSV rows',()=>{
+ const cloud=readFileSync(path.join(__dirname,'..','nova-business-cloud.js'),'utf8');
+ const core=readFileSync(path.join(__dirname,'..','nova-business.js'),'utf8');
+ assert.ok(cloud.includes('column_names:d.headers'));
+ assert.ok(cloud.includes('result_json:result'));
+ assert.ok(cloud.includes('Raw CSV rows were not uploaded'));
+ assert.ok(core.includes('snapshot:()=>({dataset:state.dataset,analysis:state.analysis'));
+ assert.ok(!cloud.includes('rows:d.rows'));
+});
+test('NOVA BI Edge Function bounds request and JSON payload sizes',()=>{
+ const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ assert.ok(edge.includes('> 70000'));
+ assert.ok(edge.includes('maxBytes = 50000'));
+ assert.ok(edge.includes('.limit(100)'));
+});
+test('NOVA BI organization bootstrap and approval routines enforce authenticated ownership rules',()=>{
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000003_nova_bi_authenticated_workflows.sql'),'utf8');
+ const recursion=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000004_nova_bi_membership_rls_recursion_fix.sql'),'utf8');
+ assert.ok(migration.includes('security definer'));
+ assert.ok(migration.includes('set search_path = \'\''));
+ assert.ok(migration.includes('v_creator = v_actor'));
+ assert.ok(migration.includes('v_role not in (\'owner\',\'admin\')'));
+ assert.ok(migration.includes('organization.created'));
+ assert.ok(recursion.includes('security definer'));
+ assert.ok(recursion.includes('set search_path = \'\''));
+ assert.ok(recursion.includes('nova_bi_membership_read_self_or_admin'));
+});
