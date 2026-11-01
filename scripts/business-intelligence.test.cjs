@@ -274,4 +274,12 @@ test('NOVA BI supports explicit company JSON export and audited admin data delet
  assert.ok(migration.includes('nova_bi_analysis_audit_delete'));
  assert.ok(migration.includes('nova_bi_dataset_audit_delete'));
  assert.ok(migration.includes('nova_bi_branding_touch_updated_at'));
+ const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ assert.ok(edge.includes('"Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS"'));
+ assert.ok(edge.includes('req.method === "DELETE" && datasetDelete'));
+ assert.ok(edge.includes('req.method === "DELETE" && analysisDelete'));
+ assert.ok(cloud.includes('data-delete-dataset'));
+ assert.ok(cloud.includes('data-delete-analysis'));
+ assert.ok(cloud.includes('Permanently delete this saved analysis?'));
+ assert.ok(cloud.includes('Permanently delete this dataset metadata?'));
 });
