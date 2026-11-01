@@ -61,6 +61,58 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       return json({ organization_id: data.id, organization: data }, 201);
     }
 
+    if (req.method === "GET" && path === "invitations") {
+      const { data, error } = await db.from("nova_bi_memberships")
+        .select("id,organization_id,role,status,created_at,organization:nova_bi_organizations(id,name)")
+        .eq("user_id", userId).eq("status", "invited").order("created_at", { ascending: false });
+      if (error) throw error;
+      return json({ invitations: data || [] });
+    }
+
+    if (req.method === "POST" && path === "members/invite") {
+      const input = await body();
+      const orgId = input.organization_id || "";
+      const email = typeof input.email === "string" ? input.email.trim().toLowerCase() : "";
+      const role = String(input.role || "viewer");
+      if (!uuid(orgId)) return fail("A valid organization_id is required");
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254) return fail("Enter a valid email address");
+      if (!["admin", "analyst", "viewer"].includes(role)) return fail("Unsupported invitation role");
+      const { data: actor, error: actorError } = await db.from("nova_bi_memberships")
+        .select("role").eq("organization_id", orgId).eq("user_id", userId).eq("status", "active").maybeSingle();
+      if (actorError) throw actorError;
+      if (!actor || !["owner", "admin"].includes(actor.role)) return fail("Owner or admin role required", 403);
+      if (role === "admin" && actor.role !== "owner") return fail("Only the organization owner can invite another admin", 403);
+
+      const { data: invitation, error: inviteError } = await ctx.supabaseAdmin.auth.admin.inviteUserByEmail(email);
+      if (inviteError || !invitation?.user?.id) {
+        console.error("NOVA BI invitation email could not be issued", inviteError);
+        return fail("Invitation could not be sent. The address may already have an account or email delivery may not be configured.", 409);
+      }
+      const invitedUserId = invitation.user.id;
+      const { data: member, error: memberError } = await ctx.supabaseAdmin.from("nova_bi_memberships")
+        .insert({ organization_id: orgId, user_id: invitedUserId, role, status: "invited" })
+        .select("id,organization_id,user_id,role,status,created_at").single();
+      if (memberError) {
+        console.error("NOVA BI invitation membership could not be saved", memberError);
+        return fail("The invitation email was issued but membership setup failed. Contact the workspace owner before retrying.", 500);
+      }
+      await ctx.supabaseAdmin.from("nova_bi_audit_events").insert({
+        organization_id: orgId, actor_id: userId, event_type: "membership.invitation.sent",
+        resource_type: "membership", resource_id: member.id, metadata_json: { role, invited_email: email },
+      });
+      return json({ invitation: member }, 201);
+    }
+
+    const acceptMatch = path.match(/^invitations\\/([0-9a-f-]{36})\\/accept$/i);
+    if (req.method === "POST" && acceptMatch) {
+      const { data, error } = await db.from("nova_bi_memberships")
+        .update({ status: "active" })
+        .eq("id", acceptMatch[1]).eq("user_id", userId).eq("status", "invited")
+        .select("id,organization_id,role,status").single();
+      if (error) throw error;
+      return json({ accepted: data.status === "active", membership: data });
+    }
+
     if (req.method === "GET" && path === "members") {
       const orgId = url.searchParams.get("organization_id") || "";
       if (!uuid(orgId)) return fail("A valid organization_id is required");
