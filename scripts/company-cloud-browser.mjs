@@ -167,6 +167,7 @@ await page.locator('[data-delete-dataset="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"]
 assert.equal(await page.locator('[data-delete-dataset="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"]').isDisabled(), true);
 
 await page.locator('#ncbSaveAnalysis').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Analysis saved'), null, { timeout: 10000 });
 assert.ok(calls.some(call => call.path === 'datasets' && call.method === 'POST' && !Object.hasOwn(call.body, 'rows')));
 assert.ok(calls.some(call => call.path === 'analyses' && call.method === 'POST' && !Object.hasOwn(call.body, 'rows')));
 
