@@ -139,6 +139,12 @@
     const potential=baseline*share/100,monthly=potential*realization/100,total=monthly*months-oneTime;
     return {kind:'scenario',currency:text(x.currency)||'Not specified',monthlyBaseline:round(baseline),automationSharePct:share,realizationPct:realization,assumedMonthlyGrossSaving:round(monthly),oneTimeCost:round(oneTime),horizonMonths:months,estimatedNetImpact:round(total),breakEvenMonths:monthly>0?round(oneTime/monthly,2):null,formula:'monthly baseline × automation share × realization assumption; net impact = monthly gross saving × horizon − one-time cost',label:'Illustrative scenario based on user-entered assumptions, not a forecast or guaranteed saving.'};
   }
+  function fingerprint(value){
+    const bytes=new TextEncoder().encode(typeof value==='string'?value:JSON.stringify(value));
+    let hash=14695981039346656037n;
+    for(const byte of bytes){hash^=BigInt(byte);hash=BigInt.asUintN(64,hash*1099511628211n)}
+    return 'fnv1a64:'+hash.toString(16).padStart(16,'0');
+  }
   function makeProof(checks,metadata){
     if(!Array.isArray(checks))fail('Proof checks must be an array.');
     const items=checks.map((c,i)=>({id:text(c&&c.id)||'check-'+(i+1),label:text(c&&c.label)||'Check '+(i+1),passed:!!(c&&c.passed),evidence:text(c&&c.evidence)}));
@@ -146,5 +152,5 @@
   }
   function sortedMap(map){return [...map.entries()].map(([name,value])=>({name,value:round(value)})).sort((a,b)=>b.value-a.value)}
   function round(n,places){const p=10**(places==null?2:places);return Math.round((n+Number.EPSILON)*p)/p}
-  return Object.freeze({parseCSV,analyzeExpenses,analyzeClients,analyzeTasks,scoreProjectRisk,simulateScenario,makeProof,number,date,MAX_CSV_BYTES,MAX_ROWS});
+  return Object.freeze({parseCSV,analyzeExpenses,analyzeClients,analyzeTasks,scoreProjectRisk,simulateScenario,makeProof,fingerprint,number,date,MAX_CSV_BYTES,MAX_ROWS});
 });
