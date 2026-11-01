@@ -17,9 +17,10 @@ const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start command mismatch');
 for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api/live/selftest'", "app.get('/api/feed'"]) if (!server.includes(route)) throw new Error('Required backend route missing: ' + route);
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
+if (!server.includes("app.get('/nova-business-cloud.js'")) throw new Error('NOVA BI cloud asset route missing');
 syntaxCheck('backend', server);
 
-for (const file of ['s-tier.js','nova-suite.js','nova-business-core.js','nova-business.js','mode-registry.js','mode-workspace.js']) syntaxCheck(file, readFileSync(file,'utf8'));
+for (const file of ['s-tier.js','nova-suite.js','nova-business-core.js','nova-business.js','nova-business-cloud.js','mode-registry.js','mode-workspace.js']) syntaxCheck(file, readFileSync(file,'utf8'));
 for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
 
 if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
@@ -31,7 +32,7 @@ if (!html.includes('id="dset"')) throw new Error('Settings panel missing from re
 if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing from restored UI');
 if (!html.includes('#side{') || !html.includes('#main{')) throw new Error('Previous standard UI sidebar/main layout is missing');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'")) throw new Error('Existing or Business Intelligence feature asset routes missing');
-if (!html.includes('src="/nova-business-core.js"') || !html.includes('src="/nova-business.js"')) throw new Error('Business Intelligence scripts are not loaded by the homepage');
+if (!html.includes('src="/nova-business-core.js"') || !html.includes('src="/nova-business.js"') || !html.includes('src="/nova-business-cloud.js"') || !html.includes('@supabase/supabase-js@2.80.0')) throw new Error('Business Intelligence scripts are not loaded by the homepage');
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(x => x.trim());
 if (!scripts.length) throw new Error('No inline frontend JavaScript found');
 scripts.forEach((source, i) => syntaxCheck('frontend-' + (i + 1), source));
