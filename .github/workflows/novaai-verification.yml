@@ -23,8 +23,10 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      - name: Install authenticated NOVA BI Edge Function dependencies
+        run: deno install --config supabase/functions/nova-bi-api/deno.json
       - name: Type-check authenticated NOVA BI Edge Function
-        run: deno check --no-lock supabase/functions/nova-bi-api/index.ts
+        run: deno check --config supabase/functions/nova-bi-api/deno.json --no-lock supabase/functions/nova-bi-api/index.ts
       - name: Test NOVA Business Intelligence calculations and CSV validation
         run: node --test scripts/business-intelligence.test.cjs
       - name: Start local server with test-only credentials
