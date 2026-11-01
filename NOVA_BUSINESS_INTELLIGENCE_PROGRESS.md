@@ -60,3 +60,12 @@ Updated: 2026-11-01
 
 ## Current status supersedes earlier provider gate
 The user approved the empty Supabase project `qrfwsewppafhxibdboam`. Eight migrations are applied; nine NOVA BI tables exist with RLS enabled. Security Advisor reports zero findings. Edge Function `nova-bi-api` is deployed with JWT verification. Company Cloud includes account sign-in, organizations, cloud dataset/analysis storage, workflow approval records, team invitations and branding settings. Raw CSV rows remain local. Latest CI run `41323331945` passed 35/35 tests plus Deno type-check and local smoke checks. Remaining gates: real auth and two-tenant browser tests, invitation email verification, retention/export/deletion, full custom-domain white-label, external connectors/execution, manual accessibility/performance, and live production smoke tests. Production remains unchanged and PR #46 remains Draft.
+
+
+## Latest verified checkpoint (2026-11-01)
+- Approved Supabase project `qrfwsewppafhxibdboam` now has nine applied NOVA BI migrations and nine tenant tables; RLS is enabled on every table and Security Advisor reports zero findings.
+- Supabase Edge Function `nova-bi-api` is ACTIVE at version 9 with JWT verification enabled.
+- PostgreSQL CI applies every committed migration to a fresh Postgres 17 instance and passes tenant-isolation, invitation acceptance, creator/approver separation, branding and audited deletion checks.
+- GitHub Actions run `41324374911` on commit `8db500730582188ff57d8edf56b3ba6cae36d01e` passed 36/36 BI tests, Deno type-check, live Edge Function unauthenticated 401/CORS checks, local server and PWA smoke tests.
+- Live Render checks are skipped on the feature branch; production remains unchanged and PR #46 remains Draft.
+- Not yet release-ready: actual account signup/sign-in and two-account invitation email delivery have not been tested; custom domains/full white-label, external company integrations and live workflow execution are not implemented; user-facing deletion controls and full mobile/accessibility/performance testing remain incomplete.
