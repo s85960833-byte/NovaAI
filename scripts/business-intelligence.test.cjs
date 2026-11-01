@@ -42,6 +42,18 @@ test('action proof never marks incomplete checks as passed',()=>{
  const r=core.makeProof([{id:'csv',passed:true,evidence:'3 rows checked'},{id:'formula',passed:false,evidence:'failed'}],{dataset:'fixture'});
  assert.equal(r.status,'INCOMPLETE');assert.equal(r.passed,1);assert.equal(r.failed,1);assert.match(r.note,/does not prove real-world savings/);
 });
+test('strict ISO dates reject impossible calendar dates',()=>{
+ assert.equal(core.date('2026-02-28')!==null,true);
+ assert.equal(core.date('2026-02-31'),null);
+ assert.equal(core.date('2026-13-01'),null);
+});
+test('task analytics excludes blank statuses and reports coverage',()=>{
+ const r=core.analyzeTasks([{team:'A',status:'Done',created:'2026-01-01',completed:'2026-01-03'},{team:'A',status:'',created:'2026-01-01',completed:''},{team:'B',status:'Open'}],{team:'team',status:'status',createdAt:'created',completedAt:'completed'},'2026-01-04');
+ assert.equal(r.sourceRows,3);assert.equal(r.total,2);assert.equal(r.validRows,2);assert.equal(r.invalidRows,1);assert.equal(r.completionPct,50);
+});
+test('numeric overflow fails safely instead of exporting Infinity',()=>{
+ assert.throws(()=>core.simulateScenario({monthlyBaseline:1e308,automationSharePct:100,realizationPct:100,horizonMonths:60}),/numeric range/);
+});
 test('CSV import enforces configurable byte and row limits',()=>{
  assert.throws(()=>core.parseCSV(['a','1'].join(LF),{maxBytes:1}),/import limit/);
  assert.throws(()=>core.parseCSV(['a','1','2'].join(LF),{maxRows:1}),/too many rows/);
@@ -68,4 +80,11 @@ test('dataset fingerprint is stable for identical input and changes when input c
  assert.equal(a,core.fingerprint([{amount:10},{amount:20}]));
  assert.notEqual(a,core.fingerprint([{amount:10},{amount:21}]));
  assert.match(a,/^fnv1a64:/);
+});
+test('dashboard surfaces dataset coverage and readable project risk factors',()=>{
+ const ui=readFileSync(path.join(__dirname,'..','nova-business.js'),'utf8');
+ assert.match(ui,/function qualitySummary\(/);
+ assert.match(ui,/Calculation coverage/);
+ assert.match(ui,/Contributing factors/);
+ assert.match(ui,/aria-live="polite"/);
 });
