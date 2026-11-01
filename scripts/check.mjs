@@ -29,6 +29,7 @@ if (!html.includes('id="nova-future-style"') || !html.includes('id="nova-future-
 if (html.includes('CHAT · LEARN · MASTER') || html.includes('IMAGINE · DESIGN · CREATE') || html.includes('RESEARCH · DISCOVER · EXPLORE')) throw new Error('New four-workspace visual shell remains in restored standard UI');
 if (!html.includes('id="dset"')) throw new Error('Settings panel missing from restored UI');
 if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing from restored UI');
+if (!html.includes('#side{z-index:1}#main{position:relative;z-index:1}') || html.includes('#side,#main{position:relative')) throw new Error('Future UI must preserve the mobile navigation drawer positioning');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'")) throw new Error('Existing optional feature asset routes missing');
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(x => x.trim());
 if (!scripts.length) throw new Error('No inline frontend JavaScript found');
