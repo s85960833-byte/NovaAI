@@ -115,7 +115,7 @@ await page.locator('#nbFile').setInputFiles({
   buffer: Buffer.from('amount,category,date\n100,Software,2026-10-01\n200,Travel,2026-10-02\n')
 });
 await page.locator('#nbAnalyze').waitFor();
-assert.equal(await page.locator('#nbAnalyze').isDisabled(), false);
+assert.equal(await page.locator('#nbAnalyze').isDisabled(), false, await page.locator('#nbDataStatus').textContent());
 await page.locator('#nbAnalyze').click();
 await page.locator('#nbBody').getByText('Verified calculation summary').waitFor();
 
