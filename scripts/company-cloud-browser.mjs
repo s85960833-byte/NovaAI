@@ -107,7 +107,7 @@ await page.locator('#nbFile').setInputFiles({
 await page.locator('#nbAnalyze').waitFor();
 assert.equal(await page.locator('#nbAnalyze').isDisabled(), false);
 await page.locator('#nbAnalyze').click();
-await page.locator('#nbBody').getByText('Cost Leak Detector', { exact: false }).waitFor();
+await page.locator('#nbBody').getByText('Verified calculation summary').waitFor();
 
 await page.locator('#nbNav [data-view="risk"]').click();
 await page.locator('#nbProjectName').fill('Test migration');
@@ -115,12 +115,12 @@ await page.locator('#nbDue').fill('2026-12-31');
 await page.locator('#nbProgress').fill('30');
 await page.locator('#nbBlockers').fill('2');
 await page.locator('#nbRiskRun').click();
-await page.locator('#nbBody').getByText('risk', { exact: false }).last().waitFor();
+await page.locator('#nbBody').getByText('Project Risk Predictor').waitFor();
 
 await page.locator('#nbNav [data-view="scenario"]').click();
 await page.locator('#nbBaseline').fill('100000');
 await page.locator('#nbScenarioRun').click();
-await page.locator('#nbBody').getByText('Scenario result', { exact: false }).waitFor();
+await page.locator('#nbBody').getByText('Scenario result').waitFor();
 
 await page.locator('#nbNav [data-view="workflow"]').click();
 await page.locator('#nbProcess').fill('Weekly project status report');
