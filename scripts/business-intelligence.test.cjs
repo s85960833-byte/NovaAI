@@ -260,3 +260,16 @@ test('NOVA BI team invitations are owner/admin gated and accepted only by the in
  assert.ok(cloud.includes('Send invitation'));
  assert.ok(cloud.includes('Accept invitation'));
 });
+
+test('NOVA BI supports explicit company JSON export and audited admin data deletion',()=>{
+ const cloud=readFileSync(path.join(__dirname,'..','nova-business-cloud.js'),'utf8');
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000009_nova_bi_data_lifecycle.sql'),'utf8');
+ assert.ok(cloud.includes('Export company data (JSON)'));
+ assert.ok(cloud.includes('workflow_proposals:state.data.workflows'));
+ assert.ok(cloud.includes('audit_events:state.data.events'));
+ assert.ok(migration.includes('nova_bi_analysis_delete_admin'));
+ assert.ok(migration.includes('nova_bi_audit_delete'));
+ assert.ok(migration.includes('nova_bi_analysis_audit_delete'));
+ assert.ok(migration.includes('nova_bi_dataset_audit_delete'));
+ assert.ok(migration.includes('nova_bi_branding_touch_updated_at'));
+});
