@@ -249,7 +249,7 @@ test('NOVA BI team invitations are owner/admin gated and accepted only by the in
  const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
  const cloud=readFileSync(path.join(__dirname,'..','nova-business-cloud.js'),'utf8');
  assert.ok(migration.includes('status = \'invited\''));
- assert.ok(migration.includes('new.user_id <> auth.uid()'));
+ assert.ok(migration.includes('old.user_id <> auth.uid()'));
  assert.ok(migration.includes('nova_bi_invite_accept_guard'));
  assert.ok(migration.includes('grant update(status) on public.nova_bi_memberships to authenticated'));
  assert.ok(edge.includes('auth.admin.inviteUserByEmail'));
