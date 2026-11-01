@@ -20,7 +20,7 @@ if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy websit
 if (!server.includes("app.get('/nova-business-cloud.js'")) throw new Error('NOVA BI cloud asset route missing');
 syntaxCheck('backend', server);
 
-for (const file of ['s-tier.js','nova-suite.js','nova-business-core.js','nova-business.js','nova-business-cloud.js','mode-registry.js','mode-workspace.js']) syntaxCheck(file, readFileSync(file,'utf8'));
+for (const file of ['s-tier.js','nova-suite.js','nova-business-core.js','nova-business.js','nova-business-cloud.js','scripts/company-cloud-browser.mjs','scripts/supabase-edge-smoke.mjs','mode-registry.js','mode-workspace.js']) syntaxCheck(file, readFileSync(file,'utf8'));
 for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
 
 if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
