@@ -35,7 +35,7 @@ if (![200, 204].includes(preflight.status) || allowOrigin !== '*' || !allowHeade
   throw new Error('Edge Function CORS preflight failed: status=' + preflight.status + ', allow-origin=' + allowOrigin + ', allow-headers=' + allowHeaders);
 }
 process.stdout.write('PASS Edge Function CORS preflight\n');
-const deleteEndpoint = endpoint.replace(/\\/me$/, '/datasets/00000000-0000-4000-8000-000000000000');
+const deleteEndpoint = endpoint.replace(/\/me$/, '/datasets/00000000-0000-4000-8000-000000000000');
 const deletePreflight = await fetch(deleteEndpoint, {
   method: 'OPTIONS',
   headers: {
