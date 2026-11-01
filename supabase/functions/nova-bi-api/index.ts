@@ -172,6 +172,36 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       return json({ decided: data.status === input.decision, workflow: data });
     }
 
+    if (req.method === "GET" && path === "branding") {
+      const orgId = url.searchParams.get("organization_id") || "";
+      if (!uuid(orgId)) return fail("A valid organization_id is required");
+      const { data, error } = await db.from("nova_bi_branding")
+        .select("organization_id,brand_name,tagline,logo_url,primary_color,accent_color,updated_at")
+        .eq("organization_id", orgId).single();
+      if (error) throw error;
+      return json({ branding: data });
+    }
+
+    if (req.method === "POST" && path === "branding") {
+      const input = await body();
+      if (!uuid(input.organization_id)) return fail("A valid organization_id is required");
+      const brandName = typeof input.brand_name === "string" ? input.brand_name.trim() : "";
+      const tagline = typeof input.tagline === "string" ? input.tagline.trim() : "";
+      const logoUrl = typeof input.logo_url === "string" ? input.logo_url.trim() : "";
+      const primary = String(input.primary_color || "");
+      const accent = String(input.accent_color || "");
+      if (brandName.length < 2 || brandName.length > 160) return fail("Brand name must be 2 to 160 characters");
+      if (tagline.length > 160) return fail("Tagline must be 160 characters or fewer");
+      if (logoUrl && (!logoUrl.startsWith("https://") || logoUrl.length > 500 || /\\s/.test(logoUrl))) return fail("Logo URL must be a valid HTTPS URL under 500 characters");
+      if (!/^#[0-9a-f]{6}$/i.test(primary) || !/^#[0-9a-f]{6}$/i.test(accent)) return fail("Brand colors must be six-digit hex colors");
+      const { data, error } = await db.from("nova_bi_branding")
+        .update({ brand_name: brandName, tagline, logo_url: logoUrl, primary_color: primary, accent_color: accent })
+        .eq("organization_id", input.organization_id)
+        .select("organization_id,brand_name,tagline,logo_url,primary_color,accent_color,updated_at").single();
+      if (error) throw error;
+      return json({ branding: data });
+    }
+
     if (req.method === "GET" && path === "audit") {
       const orgId = url.searchParams.get("organization_id") || "";
       if (!uuid(orgId)) return fail("A valid organization_id is required");
