@@ -1,48 +1,45 @@
-# NOVA Business Intelligence — Security Gate
+# NOVA Business Intelligence — Security Status and Release Gate
 
-**Status:** Design checklist only. This is not an implementation or security certification.
+**Status:** Core tenant-authentication and database isolation controls are implemented. Automated tests are not a security certification. Keep the feature branch isolated until all release gates pass.
 
-## Current data boundary
-- CSV parsing and analysis run in the user's browser.
-- Raw imported rows are not sent to NOVA backend endpoints, stored in local storage, or sent to an AI provider by the Business Intelligence workspace.
-- Imported data and calculated results are held in page memory and are lost when the page is refreshed or closed.
-- Do not use this prototype with confidential, regulated, personal, or production company data until the shared-data controls below are implemented and verified.
+## Deployed security controls
+- Supabase Auth handles account authentication.
+- Edge Function `nova-bi-api` requires a verified user JWT.
+- The browser contains only a Supabase publishable key; the service-role key remains server-side.
+- All nine NOVA BI tables have Postgres RLS enabled.
+- Tenant reads and writes use the authenticated database client and tenant-scoped predicates.
+- Owner/admin-only membership invitations, roster access, branding writes, workflow decisions and deletions have explicit server-side checks and/or database policies.
+- Organization creation, invitation acceptance, workflow approval separation and delete audit events are guarded by database triggers.
+- Authenticated users cannot directly insert or modify membership roles.
+- CSV contents remain browser-local; cloud persistence is limited to metadata, analysis aggregates, assumptions and evidence.
+- Edge Function request bodies and JSON payloads have explicit size limits; list endpoints are capped.
+- Security Advisor returned zero findings on the approved project at the latest check.
 
-## Threat model
-Protect against:
-1. A user of one company reading another company's records.
-2. A logged-out or unauthorized caller invoking business-data APIs.
-3. Browser-supplied tenant IDs or role claims being trusted without server verification.
-4. CSV formulas, malformed encodings, oversized rows, invalid numbers and malicious text reaching unsafe render or export paths.
-5. Secrets, provider service-role keys or customer data appearing in frontend bundles, logs, URLs or error messages.
-6. An automation plan being mistaken for an executed action.
-7. AI explanations sending company information to an external model without informed user consent.
+## Data classification and user notice
+Do not use this release candidate with regulated, highly sensitive, or production employee personal data until privacy, retention, backup and incident-response controls are reviewed. Productivity insights are team-level and must not be used as individual surveillance or automated employment decisions.
 
-## Required architecture before shared company data
-- Select an approved managed authentication and database provider; no provider or paid tier is approved by this plan.
-- Verify access tokens on the server for every protected request.
-- Derive organization membership and permissions from trusted server-side records, never from a client-supplied organization ID or role.
-- Enforce tenant isolation at both API and database layers (deny by default, row-level policies where supported).
-- Keep service-role/database admin credentials server-side only; never expose them to browser code.
-- Define organizations, memberships, roles, datasets, analyses, workflow definitions, approval events and audit events with tenant-scoped foreign keys.
-- Add least-privilege roles (owner, admin, analyst, viewer) and explicit authorization tests for every role.
-- Use managed encryption in transit and at rest; define key rotation and secret rotation procedures.
-- Add append-only audit events for sign-in, import, export, analysis, role changes, deletion and future automation approvals.
-- Provide company-level export and deletion, retention windows, backup/restore tests and incident response steps.
-- Apply per-user and per-tenant rate limits and request-size limits; avoid logging raw CSV contents.
-- For AI explanations, show the exact selected fields/summary that will leave the browser, require explicit consent, disclose provider/model, and allow the user to cancel.
-- For future integrations, use least-privilege OAuth scopes, encrypted token storage, explicit approval before writes, idempotency keys and recorded execution results.
+Cloud save sends the selected dataset metadata and calculated aggregates/evidence to the NOVA BI Supabase project. Original CSV rows are not uploaded. The company export downloads records visible to the signed-in user.
 
-## Required security tests
-- Tenant A cannot read, update, export or delete Tenant B data by changing IDs or request payloads.
-- Unauthenticated requests receive 401; authenticated users without the required role receive 403.
-- Viewer cannot create or approve workflows; analyst cannot manage memberships; only authorized admins can change roles.
-- Revoked sessions and removed memberships lose access immediately or within a documented short expiry window.
-- Cross-tenant tests cover every table, API route, export and background job.
-- Malformed and oversized CSV imports fail safely without server upload or browser lock-up.
-- HTML/script-like cell values render as text and cannot execute.
-- No secrets or raw customer rows appear in built frontend files, logs, telemetry or error responses.
-- Backup restore, retention expiry, user export and deletion are tested end to end.
+## Important remaining controls
+1. Verify real signup, email confirmation, sign-in, sign-out, token refresh and revoked-session behavior in a browser.
+2. Verify two real test accounts across separate organizations, including cross-tenant reads/writes/deletes and role downgrade/removal.
+3. Verify invitation email delivery with the configured Supabase Auth SMTP/provider; automated tests currently stub this external delivery.
+4. Define retention windows and backup/restore procedures; verify provider backups and recovery.
+5. Verify deletion semantics for all tenant data, including memberships, audit history, branding and organization closure. Current UI supports owner/admin deletion of saved analyses and dataset metadata only.
+6. Add per-user/per-tenant rate limiting and abuse monitoring to the Edge Function before broad public exposure.
+7. Complete manual Android touch, keyboard/screen-reader, contrast, low-bandwidth and performance checks.
+8. Complete incident-response and secret-rotation runbooks.
+
+## Threat-model checks
+- Cross-tenant resource IDs must not disclose another tenant's records.
+- Unauthenticated requests must return 401.
+- Authenticated non-members and insufficient roles must be denied.
+- A viewer cannot create or delete data; an analyst cannot invite, change branding, delete data or approve workflows.
+- A workflow creator cannot approve their own proposal.
+- Only the invitee can accept a pending invitation.
+- No raw CSV rows, service-role credentials or passwords may appear in browser bundles, logs, URLs or error messages.
+- CSV cell contents must render as text and never execute as markup/script.
+- Data export and deletion must be scoped to the active organization and leave required audit evidence.
 
 ## Release decision
-Until the required controls are implemented and tested, the product remains a local-analysis prototype. Do not enable shared company storage, invite multiple company users, connect production accounts, or market this as enterprise-ready.
+This is a verified feature-branch release candidate, not a 100%-complete public product. Do not merge or deploy until remaining release controls and manual checks are completed and the owner explicitly approves.
