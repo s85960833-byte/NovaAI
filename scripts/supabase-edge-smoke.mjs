@@ -35,3 +35,20 @@ if (![200, 204].includes(preflight.status) || allowOrigin !== '*' || !allowHeade
   throw new Error('Edge Function CORS preflight failed: status=' + preflight.status + ', allow-origin=' + allowOrigin + ', allow-headers=' + allowHeaders);
 }
 process.stdout.write('PASS Edge Function CORS preflight\n');
+const deleteEndpoint = endpoint.replace(/\\/me$/, '/datasets/00000000-0000-4000-8000-000000000000');
+const deletePreflight = await fetch(deleteEndpoint, {
+  method: 'OPTIONS',
+  headers: {
+    ...headers,
+    Origin: 'https://novaai-4auo.onrender.com',
+    'Access-Control-Request-Method': 'DELETE',
+    'Access-Control-Request-Headers': 'authorization,apikey,content-type',
+  },
+  signal: AbortSignal.timeout(15000),
+});
+const allowMethods = (deletePreflight.headers.get('access-control-allow-methods') || '').toUpperCase();
+if (![200, 204].includes(deletePreflight.status) || !allowMethods.split(',').map(x => x.trim()).includes('DELETE')) {
+  throw new Error('Edge Function DELETE CORS preflight failed: status=' + deletePreflight.status + ', allow-methods=' + allowMethods);
+}
+process.stdout.write('PASS Edge Function CORS preflight allows authenticated DELETE requests\\n');
+
