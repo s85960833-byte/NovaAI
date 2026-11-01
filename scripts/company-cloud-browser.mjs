@@ -94,6 +94,49 @@ await page.route('**/functions/v1/nova-bi-api/**', async route => {
 });
 
 await page.goto('http://127.0.0.1:8787', { waitUntil: 'domcontentloaded' });
+
+// Exercise the local analysis workspace at a phone-sized viewport.
+await page.locator('#novaBusinessLauncher').waitFor({ state: 'visible', timeout: 15000 });
+await page.locator('#novaBusinessLauncher').click();
+await page.locator('#nbNav [data-view="data"]').click();
+await page.locator('#nbFile').setInputFiles({
+  name: 'expenses.csv',
+  mimeType: 'text/csv',
+  buffer: Buffer.from('amount,category,date\\n100,Software,2026-10-01\\n200,Travel,2026-10-02\\n')
+});
+await page.locator('#nbAnalyze').waitFor();
+assert.equal(await page.locator('#nbAnalyze').isDisabled(), false);
+await page.locator('#nbAnalyze').click();
+await page.locator('#nbBody').getByText('Cost Leak Detector', { exact: false }).waitFor();
+
+await page.locator('#nbNav [data-view="risk"]').click();
+await page.locator('#nbProjectName').fill('Test migration');
+await page.locator('#nbDue').fill('2026-12-31');
+await page.locator('#nbProgress').fill('30');
+await page.locator('#nbBlockers').fill('2');
+await page.locator('#nbRiskRun').click();
+await page.locator('#nbBody').getByText('risk', { exact: false }).last().waitFor();
+
+await page.locator('#nbNav [data-view="scenario"]').click();
+await page.locator('#nbBaseline').fill('100000');
+await page.locator('#nbScenarioRun').click();
+await page.locator('#nbBody').getByText('Scenario result', { exact: false }).waitFor();
+
+await page.locator('#nbNav [data-view="workflow"]').click();
+await page.locator('#nbProcess').fill('Weekly project status report');
+await page.locator('#nbApprover').fill('Project manager');
+await page.locator('#nbWorkflowRun').click();
+await page.locator('#nbBody pre').waitFor();
+
+await page.locator('#nbNav [data-view="proof"]').click();
+await page.locator('#nbProofExport').waitFor();
+const proofDownloadPromise = page.waitForEvent('download');
+await page.locator('#nbProofExport').click();
+const proofDownload = await proofDownloadPromise;
+assert.match(proofDownload.suggestedFilename(), /nova-action-proof\\.json$/);
+await page.keyboard.press('Escape');
+assert.equal(await page.locator('#novaBusiness').evaluate(el => el.classList.contains('show')), false);
+
 await page.locator('#novaBICloudLauncher').waitFor({ state: 'visible', timeout: 15000 });
 await page.locator('#novaBICloudLauncher').click();
 await page.locator('#ncbAuth').waitFor();
