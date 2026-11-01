@@ -57,10 +57,18 @@ await page.route('**/functions/v1/nova-bi-api/**', async route => {
       organization: { id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', name: 'Invited Company' }
     }] };
   } else if (path.startsWith('datasets')) {
-    if (method === 'DELETE') { datasets = datasets.filter(x => x.id !== path.split('/')[1]); payload = { deleted: true }; }
+    if (method === 'POST') {
+      const dataset = { ...body, id: '99999999-9999-4999-8999-999999999999', created_at: new Date().toISOString() };
+      datasets.push(dataset);
+      payload = { dataset };
+    } else if (method === 'DELETE') { datasets = datasets.filter(x => x.id !== path.split('/')[1]); payload = { deleted: true }; }
     else payload = { datasets };
   } else if (path.startsWith('analyses')) {
-    if (method === 'DELETE') { analyses = analyses.filter(x => x.id !== path.split('/')[1]); payload = { deleted: true }; }
+    if (method === 'POST') {
+      const analysis = { ...body, id: '88888888-8888-4888-8888-888888888888', created_at: new Date().toISOString() };
+      analyses.push(analysis);
+      payload = { analysis };
+    } else if (method === 'DELETE') { analyses = analyses.filter(x => x.id !== path.split('/')[1]); payload = { deleted: true }; }
     else payload = { analyses };
   }
   else if (path.startsWith('workflows')) {
@@ -155,6 +163,10 @@ await page.locator('[data-decision="approved"]').waitFor();
 await page.locator('[data-delete-analysis="cccccccc-cccc-4ccc-8ccc-cccccccccccc"]').waitFor();
 await page.locator('[data-delete-dataset="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"]').waitFor();
 assert.equal(await page.locator('[data-delete-dataset="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"]').isDisabled(), true);
+
+await page.locator('#ncbSaveAnalysis').click();
+assert.ok(calls.some(call => call.path === 'datasets' && call.method === 'POST' && !Object.hasOwn(call.body, 'rows')));
+assert.ok(calls.some(call => call.path === 'analyses' && call.method === 'POST' && !Object.hasOwn(call.body, 'rows')));
 
 await page.locator('#ncbBrandName').fill('Test Company International');
 await page.locator('#ncbBranding button[type="submit"]').click();
