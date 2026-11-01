@@ -2,7 +2,7 @@
 const K='nova_s_tier_v1',D='nova_diya_streak_v1',defaults={dataSaver:false,sound:false,festivals:false,accent:'saffron'};
 let prefs={...defaults};try{prefs={...prefs,...JSON.parse(localStorage.getItem(K)||'{}')}}catch{}
 
-const $=id=>document.getElementById(id),hi=()=>($('lang')?.value||'Auto')==='Hindi',tr=(a,b)=>hi()?b:a;
+const $=id=>document.getElementById(id),hi=()=>false,tr=(a,b)=>a;
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(prefs))}catch{}};
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const lite=()=>prefs.dataSaver||navigator.connection?.saveData||/2g|3g/.test(navigator.connection?.effectiveType||'')||(navigator.deviceMemory&&navigator.deviceMemory<=2)||reduced();
@@ -90,14 +90,14 @@ function home(){
  e.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{
   const c=b.dataset.cat;
   if(c==='chat-study'){if(!window.NovaModeWorkspace?.openGroup('chat-study'))toast('Chat & Study is unavailable. Reload and try again.')}
-   else if(c==='create'){if(window.NovaSuite?.open)window.NovaSuite.open();else if(!window.NovaModeWorkspace?.openGroup('create'))toast('Create is unavailable. Reload and try again.')}
+   else if(c==='create'){if(!window.NovaModeWorkspace?.openGroup('create'))toast('Create is unavailable. Reload and try again.')}
    else if(c==='explore'){if(!window.NovaModeWorkspace?.openGroup('explore'))toast('Explore is unavailable. Reload and try again.')}
-   else if(c==='voice'){const v=$('lv');if(v&&!v.hidden)v.click();else toast('Voice Chat is unavailable in this browser or microphone permission is blocked.')}
+   else if(c==='voice'){const live=$('lv');if(live&&!live.hidden)live.click();else if(!window.NovaModeWorkspace?.openGroup('voice'))toast('Voice Chat is unavailable. Reload and try again.')}
  });
- if(prefs.festivals){const d=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',day:'2-digit',month:'2-digit'}).format(new Date());const fixed={'26/01':'गणतंत्र दिवस की शुभकामनाएँ','15/08':'स्वतंत्रता दिवस की शुभकामनाएँ','02/10':'आज गांधी जयंती है'};if(fixed[d]){const f=document.createElement('p');f.className='nsub';f.textContent=fixed[d];e.querySelector('.nhero').append(f)}}
+ if(prefs.festivals){const d=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',day:'2-digit',month:'2-digit'}).format(new Date());const fixed={'26/01':'Happy Republic Day','15/08':'Happy Independence Day','02/10':'Today is Gandhi Jayanti'};if(fixed[d]){const f=document.createElement('p');f.className='nsub';f.textContent=fixed[d];e.querySelector('.nhero').append(f)}}
  streak();settings();
 }function feedback(kind,txt){let a=[];try{a=JSON.parse(localStorage.getItem('nova_feedback_v1')||'[]')}catch{}a.push({kind,text:txt.slice(0,1600),at:new Date().toISOString()});try{localStorage.setItem('nova_feedback_v1',JSON.stringify(a.slice(-100)))}catch{}}
-function answerTools(){document.querySelectorAll('.m.a').forEach(m=>{if(m.querySelector('.nova-answer-tools'))return;const b=m.querySelector('.b');if(!b)return;const t=b.innerText||'',w=document.createElement('div');w.className='nova-answer-tools';const add=(label,fn)=>{const x=document.createElement('button');x.type='button';x.textContent=label;x.onclick=fn;w.append(x)};add('👍',()=>feedback('up',t));add('👎',()=>feedback('down',t));add('गलत जवाब रिपोर्ट करो',()=>feedback('report',t));add('WhatsApp',()=>window.open('https://wa.me/?text='+encodeURIComponent(t.slice(0,3000)),'_blank','noopener'));add('Copy',()=>navigator.clipboard?.writeText(t));m.append(w)})}
+function answerTools(){document.querySelectorAll('.m.a').forEach(m=>{if(m.querySelector('.nova-answer-tools'))return;const b=m.querySelector('.b');if(!b)return;const t=b.innerText||'',w=document.createElement('div');w.className='nova-answer-tools';const add=(label,fn)=>{const x=document.createElement('button');x.type='button';x.textContent=label;x.onclick=fn;w.append(x)};add('👍',()=>feedback('up',t));add('👎',()=>feedback('down',t));add('Report incorrect answer',()=>feedback('report',t));add('WhatsApp',()=>window.open('https://wa.me/?text='+encodeURIComponent(t.slice(0,3000)),'_blank','noopener'));add('Copy',()=>navigator.clipboard?.writeText(t));m.append(w)})}
 function boot(){ambientAtmosphere();home();accent();const m=$('msgs');if(m)new MutationObserver(answerTools).observe(m,{childList:true,subtree:true});const log=$('log');if(log)new MutationObserver(records=>{if(records.some(r=>Array.from(r.addedNodes).some(n=>n.nodeType===1&&(n.id==='hi'||n.querySelector?.('#hi')))))home()}).observe(log,{childList:true});$('lang')?.addEventListener('change',()=>{setTimeout(()=>{if($('novaSHome'))$('novaSHome').remove();home()},0)});wake().catch(()=>{})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
