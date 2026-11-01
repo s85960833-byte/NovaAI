@@ -107,7 +107,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
     if (req.method === "POST" && acceptParts.length === 3 && acceptParts[0] === "invitations" && acceptParts[2] === "accept" && uuid(acceptParts[1])) {
       const { data, error } = await db.from("nova_bi_memberships")
         .update({ status: "active" })
-        .eq("id", acceptMatch[1]).eq("user_id", userId).eq("status", "invited")
+        .eq("id", acceptParts[1]).eq("user_id", userId).eq("status", "invited")
         .select("id,organization_id,role,status").single();
       if (error) throw error;
       return json({ accepted: data.status === "active", membership: data });
