@@ -85,7 +85,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
 
       const { data: invitation, error: inviteError } = await ctx.supabaseAdmin.auth.admin.inviteUserByEmail(email);
       if (inviteError || !invitation?.user?.id) {
-        console.error("NOVA BI invitation email could not be issued", inviteError);
+        console.error("NOVA BI invitation email could not be issued");
         return fail("Invitation could not be sent. The address may already have an account or email delivery may not be configured.", 409);
       }
       const invitedUserId = invitation.user.id;
@@ -93,7 +93,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
         .insert({ organization_id: orgId, user_id: invitedUserId, role, status: "invited" })
         .select("id,organization_id,user_id,role,status,created_at").single();
       if (memberError) {
-        console.error("NOVA BI invitation membership could not be saved", memberError);
+        console.error("NOVA BI invitation membership could not be saved");
         return fail("The invitation email was issued but membership setup failed. Contact the workspace owner before retrying.", 500);
       }
       const { error: auditError } = await ctx.supabaseAdmin.from("nova_bi_audit_events").insert({
@@ -101,7 +101,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
         resource_type: "membership", resource_id: member.id, metadata_json: { role, invited_email: email },
       });
       if (auditError) {
-        console.error("NOVA BI invitation audit event could not be saved", auditError);
+        console.error("NOVA BI invitation audit event could not be saved");
         return fail("The invitation was issued, but its audit record could not be saved. Contact the workspace owner before retrying.", 500);
       }
       return json({ invitation: member }, 201);
@@ -292,7 +292,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
 
     return fail("Route not found", 404);
   } catch (error) {
-    console.error("nova-bi-api error", error);
+    console.error("nova-bi-api request failed", String((error as { code?: string })?.code || "unknown"));
     const message = String((error as Error)?.message || "");
     if (message.includes("Authentication required")) return fail("Authentication required", 401);
     if (message.includes("Active organization owner or admin")) return fail("Owner or admin role required", 403);
