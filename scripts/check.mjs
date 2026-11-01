@@ -20,6 +20,18 @@ if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy websit
 syntaxCheck('backend', server);
 
 for (const file of ['s-tier.js','nova-suite.js','mode-registry.js','mode-workspace.js']) syntaxCheck(file, readFileSync(file,'utf8'));
+const tier = readFileSync('s-tier.js', 'utf8');
+const workspace = readFileSync('mode-workspace.js', 'utf8');
+const registry = readFileSync('mode-registry.js', 'utf8');
+for (const [label, fragment] of [
+  ['Chat & Study route', "window.NovaModeWorkspace?.openGroup('chat-study')"],
+  ['Create route', "window.NovaModeWorkspace?.openGroup('create')"],
+  ['Explore route', "window.NovaModeWorkspace?.openGroup('explore')"],
+  ['Voice Chat route', "const v=$('lv')"]
+]) if (!tier.includes(fragment)) throw new Error('Workspace entry point missing: ' + label);
+if (!workspace.includes("openGroup(group){if(!REG.groups.some(g=>g.id===group))return false;show(group);return true;}")) throw new Error('Workspace group launcher contract missing');
+if (!registry.includes("{id:'builder',group:'create'")) throw new Error('Create workspace has no App & Website Builder mode');
+
 for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
 
 if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
