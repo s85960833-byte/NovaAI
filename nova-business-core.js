@@ -114,8 +114,8 @@
       else{open++;g.open++;const due=dueKey?date(row[dueKey]):null;if(dueKey&&due===null)invalidDates++;if(due!==null&&due<now){overdue++;g.overdue++}}
       teams.set(team,g);
     }
-    const total=rows.length;
-    return {kind:'tasks',total,validRows:total-invalidRows,invalidRows,completed,open,overdue,completionPct:total?round(completed/total*100):0,overdueOpenPct:open?round(overdue/open*100):0,averageCycleDays:cycleCount?round(cycleTotal/cycleCount,2):null,invalidDateRows:invalidDates,byTeam:[...teams.values()].map(g=>({team:g.team,total:g.total,completed:g.completed,open:g.open,overdue:g.overdue,averageCycleDays:g.cycleDays.length?round(g.cycleDays.reduce((a,b)=>a+b,0)/g.cycleDays.length,2):null})).sort((a,b)=>a.team.localeCompare(b.team)),note:'Team-level operational indicators only. They do not measure individual employee effort or performance.'};
+    const sourceRows=rows.length,total=sourceRows-invalidRows;
+    return {kind:'tasks',total,sourceRows,validRows:total,invalidRows,completed,open,overdue,completionPct:total?round(completed/total*100):0,overdueOpenPct:open?round(overdue/open*100):0,averageCycleDays:cycleCount?round(cycleTotal/cycleCount,2):null,invalidDateRows:invalidDates,byTeam:[...teams.values()].map(g=>({team:g.team,total:g.total,completed:g.completed,open:g.open,overdue:g.overdue,averageCycleDays:g.cycleDays.length?round(g.cycleDays.reduce((a,b)=>a+b,0)/g.cycleDays.length,2):null})).sort((a,b)=>a.team.localeCompare(b.team)),note:'Team-level operational indicators only. They do not measure individual employee effort or performance.'};
   }
   function scoreProjectRisk(project,nowValue){
     const p=project||{},due=date(p.dueDate),reference=nowValue==null?Date.now():date(nowValue);
