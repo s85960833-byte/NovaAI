@@ -40,3 +40,13 @@ Updated: 2026-11-01
 6. Implement tested end-to-end workflow approval and execution records; no real external action until connector scopes and approval UX exist.
 7. Complete mobile/manual accessibility, security, regression and production smoke tests.
 8. Keep PR #46 draft until all release gates pass. Do not merge or deploy automatically.
+
+ 
+## Verification update (2026-11-01)
+- Latest feature-branch commit: `2b2cfea91a955fb833c38349b09daadb76cfd72f`.
+- GitHub Actions run [41320123885](https://github.com/s85960833-byte/NovaAI/actions/runs/41320123885) passed all 28 BI tests, syntax checks, mode registry checks, local server startup, local route smoke tests and PWA asset checks.
+- Fixed CSV source-row evidence so physical line numbers remain correct across blank lines and quoted multiline cells; malformed-row warnings now report physical line numbers.
+- Added a file-size check before reading an uploaded CSV into browser memory.
+- Date-only task/project deadlines are treated as due through the end of their calendar day rather than as overdue from midnight.
+- Feature-branch CI does not run live Render smoke tests; no production deployment was performed.
+- SQL migrations remain unexecuted; no Supabase project has been selected or modified. Authentication, trusted membership loading, tenant-scoped server APIs, durable shared storage, audit writes, onboarding, integrations and real workflow execution remain release blockers.
