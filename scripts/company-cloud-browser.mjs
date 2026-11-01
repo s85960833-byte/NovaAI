@@ -97,7 +97,9 @@ await page.goto('http://127.0.0.1:8787', { waitUntil: 'domcontentloaded' });
 
 // Exercise the local analysis workspace at a phone-sized viewport.
 await page.locator('#novaBusinessLauncher').waitFor({ state: 'visible', timeout: 15000 });
-await page.locator('#novaBusinessLauncher').click({ force: true });
+await page.locator('#menu').click();
+await page.locator('#side.open').waitFor();
+await page.locator('#novaBusinessLauncher').click();
 await page.locator('#nbNav [data-view="data"]').click();
 await page.locator('#nbFile').setInputFiles({
   name: 'expenses.csv',
@@ -136,9 +138,12 @@ const proofDownload = await proofDownloadPromise;
 assert.match(proofDownload.suggestedFilename(), /nova-action-proof\\.json$/);
 await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaBusiness').evaluate(el => el.classList.contains('show')), false);
+await page.locator('#menu').click();
+await page.locator('#menu').click();
+await page.locator('#side.open').waitFor();
 
 await page.locator('#novaBICloudLauncher').waitFor({ state: 'visible', timeout: 15000 });
-await page.locator('#novaBICloudLauncher').click({ force: true });
+await page.locator('#novaBICloudLauncher').click();
 await page.locator('#ncbAuth').waitFor();
 await page.locator('#ncbEmail').fill('owner@example.test');
 await page.locator('#ncbPassword').fill('a-strong-test-password');
