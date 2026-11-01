@@ -96,10 +96,14 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
         console.error("NOVA BI invitation membership could not be saved", memberError);
         return fail("The invitation email was issued but membership setup failed. Contact the workspace owner before retrying.", 500);
       }
-      await ctx.supabaseAdmin.from("nova_bi_audit_events").insert({
+      const { error: auditError } = await ctx.supabaseAdmin.from("nova_bi_audit_events").insert({
         organization_id: orgId, actor_id: userId, event_type: "membership.invitation.sent",
         resource_type: "membership", resource_id: member.id, metadata_json: { role, invited_email: email },
       });
+      if (auditError) {
+        console.error("NOVA BI invitation audit event could not be saved", auditError);
+        return fail("The invitation was issued, but its audit record could not be saved. Contact the workspace owner before retrying.", 500);
+      }
       return json({ invitation: member }, 201);
     }
 
