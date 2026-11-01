@@ -139,12 +139,12 @@ test('tenant schema draft enables RLS on every business table and scopes access 
 });
 
 test('CSV source-row evidence preserves physical line numbers across blank and quoted multiline records',()=>{
- const parsed=core.parseCSV('name,note,amount\\nAcme,"line one\\nline two",10\\n\\nBeta,ok,20');
+ const parsed=core.parseCSV('name,note,amount\nAcme,"line one\nline two",10\n\nBeta,ok,20');
  assert.deepEqual(parsed.rows.map(row=>row.__novaSourceRowNumber),[2,5]);
- assert.equal(parsed.rows[0].note,'line one\\nline two');
+ assert.equal(parsed.rows[0].note,'line one\nline two');
 });
 test('CSV malformed-row warnings report physical source line numbers after blank lines',()=>{
- const parsed=core.parseCSV('a,b\\n1,2\\n\\n3\\n4,5');
+ const parsed=core.parseCSV('a,b\n1,2\n\n3\n4,5');
  assert.deepEqual(parsed.warnings,['Row 4 has 1 columns; expected 2.']);
  assert.deepEqual(parsed.rows.map(row=>row.__novaSourceRowNumber),[2,5]);
 });
