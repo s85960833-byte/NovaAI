@@ -17,7 +17,7 @@
 4. Normal database reads/writes use the user-scoped Supabase client so Postgres RLS applies.
 5. Privileged invitation and roster operations use the server-side admin client only after an explicit active owner/admin membership check.
 6. Database triggers enforce organization bootstrap, invited-user acceptance, workflow approval separation and audit writes.
-7. Every tenant-owned API query includes the requested organization ID and relies on RLS as an independent boundary.
+7. Every tenant-owned API query includes the requested organization ID and relies on RLS as an independent boundary. The Edge Function also applies 120 requests/user/minute and 5 invitations/user/hour; the rate-limit table and function are server-only.
 
 ## Persisted data
 Nine NOVA BI tables are deployed with RLS enabled:
@@ -30,6 +30,7 @@ Nine NOVA BI tables are deployed with RLS enabled:
 - `nova_bi_audit_events`
 - `nova_bi_workflow_executions`
 - `nova_bi_branding`
+- `nova_bi_rate_limits` (server-only counters; not tenant-visible)
 
 The browser parses CSV files locally. Cloud save persists dataset metadata, aggregate analysis outputs, source-row evidence, assumptions and calculation version; raw CSV contents are not uploaded. Workflow proposals are plans only; no external workflow action is executed.
 

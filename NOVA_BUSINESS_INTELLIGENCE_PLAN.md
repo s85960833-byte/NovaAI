@@ -72,10 +72,10 @@ Initial target segment: small IT services companies and software agencies. Do no
 
 ## Security and persistence status
 - Supabase Auth and a JWT-protected `nova-bi-api` Edge Function are deployed on the approved NOVA BI project.
-- Nine tenant tables have RLS enabled. Organization bootstrap, invite acceptance, approval separation and deletion audit writes are guarded by database triggers.
+- Nine tenant tables plus one server-only rate-limit table have RLS enabled. Organization bootstrap, invite acceptance, approval separation and deletion audit writes are guarded by database triggers.
 - Cloud save stores dataset metadata and calculated aggregates/evidence only; raw CSV file contents remain in the browser.
-- Owner/admin controls include invitations, company branding, workflow approvals, company JSON export and audited deletion of saved analyses/dataset metadata.
-- Keep the feature on its isolated branch. Do not market it as enterprise-ready or deploy it until two-account browser testing, email delivery, retention/backup/restore, rate limiting, manual Android checks and production regression are complete.
+- Owner/admin controls include invitations, company branding, workflow approvals, company JSON export and audited deletion of saved analyses/dataset metadata. The API applies 120 requests/user/minute and 5 invitations/user/hour; IP-level abuse monitoring remains a release gate.
+- Keep the feature on its isolated branch. Do not market it as enterprise-ready or deploy it until two-account browser testing, email delivery, retention/backup/restore, IP-level abuse monitoring, manual Android checks and production regression are complete.
 - The Digital Twin is assumption-based arithmetic, Project Risk is heuristic, and Workflow Automation remains a plan/checklist. None should be described as a validated prediction or live external execution.
 
 ## Delivery gates

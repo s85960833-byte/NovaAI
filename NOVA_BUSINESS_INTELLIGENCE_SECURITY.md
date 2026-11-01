@@ -6,13 +6,13 @@
 - Supabase Auth handles account authentication.
 - Edge Function `nova-bi-api` requires a verified user JWT.
 - The browser contains only a Supabase publishable key; the service-role key remains server-side.
-- All nine NOVA BI tables have Postgres RLS enabled.
+- All nine tenant tables plus the server-only rate-limit table have Postgres RLS enabled.
 - Tenant reads and writes use the authenticated database client and tenant-scoped predicates.
 - Owner/admin-only membership invitations, roster access, branding writes, workflow decisions and deletions have explicit server-side checks and/or database policies.
 - Organization creation, invitation acceptance, workflow approval separation and delete audit events are guarded by database triggers.
 - Authenticated users cannot directly insert or modify membership roles.
 - CSV contents remain browser-local; cloud persistence is limited to metadata, analysis aggregates, assumptions and evidence.
-- Edge Function request bodies and JSON payloads have explicit size limits; list endpoints are capped.
+- Edge Function request bodies and JSON payloads have explicit size limits; list endpoints are capped. Per-user throttling allows 120 authenticated API requests/minute and 5 invitations/hour. Rate-limit counters and the limiter function are inaccessible to anon/authenticated roles.
 - Security Advisor returned zero findings on the approved project at the latest check.
 
 ## Data classification and user notice
@@ -26,7 +26,7 @@ Cloud save sends the selected dataset metadata and calculated aggregates/evidenc
 3. Verify invitation email delivery with the configured Supabase Auth SMTP/provider; automated tests currently stub this external delivery.
 4. Define retention windows and backup/restore procedures; verify provider backups and recovery.
 5. Verify deletion semantics for all tenant data, including memberships, audit history, branding and organization closure. Current UI supports owner/admin deletion of saved analyses and dataset metadata only.
-6. Add per-user/per-tenant rate limiting and abuse monitoring to the Edge Function before broad public exposure.
+6. Add IP-level abuse monitoring and alerting before broad public exposure; per-user API throttling (120/minute) and invitation throttling (5/hour) are implemented.
 7. Complete manual Android touch, keyboard/screen-reader, contrast, low-bandwidth and performance checks.
 8. Complete incident-response and secret-rotation runbooks.
 
