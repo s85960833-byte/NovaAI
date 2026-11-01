@@ -1,60 +1,70 @@
-# NOVA Business Intelligence — Shared-Data Architecture Contract
+# NOVA Business Intelligence — Current Architecture
 
-**Status:** Provider-neutral design + isolated policy primitives only. Not a deployed authentication system.
+**Status:** Isolated feature branch; authenticated cloud metadata and analysis storage are implemented on the approved Supabase project. This is not yet a production release or enterprise certification.
 
-## Security boundary
-The current NOVA Business Intelligence workspace remains browser-local. The policy module in `nova-business-security.js` is a deny-by-default authorization helper for future server routes. It does not verify JWTs, authenticate users, load memberships, persist records, or provide tenant isolation by itself. No protected business-data route may be enabled until a concrete server-side auth adapter and trusted membership repository are implemented.
+## Deployment boundaries
+- Application repository: `s85960833-byte/NovaAI`.
+- Implementation branch: `feature/nova-business-intelligence`.
+- Production branch: `main` (unchanged).
+- Supabase project: `qrfwsewppafhxibdboam` (approved NOVA BI project; separate from Research-to-Code).
+- Supabase Edge Function: `nova-bi-api`, JWT verification enabled.
+- Render production service remains unchanged until a separately approved release.
 
-## Required request pipeline
-1. Verify bearer token signature, issuer, audience, expiry and revocation/session policy using the selected provider's server SDK.
-2. Resolve the authenticated user from verified token claims only.
-3. Load active organization membership from the database using both user ID and organization ID.
-4. Call the shared authorization policy with the verified principal and trusted membership.
-5. Query or mutate records with organization ID included in every database predicate; enforce database row-level policies independently.
-6. Emit an append-only audit event for sensitive operations.
-7. Return generic 404 for cross-tenant resource IDs; never reveal whether another tenant's record exists.
+## Runtime request flow
+1. Browser uses the Supabase publishable key only; no service-role key is shipped to the browser.
+2. Supabase Auth creates/signs in users and supplies the bearer access token.
+3. The `nova-bi-api` Edge Function runs with user authentication and derives the user ID from verified JWT claims.
+4. Normal database reads/writes use the user-scoped Supabase client so Postgres RLS applies.
+5. Privileged invitation and roster operations use the server-side admin client only after an explicit active owner/admin membership check.
+6. Database triggers enforce organization bootstrap, invited-user acceptance, workflow approval separation and audit writes.
+7. Every tenant-owned API query includes the requested organization ID and relies on RLS as an independent boundary.
 
-Never trust organization IDs, role names, user IDs, approval state, or permissions supplied in a request body, query string, local storage, or unsigned token.
+## Persisted data
+Nine NOVA BI tables are deployed with RLS enabled:
+- `nova_bi_organizations`
+- `nova_bi_memberships`
+- `nova_bi_datasets`
+- `nova_bi_analyses`
+- `nova_bi_workflow_proposals`
+- `nova_bi_workflow_approvals`
+- `nova_bi_audit_events`
+- `nova_bi_workflow_executions`
+- `nova_bi_branding`
 
-## Initial relational model
-- `organizations(id, name, created_at, created_by)`
-- `organization_memberships(id, organization_id, user_id, role, status, created_at, updated_at)`; unique (organization_id, user_id)
-- `business_datasets(id, organization_id, created_by, name, schema_version, fingerprint, created_at, deleted_at)`
-- `business_analyses(id, organization_id, dataset_id, created_by, calculation_version, result_json, created_at)`
-- `workflow_proposals(id, organization_id, created_by, status, proposal_json, created_at)`
-- `workflow_approvals(id, organization_id, proposal_id, actor_id, decision, decided_at)`
-- `audit_events(id, organization_id, actor_id, event_type, resource_type, resource_id, metadata_json, created_at)`
+The browser parses CSV files locally. Cloud save persists dataset metadata, aggregate analysis outputs, source-row evidence, assumptions and calculation version; raw CSV contents are not uploaded. Workflow proposals are plans only; no external workflow action is executed.
 
-Every child record must have a tenant-scoped foreign key or equivalent constraint. Do not persist raw CSV rows by default; store only the minimum approved fields. Define deletion and retention before enabling persistence.
-
-## Role matrix
+## Authorization model
 | Capability | Owner | Admin | Analyst | Viewer |
 |---|---:|---:|---:|---:|
-| Read datasets / analyses | Yes | Yes | Yes | Yes |
-| Import or update datasets | Yes | Yes | Yes | No |
-| Export datasets / reports | Yes | Yes | Yes | No |
-| Delete datasets | Yes | Yes | No | No |
-| Run analysis | Yes | Yes | Yes | Read only |
+| Read tenant datasets, analyses, workflows and audit | Yes | Yes | Yes | Yes |
+| Create dataset metadata and analyses | Yes | Yes | Yes | No |
+| Delete datasets and analyses | Yes | Yes | No | No |
 | Propose workflows | Yes | Yes | Yes | No |
-| Approve workflow proposals | Yes | Yes | No | No |
-| Invite / change member roles | Yes | Yes | No | No |
-| Read audit events | Yes | Yes | Yes | Yes |
-| Manage organization settings | Yes | Yes | No | No |
+| Approve/reject another member's proposal | Yes | Yes | No | No |
+| Invite viewer/analyst | Yes | Yes | No | No |
+| Invite another admin | Yes | No | No | No |
+| Manage company branding | Yes | Yes | No | No |
 
-Role assignment, invitations, owner transfer, and removal of the final owner require dedicated server-side workflows and audit events. This matrix is a proposed baseline, not an implemented account feature.
+Membership writes are not available directly to authenticated clients. Invitation acceptance can only activate the authenticated invitee's own pending membership. Owner/admin roster access is checked server-side.
 
-## Required release tests
-- Unauthenticated: 401.
-- Authenticated but not a member / insufficient role: 403.
-- Cross-tenant resource IDs: generic 404.
-- Verify every read, update, delete, export, approval and background task is tenant-scoped.
-- Test role downgrade, membership removal, session revocation and organization deletion.
-- Test database row-level policies independently of API checks.
-- Confirm no provider service key or raw company row is exposed in browser bundles, logs, analytics or error responses.
-- Verify append-only audit semantics, data export/deletion, retention expiry and backup restore.
+## Deletion and audit
+- Owners/admins can permanently delete saved analysis records and dataset metadata.
+- Dataset deletion is blocked by the relational foreign key while analyses still reference it; the UI asks the user to remove linked analyses first.
+- Database triggers append audit events for analysis/dataset deletion, invitation acceptance and workflow decisions.
+- Original CSV files are browser-local and are not stored by NOVA; deleting cloud metadata cannot delete a local file.
 
-## Provider selection gate
-No auth/database provider is selected or connected. Before selecting one, compare free-tier limits, pause/sleep behavior, data region, backups, row-level security, auth session handling, export/deletion, and expected growth. Do not create a project, enter credentials, or enable paid billing without explicit user approval.
+## Truthful feature boundaries
+- Project risk is an explainable heuristic, not a trained or calibrated prediction.
+- Digital Twin scenarios use user-entered assumptions and deterministic arithmetic; they are not guaranteed savings or forecasts.
+- Productivity analysis is aggregate/team-level, not individual surveillance or performance ranking.
+- Workflow automation is an approval-gated proposal/checklist, not a connected executor.
+- White-label settings change workspace appearance only. Custom domains and full NOVA brand removal are not implemented.
+- External accounting, HR, CRM, project-management and payment integrations are not implemented.
+- Action Proof records calculation/test evidence; it does not prove real-world business outcomes.
 
-## Explicit non-claims
-These files do not mean NOVA has login, cloud sync, shared accounts, role enforcement on live APIs, audit logging, tenant-isolated storage, or enterprise readiness. Those remain blocked until implemented with a selected provider and tested end to end.
+## Verification and release gates
+- GitHub Actions applies all migrations to a fresh PostgreSQL 17 instance and runs RLS integration scenarios.
+- Deno type-check and deployed Edge Function unauthenticated/CORS smoke checks run in CI.
+- Calculation, CSV validation, server/PWA smoke tests and a Playwright mobile-viewport Company Cloud flow run in CI.
+- Before public release, complete real two-account browser testing (including invite email delivery), manual Android accessibility/touch checks, production regression/live smoke tests, backup/restore validation and a documented retention/incident-response policy.
+- Do not merge or deploy without explicit owner approval.
