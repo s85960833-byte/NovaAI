@@ -90,7 +90,7 @@ function home(){
  e.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{
   const c=b.dataset.cat;
   if(c==='chat-study'){if(!window.NovaModeWorkspace?.openGroup('chat-study'))toast('Chat & Study is unavailable. Reload and try again.')}
-   else if(c==='create'){if(window.NovaSuite?.open)window.NovaSuite.open();else if(!window.NovaModeWorkspace?.openGroup('create'))toast('Create is unavailable. Reload and try again.')}
+   else if(c==='create'){if(!window.NovaModeWorkspace?.openGroup('create'))toast('Create is unavailable. Reload and try again.')}
    else if(c==='explore'){if(!window.NovaModeWorkspace?.openGroup('explore'))toast('Explore is unavailable. Reload and try again.')}
    else if(c==='voice'){const v=$('lv');if(v&&!v.hidden)v.click();else toast('Voice Chat is unavailable in this browser or microphone permission is blocked.')}
  });
