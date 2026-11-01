@@ -125,3 +125,11 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 
 
 - 2026-11-01: Created isolated UI integration branch from current main; implementation and verification are pending.
+
+
+## NOVA Indian Future UI integration (2026-11-01)
+- Working branch: `feature-nova-next-ui-20261101`, based on production `main` commit `bd7ce67bd4a03eeb26861d0167f2b69e51c2bbc9`; production `main` and Render have not been changed.
+- Reconnected the existing mode registry, mode workspace, Nova Build Studio and S-Tier home experience through ordered homepage script tags. The S-Tier home provides Chat & Study, Voice Chat, Create and Explore, plus the reactive Living Core and Indian-inspired visual system.
+- Confirmed the existing service worker already uses cache key `nova-shell-v15-indian-future-ui` and pre-caches all four UI scripts; no server cache-key change was needed.
+- Added static, local-runtime and live-smoke assertions for the script wiring and enabled CI on this feature branch.
+- Status: integration committed on the feature branch; CI and browser/Android interaction verification are pending. Do not merge or deploy until tests pass and all four entry points plus legacy chat/settings/voice/image flows are checked.
