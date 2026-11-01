@@ -70,24 +70,26 @@
   function analyzeExpenses(rows,mapping){
     if(!Array.isArray(rows))fail('Expense rows must be an array.');
     const amountKey=requireField(mapping,'amount'),categoryKey=requireField(mapping,'category');
-    const dateKey=text(mapping&&mapping.date),groups=new Map(),months=new Map();let total=0,valid=0,invalid=0,invalidDates=0;
-    for(const row of rows){
-      const amount=number(row[amountKey]),category=text(row[categoryKey])||'Uncategorised';
+    const dateKey=text(mapping&&mapping.date),groups=new Map(),months=new Map(),categoryRows=new Map(),monthRows=new Map();let total=0,valid=0,invalid=0,invalidDates=0;
+    for(let index=0;index<rows.length;index++){
+      const row=rows[index],rowNumber=index+2,amount=number(row[amountKey]),category=text(row[categoryKey])||'Uncategorised';
       if(amount===null||amount<0){invalid++;continue}
       total+=amount;valid++;
       groups.set(category,(groups.get(category)||0)+amount);
+      if(!categoryRows.has(category))categoryRows.set(category,[]);
+      categoryRows.get(category).push({rowNumber,amount:round(amount)});
       const stamp=dateKey?date(row[dateKey]):null;
       if(dateKey&&stamp===null)invalidDates++;
-      if(stamp!==null){const d=new Date(stamp),key=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');months.set(key,(months.get(key)||0)+amount)}
+      if(stamp!==null){const d=new Date(stamp),key=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');months.set(key,(months.get(key)||0)+amount);if(!monthRows.has(key))monthRows.set(key,[]);monthRows.get(key).push({rowNumber,amount:round(amount),date:text(row[dateKey])})}
     }
     const monthlyBudget=mapping&&mapping.monthlyBudget!==''&&mapping.monthlyBudget!=null?number(mapping.monthlyBudget):null;
     if(mapping&&mapping.monthlyBudget!==''&&mapping.monthlyBudget!=null&&monthlyBudget===null)fail('Monthly budget must be a valid number.');
     if(monthlyBudget!==null&&monthlyBudget<0)fail('Monthly budget cannot be negative.');
     const chronological=[...months.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
     const monthChanges=chronological.slice(1).map((entry,i)=>{const previous=chronological[i],change=entry[1]-previous[1];return {month:entry[0],previousMonth:previous[0],spend:round(entry[1]),previousSpend:round(previous[1]),change:round(change),changePct:previous[1]>0?round(change/previous[1]*100):null}});
-    const spendAlerts=monthChanges.filter(x=>x.change>0&&(x.changePct===null||x.changePct>=25)).map(x=>({type:'spend-increase-review',month:x.month,change:x.change,changePct:x.changePct,note:'Review this increase; it is an anomaly signal, not proof of waste.'}));
-    const budgetOverruns=monthlyBudget===null?[]:chronological.filter(x=>x[1]>monthlyBudget).map(x=>({month:x[0],spend:round(x[1]),budget:round(monthlyBudget),overrun:round(x[1]-monthlyBudget)}));
-    return {kind:'expenses',currency:text(mapping&&mapping.currency)||'Not specified',total:round(total),validRows:valid,invalidRows:invalid,invalidDateRows:invalidDates,byCategory:sortedMap(groups),byMonth:sortedMap(months),monthChanges,monthlyBudget:monthlyBudget===null?null:round(monthlyBudget),budgetOverruns,spendAlerts,coverage:rows.length?round(valid/rows.length*100):0,note:'Spend increases and budget overruns are review signals only; they do not prove fraud, waste or avoidable cost.'};
+    const spendAlerts=monthChanges.filter(x=>x.change>0&&(x.changePct===null||x.changePct>=25)).map(x=>({type:'spend-increase-review',month:x.month,change:x.change,changePct:x.changePct,sourceRows:(monthRows.get(x.month)||[]).map(y=>y.rowNumber),note:'Review this increase; it is an anomaly signal, not proof of waste.'}));
+    const budgetOverruns=monthlyBudget===null?[]:chronological.filter(x=>x[1]>monthlyBudget).map(x=>({month:x[0],spend:round(x[1]),budget:round(monthlyBudget),overrun:round(x[1]-monthlyBudget),sourceRows:(monthRows.get(x[0])||[]).map(y=>y.rowNumber)}));
+    return {kind:'expenses',currency:text(mapping&&mapping.currency)||'Not specified',total:round(total),validRows:valid,invalidRows:invalid,invalidDateRows:invalidDates,byCategory:sortedMap(groups),byMonth:sortedMap(months),evidenceByCategory:[...categoryRows.entries()].map(([name,items])=>({name,sourceRows:items.map(x=>x.rowNumber),rowCount:items.length})),evidenceByMonth:[...monthRows.entries()].map(([month,items])=>({month,sourceRows:items.map(x=>x.rowNumber),rowCount:items.length})),monthChanges,monthlyBudget:monthlyBudget===null?null:round(monthlyBudget),budgetOverruns,spendAlerts,coverage:rows.length?round(valid/rows.length*100):0,note:'Spend increases and budget overruns are review signals only; they do not prove fraud, waste or avoidable cost.'};
   }
   function analyzeClients(rows,mapping){
     if(!Array.isArray(rows))fail('Client rows must be an array.');
