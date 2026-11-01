@@ -149,6 +149,58 @@ a.cite{color:var(--acc);text-decoration:none;font-weight:700;font-size:.85em;ver
 @keyframes shm{to{background-position:-200% 0}}@keyframes bar{to{background-position:140% 0}}
 .imopt{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:2px auto 4px;width:calc(100% - 24px);max-width:760px}.imopt button{font-size:13px;padding:4px 12px;border-radius:999px}.imopt .on{border-color:var(--acc);background:var(--panel);font-weight:700}
 @media(prefers-reduced-motion:reduce){.skel,.sk-bar,.reveal{animation:none}}
+
+/* NOVA COSMIC INDIA UI — presentation layer only */
+:root{--bg:#050817;--panel:#091329;--fg:#f5f8ff;--mut:#a9b9d5;--acc:#26d9ff;--acc2:#9b4dff;--onacc:#06101f;--card:#0b1831;--bd:#1b3a69;--ub:#142b50;--glow:rgba(38,217,255,.24);--g1:rgba(62,65,255,.28);--g2:rgba(255,158,45,.12);--shadow:0 18px 52px -18px rgba(0,0,0,.72)}
+body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),transparent 64%),radial-gradient(760px 540px at 5% 105%,rgba(0,190,255,.13),transparent 65%),#050817}
+#side{background:linear-gradient(180deg,rgba(7,15,36,.98),rgba(4,9,24,.98));border-color:#183b70;box-shadow:12px 0 40px rgba(0,0,0,.22)}
+.brand b,#top b{font-family:Nunito,system-ui,sans-serif;font-weight:900;letter-spacing:.5px}
+.logo{background:linear-gradient(135deg,#20e5ff,#6a5cff 55%,#ffb13b);color:#06101f;box-shadow:0 0 24px rgba(48,170,255,.42)}
+#new{background:linear-gradient(110deg,#114d9c,#5427bb);border:1px solid #4b9dff;box-shadow:0 0 22px rgba(52,119,255,.22)}
+.nav button{border:1px solid transparent;border-radius:12px;color:#dce9ff}.nav button:hover,.nav button:focus-visible{background:#10244a;border-color:#275c9c}
+#top{background:rgba(5,12,29,.82);backdrop-filter:blur(18px);border-color:#173967}
+#top select{max-width:170px}
+#msgs{padding:clamp(12px,2vw,28px)}
+.it.on{background:#10244a;box-shadow:inset 3px 0 #28dfff}
+#box{background:rgba(7,19,42,.96);border-color:#2876bb;box-shadow:0 0 26px rgba(0,167,255,.14),var(--shadow)}
+#box:focus-within{border-color:#31e3ff;box-shadow:0 0 0 3px rgba(38,217,255,.13),0 0 34px rgba(38,217,255,.18)}
+#box #send{background:linear-gradient(135deg,#15dfff,#624dff);color:#fff}
+#hi.nova-home{width:100%;max-width:1280px;margin:0 auto 28px;text-align:start;display:flex;flex-direction:column;gap:clamp(16px,2vw,26px)}
+.nova-hero{position:relative;isolation:isolate;min-height:310px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(240px,.9fr);align-items:center;overflow:hidden;border:1px solid rgba(57,164,255,.58);border-radius:28px;padding:clamp(22px,4vw,48px);background:radial-gradient(ellipse at 78% 48%,rgba(32,113,255,.36),transparent 38%),radial-gradient(ellipse at 65% 5%,rgba(255,155,43,.17),transparent 45%),linear-gradient(115deg,#07152f 0%,#11124a 55%,#071b35 100%);box-shadow:0 18px 60px rgba(0,0,0,.38),inset 0 0 55px rgba(36,143,255,.1)}
+.nova-hero:before{content:"";position:absolute;inset:0;z-index:-1;opacity:.55;background:repeating-linear-gradient(115deg,transparent 0 44px,rgba(65,155,255,.08) 45px,transparent 47px),linear-gradient(90deg,transparent,rgba(20,125,255,.1),transparent)}
+.nova-hero-copy{max-width:620px;z-index:2}.nova-kicker{display:inline-flex;align-items:center;gap:8px;color:#73eaff;font-size:12px;font-weight:900;letter-spacing:1.8px}.nova-hero h1{font-size:clamp(36px,5.5vw,68px)!important;line-height:1.02!important;letter-spacing:-2px;margin:14px 0 10px!important;font-family:Nunito,system-ui,sans-serif!important;font-weight:1000!important;background:linear-gradient(100deg,#fff 10%,#b6eaff 50%,#b18cff 90%);background-clip:text;-webkit-background-clip:text;color:transparent}
+.nova-tagline{font-size:clamp(18px,2vw,25px);font-weight:800;line-height:1.35;margin:0 0 10px;color:#edf6ff}.nova-tagline:after{content:"";display:inline-block}
+.nova-desc{color:#b5c9e8;max-width:520px;font-size:15px;margin:0 0 22px}
+.nova-primary{border:1px solid #7deaff!important;border-radius:999px!important;padding:13px 22px!important;background:linear-gradient(100deg,#1b8dff,#622fff)!important;color:white!important;font-weight:900;box-shadow:0 0 28px rgba(43,148,255,.42)}
+.nova-primary:hover{transform:translateY(-2px);box-shadow:0 0 36px rgba(43,148,255,.6)}
+.nova-hero-art{position:relative;min-height:250px;display:grid;place-items:center;overflow:hidden}
+.nova-orbit{position:absolute;width:min(86%,340px);aspect-ratio:1;border:1px solid rgba(67,211,255,.5);border-radius:50%;box-shadow:0 0 30px rgba(0,171,255,.15),inset 0 0 30px rgba(0,171,255,.08);transform:rotate(-22deg) scaleY(.48)}
+.orbit-two{width:min(100%,420px);border-color:rgba(255,173,69,.48);transform:rotate(30deg) scaleY(.35)}
+.nova-gateway{display:grid;place-items:center;width:118px;height:150px;border:3px solid #ffbf60;border-bottom:0;border-radius:58px 58px 0 0;color:#fff1c6;font-size:46px;text-shadow:0 0 25px #ffb34e;box-shadow:0 0 28px rgba(255,169,56,.48),inset 0 0 28px rgba(255,170,60,.16);background:linear-gradient(180deg,rgba(255,174,64,.18),transparent)}
+.nova-ai-profile{position:absolute;right:7%;top:8%;width:92px;height:92px;border-radius:50%;display:grid;place-items:center;font-size:58px;color:#8ceeff;background:radial-gradient(circle at 40% 35%,#d8ffff,#208cff 40%,#111c59 72%);box-shadow:0 0 44px rgba(41,176,255,.7);border:1px solid #7ceaff}
+.nova-tricolor{position:absolute;left:0;right:0;bottom:10%;height:14px;border-radius:50%;transform:rotate(-10deg);background:linear-gradient(90deg,transparent 2%,#ff9b37 20%,#fff 48%,#20c77a 76%,transparent 98%);filter:blur(5px);box-shadow:0 0 24px rgba(255,255,255,.35)}
+.nova-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.nova-stat{display:grid;grid-template-columns:42px 1fr;align-items:center;column-gap:10px;padding:13px 16px;border:1px solid #1d477d;border-radius:16px;background:linear-gradient(120deg,rgba(11,30,62,.94),rgba(9,18,42,.92));box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.nova-stat>span{grid-row:span 2;font-size:27px;color:#47e2ff}.nova-stat>div{font-weight:900;font-size:14px}.nova-stat small{color:#a9bddb;font-size:11px}
+.nova-section-head,.nova-recent-head{display:flex;justify-content:space-between;align-items:end;gap:10px}.nova-section-head h2,.nova-quick h2,.nova-recent h2{font-size:19px!important;font-family:Nunito,system-ui,sans-serif!important;font-weight:900!important;margin:0!important}.nova-section-head span,.nova-recent-head span{font-size:12px;color:#91a9cc}
+.nova-workspaces{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+#hi .nova-work-card{position:relative;min-height:190px;display:flex;flex-direction:column;align-items:flex-start;gap:9px;text-align:start;padding:22px;border-radius:22px;background:linear-gradient(150deg,#0d2a52,#0b1531 65%,#15103d);border:1px solid #2767a5;box-shadow:0 12px 32px rgba(0,0,0,.28),inset 0 0 30px rgba(48,134,255,.08);overflow:hidden}
+#hi .nova-work-card:after{content:"";position:absolute;width:170px;height:170px;right:-70px;top:-75px;border-radius:50%;background:radial-gradient(circle,rgba(32,218,255,.24),transparent 70%);pointer-events:none}
+#hi .nova-work-card:hover{transform:translateY(-4px);border-color:#55e5ff;box-shadow:0 18px 38px rgba(0,0,0,.38),0 0 22px rgba(35,165,255,.15)}
+.nova-work-card.build{border-color:#258ce0}.nova-work-card.learn{border-color:#9348e7;background:linear-gradient(150deg,#29134e,#10132e 70%)}.nova-work-card.assistant{border-color:#d18a2f;background:linear-gradient(150deg,#4a2a0b,#15132b 72%)}
+.nova-card-icon{font-size:34px;color:#8cefff;text-shadow:0 0 18px currentColor}.learn .nova-card-icon{color:#d5a2ff}.assistant .nova-card-icon{color:#ffc36a}
+.nova-work-card b{font-size:18px;letter-spacing:.4px}.nova-work-card small{color:#b6c7e2;font-size:13px;line-height:1.45}
+.nova-card-cta{margin-top:auto;font-size:13px;font-weight:900;color:#76eaff}
+.nova-tools{display:flex;flex-direction:column;gap:12px}.nova-tool-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#hi .nova-tool{display:grid;grid-template-columns:36px 1fr;grid-template-rows:auto auto;align-items:center;column-gap:10px;text-align:start;padding:13px;border-radius:15px;background:rgba(10,26,54,.9);border:1px solid #1d4778}
+.nova-tool>span{grid-row:span 2;font-size:25px;color:#56e4ff}.nova-tool>div{font-size:13px;font-weight:900}.nova-tool small{font-size:11px;color:#a9bddb}
+#hi .nova-tool:hover{border-color:#45dfff;background:#10284e}
+.nova-lower{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}.nova-quick,.nova-recent{padding:17px;border:1px solid #1b416f;border-radius:18px;background:rgba(7,19,42,.8)}
+.nova-quick h2,.nova-recent h2{margin-bottom:12px!important}.nova-home .chips{margin-top:10px}.nova-home .chips button{background:#0c2040;border-color:#1d4b7d;color:#dcecff}
+.nova-home .hist{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.nova-home .hb{padding:8px 11px;border-radius:11px;background:#0c2040;border:1px solid #1d4b7d;color:#dcecff;font-size:12px}
+@media(max-width:900px){.nova-hero{grid-template-columns:1fr .7fr}.nova-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){#msgs{padding:10px}.nova-hero{grid-template-columns:1fr;min-height:0;padding:22px 18px}.nova-hero-art{min-height:150px;max-height:160px}.nova-ai-profile{width:64px;height:64px;font-size:40px}.nova-gateway{width:78px;height:100px;font-size:32px}.nova-stats{grid-template-columns:1fr;gap:8px}.nova-stat{padding:10px 13px}.nova-workspaces{grid-template-columns:1fr}.#hi .nova-work-card{min-height:150px;padding:17px}.nova-lower{grid-template-columns:1fr}.nova-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nova-section-head h2{font-size:17px!important}.nova-hero h1{letter-spacing:-1px}.nova-desc{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.nova-primary:hover,#hi .nova-work-card:hover{transform:none}}
 </style></head><body>
 <aside id="side"><div class="brand"><span class="logo">✦</span><b>Nova AI</b></div>
 <button id="new" data-i="new">＋ New chat</button><nav class="nav"><button id="nHome" data-i="nHome"></button><button id="nPhoto" data-i="nPhoto"></button><button id="nArch" data-i="nArch"></button><button id="nImg" data-i="nImg" hidden></button><button id="nLive" data-i="nLive" hidden></button></nav><input id="q" type="search" data-p="search" aria-label="Search chats"><div id="list"></div>
@@ -803,16 +855,44 @@ async function openPhoto(){camOff();$('phelp').hidden=true;IM=null;PH.sub=null;P
 function closePhoto(){camOff();$('photo').hidden=true}
 function goHome(){dashEnter=true;S.cur=null;stick=true;save();render();$('side').classList.remove('open')}
 function setIM(o){IM=o;render();if(o)$('in').focus()}
-function dash(){const l=$('log');l.innerHTML='';const h=document.createElement('div');h.id='hi';if(dashEnter){h.className='enter';dashEnter=false}
+function dash(){
+const l=$('log');l.innerHTML='';
+const h=document.createElement('div');h.id='hi';h.className='nova-home'+(dashEnter?' enter':'');dashEnter=false;
 const el=(g,c,x)=>{const e=document.createElement(g);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-h.append(el('div','orb','✦'),el('h1','',t('hello')),el('p','sub',t('sub')));
-const F=el('div','feat');[['💬','fChat','fChatD',()=>$('in').focus(),1],['📷','fPhoto','fPhotoD',openPhoto,1],['🎧','fLive','fLiveD',startLive,liveOK()],['🎨','fImg','fImgD',()=>setIM({name:t('imMode')}),imgOK()]].filter(x=>x[4]).forEach(([i,a,b,f])=>{const c=el('button','fc');c.append(el('span','fi',i),el('b','',t(a)),el('small','',t(b)));c.onclick=f;F.append(c)});
-const T2=el('div','tpl');TPL.forEach((x,i)=>{const c=el('button','tp');c.style.background=x.g;c.append(el('span','te',x.e),el('b','',t('tp'+(i+1))));c.onclick=()=>setIM({name:t('tp'+(i+1)),d:x.d});T2.append(c)});
-const C=el('div','chips');t('chips').forEach(s=>{const b=el('button','',s);b.onclick=()=>{$('in').value=s+': ';$('in').focus()};C.append(b)});
-const Hx=el('div','hist');const tb=el('button','hb today',t('hToday'));tb.onclick=()=>{const dt=new Date();askHist(t('hqToday').replace('{t}',dt.toLocaleDateString(ui()==='hi'?'hi-IN':undefined,{day:'numeric',month:'long'})))};Hx.append(tb);const ta=el('button','hb today',t('hArch'));ta.onclick=openArch;Hx.append(ta);
-HS.forEach(([e,k])=>{const b=el('button','hb');b.append(el('span','',e),el('span','',t(k)));b.onclick=()=>askHist(t('hq').replace('{t}',t(k)));Hx.append(b)});
-h.append(F);if(SV&&SV.live)wnowEl().forEach(e=>h.append(e));if(imgOK())h.append(el('h2','',t('tplT')),T2);h.append(el('h2','',t('hsT')),Hx,el('h2','',t('stT')),C);l.append(h)}
-/*NOVAIMG*/
+const hero=el('section','nova-hero');
+const copy=el('div','nova-hero-copy');
+copy.append(el('div','nova-kicker','✦  NEXT-GEN AI • MADE FOR INDIA'),el('h1','','Welcome to NOVA AI'),el('p','nova-tagline','One AI. Three powerful ways to work, learn, and create.'),el('p','nova-desc','Your ideas deserve a bigger universe. Start with a question, a voice command, an image, or a file.'));
+const startBtn=el('button','nova-primary','✦  Start a new chat  →');startBtn.onclick=()=>{$('in').focus();$('side').classList.remove('open')};copy.append(startBtn);
+const art=el('div','nova-hero-art');art.setAttribute('aria-hidden','true');art.append(el('div','nova-orbit orbit-one'),el('div','nova-orbit orbit-two'),el('div','nova-gateway','✦'),el('div','nova-ai-profile','◉'),el('div','nova-tricolor'));
+hero.append(copy,art);
+const stats=el('div','nova-stats');
+[['⚡','Lightning fast','Built for smooth everyday use'],['◇','Your data, your priority','Privacy-conscious controls'],['∞','More ways to create','Chat • Voice • Images • Files']].forEach(([i,a,b])=>{const c=el('div','nova-stat');c.append(el('span','',i),el('div','',a),el('small','',b));stats.append(c)});
+const heading=el('div','nova-section-head');heading.append(el('h2','','Choose your way with NOVA'),el('span','','Three ways to get started'));
+const cards=el('div','nova-workspaces');
+const card=(cls,icon,title,desc,cta,fn)=>{const c=el('button','nova-work-card '+cls);c.append(el('span','nova-card-icon',icon),el('b','',title),el('small','',desc),el('span','nova-card-cta',cta+'  →'));c.onclick=fn;return c};
+const prompt=(p)=>{$('in').value=p;$('in').focus();$('in').dispatchEvent(new Event('input',{bubbles:true}))};
+cards.append(
+card('build','⌘','NOVA BUILD','Plan apps, websites, code, and product ideas.','Start building',()=>prompt('Help me plan and build an app or website. Ask me for the requirements, then guide me step by step.')),
+card('learn','✧','NOVA LEARN','Understand topics, explore ideas, and learn step by step.','Start learning',()=>prompt('Teach me a topic step by step. Start by asking what I want to learn.')),
+card('assistant','◉','NOVA ASSISTANT','Your everyday AI for questions, writing, and problem-solving.','Start chatting',()=>{$('in').focus()})
+);
+const tools=el('div','nova-tools');
+const toolHead=el('div','nova-section-head');toolHead.append(el('h2','','Explore NOVA tools'),el('span','','Use what you need'));
+tools.append(toolHead);
+const toolGrid=el('div','nova-tool-grid');
+const tool=(ico,title,desc,fn)=>{const b=el('button','nova-tool');b.append(el('span','',ico),el('div','',title),el('small','',desc));b.onclick=fn;return b};
+toolGrid.append(tool('🎙','Live voice','Talk naturally with NOVA',()=>startLive()),tool('🎨','Image studio','Create images from prompts',()=>setIM({name:t('imMode')})),tool('📷','Camera & vision','Ask about a photo',openPhoto),tool('📎','Add a file','Work with supported documents',()=>$('file').click()));
+tools.append(toolGrid);
+const lower=el('div','nova-lower');
+const quick=el('section','nova-quick');quick.append(el('h2','','Quick prompts'));
+const chips=el('div','chips');t('chips').forEach(s=>{const b=el('button','',s);b.onclick=()=>prompt(s+': ');chips.append(b)});quick.append(chips);
+const recent=el('section','nova-recent');const rh=el('div','nova-recent-head');rh.append(el('h2','','Your AI journey'),el('span','',String(S.chats.length)+' chats'));recent.append(rh);
+const hist=el('div','hist');const today=el('button','hb today',t('hToday'));today.onclick=()=>{const dt=new Date();askHist(t('hqToday').replace('{t}',dt.toLocaleDateString(ui()==='hi'?'hi-IN':undefined,{day:'numeric',month:'long'})))};hist.append(today);
+const arch=el('button','hb today',t('hArch'));arch.onclick=openArch;hist.append(arch);
+HS.forEach(([e,k])=>{const b=el('button','hb');b.append(el('span','',e),el('span','',t(k)));b.onclick=()=>askHist(t('hq').replace('{t}',t(k)));hist.append(b)});recent.append(hist);lower.append(quick,recent);
+h.append(hero,stats,heading,cards,tools,lower);
+l.append(h);
+}/*NOVAIMG*/
 const mkEl=(g,c,x)=>{const e=document.createElement(g);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const IT={en:{enh:'✨ Enhance',gen:'Creating your image…',again:'Regenerate',dl:'Download',fail:'Image service is busy or unreachable. Please try again in a moment.'},hi:{enh:'✨ बेहतर बनाओ',gen:'आपकी इमेज बन रही है…',again:'फिर से बनाओ',dl:'डाउनलोड',fail:'इमेज सर्विस अभी व्यस्त है या पहुँच में नहीं है। थोड़ी देर बाद फिर कोशिश करें।'}};
 const tI=k=>((IT[ui()]||IT.en)[k]||IT.en[k]);
