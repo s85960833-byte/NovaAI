@@ -95,3 +95,14 @@ The current app has no real login, tenant isolation, business-data database or r
 - AI model/provider availability and free-tier quotas are external dependencies and must be reported honestly.
 - Physical Android microphone/camera and touch testing cannot be replaced by CI.
 - 3–4 weeks is an estimate, not a guarantee; scope changes or provider/security blockers may extend it.
+
+
+## Implementation progress update (2026-11-01)
+- Dashboard now reports accepted source rows, calculation coverage, invalid field records and CSV structure warnings; warnings can be expanded for review.
+- Project-risk results display the actual contributing heuristic factors instead of requiring users to inspect raw JSON.
+- Expense, client and team analysis results include original CSV source-row references so users can trace totals back to imported records.
+- CSV parsing preserves original source line numbers even when malformed rows are excluded.
+- ISO calendar dates are validated (e.g. impossible dates are rejected); missing task statuses are excluded from completion denominators and counted as invalid.
+- Numeric overflow now fails safely instead of allowing Infinity into exports.
+- Tests cover these behaviors, including malformed-row source references and dashboard accessibility status announcements.
+- GitHub Actions run 41311965642 passed after the dashboard syntax correction; later source-evidence tests are running on the newest commit and must pass before this update is treated as fully verified.
