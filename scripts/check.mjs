@@ -30,6 +30,7 @@ for (const [label, fragment] of [
   ['Voice Chat route', "window.NovaModeWorkspace?.openGroup('voice')"]
 ]) if (!tier.includes(fragment)) throw new Error('Workspace entry point missing: ' + label);
 if (!workspace.includes("openGroup(group){if(!REG.groups.some(g=>g.id===group))return false;show(group);return true;}")) throw new Error('Workspace group launcher contract missing');
+if (!tier.includes("const live=$('lv');if(live&&!live.hidden)live.click();else if(!window.NovaModeWorkspace?.openGroup('voice'))")) throw new Error('Voice Chat must prefer the existing full live voice flow');
 if (!registry.includes("{id:'builder',group:'create'")) throw new Error('Create workspace has no App & Website Builder mode');
 if (!registry.includes("{id:'voice',group:'voice'")) throw new Error('Voice workspace has no dedicated voice mode');
 if (!tier.includes("tr=(a,b)=>a") || !workspace.includes("tr=(en,hi)=>en")) throw new Error('New workspace UI must use English labels');
