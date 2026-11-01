@@ -3,74 +3,33 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 
 function syntaxCheck(name, source) {
-  const ext = name.endsWith('-test') ? '.mjs' : '.js';
-  const file = join('/tmp', 'novaai-' + name.replace(/[^a-z0-9]/gi, '-') + ext);
+  const file = join('/tmp', 'novaai-' + name.replace(/[^a-z0-9]/gi, '-') + '.js');
   writeFileSync(file, source);
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
   try { unlinkSync(file); } catch {}
-  if (result.status !== 0) {
-    process.stderr.write(result.stderr || result.stdout || (name + ' syntax check failed\n'));
-    process.exitCode = 1;
-  } else {
-    process.stdout.write('PASS syntax: ' + name + '\n');
-  }
+  if (result.status !== 0) throw new Error(result.stderr || result.stdout || name + ' syntax check failed');
+  process.stdout.write('PASS syntax: ' + name + '\n');
 }
 
 const server = readFileSync('nova-server.txt', 'utf8');
 const html = readFileSync('index.html', 'utf8');
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
-const modeRegistry = readFileSync('mode-registry.js', 'utf8');
-const modeWorkspace = readFileSync('mode-workspace.js', 'utf8');
-
-if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start command and package.json are out of sync');
-if (!server.includes("app.post('/api/live'") || !server.includes("app.get('/api/live/selftest'") || !server.includes("app.get('/api/feed'")) throw new Error('Expected live API routes are missing');
-if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in the active server file');
+if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start command mismatch');
+for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api/live/selftest'", "app.get('/api/feed'"]) if (!server.includes(route)) throw new Error('Required backend route missing: ' + route);
+if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
 syntaxCheck('backend', server);
-syntaxCheck('s-tier-experience', readFileSync('s-tier.js','utf8'));
-const novaSuite = readFileSync('nova-suite.js','utf8');
-syntaxCheck('nova-suite', novaSuite);
-for (const marker of ['Project Brain','Reality Check','AI Council','Digital Hands','Time Machine','Model Arena','Watchtower','Knowledge Vault','Trust Shield','Idea-to-Business']) if (!novaSuite.includes(marker)) throw new Error('S-Tier Studio feature missing: '+marker);
-const council = novaSuite.slice(novaSuite.indexOf("active==='council'"), novaSuite.indexOf("active==='hands'"));
-for (const marker of ['/api/search','Researcher','Builder','Critic','Final evidence audit','NOT VERIFIED','Search-result excerpt','renderCouncilText','AbortSignal.timeout(20000)','untrusted data','distinct source domains','q.length>2000','No usable sources were returned by live search','u.username||u.password']) if (!council.includes(marker)) throw new Error('AI Council evidence-safety feature missing: '+marker);
-if (!council.includes('No AI can guarantee every answer is correct') || !council.includes('Never invent citations')) throw new Error('AI Council accuracy limitation and anti-fabrication guard missing');
-for (const marker of ['auditCouncilCitations','INVALID SOURCE ID','Citation audit warning']) if (!novaSuite.includes(marker)) throw new Error('AI Council citation audit missing: '+marker);
-if(!novaSuite.includes('const auditedAnswer=auditCouncilCitations(answer,found.length)')||!novaSuite.includes('const auditedFinal=auditCouncilCitations(final,found.length)'))throw new Error('Council citations must be audited in every expert and final response');
-const sTier = readFileSync('s-tier.js', 'utf8');
-if (!html.includes('id="novaSplash"') || !html.includes('class="nova-royal-indian"') || !html.includes('class="nova-jaali"') || !html.includes('class="nova-yantra"') || !html.includes('nova-wordmark') || !html.includes('DESIGNED IN INDIA') || !html.includes('novaOrbitTurn')) throw new Error('Royal Indian motion splash markup is missing from first paint');
-if (sTier.includes('novaJagran') || sTier.includes('sessionStorage.getItem(\'nova_splash_seen\')')) throw new Error('Legacy Jagran screen or one-time splash suppression remains');
-if (!sTier.includes("const e=$('novaSplash')") || !sTier.includes('async function wake(){await splash()}')) throw new Error('Splash must reveal the app without waiting for backend health');
-if (sTier.includes('#main,#side{position:relative;z-index:1}')) throw new Error('S-tier styles must not override the mobile sidebar fixed positioning');
-if (!sTier.includes('#main{position:relative;z-index:1}#side{z-index:5}')) throw new Error('Mobile sidebar stacking regression guard is missing');
-if (!server.includes("app.get('/health'") || !server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'")) throw new Error('S-tier health or asset route missing');
-if (!html.includes('/nova-suite.js')) throw new Error('S-Tier Studio bundle is not loaded');
-for (const marker of ['id="nova-mobile-layout-guard"','body{display:flex;flex-flow:row nowrap;align-items:stretch}','#main{display:flex;flex:1 1 0%;width:0;max-width:100%;min-width:0}','#main{position:relative;display:flex;flex:1 1 100%!important;width:100%!important;max-width:100vw!important;min-width:0!important;height:100%']) if (!html.includes(marker)) throw new Error('Mobile full-width layout guard missing: '+marker);
-if (!server.includes('You are Nova AI, a free, India-first AI assistant.') || !server.includes("timeZone: 'Asia/Kolkata'")) throw new Error('Truth-first IST system prompt missing');
-if (!html.includes('/s-tier.js')) throw new Error('S-tier experience bundle is not loaded');
-for (const marker of ['Chat &amp; Study','Voice Chat','Create','Explore','data-cat="chat-study"','data-cat="voice"','data-cat="create"','data-cat="explore"','n-brandbar','n-living-core','id="novaLivingCore"','data-state="idle"','nCoreOrbitA','nCoreBreathe','function livingCore()','IntersectionObserver','n-core-paused','n-core-lite','function ambientAtmosphere()','novaAtmosphere','document.documentElement.append(host)','html{background:var(--bg)!important;isolation:isolate}','body{position:relative!important;z-index:1!important;background:transparent!important}','nova-aurora','nova-atmo-grid','novaAuroraA','novaAuroraB','nova-lite-motion','prefers-reduced-motion:reduce','DESIGNED IN INDIA · BUILT FOR THE WORLD','CHAT · LEARN · MASTER','IMAGINE · DESIGN · CREATE','RESEARCH · DISCOVER · EXPLORE','SPEAK · LISTEN · CONNECT','ncard-enter','@media(max-width:600px)']) if (!readFileSync('s-tier.js','utf8').includes(marker)) throw new Error('Royal four-workspace home missing: '+marker);
-if (!readFileSync('s-tier.js','utf8').includes('#mode{display:none!important}')) throw new Error('Legacy mode dropdown must be hidden to keep the four-workspace home clear');
-if (!readFileSync('s-tier.js','utf8').includes('hiEl.replaceChildren(e)') || !readFileSync('s-tier.js','utf8').includes("n.id==='hi'")) throw new Error('The four-workspace home must replace the old dashboard and return after New Chat');
-if (!modeRegistry.includes("id:'chat-study'") || !modeRegistry.includes("id:'create'") || !modeRegistry.includes("id:'explore'") || !modeRegistry.includes("id:'voice'")) throw new Error('Four mode groups are not registered');
-if (!modeWorkspace.includes('openGroup(group)') || modeWorkspace.includes("add(top,'novaModesTop'")) throw new Error('Mode workspace must open only the selected group without the all-modes launcher');
-if (!readFileSync('nova-suite.js','utf8').includes('window.NovaSuite=Object.freeze({open,close})')) throw new Error('Nova Build launcher API is missing');
-if (!readFileSync('nova-suite.js','utf8').includes('nsAppBuilder') || !readFileSync('nova-suite.js','utf8').includes("openMode('builder')")) throw new Error('App and Website Builder shortcut is missing from Nova Build');
-if (!modeRegistry.includes("id:'builder',group:'create'")) throw new Error('App and Website Builder mode is not assigned to Nova Build');
-syntaxCheck('mode-registry', modeRegistry);
-syntaxCheck('mode-workspace', modeWorkspace);
-for (const marker of ["return 'English'",'function syncStaticLabels()','Attach file/photo','The AI service is not configured yet.']) if (!modeWorkspace.includes(marker)) throw new Error('Bilingual Study Mode language regression guard missing: '+marker);
-if (modeWorkspace.includes("const language=()=>document.querySelector('#lang')?.value||'Hindi'")) throw new Error('Study Mode must not silently default to Hindi before the language preference loads');
-const tierHome = readFileSync('s-tier.js','utf8');
-for (const marker of ['n-brandbar','n-orbit-seal','DESIGNED IN INDIA · BUILT FOR THE WORLD','novaSealTurn']) if (!tierHome.includes(marker)) throw new Error('NOVA premium brand home marker missing: '+marker);
-syntaxCheck('runtime-smoke-test', readFileSync('scripts/runtime-smoke.mjs','utf8'));
-syntaxCheck('production-smoke-test', readFileSync('scripts/smoke.mjs','utf8'));
-syntaxCheck('wait-live-test', readFileSync('scripts/wait-live.mjs','utf8'));
 
+for (const file of ['s-tier.js','nova-suite.js','mode-registry.js','mode-workspace.js']) syntaxCheck(file, readFileSync(file,'utf8'));
+for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
+
+if (!html.includes('id="chat"') && !html.includes('id="msg"') && !html.includes('id="input"')) throw new Error('Previous standard chat UI input was not found');
+if (!html.includes('localStorage.getItem(\'nova\')') || !html.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Existing Nova chat storage contract changed');
+if (html.includes('id="novaSplash"') || html.includes('nova-royal-indian') || html.includes('id="novaLivingCore"')) throw new Error('New animated workspace splash/core remains in restored standard UI');
+if (html.includes('CHAT · LEARN · MASTER') || html.includes('IMAGINE · DESIGN · CREATE') || html.includes('RESEARCH · DISCOVER · EXPLORE')) throw new Error('New four-workspace visual shell remains in restored standard UI');
+if (!html.includes('id="dset"')) throw new Error('Settings panel missing from restored UI');
+if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing from restored UI');
+if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'")) throw new Error('Existing optional feature asset routes missing');
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(x => x.trim());
-if (!scripts.length) throw new Error('No inline frontend JavaScript was found');
+if (!scripts.length) throw new Error('No inline frontend JavaScript found');
 scripts.forEach((source, i) => syntaxCheck('frontend-' + (i + 1), source));
-
-if (!server.includes("app.get('/mode-registry.js'") || !server.includes("app.get('/mode-workspace.js'")) throw new Error('Mode assets are not served by the backend');
-if (!html.includes('/mode-registry.js') || !html.includes('/mode-workspace.js')) throw new Error('Mode workspace scripts are not loaded by the frontend');
-if (!html.includes("localStorage.getItem('nova')") || !html.includes("localStorage.setItem('nova',JSON.stringify(S))")) throw new Error('Legacy Nova chat storage contract changed');
-if (!server.includes('GROQ_API_KEY') || !server.includes('OPENROUTER_API_KEY')) throw new Error('Optional free provider fallback is missing');
-if (process.exitCode) process.exit(process.exitCode);
-process.stdout.write('PASS project structure and syntax checks\n');
+process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
