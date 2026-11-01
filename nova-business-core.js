@@ -24,7 +24,7 @@
     const opts=options||{},maxBytes=opts.maxBytes||MAX_CSV_BYTES,maxRows=opts.maxRows||MAX_ROWS;
     if(typeof input!=='string')fail('CSV input must be text.');
     if(new TextEncoder().encode(input).length>maxBytes)fail('CSV exceeds the 5 MB import limit.');
-    const src=input.replace(/^\\uFEFF/,'');if(!src.trim())fail('CSV is empty.');
+    const src=input.replace(/^\uFEFF/,'');if(!src.trim())fail('CSV is empty.');
     const matrix=[];let row=[],cell='',quoted=false,closed=false,physicalLine=1,rowStartLine=1;
     for(let i=0;i<src.length;i++){
       const ch=src[i],next=src[i+1];
@@ -33,13 +33,13 @@
         else if(ch==='"'){quoted=false;closed=true}
         else{
           cell+=ch;
-          if(ch==='\\r'&&next==='\\n'){cell+='\\n';i++;physicalLine++}
-          else if(ch==='\\n'||ch==='\\r')physicalLine++;
+          if(ch==='\r'&&next==='\n'){cell+='\n';i++;physicalLine++}
+          else if(ch==='\n'||ch==='\r')physicalLine++;
         }
       }else if(ch===','){
         row.push(cell);cell='';closed=false;
-      }else if(ch==='\\n'||ch==='\\r'){
-        if(ch==='\\r'&&next==='\\n')i++;
+      }else if(ch==='\n'||ch==='\r'){
+        if(ch==='\r'&&next==='\n')i++;
         row.push(cell);cell='';closed=false;
         if(row.some(v=>text(v)))matrix.push({cells:row,line:rowStartLine});
         row=[];physicalLine++;rowStartLine=physicalLine;
@@ -48,7 +48,7 @@
         if(cell.length||closed)fail('CSV contains a quote in an invalid position.');
         quoted=true;
       }else{
-        if(closed&&!/\\s/.test(ch))fail('Unexpected text after a quoted CSV value.');
+        if(closed&&!/\s/.test(ch))fail('Unexpected text after a quoted CSV value.');
         if(!closed)cell+=ch;
       }
     }
