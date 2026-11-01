@@ -149,3 +149,12 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - GitHub Actions run `41312149246` passed syntax checks, mode-registry checks, Business Intelligence unit tests, local Express route checks and PWA asset smoke tests.
 - Subsequent plan-document-only update recorded the work; no production deployment or merge occurred.
 - Still blocked from enterprise use: no authentication, tenant isolation, durable business database, role permissions, audit log, real integrations or external workflow execution.
+
+
+## Accessibility and security design checkpoint (2026-11-01)
+- Added keyboard focus trapping, Escape-to-close, focus restoration, visible keyboard focus styles and active navigation semantics to the Business Intelligence dialog.
+- Added `NOVA_BUSINESS_INTELLIGENCE_SECURITY.md` with threat model, tenant isolation/authentication requirements, role permissions, audit trail, AI data-consent rules and release-blocking security tests.
+- Updated the implementation plan to state clearly that this security document is a design checklist, not a completed security implementation.
+- GitHub Actions run `41312254421` passed syntax, existing mode checks, Business Intelligence tests, local API route tests and PWA asset smoke tests.
+- No authentication/database provider has been selected or connected; no shared company data storage exists.
+- Still not deployed or merged; browser/Android manual tests and all shared-data security controls remain outstanding.
