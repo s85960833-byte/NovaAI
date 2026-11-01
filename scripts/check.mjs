@@ -19,7 +19,7 @@ for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
 syntaxCheck('backend', server);
 
-for (const file of ['s-tier.js','nova-suite.js','mode-registry.js','mode-workspace.js']) syntaxCheck(file, readFileSync(file,'utf8'));
+for (const file of ['s-tier.js','nova-suite.js','nova-business-core.js','nova-business.js','mode-registry.js','mode-workspace.js']) syntaxCheck(file, readFileSync(file,'utf8'));
 for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
 
 if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
@@ -30,7 +30,8 @@ if (html.includes('CHAT · LEARN · MASTER') || html.includes('IMAGINE · DESIGN
 if (!html.includes('id="dset"')) throw new Error('Settings panel missing from restored UI');
 if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing from restored UI');
 if (!html.includes('#side{') || !html.includes('#main{')) throw new Error('Previous standard UI sidebar/main layout is missing');
-if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'")) throw new Error('Existing optional feature asset routes missing');
+if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'")) throw new Error('Existing or Business Intelligence feature asset routes missing');
+if (!html.includes('src="/nova-business-core.js"') || !html.includes('src="/nova-business.js"')) throw new Error('Business Intelligence scripts are not loaded by the homepage');
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(x => x.trim());
 if (!scripts.length) throw new Error('No inline frontend JavaScript found');
 scripts.forEach((source, i) => syntaxCheck('frontend-' + (i + 1), source));
