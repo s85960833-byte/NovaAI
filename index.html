@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Nova AI</title><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'self'"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#120d1b"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/icon-192.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<title>Nova AI</title><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'none'; form-action 'self'"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#07101d"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/icon-192.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#120d1b;--panel:#191225;--fg:#f3ecf8;--mut:#a899bb;--acc:#e8c58e;--acc2:#f0a6b8;--onacc:#2a1a05;--card:#221832;--bd:#33264a;--ub:#2c2142;--glow:rgba(232,197,142,.2);--g1:rgba(155,92,230,.26);--g2:rgba(240,166,184,.12);--shadow:0 14px 44px -14px rgba(0,0,0,.6);box-sizing:border-box}
 :root[data-theme=light]{--bg:#f6f2fa;--panel:#ece5f4;--fg:#231a30;--mut:#7c6f8e;--acc:#5b2d8e;--acc2:#c85a8a;--onacc:#fff;--card:#fff;--bd:#ddd2ea;--ub:#e9defa;--glow:rgba(91,45,142,.16);--g1:rgba(155,92,230,.16);--g2:rgba(240,166,184,.2);--shadow:0 14px 44px -16px rgba(70,35,110,.3)}
@@ -201,6 +201,207 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 @media(max-width:900px){.nova-hero{grid-template-columns:1fr .7fr}.nova-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){#msgs{padding:10px}.nova-hero{grid-template-columns:1fr;min-height:0;padding:22px 18px}.nova-hero-art{min-height:150px;max-height:160px}.nova-ai-profile{width:64px;height:64px;font-size:40px}.nova-gateway{width:78px;height:100px;font-size:32px}.nova-stats{grid-template-columns:1fr;gap:8px}.nova-stat{padding:10px 13px}.nova-workspaces{grid-template-columns:1fr}.#hi .nova-work-card{min-height:150px;padding:17px}.nova-lower{grid-template-columns:1fr}.nova-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nova-section-head h2{font-size:17px!important}.nova-hero h1{letter-spacing:-1px}.nova-desc{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.nova-primary:hover,#hi .nova-work-card:hover{transform:none}}
+</style><style id="nova-future-style">
+/* NOVA FUTURE UI — Indian futurism, lightweight motion */
+:root{
+ --bg:#07101d;--panel:#0b1728;--card:#0e1d31;--fg:#edf5ff;--mut:#91a8c2;
+ --acc:#e2bd78;--acc2:#52d6c4;--onacc:#07101d;--bd:rgba(146,178,210,.17);
+ --ub:#122b43;--glow:rgba(82,214,196,.18);--g1:rgba(44,143,164,.2);--g2:rgba(226,189,120,.11);
+ --shadow:0 24px 70px rgba(0,0,0,.34);
+}
+:root[data-theme=light]{
+ --bg:#edf3f7;--panel:#f5f8fb;--card:#fff;--fg:#132538;--mut:#60778c;
+ --acc:#a77732;--acc2:#167f80;--onacc:#fff;--bd:rgba(34,67,94,.16);
+ --ub:#e3edf4;--glow:rgba(22,127,128,.12);--g1:rgba(22,127,128,.1);--g2:rgba(167,119,50,.08);
+ --shadow:0 18px 55px rgba(27,53,77,.12);
+}
+html{background:var(--bg)}
+body{
+ background:
+  radial-gradient(900px 600px at 78% -12%,rgba(40,139,157,.16),transparent 65%),
+  radial-gradient(680px 520px at 0% 100%,rgba(204,157,86,.1),transparent 62%),
+  linear-gradient(145deg,#060d18 0%,var(--bg) 48%,#091727 100%);
+ color:var(--fg);font-family:Inter,"Nunito","Noto Sans",system-ui,sans-serif;
+}
+body:before{
+ content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.16;
+ background-image:linear-gradient(rgba(126,178,191,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(126,178,191,.08) 1px,transparent 1px);
+ background-size:54px 54px;mask-image:radial-gradient(ellipse at 50% 36%,#000 0%,transparent 78%);
+}
+#side{z-index:1}#main{position:relative;z-index:1}
+#side{
+ width:286px;padding:20px 15px;background:rgba(7,17,31,.86);
+ border-inline-end:1px solid var(--bd);backdrop-filter:blur(18px);
+ box-shadow:12px 0 45px rgba(0,0,0,.12);
+}
+.brand{padding:5px 5px 18px;gap:12px}
+.logo{width:42px;height:42px;border-radius:15px;background:linear-gradient(145deg,#f3d69a,#b88343 48%,#3ab5ad);color:#081522;font-weight:900;box-shadow:0 0 28px rgba(226,189,120,.2)}
+.brand b{font-family:Inter,"Nunito",sans-serif;font-size:23px;font-weight:850;letter-spacing:.16em}
+.brand:after{content:"INDIAN FUTURE SYSTEM";display:block;position:absolute;top:57px;left:69px;font-size:9px;letter-spacing:.2em;color:var(--mut)}
+#new{background:linear-gradient(110deg,rgba(226,189,120,.16),rgba(82,214,196,.12));border:1px solid rgba(226,189,120,.42);border-radius:15px;min-height:46px}
+#q{background:rgba(255,255,255,.035);border-color:var(--bd)}
+#list{padding:8px 0}
+.it{padding:3px;border:1px solid transparent}
+.it.on{background:linear-gradient(100deg,rgba(82,214,196,.1),rgba(226,189,120,.07));border:1px solid rgba(82,214,196,.18);box-shadow:inset 2px 0 var(--acc2)}
+.it span{font-size:14px}
+.nav button{border-radius:12px;color:var(--mut)}
+.nav button:hover{background:rgba(82,214,196,.08);color:var(--fg)}
+#main{min-width:0;background:transparent}
+#top{min-height:62px;padding:10px 18px;background:rgba(6,15,28,.58);border-bottom:1px solid var(--bd);backdrop-filter:blur(18px)}
+#top button{border-radius:13px;background:rgba(255,255,255,.04)}
+#msgs{padding:24px 18px 18px;position:relative}
+.w{max-width:920px}
+#log{width:100%}
+.m{margin:22px 0}
+.u .b{background:linear-gradient(135deg,rgba(25,57,82,.96),rgba(18,40,61,.96));border:1px solid rgba(82,214,196,.18);border-radius:22px 22px 7px 22px;padding:13px 17px}
+.m.a::before{background:linear-gradient(145deg,#f2d69c,#b57e3d 52%,#38b6ad);color:#081522;box-shadow:0 0 24px rgba(82,214,196,.16)}
+.m.a .b{line-height:1.78}
+.b pre{background:#071321;border-color:var(--bd);border-radius:17px}
+.b code{background:rgba(82,214,196,.09)}
+#box{
+ background:rgba(11,24,41,.9);border:1px solid rgba(112,167,189,.24);border-radius:24px;
+ box-shadow:0 18px 55px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.04);
+ backdrop-filter:blur(18px);padding:8px 9px 8px 13px;
+}
+#box:focus-within{border-color:rgba(82,214,196,.7);box-shadow:0 0 0 4px rgba(82,214,196,.08),0 18px 55px rgba(0,0,0,.25)}
+#box button{color:var(--mut)}
+#box #send{background:linear-gradient(135deg,#f0d49b,#c18b48 52%,#4bc8bb);color:#07131e;box-shadow:0 8px 22px rgba(82,214,196,.17)}
+textarea{color:var(--fg)}
+.note{color:#819bb3}
+#docbar,#imbar{background:rgba(13,29,48,.86);border-color:var(--bd);border-radius:13px}
+button,select,input{border-color:var(--bd);background:rgba(14,29,49,.92);color:var(--fg)}
+button:hover,select:hover{border-color:rgba(82,214,196,.52)}
+button:focus-visible,textarea:focus-visible,select:focus-visible,input:focus-visible{outline-color:var(--acc2)}
+/* Home / launch experience */
+#hi.nova-home{max-width:1160px;margin:12px auto 34px;text-align:start;display:flex;flex-direction:column;gap:24px;padding:0 2px}
+.nova-hero{
+ min-height:330px;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(300px,.88fr);
+ align-items:center;gap:12px;padding:clamp(22px,4vw,48px);
+ border:1px solid rgba(133,185,201,.2);border-radius:30px;overflow:hidden;position:relative;
+ background:linear-gradient(115deg,rgba(11,25,43,.97),rgba(10,31,45,.9) 55%,rgba(17,31,43,.95));
+ box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,.04);
+}
+.nova-hero:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.24;background:repeating-conic-gradient(from 0deg at 78% 50%,transparent 0deg 9deg,rgba(226,189,120,.16) 9.2deg 9.5deg,transparent 9.8deg 18deg);mask-image:radial-gradient(circle at 78% 50%,#000,transparent 46%)}
+.nova-hero:after{content:"";position:absolute;width:520px;height:520px;right:5%;top:50%;transform:translateY(-50%);border:1px solid rgba(226,189,120,.12);border-radius:50%;box-shadow:0 0 0 18px rgba(82,214,196,.025),0 0 0 38px rgba(226,189,120,.025),0 0 0 70px rgba(82,214,196,.02);pointer-events:none}
+.nova-hero-copy{position:relative;z-index:2;max-width:610px}
+.nova-kicker{font-size:10px;letter-spacing:.24em;font-weight:850;color:var(--acc);text-transform:uppercase;margin-bottom:17px}
+.nova-hero-copy h1{font:800 clamp(34px,5vw,58px)/1.03 Inter,"Nunito",sans-serif;letter-spacing:-.055em;margin:0 0 15px;color:#f5f7f4;max-width:620px}
+.nova-tagline{font-size:clamp(15px,2vw,19px);font-weight:750;letter-spacing:.02em;color:#8fe1d7;margin:0 0 8px}
+.nova-desc{max-width:480px;color:#9bb0c4;font-size:14px;line-height:1.7;margin:0 0 22px}
+.nova-primary{border:1px solid rgba(226,189,120,.6);border-radius:14px;padding:13px 19px;background:linear-gradient(110deg,#f0d49b,#b67f3c 55%,#3bb8ad);color:#071522;font-weight:900;box-shadow:0 12px 32px rgba(82,214,196,.12);transition:transform .2s,filter .2s}
+.nova-primary:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.nova-hero-art{min-height:280px;display:grid;place-items:center;position:relative;z-index:2;isolation:isolate}
+.nova-hero-art:before{content:"";position:absolute;width:min(31vw,310px);aspect-ratio:1;border:1px solid rgba(226,189,120,.42);border-radius:50%;box-shadow:0 0 0 13px rgba(226,189,120,.035),0 0 0 34px rgba(82,214,196,.025),inset 0 0 40px rgba(82,214,196,.07);animation:novaHalo 16s linear infinite}
+.nova-hero-art:after{content:"";position:absolute;width:min(25vw,248px);aspect-ratio:1;border:1px dashed rgba(82,214,196,.34);border-radius:50%;animation:novaHalo 26s linear infinite reverse}
+.nova-living-core{width:178px;height:178px;position:relative;display:grid;place-items:center;z-index:3;border-radius:50%;background:radial-gradient(circle at 34% 25%,rgba(255,255,255,.9),rgba(142,239,222,.9) 8%,rgba(44,150,157,.95) 28%,#102b40 62%,#071321 78%);border:1px solid rgba(226,189,120,.78);box-shadow:0 0 35px rgba(82,214,196,.35),0 0 90px rgba(82,214,196,.16),inset 0 0 28px rgba(255,255,255,.18);animation:novaCoreFloat 5s ease-in-out infinite}
+.nova-living-core:before{content:"";position:absolute;inset:13px;border-radius:50%;border:1px solid rgba(255,226,169,.8);box-shadow:inset 0 0 22px rgba(226,189,120,.22)}
+.nova-living-core:after{content:"N";font:900 74px/1 Inter,"Nunito",sans-serif;letter-spacing:-.1em;padding-right:8px;color:#f7e4b9;text-shadow:0 0 24px rgba(255,228,174,.6),0 3px 20px rgba(0,0,0,.5)}
+.nova-core-ring{position:absolute;inset:-26px;border:2px solid transparent;border-top-color:#e5c27e;border-bottom-color:rgba(82,214,196,.9);border-radius:50%;transform:rotateX(65deg);animation:novaHalo 8s linear infinite}
+.nova-core-ring.r2{inset:-43px;border-width:1px;border-left-color:rgba(226,189,120,.7);border-right-color:rgba(82,214,196,.65);transform:rotateY(65deg);animation-duration:12s;animation-direction:reverse}
+.nova-core-ring.r3{inset:-61px;border:1px dashed rgba(226,189,120,.4);transform:rotateX(72deg) rotateY(18deg);animation-duration:22s}
+.nova-core-dot{position:absolute;width:9px;height:9px;border-radius:50%;background:#f4d18f;box-shadow:0 0 18px #f4d18f;top:8px;right:28px}
+.nova-core-caption{position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:9px;letter-spacing:.28em;font-weight:900;color:#b8d6d5}
+.nova-orbit-label{position:absolute;z-index:4;padding:7px 11px;border:1px solid rgba(130,196,197,.23);border-radius:999px;background:rgba(5,17,30,.72);backdrop-filter:blur(8px);color:#b9d6d8;font-size:9px;letter-spacing:.16em;font-weight:800}
+.nova-orbit-label.one{top:12%;left:0}.nova-orbit-label.two{right:-2%;bottom:18%;color:#e6c58b}
+.nova-tricolor{display:none}
+.nova-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.nova-stat{padding:14px 17px;border-radius:17px;border:1px solid var(--bd);background:linear-gradient(135deg,rgba(15,34,54,.86),rgba(11,25,42,.82));color:#dbe8f2;display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center;box-shadow:0 9px 26px rgba(0,0,0,.12)}
+.nova-stat>span{grid-row:span 2;color:var(--acc);font-size:22px}
+.nova-stat>div{font-size:13px;font-weight:850}.nova-stat small{font-size:11px;color:#8ea6bb}
+.nova-section-head{display:flex;align-items:end;justify-content:space-between;gap:10px;margin:0 2px}
+.nova-section-head h2{font-size:18px;letter-spacing:-.02em;color:var(--fg);margin:0;font-weight:850}
+.nova-section-head span{font-size:11px;color:var(--mut)}
+.nova-workspaces{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.nova-work-card{min-height:178px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;text-align:start;gap:9px;padding:18px;border-radius:21px;border:1px solid rgba(130,174,194,.19);background:linear-gradient(155deg,rgba(17,39,61,.94),rgba(9,23,40,.98));color:var(--fg);position:relative;overflow:hidden;box-shadow:0 14px 34px rgba(0,0,0,.14);transition:transform .22s,border-color .22s,box-shadow .22s}
+.nova-work-card:before{content:"";position:absolute;inset:auto -35px -70px auto;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(82,214,196,.18),transparent 70%);pointer-events:none}
+.nova-work-card:hover{transform:translateY(-4px);border-color:rgba(226,189,120,.55);box-shadow:0 20px 42px rgba(0,0,0,.24),0 0 26px rgba(82,214,196,.07)}
+.nova-card-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(145deg,rgba(226,189,120,.23),rgba(82,214,196,.14));border:1px solid rgba(226,189,120,.25);font-size:21px;color:#f2d59c}
+.nova-work-card b{font-size:13px;letter-spacing:.08em;font-weight:900}
+.nova-work-card small{font-size:12px;line-height:1.55;color:#91a9bf}
+.nova-card-cta{margin-top:auto;font-size:11px;font-weight:850;color:#80ded2;letter-spacing:.04em}
+.nova-tools{padding:18px;border:1px solid var(--bd);border-radius:22px;background:rgba(10,24,41,.66)}
+.nova-tool-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+.nova-tool{display:flex;align-items:center;gap:10px;text-align:start;padding:12px;border:1px solid rgba(128,170,190,.14);border-radius:15px;background:rgba(255,255,255,.025);color:var(--fg);font-size:12px;font-weight:800;min-width:0}
+.nova-tool>span{font-size:20px}.nova-tool small{display:block;color:var(--mut);font-size:10px;font-weight:500}
+.nova-tool:hover{background:rgba(82,214,196,.07);border-color:rgba(82,214,196,.3)}
+.nova-lower{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+.nova-quick,.nova-recent{min-width:0;padding:17px;border:1px solid var(--bd);border-radius:20px;background:rgba(10,24,41,.66)}
+.nova-quick h2,.nova-recent h2{font-size:15px;margin:0 0 12px;font-weight:850}
+#hi .chips button,.hb{border-radius:999px;background:rgba(255,255,255,.035);border:1px solid var(--bd);font-size:11px;padding:8px 12px;color:var(--mut)}
+#hi .chips button:hover,.hb:hover{border-color:rgba(82,214,196,.45);color:var(--fg);background:rgba(82,214,196,.07)}
+.hist{display:flex;flex-wrap:wrap;gap:7px}
+.nova-recent-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.nova-recent-head span{font-size:10px;color:var(--mut)}
+/* Voice + image tools */
+#live{background:radial-gradient(ellipse at 50% 35%,rgba(37,132,145,.23),transparent 55%),rgba(4,11,20,.97);backdrop-filter:blur(18px)}
+.lvbox{max-width:560px;padding:22px 18px}
+.lvtop b{font-family:Inter,sans-serif;font-weight:850;letter-spacing:.12em}
+.lorb{background:radial-gradient(circle at 33% 25%,#e9fbf0 0%,#7bd7cb 12%,#237f8b 36%,#0a243b 72%);border:1px solid rgba(226,189,120,.7);box-shadow:0 0 55px rgba(82,214,196,.3),0 0 120px rgba(82,214,196,.13)}
+.lorb i{border-color:var(--acc2)}
+.lst{font-family:Inter,sans-serif;font-weight:800}
+.lvbtn button{border:1px solid var(--bd);background:rgba(255,255,255,.05)}
+#lend{background:#c84c54;border:0}
+#photo{background:rgba(2,8,16,.86);backdrop-filter:blur(15px)}
+.pbox,dialog{background:linear-gradient(145deg,#102139,#091727);border:1px solid rgba(226,189,120,.25);color:var(--fg)}
+.pdrop{background:rgba(255,255,255,.025)}
+#toast{background:#e7f1ee;color:#071421;border:1px solid rgba(82,214,196,.3)}
+/* Responsive and accessibility */
+@keyframes novaHalo{to{transform:rotate(360deg)}}
+@keyframes novaCoreFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-7px) scale(1.018)}}
+@media(max-width:980px){
+ .nova-workspaces{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .nova-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .nova-hero{grid-template-columns:1fr minmax(220px,.8fr)}
+}
+@media(max-width:760px){
+ #side{background:rgba(7,17,31,.98);backdrop-filter:blur(18px);width:min(86vw,320px)}
+ #top{min-height:56px;padding:8px 11px}
+ #msgs{padding:14px 10px}
+ #hi.nova-home{margin:4px auto 22px;gap:15px;padding:0}
+ .nova-hero{grid-template-columns:1fr;gap:0;min-height:0;padding:22px 18px 10px;border-radius:23px}
+ .nova-hero-copy h1{font-size:37px;max-width:460px}
+ .nova-desc{font-size:12px;margin-bottom:15px}
+ .nova-hero-art{min-height:245px;margin-top:3px}
+ .nova-hero-art:before{width:220px}.nova-hero-art:after{width:178px}
+ .nova-living-core{width:132px;height:132px}.nova-living-core:after{font-size:58px}
+ .nova-core-ring{inset:-19px}.nova-core-ring.r2{inset:-32px}.nova-core-ring.r3{inset:-45px}
+ .nova-stats{grid-template-columns:1fr;gap:7px}
+ .nova-stat{padding:10px 13px}
+ .nova-section-head h2{font-size:16px}
+ .nova-workspaces{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .nova-work-card{min-height:160px;padding:13px;border-radius:17px}
+ .nova-work-card b{font-size:11px}.nova-work-card small{font-size:11px}
+ .nova-tool-grid{grid-template-columns:1fr 1fr;gap:7px}
+ .nova-tool{padding:10px 8px;gap:7px;font-size:10px}
+ .nova-tool small{font-size:9px}
+ .nova-lower{grid-template-columns:1fr;gap:9px}
+ .nova-quick,.nova-recent,.nova-tools{padding:13px;border-radius:17px}
+ #box{width:calc(100% - 10px);margin-bottom:5px}
+ #box button{width:37px;height:37px}
+ .note{font-size:10px}
+ .nova-orbit-label{font-size:8px}.nova-orbit-label.one{left:2%}.nova-orbit-label.two{right:0}
+}
+@media(max-width:390px){
+ .nova-workspaces{grid-template-columns:1fr}
+ .nova-work-card{min-height:128px}
+ .nova-hero-copy h1{font-size:33px}
+}
+@media(prefers-reduced-motion:reduce){
+ .nova-hero-art:before,.nova-hero-art:after,.nova-living-core,.nova-core-ring{animation:none!important}
+ .nova-work-card,.nova-primary{transition:none!important}
+}
+
+:root[data-theme=light] body{background:radial-gradient(900px 600px at 78% -12%,rgba(22,127,128,.1),transparent 65%),radial-gradient(680px 520px at 0% 100%,rgba(167,119,50,.07),transparent 62%),linear-gradient(145deg,#f6f9fb 0%,#edf3f7 55%,#e7f0f4 100%)}
+:root[data-theme=light] #side{background:rgba(245,249,251,.94);box-shadow:8px 0 30px rgba(27,53,77,.06)}
+:root[data-theme=light] #top{background:rgba(246,250,252,.78)}
+:root[data-theme=light] .nova-hero{background:linear-gradient(115deg,rgba(255,255,255,.98),rgba(239,248,248,.96) 55%,rgba(247,245,237,.98));border-color:rgba(34,92,108,.17)}
+:root[data-theme=light] .nova-hero-copy h1{color:#132538}
+:root[data-theme=light] .nova-tagline{color:#167f80}
+:root[data-theme=light] .nova-desc,:root[data-theme=light] .nova-work-card small{color:#60778c}
+:root[data-theme=light] .nova-stat,:root[data-theme=light] .nova-work-card,:root[data-theme=light] .nova-tools,:root[data-theme=light] .nova-quick,:root[data-theme=light] .nova-recent{background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(241,247,249,.96));color:#132538}
+:root[data-theme=light] .nova-section-head h2,:root[data-theme=light] .nova-work-card b{color:#132538}
+:root[data-theme=light] .nova-core-caption{color:#326b72}
+:root[data-theme=light] #box{background:rgba(255,255,255,.94)}
 </style></head><body>
 <aside id="side"><div class="brand"><span class="logo">✦</span><b>Nova AI</b></div>
 <button id="new" data-i="new">＋ New chat</button><nav class="nav"><button id="nHome" data-i="nHome"></button><button id="nPhoto" data-i="nPhoto"></button><button id="nArch" data-i="nArch"></button><button id="nImg" data-i="nImg" hidden></button><button id="nLive" data-i="nLive" hidden></button></nav><input id="q" type="search" data-p="search" aria-label="Search chats"><div id="list"></div>
@@ -796,7 +997,6 @@ For each volume:
 9. Maintain a clear distinction between completed coverage and planned coverage.
 
 Do not compress thousands of years of history into a superficial list and call it complete. Expand each volume systematically in subsequent responses. Preserve the existing outline and resume from the last completed section when the user requests continuation, provided the relevant context is available.
-
 17. FIRST EXECUTION INSTRUCTION
 
 Start immediately by producing:
@@ -997,8 +1197,7 @@ if((voiced&&now-lastV>1300)||now-t0>20000||(!voiced&&now-t0>9000)){try{rec.stop(
 async function startLive(){if(!window.speechSynthesis||(!SR&&!canRec())){toast(t('lvNo'));return}
 LV=true;lvMute=false;lvInt=false;lvGen++;lvQ=0;lvFail=0;lvMode=SR?'sr':'rec';
 try{speechSynthesis.cancel();speechSynthesis.getVoices()}catch(e){}
-$('live').hidden=false;$('llang').value=$('lang').value;fillVoices();$('lcap').textContent='';lvLog('');$('lmute').textContent='\uD83C\uDF99';lvSet('think');
-try{if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(x=>x.stop())}}
+$('live').hidden=false;$('llang').value=$('lang').value;fillVoices();$('lcap').textContent='';lvLog('');$('lmute').textContent='\uD83C\uDF99';lvSet('think');try{if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(x=>x.stop())}}
 catch(e){if(!LV)return;LV=false;lvSet('mute');$('lcap').textContent=(e&&e.name==='NotFoundError')?lvT('nomic'):lvT('mic');lvLog('mic: '+((e&&e.name)||e));return}
 if(!LV)return;lvDoneFlag=true;say(lvHi(),vlang());
 clearTimeout(lvGT);lvGT=setTimeout(()=>{if(LV&&!lvRec&&!busy&&!lvMute){lvQ=0;lvDoneFlag=true;listen()}},6000)}
@@ -1047,4 +1246,44 @@ function syncAcc(){const on=S.acc!==false;$('acc').classList.toggle('on',on);$('
 const setAcc=v=>{S.acc=v;save();syncAcc()};
 $('acc').onclick=()=>{setAcc(S.acc===false);toast(t(S.acc!==false?'accOn':'accOff'))};$('accset').onchange=e=>setAcc(e.target.checked);$('ultset').onchange=e=>{S.ult=e.target.checked;save()};
 applyUI();syncFeatures();const WAIT=!!(window.claude&&window.claude.use)||location.protocol.startsWith('http');if(WAIT)setTimeout(()=>{if(!first){first=true;render()}},450);else{first=true;render()}
-</script></body></html>
+</script><script id="nova-future-script">/* NOVA FUTURE UI behaviour: presentation-only, existing feature handlers/storage remain intact. */
+(function(){
+ 'use strict';
+ function node(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt)e.textContent=txt;return e}
+ function setCard(card,icon,title,desc,cta){if(!card)return;var i=card.querySelector('.nova-card-icon'),b=card.querySelector('b'),s=card.querySelector('small'),c=card.querySelector('.nova-card-cta');if(i)i.textContent=icon;if(b)b.textContent=title;if(s)s.textContent=desc;if(c)c.textContent=cta+'  →';card.setAttribute('aria-label',title+'. '+desc)}
+ function decorate(){
+  var home=document.querySelector('#hi.nova-home');if(!home)return;
+  if(home.dataset.futureReady==='1')return;
+  home.dataset.futureReady='1';
+  var title=home.querySelector('.nova-hero-copy h1');if(title)title.textContent='A new era of intelligence.';
+  var kicker=home.querySelector('.nova-kicker');if(kicker)kicker.textContent='✦  INDIAN SOUL • FUTURE INTELLIGENCE';
+  var tagline=home.querySelector('.nova-tagline');if(tagline)tagline.textContent='Ancient inspiration. Limitless possibilities.';
+  var desc=home.querySelector('.nova-desc');if(desc)desc.textContent='One intelligent space to think, learn, build and create. Speak naturally, explore ideas, or bring your next big vision to life.';
+  var art=home.querySelector('.nova-hero-art');
+  if(art){
+   art.innerHTML='<div class="nova-living-core" role="img" aria-label="NOVA animated intelligence core"><span class="nova-core-ring"></span><span class="nova-core-ring r2"></span><span class="nova-core-ring r3"></span><span class="nova-core-dot"></span></div><span class="nova-orbit-label one">BHARAT • BEYOND</span><span class="nova-orbit-label two">INTELLIGENCE • IN MOTION</span><div class="nova-core-caption">NOVA / FUTURE SYSTEM</div>';
+  }
+  var cards=home.querySelector('.nova-workspaces');
+  if(cards){
+   var old=Array.prototype.slice.call(cards.querySelectorAll('.nova-work-card'));
+   var create=old[0],learn=old[1],explore=old[2];
+   setCard(learn,'✧','CHAT & STUDY','Ask anything, understand deeply, and learn step by step.','Start exploring');
+   setCard(create,'⌘','CREATE','Turn ideas into apps, websites, plans and visual concepts.','Start creating');
+   setCard(explore,'◈','EXPLORE','Discover knowledge, current topics and useful information.','Explore now');
+   if(explore)explore.onclick=function(){var input=document.getElementById('in');if(input){input.value='Explore the latest important developments in India and technology. Separate verified facts from opinions.';input.dispatchEvent(new Event('input',{bubbles:true}));input.focus()}};
+   var voice=node('button','nova-work-card voice','');
+   voice.innerHTML='<span class="nova-card-icon">◉</span><b>VOICE CHAT</b><small>Talk naturally with NOVA using the live voice experience.</small><span class="nova-card-cta">Start talking  →</span>';
+   voice.type='button';voice.setAttribute('aria-label','Voice Chat. Talk naturally with NOVA.');voice.onclick=function(){if(typeof startLive==='function')startLive();};
+   cards.replaceChildren(learn,voice,create,explore);
+   cards.dataset.futureReady='1';
+  }
+  var head=home.querySelector('.nova-section-head');if(head){var h=head.querySelector('h2'),s=head.querySelector('span');if(h)h.textContent='Choose your NOVA experience';if(s)s.textContent='Four gateways. One intelligence.'}
+  var tools=home.querySelector('.nova-tools .nova-section-head h2');if(tools)tools.textContent='Powerful tools, one seamless workspace';
+ }
+ function init(){
+  decorate();
+  var log=document.getElementById('log');
+  if(log&&window.MutationObserver){var mo=new MutationObserver(function(){decorate()});mo.observe(log,{childList:true,subtree:true})}
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();</script></body></html>
