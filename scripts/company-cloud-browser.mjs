@@ -150,9 +150,8 @@ const proofDownload = await proofDownloadPromise;
 assert.match(proofDownload.suggestedFilename(), /nova-action-proof\.json$/);
 await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaBusiness').evaluate(el => el.classList.contains('show')), false);
-await page.locator('#menu').click();
-await page.locator('#menu').click();
-await page.locator('#side.open').waitFor();
+await page.locator('#menu').click({ force: true });
+await page.locator('#side.open').waitFor({ timeout: 5000 });
 
 await page.locator('#novaBICloudLauncher').waitFor({ state: 'visible', timeout: 15000 });
 await page.locator('#novaBICloudLauncher').click();
