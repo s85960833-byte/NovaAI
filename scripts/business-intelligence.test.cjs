@@ -121,6 +121,7 @@ test('business dialog supports keyboard focus management and visible focus style
 test('tenant schema draft enables RLS on every business table and scopes access by active membership',()=>{
  const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000000_nova_bi_tenant_schema.sql'),'utf8');
  const followup=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000001_nova_bi_workflow_execution_hardening.sql'),'utf8');
+ const corrections=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000002_nova_bi_rls_policy_corrections.sql'),'utf8');
  for(const table of ['nova_bi_organizations','nova_bi_memberships','nova_bi_datasets','nova_bi_analyses','nova_bi_workflow_proposals','nova_bi_workflow_approvals','nova_bi_audit_events']){
    assert.ok(migration.includes('alter table public.'+table+' enable row level security'),'RLS missing for '+table);
  }
@@ -132,4 +133,7 @@ test('tenant schema draft enables RLS on every business table and scopes access 
  assert.match(migration,/no client policies for membership writes/i);
  assert.ok(followup.includes('revoke update on public.nova_bi_datasets from authenticated'));
  assert.ok(followup.includes('grant update (name, deleted_at) on public.nova_bi_datasets to authenticated'));
+ assert.ok(corrections.includes('m.organization_id = nova_bi_organizations.id'));
+ assert.ok(corrections.includes('grant update (name) on public.nova_bi_datasets to authenticated'));
+ assert.ok(corrections.includes('revoke update (deleted_at) on public.nova_bi_datasets from authenticated'));
 });
