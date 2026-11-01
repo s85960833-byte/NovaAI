@@ -158,3 +158,18 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - GitHub Actions run `41312254421` passed syntax, existing mode checks, Business Intelligence tests, local API route tests and PWA asset smoke tests.
 - No authentication/database provider has been selected or connected; no shared company data storage exists.
 - Still not deployed or merged; browser/Android manual tests and all shared-data security controls remain outstanding.
+
+
+## NOVA Business Intelligence — superseding implementation checkpoint (2026-11-01)
+This section supersedes the earlier BI entries above where they state that authentication, tenant isolation or shared company storage do not exist.
+
+- BI implementation remains isolated on `feature/nova-business-intelligence`, Draft PR #46. Production `main` and Render remain untouched.
+- The user approved Supabase project `qrfwsewppafhxibdboam`; the separate Research-to-Code project remains untouched.
+- Nine NOVA BI migrations and nine RLS-protected tenant tables are deployed. Supabase Security Advisor reports zero findings.
+- Edge Function `nova-bi-api` is ACTIVE at version 12 with JWT verification enabled. It provides authenticated organization, membership/invitation, dataset/analysis, workflow approval, branding, audit and deletion routes.
+- Live transaction-scoped PostgreSQL checks passed for tenant isolation, owner bootstrap, viewer write/delete denial, analyst approval/branding denial, admin approval separation and owner-role escalation denial, invite activation and audited deletion. Test rows/users were rolled back; follow-up counts were zero.
+- Latest fully verified code checkpoint before this documentation update: `d2671cc94416226e796951f59b14de655f163fee`; GitHub Actions run [41326890751](https://github.com/s85960833-byte/NovaAI/actions/runs/41326890751) passed 36/36 BI tests, fresh PostgreSQL 17 migration/RLS integration, Deno type-check, deployed Edge Function 401/CORS checks, local server/PWA checks and Playwright mobile Company Cloud flow.
+- Raw CSV rows remain browser-local. Cloud saves metadata, aggregate outputs, assumptions and calculation evidence only.
+- Product limitations remain explicit: heuristic project risk, assumption-based scenarios, team-level productivity, approval-gated workflow proposals without external execution, and workspace branding without custom domains/full brand removal.
+- Remaining release gates: real signup/email confirmation and two-account browser testing; SMTP/invitation delivery verification; retention, backup/restore and full account deletion; rate limiting/abuse monitoring; manual Android/accessibility/performance checks; production regression/live smoke tests.
+- Keep PR #46 Draft. Do not merge or deploy without explicit approval.
