@@ -24,6 +24,12 @@ const safeJson = (value: unknown, maxBytes = 50000) => {
 
 const fail = (message: string, status = 400) => json({ error: message }, status);
 
+const rateLimited = (retryAfter: number) =>
+  new Response(JSON.stringify({ error: "Too many requests. Please try again later." }), {
+    status: 429,
+    headers: { ...corsHeaders, "Retry-After": String(retryAfter) },
+  });
+
 Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -33,6 +39,33 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/+|\/+$/g, "").replace(/^functions\/v1\/nova-bi-api\/?/i, "").replace(/^nova-bi-api\/?/i, "");
   const db = ctx.supabase;
+
+  // Apply a server-enforced per-user limit before every authenticated API route.
+  const generalLimit = await ctx.supabaseAdmin.rpc("nova_bi_consume_rate_limit", {
+    p_user_id: userId,
+    p_bucket: "api",
+    p_limit: 120,
+    p_window_seconds: 60,
+  });
+  if (generalLimit.error) {
+    console.error("NOVA BI API rate-limit check unavailable");
+    return fail("NOVA Business Intelligence is temporarily unavailable. Please retry shortly.", 503);
+  }
+  if (generalLimit.data !== true) return rateLimited(60);
+
+  if (req.method === "POST" && path === "members/invite") {
+    const inviteLimit = await ctx.supabaseAdmin.rpc("nova_bi_consume_rate_limit", {
+      p_user_id: userId,
+      p_bucket: "invite",
+      p_limit: 5,
+      p_window_seconds: 3600,
+    });
+    if (inviteLimit.error) {
+      console.error("NOVA BI invitation rate-limit check unavailable");
+      return fail("Invitations are temporarily unavailable. Please retry shortly.", 503);
+    }
+    if (inviteLimit.data !== true) return rateLimited(3600);
+  }
 
   async function body() {
     const raw = await req.text();
