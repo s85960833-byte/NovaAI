@@ -131,7 +131,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       return json({ members: [ownMembership] });
     }
 
-    const datasetDelete = path.match(/^datasets\\/([0-9a-f-]{36})$/i);
+    const datasetDelete = path.match(new RegExp("^datasets/([0-9a-f-]{36})$", "i"));
     if (req.method === "DELETE" && datasetDelete) {
       const orgId = url.searchParams.get("organization_id") || "";
       if (!uuid(orgId)) return fail("A valid organization_id is required");
@@ -142,7 +142,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       return json({ deleted: true, dataset_id: data.id });
     }
 
-    const analysisDelete = path.match(/^analyses\\/([0-9a-f-]{36})$/i);
+    const analysisDelete = path.match(new RegExp("^analyses/([0-9a-f-]{36})$", "i"));
     if (req.method === "DELETE" && analysisDelete) {
       const orgId = url.searchParams.get("organization_id") || "";
       if (!uuid(orgId)) return fail("A valid organization_id is required");
