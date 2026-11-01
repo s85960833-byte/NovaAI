@@ -77,7 +77,14 @@
       const stamp=dateKey?date(row[dateKey]):null;
       if(stamp!==null){const d=new Date(stamp),key=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');months.set(key,(months.get(key)||0)+amount)}
     }
-    return {kind:'expenses',currency:text(mapping&&mapping.currency)||'Not specified',total:round(total),validRows:valid,invalidRows:invalid,byCategory:sortedMap(groups),byMonth:sortedMap(months),coverage:rows.length?round(valid/rows.length*100):0};
+    const monthlyBudget=mapping&&mapping.monthlyBudget!==''&&mapping.monthlyBudget!=null?number(mapping.monthlyBudget):null;
+    if(mapping&&mapping.monthlyBudget!==''&&mapping.monthlyBudget!=null&&monthlyBudget===null)fail('Monthly budget must be a valid number.');
+    if(monthlyBudget!==null&&monthlyBudget<0)fail('Monthly budget cannot be negative.');
+    const chronological=[...months.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+    const monthChanges=chronological.slice(1).map((entry,i)=>{const previous=chronological[i],change=entry[1]-previous[1];return {month:entry[0],previousMonth:previous[0],spend:round(entry[1]),previousSpend:round(previous[1]),change:round(change),changePct:previous[1]>0?round(change/previous[1]*100):null}});
+    const spendAlerts=monthChanges.filter(x=>x.change>0&&(x.changePct===null||x.changePct>=25)).map(x=>({type:'spend-increase-review',month:x.month,change:x.change,changePct:x.changePct,note:'Review this increase; it is an anomaly signal, not proof of waste.'}));
+    const budgetOverruns=monthlyBudget===null?[]:chronological.filter(x=>x[1]>monthlyBudget).map(x=>({month:x[0],spend:round(x[1]),budget:round(monthlyBudget),overrun:round(x[1]-monthlyBudget)}));
+    return {kind:'expenses',currency:text(mapping&&mapping.currency)||'Not specified',total:round(total),validRows:valid,invalidRows:invalid,byCategory:sortedMap(groups),byMonth:sortedMap(months),monthChanges,monthlyBudget:monthlyBudget===null?null:round(monthlyBudget),budgetOverruns,spendAlerts,coverage:rows.length?round(valid/rows.length*100):0,note:'Spend increases and budget overruns are review signals only; they do not prove fraud, waste or avoidable cost.'};
   }
   function analyzeClients(rows,mapping){
     if(!Array.isArray(rows))fail('Client rows must be an array.');
