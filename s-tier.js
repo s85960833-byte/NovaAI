@@ -2,7 +2,7 @@
 const K='nova_s_tier_v1',D='nova_diya_streak_v1',defaults={dataSaver:false,sound:false,festivals:false,accent:'saffron'};
 let prefs={...defaults};try{prefs={...prefs,...JSON.parse(localStorage.getItem(K)||'{}')}}catch{}
 
-const $=id=>document.getElementById(id),hi=()=>($('lang')?.value||'Auto')==='Hindi',tr=(a,b)=>hi()?b:a;
+const $=id=>document.getElementById(id),hi=()=>false,tr=(a,b)=>a;
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(prefs))}catch{}};
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const lite=()=>prefs.dataSaver||navigator.connection?.saveData||/2g|3g/.test(navigator.connection?.effectiveType||'')||(navigator.deviceMemory&&navigator.deviceMemory<=2)||reduced();
