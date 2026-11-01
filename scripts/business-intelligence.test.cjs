@@ -2,6 +2,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const core=require('../nova-business-core.js');
+const {readFileSync}=require('node:fs');
 test('CSV parses quoted commas, escaped quotes and CRLF',()=>{
  const r=core.parseCSV('Name,Note,Amount\r\nAcme,"Support, hosting",1,200\r\nWidget,"said ""hello""",25\r\n'.replace('1,200','1200'));
  assert.deepEqual(r.headers,['Name','Note','Amount']);assert.equal(r.rows[0].Note,'Support, hosting');assert.equal(r.rows[1].Note,'said "hello"');
@@ -38,4 +39,19 @@ test('scenario math is deterministic and validates assumptions',()=>{
 test('action proof never marks incomplete checks as passed',()=>{
  const r=core.makeProof([{id:'csv',passed:true,evidence:'3 rows checked'},{id:'formula',passed:false,evidence:'failed'}],{dataset:'fixture'});
  assert.equal(r.status,'INCOMPLETE');assert.equal(r.passed,1);assert.equal(r.failed,1);assert.match(r.note,/does not prove real-world savings/);
+});
+
+test('CSV import enforces configurable byte and row limits',()=>{
+ assert.throws(()=>core.parseCSV('a\\n1',{maxBytes:1}),/import limit/);
+ assert.throws(()=>core.parseCSV('a\\n1\\n2',{maxRows:1}),/too many rows/);
+});
+test('business workspace does not upload or persist raw company CSV data',()=>{
+ const ui=readFileSync(require('node:path').join(__dirname,'..','nova-business.js'),'utf8');
+ assert.doesNotMatch(ui,/\\bfetch\\s*\\(|XMLHttpRequest|localStorage/);
+ assert.match(ui,/Raw rows are not uploaded to NOVA/);
+});
+test('invalid numeric values are never silently treated as zero',()=>{
+ assert.equal(core.number('not-a-number'),null);
+ assert.equal(core.number('Infinity'),null);
+ assert.throws(()=>core.analyzeExpenses([{amount:'bad',category:'Cloud'}],{amount:'amount',category:'category'}),/Choose a column/ .test ? /Choose a column/ : /./);
 });
