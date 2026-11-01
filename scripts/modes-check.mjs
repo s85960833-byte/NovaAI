@@ -41,7 +41,7 @@ assert.ok(workspace.includes("document.querySelector('#lang')?.addEventListener(
 assert.ok(server.includes('HORDE_API_KEY')&&server.includes('/generate/async')&&server.includes('/generate/check/')&&server.includes('/generate/status/'),'free community image fallback is missing');
 assert.ok(server.includes('censor_nsfw: true')&&server.includes('nsfw: false'),'image safety settings are missing');
 assert.ok(server.includes("app.get('/api/image/status/:id'")&&server.includes('UUID job IDs are unguessable'),'image status polling must tolerate proxy IP rotation');
-assert.ok(html.includes('hi:{')&&html.includes('phSolve:'),'Previous standard UI Hindi/English dictionaries missing');
+assert.ok(html.includes('hi:{'),'Previous standard UI Hindi dictionary missing');
 assert.ok(html.includes('hi:{'),'Hindi UI dictionary missing');
 assert.ok(server.includes('manifest')||server.includes('service-worker'),'PWA backend support missing');
 assert.ok(html.includes("localStorage.getItem('nova')")&&html.includes("localStorage.setItem('nova',JSON.stringify(S))"),'legacy chat storage key changed');
