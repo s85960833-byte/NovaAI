@@ -134,10 +134,7 @@ await page.locator('#nbNav [data-view="data"]').click();
 await page.locator('#nbFile').setInputFiles({
   name: 'expenses.csv',
   mimeType: 'text/csv',
-  buffer: Buffer.from('amount,category,date
-100,Software,2026-10-01
-200,Travel,2026-10-02
-')
+  buffer: Buffer.from('amount,category,date\n100,Software,2026-10-01\n200,Travel,2026-10-02\n')
 });
 await page.locator('#nbAnalyze').waitFor();
 await page.waitForFunction(() => {
@@ -259,5 +256,4 @@ await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaBICloud').evaluate(el => el.classList.contains('show')), false);
 assert.deepEqual(pageErrors, []);
 await browser.close();
-process.stdout.write('PASS Company Cloud mobile browser flow: sign-in, workspace, branding, invitations, approval, export and keyboard close
-');
+process.stdout.write('PASS Company Cloud mobile browser flow: sign-in, workspace, branding, invitations, approval, export and keyboard close\n');
