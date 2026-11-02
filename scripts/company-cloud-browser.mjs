@@ -4,7 +4,7 @@ import { chromium } from 'playwright';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const pageErrors = [];
-const calls = [];
+const calls = [];\nconst authCalls = [];
 let accepted = false;
 let datasets = [
   { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', organization_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', name: 'Linked dataset', row_count: 12, created_at: '2026-11-01T00:00:00Z' },
@@ -25,7 +25,7 @@ page.on('pageerror', error => pageErrors.push(error.message));
 page.on('dialog', dialog => dialog.accept());
 
 await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.80.0/dist/umd/supabase.min.js', route =>
-  route.fulfill({ status: 200, contentType: 'application/javascript', body: "let testSession = null;\nwindow.supabase = {\n  createClient: function () {\n    return {\n      auth: {\n        getSession: async () => ({ data: { session: testSession } }),\n        onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),\n        signInWithPassword: async ({ email }) => {\n          testSession = { access_token: 'fake-test-access-token', user: { id: '11111111-1111-4111-8111-111111111111', email } };\n          return { data: { session: testSession, user: testSession.user }, error: null };\n        },\n        signUp: async ({ email }) => ({ data: { session: null, user: { id: '11111111-1111-4111-8111-111111111111', email } }, error: null }),\n        signOut: async () => { testSession = null; return { error: null }; }\n      }\n    };\n  }\n};" })
+  route.fulfill({ status: 200, contentType: 'application/javascript', body: "let testSession = null; let authListener = null;\nwindow.__authCalls = [];\nwindow.__emitAuthEvent = (event, session) => authListener && authListener(event, session);\nwindow.supabase = {\n  createClient: function () {\n    return {\n      auth: {\n        getSession: async () => ({ data: { session: testSession } }),\n        onAuthStateChange: (callback) => { authListener = callback; return { data: { subscription: { unsubscribe() {} } } }; },\n        signInWithPassword: async ({ email }) => {\n          testSession = { access_token: 'fake-test-access-token', user: { id: '11111111-1111-4111-8111-111111111111', email } };\n          return { data: { session: testSession, user: testSession.user }, error: null };\n        },\n        signUp: async ({ email, options }) => { window.__authCalls.push({ method: 'signUp', email, options }); return { data: { session: null, user: { id: '11111111-1111-4111-8111-111111111111', email } }, error: null }; },\n        resend: async (options) => { window.__authCalls.push({ method: 'resend', options }); return { error: null }; },\n        resetPasswordForEmail: async (email, options) => { window.__authCalls.push({ method: 'resetPasswordForEmail', email, options }); return { error: null }; },\n        updateUser: async (attributes) => { window.__authCalls.push({ method: 'updateUser', attributes }); return { error: null }; },\n        signOut: async () => { testSession = null; return { error: null }; }\n      }\n    };\n  }\n};" })
 );
 
 await page.route('**/functions/v1/nova-bi-api/**', async route => {
@@ -154,6 +154,30 @@ await page.locator('#side.open').waitFor({ timeout: 5000 });
 
 await page.locator('#novaBICloudLauncher').waitFor({ state: 'visible', timeout: 15000 });
 await page.locator('#novaBICloudLauncher').click();
+await page.locator('#ncbAuth').waitFor();
+await page.locator('#ncbEmail').fill('owner@example.test');
+await page.locator('#ncbPassword').fill('a-strong-test-password');
+await page.locator('#ncbAuth button[data-mode="signup"]').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Account created'), null, { timeout: 10000 });
+await page.locator('#ncbResend').waitFor();
+const authAfterSignup = await page.evaluate(() => window.__authCalls.find(x => x.method === 'signUp'));
+assert.equal(authAfterSignup.options.emailRedirectTo, 'http://127.0.0.1:8787');
+await page.locator('#ncbResend').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('new confirmation email'), null, { timeout: 10000 });
+assert.ok((await page.evaluate(() => window.__authCalls)).some(x => x.method === 'resend' && x.options.type === 'signup'));
+await page.locator('#ncbForgot').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('password-reset email'), null, { timeout: 10000 });
+assert.ok((await page.evaluate(() => window.__authCalls)).some(x => x.method === 'resetPasswordForEmail' && x.options.redirectTo === 'http://127.0.0.1:8787'));
+await page.evaluate(() => window.__emitAuthEvent('PASSWORD_RECOVERY', { access_token: 'recovery-token', user: { id: '11111111-1111-4111-8111-111111111111', email: 'owner@example.test' } }));
+await page.locator('#ncbRecovery').waitFor();
+await page.locator('#ncbNewPassword').fill('new-strong-password');
+await page.locator('#ncbConfirmPassword').fill('different-password');
+await page.locator('#ncbRecovery button[type="submit"]').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('passwords do not match'));
+await page.locator('#ncbConfirmPassword').fill('new-strong-password');
+await page.locator('#ncbRecovery button[type="submit"]').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Password updated'), null, { timeout: 10000 });
+assert.ok((await page.evaluate(() => window.__authCalls)).some(x => x.method === 'updateUser'));
 await page.locator('#ncbAuth').waitFor();
 await page.locator('#ncbEmail').fill('owner@example.test');
 await page.locator('#ncbPassword').fill('a-strong-test-password');
