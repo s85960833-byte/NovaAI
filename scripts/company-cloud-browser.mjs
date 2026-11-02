@@ -4,7 +4,8 @@ import { chromium } from 'playwright';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const pageErrors = [];
-const calls = [];\nconst authCalls = [];
+const calls = [];
+const authCalls = [];
 let accepted = false;
 let datasets = [
   { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', organization_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', name: 'Linked dataset', row_count: 12, created_at: '2026-11-01T00:00:00Z' },
@@ -25,7 +26,28 @@ page.on('pageerror', error => pageErrors.push(error.message));
 page.on('dialog', dialog => dialog.accept());
 
 await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.80.0/dist/umd/supabase.min.js', route =>
-  route.fulfill({ status: 200, contentType: 'application/javascript', body: "let testSession = null; let authListener = null;\nwindow.__authCalls = [];\nwindow.__emitAuthEvent = (event, session) => authListener && authListener(event, session);\nwindow.supabase = {\n  createClient: function () {\n    return {\n      auth: {\n        getSession: async () => ({ data: { session: testSession } }),\n        onAuthStateChange: (callback) => { authListener = callback; return { data: { subscription: { unsubscribe() {} } } }; },\n        signInWithPassword: async ({ email }) => {\n          testSession = { access_token: 'fake-test-access-token', user: { id: '11111111-1111-4111-8111-111111111111', email } };\n          return { data: { session: testSession, user: testSession.user }, error: null };\n        },\n        signUp: async ({ email, options }) => { window.__authCalls.push({ method: 'signUp', email, options }); return { data: { session: null, user: { id: '11111111-1111-4111-8111-111111111111', email } }, error: null }; },\n        resend: async (options) => { window.__authCalls.push({ method: 'resend', options }); return { error: null }; },\n        resetPasswordForEmail: async (email, options) => { window.__authCalls.push({ method: 'resetPasswordForEmail', email, options }); return { error: null }; },\n        updateUser: async (attributes) => { window.__authCalls.push({ method: 'updateUser', attributes }); return { error: null }; },\n        signOut: async () => { testSession = null; return { error: null }; }\n      }\n    };\n  }\n};" })
+  route.fulfill({ status: 200, contentType: 'application/javascript', body: "let testSession = null; let authListener = null;
+window.__authCalls = [];
+window.__emitAuthEvent = (event, session) => authListener && authListener(event, session);
+window.supabase = {
+  createClient: function () {
+    return {
+      auth: {
+        getSession: async () => ({ data: { session: testSession } }),
+        onAuthStateChange: (callback) => { authListener = callback; return { data: { subscription: { unsubscribe() {} } } }; },
+        signInWithPassword: async ({ email }) => {
+          testSession = { access_token: 'fake-test-access-token', user: { id: '11111111-1111-4111-8111-111111111111', email } };
+          return { data: { session: testSession, user: testSession.user }, error: null };
+        },
+        signUp: async ({ email, options }) => { window.__authCalls.push({ method: 'signUp', email, options }); return { data: { session: null, user: { id: '11111111-1111-4111-8111-111111111111', email } }, error: null }; },
+        resend: async (options) => { window.__authCalls.push({ method: 'resend', options }); return { error: null }; },
+        resetPasswordForEmail: async (email, options) => { window.__authCalls.push({ method: 'resetPasswordForEmail', email, options }); return { error: null }; },
+        updateUser: async (attributes) => { window.__authCalls.push({ method: 'updateUser', attributes }); return { error: null }; },
+        signOut: async () => { testSession = null; return { error: null }; }
+      }
+    };
+  }
+};" })
 );
 
 await page.route('**/functions/v1/nova-bi-api/**', async route => {
@@ -112,7 +134,10 @@ await page.locator('#nbNav [data-view="data"]').click();
 await page.locator('#nbFile').setInputFiles({
   name: 'expenses.csv',
   mimeType: 'text/csv',
-  buffer: Buffer.from('amount,category,date\n100,Software,2026-10-01\n200,Travel,2026-10-02\n')
+  buffer: Buffer.from('amount,category,date
+100,Software,2026-10-01
+200,Travel,2026-10-02
+')
 });
 await page.locator('#nbAnalyze').waitFor();
 await page.waitForFunction(() => {
@@ -234,4 +259,5 @@ await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaBICloud').evaluate(el => el.classList.contains('show')), false);
 assert.deepEqual(pageErrors, []);
 await browser.close();
-process.stdout.write('PASS Company Cloud mobile browser flow: sign-in, workspace, branding, invitations, approval, export and keyboard close\n');
+process.stdout.write('PASS Company Cloud mobile browser flow: sign-in, workspace, branding, invitations, approval, export and keyboard close
+');
