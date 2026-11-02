@@ -26,7 +26,7 @@ page.on('pageerror', error => pageErrors.push(error.message));
 page.on('dialog', dialog => dialog.accept());
 
 await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.80.0/dist/umd/supabase.min.js', route =>
-  route.fulfill({ status: 200, contentType: 'application/javascript', body: "let testSession = null; let authListener = null;
+  route.fulfill({ status: 200, contentType: 'application/javascript', body: `let testSession = null; let authListener = null;
 window.__authCalls = [];
 window.__emitAuthEvent = (event, session) => authListener && authListener(event, session);
 window.supabase = {
@@ -47,7 +47,7 @@ window.supabase = {
       }
     };
   }
-};" })
+};` })
 );
 
 await page.route('**/functions/v1/nova-bi-api/**', async route => {
