@@ -122,3 +122,54 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Bump the PWA shell cache version so Android installations fetch the corrected home and workspace registry instead of stale cached assets.
 
 - Verification follow-up: corrected the S-Tier script's escaped newline syntax and aligned the runtime PWA cache assertion with `nova-shell-v10-four-sections`.
+
+
+## NOVA Business Intelligence implementation (2026-11-01)
+- Work is isolated on `feature/nova-business-intelligence`; production `main` and Render have not been changed by this initiative.
+- Added `NOVA_BUSINESS_INTELLIGENCE_PLAN.md` with the target segment, scope, data/privacy rules, security gate and delivery checklist.
+- Added `nova-business-core.js`: bounded CSV parsing (5 MB / 20,000 rows), expense/category/month summaries, optional budget-overrun and month-spend review signals, client contribution calculations, team-level task metrics, explainable project-risk heuristics, what-if scenario calculations and evidence-based proof objects.
+- Added `nova-business.js`: separate mobile-responsive Business Intelligence workspace, browser-local CSV import/mapping, analysis views, risk/scenario/workflow planner and downloadable JSON analysis/proof reports.
+- Business CSV data is currently processed in browser memory only; the new workspace does not upload raw rows or persist them to local storage.
+- Added server asset routes and PWA shell caching for the new scripts; the existing chat storage key and current home UI remain unchanged.
+- Added Node tests for CSV parsing/bounds, calculations, invalid values, risk, scenario, proof and local-only data handling.
+- Fixed a stale existing UI-layout assertion in `scripts/check.mjs` that caused CI to fail even though the restored standard UI was present.
+- Verified on branch commit `df672619240e43321ecdd3275c46562c67a7c1e4`: GitHub Actions run `41311201591` passed syntax, mode registry, Business Intelligence tests, local Express routes and PWA asset checks.
+- Not deployed. Physical browser/Android UI testing is still pending.
+- Not enterprise-ready yet: no account authentication, tenant isolation, durable company database, role-based access, shared audit log, integrations or real external workflow execution exists. Do not accept sensitive company uploads or claim multi-user/enterprise readiness until those controls are implemented and verified.
+- Current workflow planner produces an approval-gated checklist only; it does not execute external actions. Project risk is heuristic, and savings are user-assumption-based scenarios, not predictions or guarantees.
+
+
+## Business Intelligence dashboard and traceability follow-up (2026-11-01)
+- Added dashboard data-quality summary: accepted source rows, calculation coverage, invalid field records and parser warnings.
+- Added readable project-risk contributing factors.
+- Expense, client and team analysis now link summary findings to original CSV source row numbers; malformed lines do not shift the references.
+- Tightened strict ISO date validation, task completion denominator handling and numeric overflow behavior.
+- Added tests for these behaviors and for dashboard status announcements.
+- Latest verified branch commit at this checkpoint: `42024f274869c33235318edf3aa5297d97a18934`.
+- GitHub Actions run `41312149246` passed syntax checks, mode-registry checks, Business Intelligence unit tests, local Express route checks and PWA asset smoke tests.
+- Subsequent plan-document-only update recorded the work; no production deployment or merge occurred.
+- Still blocked from enterprise use: no authentication, tenant isolation, durable business database, role permissions, audit log, real integrations or external workflow execution.
+
+
+## Accessibility and security design checkpoint (2026-11-01)
+- Added keyboard focus trapping, Escape-to-close, focus restoration, visible keyboard focus styles and active navigation semantics to the Business Intelligence dialog.
+- Added `NOVA_BUSINESS_INTELLIGENCE_SECURITY.md` with threat model, tenant isolation/authentication requirements, role permissions, audit trail, AI data-consent rules and release-blocking security tests.
+- Updated the implementation plan to state clearly that this security document is a design checklist, not a completed security implementation.
+- GitHub Actions run `41312254421` passed syntax, existing mode checks, Business Intelligence tests, local API route tests and PWA asset smoke tests.
+- No authentication/database provider has been selected or connected; no shared company data storage exists.
+- Still not deployed or merged; browser/Android manual tests and all shared-data security controls remain outstanding.
+
+
+## NOVA Business Intelligence — superseding implementation checkpoint (2026-11-01)
+This section supersedes the earlier BI entries above where they state that authentication, tenant isolation or shared company storage do not exist.
+
+- BI implementation remains isolated on `feature/nova-business-intelligence`, Draft PR #46. Production `main` and Render remain untouched.
+- The user approved Supabase project `qrfwsewppafhxibdboam`; the separate Research-to-Code project remains untouched.
+- Eleven NOVA BI migrations are deployed: nine tenant tables plus one server-only rate-limit table (10 tables total), all RLS-protected. Supabase Security Advisor reports zero findings.
+- Edge Function `nova-bi-api` is ACTIVE at version 13 with JWT verification enabled. It provides authenticated organization, membership/invitation, dataset/analysis, workflow approval, branding, audit and deletion routes.
+- Live transaction-scoped PostgreSQL checks passed for tenant isolation, owner bootstrap, viewer write/delete denial, analyst approval/branding denial, admin approval separation and owner-role escalation denial, invite activation, audited deletion and rate-limit threshold/window reset. Test rows/users were rolled back; follow-up counts were zero.
+- Latest fully verified code checkpoint before this documentation update: `bea974e15e50f9bda4b657d1bd2a7564fba28ef0`; GitHub Actions run [41327443120](https://github.com/s85960833-byte/NovaAI/actions/runs/41327443120) passed 37/37 BI tests, fresh PostgreSQL 17 migration/RLS and rate-limit integration, Deno type-check, deployed Edge Function 401/CORS checks, local server/PWA checks and Playwright mobile Company Cloud flow.
+- Raw CSV rows remain browser-local. Cloud saves metadata, aggregate outputs, assumptions and calculation evidence only.
+- Product limitations remain explicit: heuristic project risk, assumption-based scenarios, team-level productivity, approval-gated workflow proposals without external execution, and workspace branding without custom domains/full brand removal.
+- Remaining release gates: real signup/email confirmation and two-account browser testing; SMTP/invitation delivery verification; retention, backup/restore and full account deletion; IP-level abuse monitoring; manual Android/accessibility/performance checks; production regression/live smoke tests.
+- Keep PR #46 Draft. Do not merge or deploy without explicit approval.
