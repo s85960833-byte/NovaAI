@@ -24,16 +24,15 @@ const tier = readFileSync('s-tier.js', 'utf8');
 const workspace = readFileSync('mode-workspace.js', 'utf8');
 const registry = readFileSync('mode-registry.js', 'utf8');
 for (const [label, fragment] of [
-  ['Chat & Study route', "window.NovaModeWorkspace?.openGroup('chat-study')"],
-  ['Create route', "window.NovaModeWorkspace?.openGroup('create')"],
-  ['Explore route', "window.NovaModeWorkspace?.openGroup('explore')"],
-  ['Voice Chat route', "window.NovaModeWorkspace?.openGroup('voice')"]
+  ['NOVA Learn route', "window.NovaModeWorkspace?.openGroup('learn')"],
+  ['NOVA Build route', "window.NovaModeWorkspace?.openGroup('build')"],
+  ['NOVA Agents route', "window.NovaModeWorkspace?.openGroup('agents')"]
 ]) if (!tier.includes(fragment)) throw new Error('Workspace entry point missing: ' + label);
 if (!workspace.includes("openGroup(group){if(!REG.groups.some(g=>g.id===group))return false;show(group);return true;}")) throw new Error('Workspace group launcher contract missing');
-if (!tier.includes("const live=$('lv');if(live&&!live.hidden)live.click();else if(!window.NovaModeWorkspace?.openGroup('voice'))")) throw new Error('Voice Chat must prefer the existing full live voice flow');
-if (!registry.includes("{id:'builder',group:'create'")) throw new Error('Create workspace has no App & Website Builder mode');
-if (!registry.includes("{id:'voice',group:'voice'")) throw new Error('Voice workspace has no dedicated voice mode');
-if (!tier.includes("tr=(a,b)=>a") || !workspace.includes("tr=(en,hi)=>en")) throw new Error('New workspace UI must use English labels');
+if (!registry.includes("{id:'builder',group:'build'")) throw new Error('NOVA Build has no App & Website Builder mode');
+if (!registry.includes("{id:'document',group:'agents'")) throw new Error('NOVA Agents has no document assistant mode');
+if (!tier.includes('NOVA Learn / नोवा लर्न') || !tier.includes('NOVA Build / नोवा बिल्ड') || !tier.includes('NOVA Agents / नोवा एजेंट्स')) throw new Error('Three bilingual workspace cards are missing');
+if (!tier.includes('tr=(a,b)=>`${a} / ${b}`') || !workspace.includes('tr=(en,hi)=>`${en} / ${hi}`')) throw new Error('Workspace labels must display both Hindi and English');
 if (!html.includes("h.id='hi'")) throw new Error('Legacy home renderer no longer creates the S-Tier mount point');
 
 
@@ -44,7 +43,7 @@ if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>html.includes(x))) throw new Error('Cosmic India dashboard UI components missing');
 if (!html.includes('localStorage.getItem(\'nova\')') || !html.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Existing Nova chat storage contract changed');
 if (html.includes('id="nova-future-style"') || html.includes('id="nova-future-script"') || html.includes('nova-living-core') || html.includes('INDIAN SOUL • FUTURE INTELLIGENCE')) throw new Error('New Indian future UI should not remain after restoring the previous UI');
-if (html.includes('CHAT · LEARN · MASTER') || html.includes('IMAGINE · DESIGN · CREATE') || html.includes('RESEARCH · DISCOVER · EXPLORE')) throw new Error('New four-workspace visual shell remains in restored standard UI');
+if (html.includes('CHAT · LEARN · MASTER') || html.includes('IMAGINE · DESIGN · CREATE') || html.includes('RESEARCH · DISCOVER · EXPLORE')) throw new Error('Old four-workspace visual shell remains in restored standard UI');
 if (!html.includes('id="dset"')) throw new Error('Settings panel missing from restored UI');
 if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing from restored UI');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
