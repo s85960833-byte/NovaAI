@@ -40,6 +40,7 @@ if (!html.includes("h.id='hi'")) throw new Error('Legacy home renderer no longer
 for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
 
 if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
+if (!html.includes("typeof en==='string'&&typeof hi==='string'") || !html.includes("return en+' / '+hi")) throw new Error('Core NOVA interface must render English and Hindi together');
 if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>html.includes(x))) throw new Error('NOVA Learn, Build and Agents workspace scripts are not connected in the homepage');
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>html.includes(x))) throw new Error('NOVA dashboard UI components missing');
 if (!html.includes('localStorage.getItem(\'nova\')') || !html.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Existing Nova chat storage contract changed');
