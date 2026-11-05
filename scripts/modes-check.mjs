@@ -22,6 +22,7 @@ assert.ok(tier.includes('DESIGNED IN INDIA / भारत में निर्
 assert.ok(workspace.includes('openGroup(group)'));
 assert.ok(workspace.includes("learn:[['openPhoto'")&&workspace.includes("['openArchive'")&&workspace.includes("build:[['openImageStudio'")&&workspace.includes("agents:[['startVoice'"),'legacy photo/archive/image/voice tools must be placed in the correct workspace');
 assert.ok(workspace.includes("querySelectorAll('[data-quick]')")&&workspace.includes('NovaWorkspaceActions?.[b.dataset.quick]'),'workspace quick actions must invoke real legacy handlers');
+assert.ok(workspace.includes("if(typeof fn==='function'){hide();fn()}"),'workspace overlay must close before opening legacy tool panels');
 assert.ok(html.includes('window.NovaWorkspaceActions=Object.freeze({openPhoto,openArchive:openArch,startVoice:startLive,openImageStudio()'),'legacy feature action bridge missing');
 assert.ok(html.includes('id="nPhoto" data-i="nPhoto" hidden')&&html.includes('id="nArch" data-i="nArch" hidden'),'learning-only legacy shortcuts must not remain in global sidebar');
 
