@@ -15,7 +15,7 @@ const server = readFileSync('nova-server.txt', 'utf8');
 const html = readFileSync('index.html', 'utf8');
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start command mismatch');
-for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api/live/selftest'", "app.get('/api/feed'"]) if (!server.includes(route)) throw new Error('Required backend route missing: ' + route);
+for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api/live/selftest'", "app.get('/api/feed'", "app.get('/nova-reference.js'"]) if (!server.includes(route)) throw new Error('Required backend route missing: ' + route);
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
 syntaxCheck('backend', server);
 
