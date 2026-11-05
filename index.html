@@ -1048,4 +1048,4 @@ function syncAcc(){const on=S.acc!==false;$('acc').classList.toggle('on',on);$('
 const setAcc=v=>{S.acc=v;save();syncAcc()};
 $('acc').onclick=()=>{setAcc(S.acc===false);toast(t(S.acc!==false?'accOn':'accOff'))};$('accset').onchange=e=>setAcc(e.target.checked);$('ultset').onchange=e=>{S.ult=e.target.checked;save()};
 applyUI();syncFeatures();const WAIT=!!(window.claude&&window.claude.use)||location.protocol.startsWith('http');if(WAIT)setTimeout(()=>{if(!first){first=true;render()}},450);else{first=true;render()}
-</script><script src="/mode-registry.js"></script><script src="/mode-workspace.js"></script><script src="/nova-suite.js"></script><script src="/s-tier.js"></script></body></html>
+</script><script src="/mode-registry.js"></script><script src="/mode-workspace.js"></script><script src="/nova-suite.js"></script><script src="/s-tier.js"></script><script src="/nova-reference.js"></script></body></html>
