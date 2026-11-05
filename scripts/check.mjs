@@ -33,6 +33,7 @@ if (!registry.includes("{id:'builder',group:'build'")) throw new Error('NOVA Bui
 if (!registry.includes("{id:'document',group:'agents'")) throw new Error('NOVA Agents has no document assistant mode');
 if (!tier.includes('NOVA Learn / नोवा लर्न') || !tier.includes('NOVA Build / नोवा बिल्ड') || !tier.includes('NOVA Agents / नोवा एजेंट्स')) throw new Error('Three bilingual workspace cards are missing');
 if (!tier.includes('tr=(a,b)=>`${a} / ${b}`') || !workspace.includes('tr=(en,hi)=>`${en} / ${hi}`')) throw new Error('Workspace labels must display both Hindi and English');
+if (!tier.includes('Three connected workspaces for learning, building and AI agents.') || !tier.includes("tr('THREE WORKSPACES','तीन वर्कस्पेस')") || tier.includes('Four connected spaces') || tier.includes('चार वर्कस्पेस')) throw new Error('Home copy must consistently describe exactly three workspaces in both languages');
 if (!html.includes("h.id='hi'")) throw new Error('Legacy home renderer no longer creates the S-Tier mount point');
 
 
