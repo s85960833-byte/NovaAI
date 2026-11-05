@@ -15,6 +15,9 @@ assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='learn').map(x=>x.id)),[
 assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='agents').map(x=>x.id)),['general','voice','document','schemes','shopkeeper']);
 assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='build').map(x=>x.id)),['builder']);
 assert.ok(workspace.includes('window.NovaModeWorkspace=Object.freeze'));
+const suite=readFileSync('nova-suite.js','utf8');
+assert.ok(suite.includes('const bi=s=>')&&suite.includes('Project Brain / प्रोजेक्ट ब्रेन')&&suite.includes('AI Council / AI परिषद'),'NOVA Agents suite cards must show bilingual labels');
+assert.ok(suite.includes('esc(bi(label))')&&suite.includes('esc(bi(ph))'),'NOVA Agents suite form labels and placeholders must be bilingual');
 const tier=readFileSync('s-tier.js','utf8');
 for(const label of ['NOVA Learn / नोवा लर्न','NOVA Build / नोवा बिल्ड','NOVA Agents / नोवा एजेंट्स','INDIAN INTELLIGENCE / भारतीय बुद्धिमत्ता','HINDI / हिन्दी · ENGLISH / अंग्रेज़ी','Nova Experience / NOVA अनुभव','Data Saver / Lite Mode · डेटा सेवर / लाइट मोड','Startup Chime · स्टार्टअप ध्वनि','Festival Greetings · त्योहारों की शुभकामनाएँ','Accent Palette / रंग थीम'])assert.ok(tier.includes(label),'missing bilingual home/settings label: '+label);
 assert.ok(tier.includes('DESIGNED IN INDIA / भारत में निर्मित')&&tier.includes('BUILT FOR THE WORLD / दुनिया के लिए'),'brand origin must be bilingual');
