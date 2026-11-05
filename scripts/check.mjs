@@ -19,7 +19,7 @@ for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
 syntaxCheck('backend', server);
 
-for (const file of ['s-tier.js','nova-suite.js','mode-registry.js','mode-workspace.js']) syntaxCheck(file, readFileSync(file,'utf8'));
+for (const file of ['s-tier.js','nova-suite.js','mode-registry.js','mode-workspace.js','nova-reference.js']) syntaxCheck(file, readFileSync(file,'utf8'));
 const tier = readFileSync('s-tier.js', 'utf8');
 const workspace = readFileSync('mode-workspace.js', 'utf8');
 const registry = readFileSync('mode-registry.js', 'utf8');
@@ -35,6 +35,8 @@ if (!tier.includes('NOVA Learn / नोवा लर्न') || !tier.includes('
 if (!tier.includes('tr=(a,b)=>`${a} / ${b}`') || !workspace.includes('tr=(en,hi)=>`${en} / ${hi}`')) throw new Error('Workspace labels must display both Hindi and English');
 if (!tier.includes('Three connected workspaces for learning, building and AI agents.') || !tier.includes("tr('THREE WORKSPACES','तीन वर्कस्पेस')") || tier.includes('Four connected spaces') || tier.includes('चार वर्कस्पेस')) throw new Error('Home copy must consistently describe exactly three workspaces in both languages');
 if (!['n-journey','novaHomePrompt','novaHomeSend','n-feature-grid','data-home-action="photo"','data-home-action="voice"'].every(x=>tier.includes(x)) || !tier.includes("$('#send')?.click()")) throw new Error('Reference-inspired home journey, ask bar, feature cards and working shortcuts are missing');
+const reference = readFileSync('nova-reference.js', 'utf8');
+if (!html.includes('src=\"/nova-reference.js\"') || !reference.includes('data-group=\"build\"') || !reference.includes('data-group=\"learn\"') || !reference.includes('data-group=\"agents\"') || !reference.includes('NovaWorkspaceActions?.openPhoto') || !reference.includes('NovaWorkspaceActions?.startVoice') || !reference.includes('nova-reference-style')) throw new Error('Reference-inspired dashboard, workspace navigation or existing photo/voice action bridges are missing');
 if (!html.includes("h.id='hi'")) throw new Error('Legacy home renderer no longer creates the S-Tier mount point');
 
 
