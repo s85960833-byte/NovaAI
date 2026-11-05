@@ -122,3 +122,33 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Bump the PWA shell cache version so Android installations fetch the corrected home and workspace registry instead of stale cached assets.
 
 - Verification follow-up: corrected the S-Tier script's escaped newline syntax and aligned the runtime PWA cache assertion with `nova-shell-v10-four-sections`.
+
+
+- 2026-11-01: Created isolated UI integration branch from current main; implementation and verification are pending.
+
+
+## NOVA Indian Future UI integration (2026-11-01)
+- Working branch: `feature-nova-next-ui-20261101`, based on production `main` commit `bd7ce67bd4a03eeb26861d0167f2b69e51c2bbc9`; production `main` and Render have not been changed.
+- Reconnected the existing mode registry, mode workspace, Nova Build Studio and S-Tier home experience through ordered homepage script tags. The S-Tier home provides Chat & Study, Voice Chat, Create and Explore, plus the reactive Living Core and Indian-inspired visual system.
+- Updated the server-served service-worker cache key from `nova-shell-v14-settings-modal` to `nova-shell-v15-indian-future-ui`; the cache pre-caches all four UI scripts.
+- Added static, local-runtime and live-smoke assertions for the script wiring and enabled CI on this feature branch.
+- Status at initial integration: CI and browser/Android interaction verification were pending. Do not merge or deploy until all four entry points plus legacy chat/settings/voice/image flows are checked.
+
+
+
+## NOVA UI integration follow-up (2026-11-01)
+- Kept all new S-Tier home and Modes workspace interface labels in English, including festival greetings; the legacy app's existing reply-language controls and chat behavior remain intact.
+- Connected the Voice Chat home card to the dedicated Voice Chat mode group rather than relying on the optional Live Voice button being enabled.
+- Connected Create to the dedicated Create mode group containing App & Website Builder; S-Tier Studio remains available from its own sidebar launcher.
+- Expanded CI assertions for all four workspace entry points, English labels, the dynamic home mount point, and the App & Website Builder / Voice mode registry entries.
+- GitHub Actions push and pull-request runs passed on commit `abd466aca2d6d65a81cd279db34105290c9ddf76`; the verification job passed syntax, registry, local server, route and PWA asset checks. Live Render smoke steps were skipped for this PR. Android/browser interaction testing remains outstanding.
+- Production Render service is still configured to deploy from `main`; this feature branch has not been deployed or merged.
+
+
+## Follow-up review (2026-11-01)
+- PR #47 remains open as Draft, unmerged, and based on production `main` commit `bd7ce67bd4a03eeb26861d0167f2b69e51c2bbc9`.
+- Both push and pull-request GitHub Actions runs passed on `abd466aca2d6d65a81cd279db34105290c9ddf76`; the PR run's local verification job passed, while live Render smoke steps were skipped.
+- Updated the answer-feedback action label to `Report incorrect answer` to keep the new interface English-only.
+- Full Android/browser interaction checks for workspace routing, legacy chat, Settings, microphone permissions and image flow remain unverified. Keep this PR in Draft and do not merge or deploy until those checks are completed.
+
+- Follow-up: the Voice Chat home card now opens the existing full Live Voice flow (speech recognition plus spoken replies) when available, with the dedicated Voice mode group as fallback. Added a CI assertion so future changes cannot silently bypass the existing live voice path.

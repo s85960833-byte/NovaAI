@@ -4,6 +4,7 @@ async function expect(name,path,options,check){const r=await req(path,options);c
 let ready=false;for(let i=0;i<30;i++){try{const r=await req('/api/config');if(r.ok){ready=true;break}}catch{}await new Promise(x=>setTimeout(x,500))}
 if(!ready)throw new Error('local Express server did not become ready');
 const html=await expect('previous standard chat UI','/',{},(r,b)=>r.ok&&b.includes('<html lang="en">')&&b.includes('id="msgs"')&&b.includes('id="dset"')&&b.includes('id="photo"')&&b.includes("localStorage.getItem('nova')")&&b.includes("localStorage.setItem('nova',JSON.stringify(S))")&&['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>b.includes(x))&&!b.includes('id="nova-future-style"')&&!b.includes('id="nova-future-script"')&&!b.includes('nova-living-core')&&!b.includes('INDIAN SOUL • FUTURE INTELLIGENCE'));
+await expect('NOVA workspace scripts connected','/',{},(r,b)=>r.ok&&['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>b.includes(x)));
 await expect('standard UI language dictionaries','/',{},(r,b)=>r.ok&&b.includes('hi:{')&&b.includes('phSolve:'));
 await expect('standard UI Settings and image panels','/',{},(r,b)=>r.ok&&b.includes('id="dset"')&&b.includes('id="photo"')&&b.includes('id="pprev"'));
 await expect('instant health endpoint','/health',{},(r,b)=>r.ok&&JSON.parse(b).status==='ok'&&JSON.parse(b).ready===true);

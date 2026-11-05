@@ -27,6 +27,7 @@ const home = await request('/');
 const homeHtml = await home.text();
 if (!home.ok || !homeHtml.includes('<html lang="en">') || !homeHtml.includes('id="msgs"') || !homeHtml.includes('id="dset"') || !homeHtml.includes('id="photo"')) throw new Error('Previous standard NOVA chat UI, Settings, or image panel is missing');
 if (!homeHtml.includes("localStorage.getItem('nova')") || !homeHtml.includes("localStorage.setItem('nova',JSON.stringify(S))")) throw new Error('Legacy chat storage contract changed');
+if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>homeHtml.includes(x))) throw new Error('NOVA four-workspace UI scripts are not connected in the live homepage');
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>homeHtml.includes(x))) throw new Error('Cosmic India dashboard UI is not live');
 if (homeHtml.includes('id="novaSplash"') || homeHtml.includes('id="novaLivingCore"')) throw new Error('New workspace/splash interface unexpectedly returned');
 if (!homeHtml.includes('hi:{')) throw new Error('Bilingual standard UI dictionary is missing');
