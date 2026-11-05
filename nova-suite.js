@@ -29,7 +29,7 @@ function head(c,sub){return '<h2>'+c[1]+' '+esc(c[2])+'</h2><p class="ns-muted">
 function field(label,id,ph=''){return '<label>'+esc(bi(label))+'<input class="ns-field" id="'+id+'" placeholder="'+esc(bi(ph))+'"></label>'}
 function area(label,id,ph=''){return '<label>'+esc(bi(label))+'<textarea class="ns-field" id="'+id+'" rows="4" placeholder="'+esc(bi(ph))+'"></textarea></label>'}
 function button(label,id,quiet=false){return '<button class="'+(quiet?'ns-quiet':'ns-action')+'" id="'+id+'">'+esc(bi(label))+'</button>'}
-function output(id,txt=''){return '<div class="ns-card ns-out" id="'+id+'">'+esc(txt)+'</div>'}
+function output(id,txt=''){return '<div class="ns-card ns-out" id="'+id+'">'+esc(bi(txt))+'</div>'}
 function bilingualize(root){if(!root)return;const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode())){const raw=node.nodeValue.trim();if(hiText[raw])node.nodeValue=node.nodeValue.replace(raw,raw+' / '+hiText[raw]);}}
 function render(){
  const c=cards.find(x=>x[0]===active),b=$('nsBody');if(!c||!b)return;
