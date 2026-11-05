@@ -38,6 +38,7 @@ if (!['n-journey','novaHomePrompt','novaHomeSend','n-feature-grid','data-home-ac
 const reference = readFileSync('nova-reference.js', 'utf8');
 if (!html.includes('src=\"/nova-reference.js\"') || !reference.includes('data-group=\"build\"') || !reference.includes('data-group=\"learn\"') || !reference.includes('data-group=\"agents\"') || !reference.includes('NovaWorkspaceActions?.openPhoto') || !reference.includes('NovaWorkspaceActions?.startVoice') || !reference.includes('nova-reference-style')) throw new Error('Reference-inspired dashboard, workspace navigation or existing photo/voice action bridges are missing');
 if (!html.includes("h.id='hi'")) throw new Error('Legacy home renderer no longer creates the S-Tier mount point');
+if (!reference.includes("const root=$('#hi');") || reference.includes('#novaSHome')) throw new Error('Reference dashboard must mount into the real #hi home element');
 
 
 for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
