@@ -25,9 +25,9 @@ function open(){if(!$('novaSuite'))shell();$('novaSuite').classList.add('show');
 function close(){$('novaSuite')?.classList.remove('show')}
 function renderNav(){$('nsNav').innerHTML=cards.map(c=>'<button data-id="'+c[0]+'" class="'+(active===c[0]?'on':'')+'">'+c[1]+' '+esc(c[2])+'</button>').join('');$('nsNav').querySelectorAll('button').forEach(b=>b.onclick=()=>{active=b.dataset.id;renderNav();render()})}
 function head(c,sub){return '<h2>'+c[1]+' '+esc(c[2])+'</h2><p class="ns-muted">'+esc(bi(sub)||c[3])+'</p>'}
-function field(label,id,ph=''){return '<label>'+esc(label)+'<input class="ns-field" id="'+id+'" placeholder="'+esc(ph)+'"></label>'}
-function area(label,id,ph=''){return '<label>'+esc(label)+'<textarea class="ns-field" id="'+id+'" rows="4" placeholder="'+esc(ph)+'"></textarea></label>'}
-function button(label,id,quiet=false){return '<button class="'+(quiet?'ns-quiet':'ns-action')+'" id="'+id+'">'+esc(label)+'</button>'}
+function field(label,id,ph=''){return '<label>'+esc(bi(label))+'<input class="ns-field" id="'+id+'" placeholder="'+esc(bi(ph))+'"></label>'}
+function area(label,id,ph=''){return '<label>'+esc(bi(label))+'<textarea class="ns-field" id="'+id+'" rows="4" placeholder="'+esc(bi(ph))+'"></textarea></label>'}
+function button(label,id,quiet=false){return '<button class="'+(quiet?'ns-quiet':'ns-action')+'" id="'+id+'">'+esc(bi(label))+'</button>'}
 function output(id,txt=''){return '<div class="ns-card ns-out" id="'+id+'">'+esc(txt)+'</div>'}
 function render(){
  const c=cards.find(x=>x[0]===active),b=$('nsBody');if(!c||!b)return;
