@@ -15,6 +15,10 @@ assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='learn').map(x=>x.id)),[
 assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='agents').map(x=>x.id)),['general','voice','document','schemes','shopkeeper']);
 assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='build').map(x=>x.id)),['builder']);
 assert.ok(workspace.includes('window.NovaModeWorkspace=Object.freeze'));
+const tier=readFileSync('s-tier.js','utf8');
+for(const label of ['NOVA Learn / नोवा लर्न','NOVA Build / नोवा बिल्ड','NOVA Agents / नोवा एजेंट्स','INDIAN INTELLIGENCE / भारतीय बुद्धिमत्ता','HINDI / हिन्दी · ENGLISH / अंग्रेज़ी','Nova Experience / NOVA अनुभव','Data Saver / Lite Mode · डेटा सेवर / लाइट मोड','Startup Chime · स्टार्टअप ध्वनि','Festival Greetings · त्योहारों की शुभकामनाएँ','Accent Palette / रंग थीम'])assert.ok(tier.includes(label),'missing bilingual home/settings label: '+label);
+assert.ok(tier.includes('DESIGNED IN INDIA / भारत में निर्मित')&&tier.includes('BUILT FOR THE WORLD / दुनिया के लिए'),'brand origin must be bilingual');
+
 assert.ok(workspace.includes('openGroup(group)'));
 assert.ok(workspace.includes("g.name+' / '+g.nameHi"),'workspace group labels must always show Hindi and English');
 assert.ok(workspace.includes("name:`${m.name} / ${m.nameHi}`")&&workspace.includes("desc:`${m.desc} / ${m.descHi}`"),'mode names and descriptions must always show Hindi and English');
