@@ -20,6 +20,11 @@ for(const label of ['NOVA Learn / नोवा लर्न','NOVA Build / न�
 assert.ok(tier.includes('DESIGNED IN INDIA / भारत में निर्मित')&&tier.includes('BUILT FOR THE WORLD / दुनिया के लिए'),'brand origin must be bilingual');
 
 assert.ok(workspace.includes('openGroup(group)'));
+assert.ok(workspace.includes("learn:[['openPhoto'")&&workspace.includes("['openArchive'")&&workspace.includes("build:[['openImageStudio'")&&workspace.includes("agents:[['startVoice'"),'legacy photo/archive/image/voice tools must be placed in the correct workspace');
+assert.ok(workspace.includes("querySelectorAll('[data-quick]')")&&workspace.includes('NovaWorkspaceActions?.[b.dataset.quick]'),'workspace quick actions must invoke real legacy handlers');
+assert.ok(html.includes('window.NovaWorkspaceActions=Object.freeze({openPhoto,openArchive:openArch,startVoice:startLive,openImageStudio()'),'legacy feature action bridge missing');
+assert.ok(html.includes('id="nPhoto" data-i="nPhoto" hidden')&&html.includes('id="nArch" data-i="nArch" hidden'),'learning-only legacy shortcuts must not remain in global sidebar');
+
 assert.ok(workspace.includes("g.name+' / '+g.nameHi"),'workspace group labels must always show Hindi and English');
 assert.ok(workspace.includes("name:`${m.name} / ${m.nameHi}`")&&workspace.includes("desc:`${m.desc} / ${m.descHi}`"),'mode names and descriptions must always show Hindi and English');
 assert.ok(!workspace.includes("add(top,'novaModesTop'"),'legacy all-modes launchers must be removed');
