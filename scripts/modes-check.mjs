@@ -16,6 +16,8 @@ assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='agents').map(x=>x.id)),
 assert.deepEqual(Array.from(r.modes.filter(x=>x.group==='build').map(x=>x.id)),['builder']);
 assert.ok(workspace.includes('window.NovaModeWorkspace=Object.freeze'));
 assert.ok(workspace.includes('openGroup(group)'));
+assert.ok(workspace.includes("g.name+' / '+g.nameHi"),'workspace group labels must always show Hindi and English');
+assert.ok(workspace.includes("name:`${m.name} / ${m.nameHi}`")&&workspace.includes("desc:`${m.desc} / ${m.descHi}`"),'mode names and descriptions must always show Hindi and English');
 assert.ok(!workspace.includes("add(top,'novaModesTop'"),'legacy all-modes launchers must be removed');
 const ids=r.modes.map(x=>x.id);
 for(const id of ['general','voice','document','schemes','shopkeeper','math','photo','ncert','board','ssc','upsc','english','builder'])assert.ok(ids.includes(id),'missing '+id);
