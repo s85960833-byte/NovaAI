@@ -19,6 +19,8 @@ const suite=readFileSync('nova-suite.js','utf8');
 assert.ok(suite.includes('const bi=s=>')&&suite.includes('Project Brain / प्रोजेक्ट ब्रेन')&&suite.includes('AI Council / AI परिषद'),'NOVA Agents suite cards must show bilingual labels');
 assert.ok(suite.includes('esc(bi(label))')&&suite.includes('esc(bi(ph))'),'NOVA Agents suite form labels and placeholders must be bilingual');
 assert.ok(suite.includes('function bilingualize(root)')&&suite.includes('bilingualize(b);')&&suite.includes('esc(bi(txt))'),'NOVA Agents suite descriptions and output placeholders must be bilingualized');
+assert.ok(!suite.includes('novaSuiteLauncher')&&!suite.includes("append(btn)"),'Agents Studio must not be launched from the global sidebar');
+assert.ok(workspace.includes("['openAgentsSuite','✦','Agents Studio / एजेंट स्टूडियो']")&&html.includes('openAgentsSuite(){window.NovaSuite?.open()}'),'Agents Studio must launch only from NOVA Agents workspace');
 const tier=readFileSync('s-tier.js','utf8');
 for(const label of ['NOVA Learn / नोवा लर्न','NOVA Build / नोवा बिल्ड','NOVA Agents / नोवा एजेंट्स','INDIAN INTELLIGENCE / भारतीय बुद्धिमत्ता','HINDI / हिन्दी · ENGLISH / अंग्रेज़ी','Nova Experience / NOVA अनुभव','Data Saver / Lite Mode · डेटा सेवर / लाइट मोड','Startup Chime · स्टार्टअप ध्वनि','Festival Greetings · त्योहारों की शुभकामनाएँ','Accent Palette / रंग थीम'])assert.ok(tier.includes(label),'missing bilingual home/settings label: '+label);
 assert.ok(tier.includes('DESIGNED IN INDIA / भारत में निर्मित')&&tier.includes('BUILT FOR THE WORLD / दुनिया के लिए'),'brand origin must be bilingual');
