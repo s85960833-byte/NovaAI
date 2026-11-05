@@ -10,11 +10,11 @@ const data=()=>read(STORE,{version:1,histories:{},lastMode:'general'});
 const saveData=x=>write(STORE,x);
 const lowData=()=>data().lowData!==false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const language=()=>'English';
-const isHi=()=>false;
-const tr=(en,hi)=>en;
+const language=()=>{const selected=document.querySelector('#lang')?.value;if(selected==='English'||selected==='Hindi')return selected;try{const saved=JSON.parse(localStorage.getItem('nova')||'{}').rl;if(saved==='Hindi'||saved==='English')return saved}catch(e){}return 'English'};
+const isHi=()=>language()==='Hindi';
+const tr=(en,hi)=>`${en} / ${hi}`;
 function syncStaticLabels(){const back=$('#nmBack'),close=$('#nmClose'),title=$('#nmTitle'),file=$('#nmFile'),mic=$('#nmMic'),send=$('#nmSend');if(back)back.textContent='←';if(close)close.textContent=tr('Close','बंद करें');if(title&&!active)title.textContent=tr('Nova AI · Modes','Nova AI · मोड्स');if(file)file.textContent='📎 '+tr('Attach file/photo','फ़ाइल/फोटो जोड़ें');if(mic)mic.textContent='🎙 '+tr('Speak','बोलें');if(send)send.textContent=tr('Send','भेजें');if(input)input.placeholder=active==='document'?tr('Upload a bill, notice, or form, or type a question…','बिल, नोटिस या फॉर्म अपलोड करें, या सवाल लिखें…'):active==='photo'?tr('Choose a photo of the question or type it…','सवाल की फोटो चुनें या सवाल लिखें…'):tr('Type your question…','अपना सवाल लिखें…')}
-const mode=id=>{const m=REG.modes.find(x=>x.id===id)||REG.modes[0];return {...m,name:isHi()?(m.nameHi||m.name):m.name,desc:isHi()?(m.descHi||m.desc):m.desc,prompt:isHi()?(m.promptHi||m.prompt):m.prompt};};
+const mode=id=>{const m=REG.modes.find(x=>x.id===id)||REG.modes[0];return {...m,name:`${m.name} / ${m.nameHi}`,desc:`${m.desc} / ${m.descHi}`,prompt:isHi()?(m.promptHi||m.prompt):m.prompt};};
 const history=id=>{const d=data();return d.histories[id]||(d.histories[id]=[])};
 const css=`
 #novaModes{position:fixed;inset:0;z-index:1000;background:var(--bg,#120d1b);color:var(--fg,#f3ecf8);display:none;flex-direction:column;font:16px/1.5 system-ui,sans-serif}
