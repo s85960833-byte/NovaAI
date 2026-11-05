@@ -26,6 +26,26 @@ html,body{background:#050817!important}body{background-image:radial-gradient(ell
 @media(max-width:760px){#side{width:270px!important;min-width:270px}#top{gap:7px;padding:8px 10px!important}#hi{padding:0 0 18px!important}#hi .nr-hero{grid-template-columns:1fr;min-height:0;padding:20px 17px}#hi .nr-scene{height:150px}#hi .nr-ai{width:72px;height:112px;right:6%}#hi .nr-gate{transform:scale(.78);transform-origin:bottom left;left:43%}#hi .nr-journey{grid-template-columns:1fr repeat(3,50px);padding:10px}#hi .nr-cards{grid-template-columns:1fr;gap:10px}#hi .nr-card{min-height:150px;padding:15px}#hi .nr-features{grid-template-columns:1fr 1fr}#hi .nr-made{grid-column:1/-1}#hi .nr-ask{border-radius:18px;gap:4px;padding:6px}#hi .nr-ask button{width:34px;height:34px;flex-basis:34px}}
 @media(max-width:380px){#hi .nr-journey{grid-template-columns:1fr repeat(3,42px)}#hi .nr-title{font-size:37px}}
 @media(prefers-reduced-motion:reduce){#hi .nr-card{transition:none!important}}
+/* Android/mobile: keep the app canvas edge-to-edge; the sidebar is an overlay drawer. */
+@media(max-width:900px), (pointer:coarse) and (max-width:1100px){
+  html,body{width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:hidden!important}
+  body{display:flex!important;flex-direction:row!important}
+  #side{position:fixed!important;inset:0 auto 0 0!important;width:min(84vw,300px)!important;min-width:0!important;max-width:84vw!important;z-index:50!important;transform:translateX(-105%)!important}
+  [dir=rtl] #side{inset:0 0 0 auto!important;transform:translateX(105%)!important}
+  #side.open{transform:translateX(0)!important}
+  [dir=rtl] #side.open{transform:translateX(0)!important}
+  #scrim{z-index:49!important}
+  #main{display:flex!important;flex:1 1 0%!important;width:100%!important;min-width:0!important;max-width:100vw!important;margin:0!important}
+  #top,#msgs,#box{width:100%!important;max-width:100%!important;min-width:0!important}
+  #msgs{flex:1 1 0%;overflow-x:hidden!important}
+  #log,.w{width:100%!important;max-width:100%!important;min-width:0!important}
+  #hi{width:100%!important;max-width:100%!important;margin:0!important;padding-inline:10px!important}
+}
+@supports(width:100dvw){
+  @media(max-width:900px), (pointer:coarse) and (max-width:1100px){
+    #main{width:100dvw!important;max-width:100dvw!important}
+  }
+}
 `;
 function style(){if($('#nova-reference-style'))return;const s=document.createElement('style');s.id='nova-reference-style';s.textContent=css;document.head.append(s)}
 const svg={build:'<svg viewBox="0 0 24 24"><path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 4l-4 16"/></svg>',learn:'<svg viewBox="0 0 24 24"><path d="M2 8 12 3l10 5-10 5L2 8Z"/><path d="M6 10v6c3 3 9 3 12 0v-6"/></svg>',agent:'<svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="4"/><path d="M12 3v4M9 13h.01M15 13h.01M9 17h6"/></svg>',photo:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>',voice:'<svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>'};
