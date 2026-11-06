@@ -4,7 +4,9 @@ const css=`
 html,body{background:#050817!important}body{background-image:radial-gradient(ellipse at 75% 10%,#18216b55,transparent 40%),radial-gradient(ellipse at 90% 80%,#5514a522,transparent 38%)!important}
 #side{width:218px!important;min-width:218px;background:linear-gradient(180deg,#080d20f5,#090b1bf5)!important;border-right:1px solid #263a7b!important;padding:16px 12px!important;gap:12px!important}
 #side .brand{padding:6px 6px 16px!important;border-bottom:1px solid #27366e}#side .brand b{font:800 22px Nunito,"Noto Sans Devanagari","Nirmala UI",Mangal,system-ui;color:#fff}#side .logo,#top .logo{width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#12d9ff,#773cff 55%,#ee4dff)!important;color:#fff!important;box-shadow:0 0 22px #5d42ff88}
-#side button,#side select,#side input{background:transparent!important;border-color:transparent!important;color:#dce7ff!important}#side #new{border:1px solid #3156bc!important;background:linear-gradient(100deg,#142b68,#24134c)!important;font-weight:800}#side .nav button{border-radius:12px!important;padding:11px 12px!important;font-weight:700}#side #nHome{background:linear-gradient(100deg,#5324e8,#2610a8)!important;border-color:#8e65ff!important;box-shadow:0 0 18px #743cff66}#side #q{background:#0d1530!important;border:1px solid #29396e!important;border-radius:12px!important}
+#side button,#side select,#side input{background:transparent!important;border-color:transparent!important;color:#dce7ff!important}
+/* Keep legacy global shortcuts out of the new three-workspace navigation. */
+#new,#nPhoto,#nArch,#nImg,#nLive{display:none!important}#side #new{border:1px solid #3156bc!important;background:linear-gradient(100deg,#142b68,#24134c)!important;font-weight:800}#side .nav button{border-radius:12px!important;padding:11px 12px!important;font-weight:700}#side #nHome{background:linear-gradient(100deg,#5324e8,#2610a8)!important;border-color:#8e65ff!important;box-shadow:0 0 18px #743cff66}#side #q{background:#0d1530!important;border:1px solid #29396e!important;border-radius:12px!important}
 #top{min-height:66px;padding:10px 18px!important;gap:12px!important;background:#070b1bdc!important;border-bottom:1px solid #25366f!important;backdrop-filter:blur(16px)}#top>b{color:#f6f7ff}#msgs{padding:16px clamp(10px,2vw,26px)!important}
 #hi{max-width:1500px!important;width:100%;padding:8px 0 28px!important;margin:0 auto!important;color:#f5f7ff!important}#hi .nr-wrap{display:grid;gap:15px}
 #hi .nr-hero{position:relative;isolation:isolate;min-height:285px;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:12px;overflow:hidden;padding:clamp(22px,3vw,38px);border:1px solid #4c59d9;border-radius:26px;background:radial-gradient(ellipse at 76% 40%,#1558d866,transparent 38%),radial-gradient(ellipse at 90% 0%,#bd4bff33,transparent 40%),linear-gradient(115deg,#07132f,#101044 56%,#081c3a);box-shadow:0 0 35px #314bff38,inset 0 1px #ffffff20}
@@ -89,8 +91,8 @@ function boot(){
  const side=$('#side'),nav=side?.querySelector('.nav');
  if(nav&&!$('#nrSidebarLinks')){
   const x=document.createElement('div');x.id='nrSidebarLinks';
-  const links=[['explore','⌕',tr('Explore','खोजें')],['build','⌘',tr('NOVA Build','नोवा बिल्ड')],['learn','▱',tr('NOVA Learn','नोवा लर्न')],['agents','◈',tr('NOVA Agents','नोवा एजेंट्स')]];
-  links.forEach(([key,icon,label])=>{const b=document.createElement('button');b.type='button';b.dataset.k=key;b.textContent=icon+'　'+label;b.addEventListener('click',()=>{if(key==='explore'){$('#q')?.focus();return}window.NovaModeWorkspace?.openGroup?.(key)});x.append(b)});
+  const links=[['build','⌘',tr('NOVA Build','नोवा बिल्ड')],['learn','▱',tr('NOVA Learn','नोवा लर्न')],['agents','◈',tr('NOVA Agents','नोवा एजेंट्स')]];
+  links.forEach(([key,icon,label])=>{const b=document.createElement('button');b.type='button';b.dataset.k=key;b.textContent=icon+'　'+label;b.addEventListener('click',()=>{window.NovaModeWorkspace?.openGroup?.(key)});x.append(b)});
   nav.after(x);
  }
  const host=$('#log');
