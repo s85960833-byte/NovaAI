@@ -55,6 +55,7 @@ if (!html.includes('id="dset"')) throw new Error('Settings panel missing');
 if (html.includes('Nova AI has no server of its own') || html.includes('Nova AI का अपना कोई सर्वर नहीं है।')) throw new Error('Outdated privacy disclosure incorrectly says NOVA has no backend');
 if (!html.includes('backend hosted on Render') || !html.includes('account-based cloud chat sync')) throw new Error('NOVA backend and local-storage privacy disclosures are missing');
 if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
+if (!html.includes('async function pollServerImage(id,sig)') || !html.includes('else if(j.jobId)a.img=await pollServerImage(j.jobId,sig)') || !html.includes('e1?.status===429')) throw new Error('NOVA image UI must poll server-side image jobs and must not bypass image rate limits');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'")) throw new Error('Existing optional feature asset routes missing');
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(x => x.trim());
