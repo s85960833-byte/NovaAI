@@ -53,7 +53,7 @@ for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wai
 if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
 if (!html.includes("typeof en==='string'&&typeof hi==='string'") || !html.includes("return en+' / '+hi")) throw new Error('Core NOVA interface must render English and Hindi together');
 if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>html.includes(x))) throw new Error('NOVA Learn, Build and Agents workspace scripts are not connected in the homepage');
-if (!['src="/nova-business-core.js"','src="/nova-business.js"','src="/nova-business-cloud.js"'].every(x=>html.includes(x)) || !html.includes('@supabase/supabase-js@2.80.0')) throw new Error('NOVA BI scripts and Supabase client are not connected in the homepage');
+if (!['src="/nova-business-core.js"','src="/nova-business.js"','src="/nova-business-cloud.js"'].every(x=>html.includes(x)) || !html.includes('@supabase/supabase-js@2.119.0')) throw new Error('NOVA BI scripts and Supabase client are not connected in the homepage');
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>html.includes(x))) throw new Error('NOVA dashboard UI components missing');
 if (!html.includes('localStorage.getItem(\'nova\')') || !html.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Existing Nova chat storage contract changed');
 
