@@ -47,20 +47,18 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #73 combines the three-workspace interface, BI module and security-hardening work. PR #66 is the earlier UI-only predecessor.
 
-The application code snapshot `344f46ad4b4b08fae035adf0a52a5049548cf58f`, with documentation-integrated branch head `d3c2ad6a45b6442bfc71363e942b3269c6874200`, has a successful [CI #896](https://github.com/s85960833-byte/NovaAI/actions/runs/42226220598). Its single verification job passed:
+The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Combined CI is running on the latest integrated head. Its checks cover:
 
-- Backend and frontend syntax checks.
-- Mode registry checks.
-- Validation of the 60-case AI evaluation fixture. This validates the test fixture structure; it is **not** a live model accuracy score.
-- Production dependency vulnerability audit.
-- Local Express routes and PWA asset checks.
-- Local HTTP security-header assertions.
-- Chromium workspace interaction tests.
-- Responsive layout, drawer, Settings, and sidebar regression tests at 360, 390, 412, 760, and 1280 CSS-pixel widths.
-- Devanagari font installation and visual screenshot artifact upload.
+- Backend/frontend syntax and mode registry.
+- PostgreSQL migration application and tenant RLS integration.
+- Deno Edge Function dependency installation, type-check, auth and CORS smoke.
+- BI calculations, CSV validation and 60-case evaluation fixture validation (not a live AI accuracy score).
+- Production dependency audit.
+- Local routes, response headers and PWA assets, including offline caching of the bilingual home and BI scripts.
+- Company Cloud browser workflows.
+- Chromium workspace navigation and five viewport widths, including drawer and Settings regression checks.
 
-**The same CI run skipped** the live Render website/provider checks and the free-provider image-generation smoke test. No claim is made that those tests passed.
-
+The combined run must pass on the exact latest head before this candidate can be called CI-verified. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI.
 ## 5. Exact demo plan
 
 Use this sequence only on the exact candidate build after opening that build on the presentation device. The candidate is not currently the Production deployment; do not silently substitute the existing Production URL and describe it as the new three-workspace build.
@@ -110,7 +108,7 @@ Latest checks on the approved Supabase project `qrfwsewppafhxibdboam` found:
 - Performance Advisor: 13 unused-index INFO notices. These are observations, not security findings; indexes were not removed without workload evidence.
 - Current live counts: 0 Auth users, 0 organizations, 0 memberships.
 - The invitation-acceptance permission gap was fixed with a narrow `UPDATE(status)` grant. SQL confirms authenticated users cannot update membership `role`, `organization_id`, or `user_id`.
-- The latest BI branch head `c64887340cebf4f0ca18d6f83ca300e2cd3d0c19` passed push-triggered [CI #887](https://github.com/s85960833-byte/NovaAI/actions/runs/42222549923), including PostgreSQL migration/RLS integration, Deno type-check, deployed Edge Function auth/CORS checks, calculations/CSV validation, and the Company Cloud mobile browser flow. The run skipped live Render/provider checks.
+- The BI-only predecessor PR #67 had successful automated checks, and its migrations, RLS tests and Edge Function code are carried into unified PR #73. The current combined PR #73 CI is the authoritative verification run.
 - Older PR #46 is a divergent legacy branch and must not be merged as a substitute. Unified PR #73 is the current integrated candidate. Its auth/email, two-real-account tenant isolation, SMTP delivery, retention, backup/restore, privacy, incident response, Preview and manual device gates remain open.
 
 BI capabilities such as profitability analysis, cost-leak review, productivity indicators, heuristic project risk, scenario modeling, workflow proposals, Action Proof, and workspace branding are included in the unified development candidate only; do not present them as launched or generally available. The risk model is heuristic; the Digital Twin is assumption-based; workflow items are approval-gated proposals and do not execute external company actions. Do not present BI as launched, certified, or ready for production customers.
@@ -118,7 +116,7 @@ BI capabilities such as profitability analysis, cost-leak review, productivity i
 ## 9. Repository and branch history — what to use
 
 - **PR #73:** use this as the unified UI + BI preview candidate. Keep it Draft until the manual and release gates are cleared.
-- **PR #64 and PR #65:** their security and workspace changes are incorporated into #66. Do not merge these older source PRs separately.
+- **PR #64 and PR #65:** their security and workspace changes are incorporated into #73. Do not merge these older source PRs separately.
 - **PR #10 and PR #35:** older, diverged four-section UI branches. They are not the current three-workspace pitch candidate. Do not merge them into this release.
 - **PR #73:** unified NOVA UI + Business Intelligence candidate. Keep it clearly labelled as preview and out of Production until all gates pass.
 - **Production `main`:** remains separate from the candidate. No PR was merged and no Render deployment was triggered during this audit.
@@ -148,7 +146,7 @@ The current general NOVA chat/settings history is browser-local. Account-backed 
 Not for this early preview. Use synthetic or non-sensitive data only.
 
 **Is Business Intelligence included?**  
-NOVA BI is included in the unified Draft PR #73 preview candidate, but it is not deployed or generally available. Its separate security, real-account and privacy gates still apply.
+Yes, in the unified Draft PR #73 preview candidate. It is not deployed or generally available; real-account, SMTP, tenant-isolation and privacy gates still apply.
 
 **What does NOVA cost?**  
 Pricing and usage limits are not being promised until provider costs, support, privacy, billing, and refund terms have been reviewed.
