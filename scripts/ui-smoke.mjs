@@ -32,9 +32,6 @@ try {
 
   await page.locator('#menu').click();
   if (!(await page.locator('#side').evaluate(el => el.classList.contains('open')))) throw new Error('Mobile navigation drawer did not open');
-  await page.locator('#scrim').click({ position: { x: 5, y: 5 } });
-  if (await page.locator('#side').evaluate(el => el.classList.contains('open'))) throw new Error('Mobile navigation drawer did not close from scrim');
-
   await page.locator('#setb').click();
   if (!(await page.locator('#dset').evaluate(el => el.open))) throw new Error('Settings dialog did not open');
   await page.locator('#sclose').click();
@@ -44,14 +41,18 @@ try {
   if (await page.locator('html').getAttribute('lang') !== 'hi') throw new Error('Hindi reply-language selection did not update document language');
   await page.locator('#lang').selectOption('English');
   if (await page.locator('html').getAttribute('lang') !== 'en') throw new Error('English reply-language selection did not update document language');
+  await page.locator('#scrim').click({ position: { x: 5, y: 5 } });
+  if (await page.locator('#side').evaluate(el => el.classList.contains('open'))) throw new Error('Mobile navigation drawer did not close from scrim');
 
   await page.locator('#camb').click();
   if (!(await page.locator('#photo').isVisible())) throw new Error('Photo solver panel did not open');
   await page.locator('#pclose2').click();
   if (await page.locator('#photo').isVisible()) throw new Error('Photo solver panel did not close');
 
+  await page.locator('#menu').click();
   await page.locator('#theme').click();
   const theme = await page.locator('html').getAttribute('data-theme');
+  await page.locator('#scrim').click({ position: { x: 5, y: 5 } });
   if (!['light', 'dark'].includes(theme)) throw new Error('Theme toggle did not set a supported theme');
 
   await page.setViewportSize({ width: 1365, height: 900 });
