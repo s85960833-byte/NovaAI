@@ -55,10 +55,13 @@ test('mobile drawer, Settings and workspace composer boundaries',async({page})=>
   await expect(page.locator('#dset')).toBeVisible();
   await page.locator('#sclose').click();
   await expect(page.locator('#dset')).not.toBeVisible();
+  await expect(page.locator('#side')).toHaveClass(/open/);
+  await page.locator('#scrim').click({position:{x:380,y:420}});
+  await expect(page.locator('#side')).not.toHaveClass(/open/);
   await page.locator('#hi .nr-card[data-group="agents"]').click();
   await expect(page.locator('#novaModes.open')).toBeVisible();
   await expect(page.locator('#nmCompose')).toBeHidden();
-  await page.locator('#nmContent [data-mode="general"]').tap();
+  await page.locator('#nmContent [data-mode="general"]').click();
   await expect(page.locator('#nmCompose')).toBeVisible();
   await expect(page.locator('#nmInput')).toBeVisible();
   await page.keyboard.press('Escape');
