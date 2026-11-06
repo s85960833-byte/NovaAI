@@ -13,6 +13,19 @@ const E = process.env;
 const BASE = E.LLM_BASE || 'https://openrouter.ai/api/v1';
 const app = express();
 app.set('trust proxy', 1); // Render sits behind one trusted proxy; use the real client IP for rate limits
+
+// Baseline browser security headers. Keep CSP separate until inline scripts/styles and
+// provider integrations have been migrated and tested; an incomplete CSP can break the app.
+app.use((q, r, next) => {
+  r.setHeader('X-Content-Type-Options', 'nosniff');
+  r.setHeader('X-Frame-Options', 'DENY');
+  r.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  r.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
+  if (E.NODE_ENV === 'production') {
+    r.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
 app.use(express.json({ limit: '6mb' }));
 
 // Bounded per-IP request windows; discard inactive keys to keep memory stable.
