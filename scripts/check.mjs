@@ -19,6 +19,9 @@ for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
 if (!server.includes('Your developer is Thakur Shreyansh Singh ji.') || !server.includes("Respond in the user's language while keeping the developer name exactly as written.") || server.includes('Respond in English only, regardless of the user')) throw new Error('Developer identity must be exact and compatible with the user language');
 syntaxCheck('backend', server);
+const liveSmoke=readFileSync('scripts/smoke.mjs','utf8');
+syntaxCheck('live production smoke',liveSmoke);
+if (!liveSmoke.includes("process.env.NOVA_LIVE_FULL_TESTS === '1'") || !liveSmoke.includes('invalid-input guard') || !liveSmoke.includes('SKIP full provider')) throw new Error('Live production smoke must avoid provider/API credit use unless explicitly opted in');
 
 for (const file of ['s-tier.js','nova-suite.js','mode-registry.js','mode-workspace.js','nova-reference.js']) syntaxCheck(file, readFileSync(file,'utf8'));
 const tier = readFileSync('s-tier.js', 'utf8');
