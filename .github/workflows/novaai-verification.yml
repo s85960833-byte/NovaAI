@@ -36,6 +36,16 @@ jobs:
         run: node scripts/browser-smoke.mjs
       - name: Run five-viewport mobile and drawer regression tests
         run: npm run test:mobile-layout
+      - name: Upload integrated browser screenshots and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-integrated-browser-verification
+          path: |
+            artifacts/
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
       - name: Wait for the merged bilingual revision to become live on Render
         if: github.ref == 'refs/heads/main'
         env:
