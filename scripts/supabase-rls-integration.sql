@@ -195,7 +195,7 @@ begin
 end $$;
 
 
-do $
+do $bi_block$
 begin
   if exists (
     select 1 from pg_proc p
@@ -205,9 +205,9 @@ begin
   ) then
     raise exception 'Every public SECURITY DEFINER function must pin an empty search_path';
   end if;
-end $;
+end $bi_block$;
 
-do $
+do $bi_block$
 begin
   if has_table_privilege('authenticated','public.nova_bi_rate_limits','select') then
     raise exception 'Authenticated clients must not read API rate-limit counters';
