@@ -14,7 +14,7 @@ async function request(path, options = {}) {
 const submitted = await request('/api/image', {
   method: 'POST',
   headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ prompt: 'A simple blue geometric flower on a clean white background', width: 512, height: 512, seed: 42 }),
+  body: JSON.stringify({ prompt: 'A simple blue geometric flower on a clean white background', width: 512, height: 512, seed: 42, freeOnly: true }),
   timeout: 30000
 });
 let result = await submitted.json().catch(() => ({}));
@@ -41,6 +41,7 @@ if (result.jobId) {
 }
 
 const match = String(result.image || '').match(/^data:(image\/(?:webp|png|jpeg|gif));base64,([A-Za-z0-9+/]+={0,2})$/i);
+if (result.provider !== 'community-free') throw new Error('Free-only smoke unexpectedly used a non-community provider: ' + (result.provider || 'unknown'));
 if (!match || match[2].length < 1200) throw new Error('Free image provider returned an invalid image data URL');
 const buffer = Buffer.from(match[2], 'base64');
 const type = match[1].toLowerCase();
