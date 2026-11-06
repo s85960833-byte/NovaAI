@@ -50,6 +50,16 @@ Updated: 2026-11-06
 8. Review privacy notice, data processing terms, incident response and secret-rotation procedures before using real or regulated company data.
 
 ## Release controls
-- Keep PR #46 Draft until all automated and manual release gates pass.
+- Keep PR #67 Draft until all automated and manual release gates pass. PR #46 is the older divergent branch and must not be merged as a substitute.
 - Do not merge to `main`, deploy to Render, enable public customer onboarding, or represent the system as enterprise-certified without explicit owner approval and verified evidence.
 - No paid resource or external service purchase has been authorized.
+
+
+## 2026-11-06 reconciled release update
+- Current release candidate: Draft PR #67, branch `feature/nova-bi-reconciled-20261106`, based on current `main`; latest inspected head `e1cd7a025613e7199f23d4f8f60b1766f9df9e9e`, 62 commits ahead and 0 behind. It remains unmerged and undeployed.
+- PR #46 is the older divergent BI branch and must not be merged as a substitute for PR #67. PR #66 remains the separate Draft UI candidate; it is not deployed.
+- CI run #940 passed 27/27 steps on an earlier PR #67 head. The latest head includes additional changes after that run, so a new full CI conclusion is still required before the latest code can be called verified.
+- Additional hardening added to the candidate: HTTP response headers (nosniff, frame denial, no-referrer, restricted permissions, CSP frame-ancestors), whole-number validation for project blockers, 500 status for unexpected BI backend errors, and a forward-only migration to pin the already-applied rate-limit SECURITY DEFINER function to an empty search_path while preserving service-role-only execution.
+- Static regression assertions and local syntax checks were added for these changes. The new forward migration is included in the fresh PostgreSQL migration test sequence. It has **not** been applied to the live Supabase project.
+- The live Supabase project remains on its previously deployed schema/function versions; no Production Render deployment, PR merge, Auth settings change, SMTP change, or paid resource change was made in this update.
+- Remaining external release gates are real signup/confirmation email, two real accounts and tenant isolation, production/preview redirect allow-list verification, Preview deployment, physical Android checks, backup/restore, retention, privacy and incident-response review.
