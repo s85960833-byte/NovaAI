@@ -56,9 +56,9 @@ Updated: 2026-11-06
 
 
 ## 2026-11-06 reconciled release update
-- Current release candidate: Draft PR #67, branch `feature/nova-bi-reconciled-20261106`, based on current `main`; latest inspected head `e1cd7a025613e7199f23d4f8f60b1766f9df9e9e`, 62 commits ahead and 0 behind. It remains unmerged and undeployed.
+- Current release candidate: Draft PR #67, branch `feature/nova-bi-reconciled-20261106`, based on current `main`; latest inspected head `26bd9ef43d8ffaeaa4cd5571e83ad2a084ee6f2b`, 67 commits ahead and 0 behind. It remains unmerged and undeployed.
 - PR #46 is the older divergent BI branch and must not be merged as a substitute for PR #67. PR #66 remains the separate Draft UI candidate; it is not deployed.
-- CI run #940 passed 27/27 steps on an earlier PR #67 head. The latest head includes additional changes after that run, so a new full CI conclusion is still required before the latest code can be called verified.
+- CI run #967 passed 27/27 steps against the latest inspected head. Syntax, PostgreSQL 17 migrations/RLS integration, Deno type-check, deployed Edge Function auth/CORS smoke, BI calculation tests, 60-case fixture validation, production dependency audit, local runtime/PWA smoke and Playwright Company Cloud mobile-browser workflows all passed. Only the production-live Render/provider steps were skipped because this is not the main branch.
 - Additional hardening added to the candidate: HTTP response headers (nosniff, frame denial, no-referrer, restricted permissions, CSP frame-ancestors), whole-number validation for project blockers, 500 status for unexpected BI backend errors, and a forward-only migration to pin the already-applied rate-limit SECURITY DEFINER function to an empty search_path while preserving service-role-only execution.
 - Static regression assertions and local syntax checks were added for these changes. The new forward migration is included in the fresh PostgreSQL migration test sequence. It has **not** been applied to the live Supabase project.
 - The live Supabase project remains on its previously deployed schema/function versions; no Production Render deployment, PR merge, Auth settings change, SMTP change, or paid resource change was made in this update.
