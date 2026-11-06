@@ -62,7 +62,18 @@ const feedResponse = await request('/api/feed?cat=all&lang=en');
 const feed = await json(feedResponse);
 if (!feedResponse.ok || !feed.cats || !Object.keys(feed.cats).length) throw new Error('News feed endpoint returned no categories');
 console.log('PASS /api/feed');
+for (const [path,method,body,expected] of [
+  ['/api/live','POST',{q:''},400],
+  ['/api/search','POST',{q:''},400],
+  ['/api/chat/completions','POST',{messages:[]},400]
+]) {
+  const response=await request(path,{method,headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+  if(response.status!==expected)throw new Error(path+' invalid-input guard expected '+expected+', got '+response.status);
+  console.log('PASS '+path+' validation');
+}
 
+let self;
+if (process.env.NOVA_LIVE_FULL_TESTS === '1') {
 const selfResponse = await request('/api/live/selftest', { signal: AbortSignal.timeout(90000) });
 const self = await json(selfResponse);
 if (!selfResponse.ok || !Array.isArray(self.results)) throw new Error('Provider self-test endpoint failed');
@@ -93,12 +104,16 @@ if (!internetResponse.ok || !internet.provider || !Array.isArray(internet.result
 console.log('PASS /api/search (' + internet.provider + ', ' + internet.results.length + ' sources)');
 
 
+
+}
+
 const imageValidation = await request('/api/image', {
   method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({})
 });
 if (imageValidation.status !== 400) throw new Error('/api/image invalid-input guard expected 400, got ' + imageValidation.status);
 console.log('PASS /api/image validation');
 
+if (process.env.NOVA_LIVE_FULL_TESTS === '1') {
 const imageResponse = await request('/api/image', {
   method: 'POST', headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ prompt: 'A simple blue geometric flower on a clean white background', width: 512, height: 512, seed: 42 }),
@@ -122,12 +137,16 @@ if (generated.jobId) {
 if (!String(generated.image || '').startsWith('data:image/') || generated.image.length < 1200) throw new Error('Actual image generation returned an invalid image');
 console.log('PASS actual free image generation (' + Math.round(generated.image.length / 1024) + ' KB data URL; ' + (generated.provider || 'provider') + ')');
 
+
+}
+
 const transcribeValidation = await request('/api/transcribe', {
   method: 'POST', headers: { 'content-type': 'audio/webm' }, body: new Uint8Array()
 });
 if (transcribeValidation.status !== 400) throw new Error('/api/transcribe invalid-input guard expected 400, got ' + transcribeValidation.status);
 console.log('PASS /api/transcribe validation');
 
+if (process.env.NOVA_LIVE_FULL_TESTS === '1') {
 const chatResponse = await request('/api/chat/completions', {
   method: 'POST', headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ model: config.model, stream: false, max_tokens: 20, messages: [{ role: 'user', content: 'Reply with exactly NOVAAI_OK.' }] }),
@@ -152,3 +171,6 @@ const failures = self.results.filter(x => !x.ok && x.name !== 'Yahoo Finance' &&
 if (optionalUnavailable.length) console.warn('WARN optional stock quote source unavailable; Nova must state that it cannot verify current stock prices until the source recovers.');
 if (failures.length) throw new Error(failures.length + ' upstream provider self-tests failed; see report above');
 console.log('PASS all provider self-tests');
+}
+if (process.env.NOVA_LIVE_FULL_TESTS !== '1') console.log('SKIP full provider, live search, AI generation and image generation tests (set NOVA_LIVE_FULL_TESTS=1 only after explicit cost/quota approval)');
+
