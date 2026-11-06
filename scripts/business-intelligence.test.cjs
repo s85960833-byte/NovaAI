@@ -189,7 +189,7 @@ test('NOVA BI company cloud uses authenticated Edge Function routes and session-
  assert.ok(edge.includes('db.from("nova_bi_organizations")'));
  assert.ok(edge.includes('ctx.supabaseAdmin.from("nova_bi_memberships")'));
  assert.ok(edge.includes('.update({ status: input.decision })'));
- assert.ok(index.includes('@supabase/supabase-js@2.80.0'));
+ assert.ok(index.includes('@supabase/supabase-js@2.119.0'));
  assert.ok(index.includes('https://cdn.jsdelivr.net'));
 });
 test('NOVA BI cloud save path stores dataset metadata and aggregate analysis, not raw CSV rows',()=>{
