@@ -9,9 +9,8 @@
   const text=(v)=>String(v==null?'':v).trim();
   const number=(v)=>{
     if(typeof v==='number')return Number.isFinite(v)?v:null;
-    const raw=text(v).replace(/^-?(?:₹|[$€£]|Rs\\.?)\\s*/i,'');
-    const sign=text(v).startsWith('-')?-1:1;
-    const s=raw;
+    const value=text(v),sign=value.startsWith('-')?-1:1;
+    const s=value.replace(/^-/, '').replace(/^(?:₹|[$€£]|Rs\\.?)\\s*/i,'');
     if(!s)return null;
     const plain=/^\\d+(?:\\.\\d{1,4})?$/.test(s);
     const international=/^\\d{1,3}(?:,\\d{3})+(?:\\.\\d{1,4})?$/.test(s);
