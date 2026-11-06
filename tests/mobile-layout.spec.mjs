@@ -25,7 +25,8 @@ for (const size of sizes) {
       return { documentWidth:document.documentElement.scrollWidth, bodyWidth:document.body.scrollWidth,
         main:rect('#main'), home:rect('#hi'), cards:rect('#hi .nr-cards'), card:rect('#hi .nr-card'),
         columns:getComputedStyle(document.querySelector('#hi .nr-cards')).gridTemplateColumns.split(' ').length,
-        composer:getComputedStyle(document.querySelector('#box')).display, side:getComputedStyle(document.querySelector('#side')).position };
+        composer:getComputedStyle(document.querySelector('#box')).display, side:getComputedStyle(document.querySelector('#side')).position,
+        bodyFont:getComputedStyle(document.body).fontFamily, titleFont:getComputedStyle(document.querySelector('#hi .nr-title')).fontFamily };
     });
     expect(layout.documentWidth).toBeLessThanOrEqual(size.width);
     expect(layout.bodyWidth).toBeLessThanOrEqual(size.width);
@@ -36,6 +37,8 @@ for (const size of sizes) {
     expect(layout.cards.right).toBeLessThanOrEqual(size.width+1);
     expect(layout.card.right).toBeLessThanOrEqual(size.width+1);
     expect(layout.composer).toBe('none');
+    expect(layout.bodyFont).toContain('Noto Sans Devanagari');
+    expect(layout.titleFont).toContain('Noto Sans Devanagari');
     if(size.width<=760){ expect(layout.side).toBe('fixed'); expect(Math.abs(layout.main.width-size.width)).toBeLessThanOrEqual(1); expect(layout.columns).toBe(1); }
     else { expect(layout.main.x).toBeGreaterThan(0); expect(layout.columns).toBe(3); }
     await page.screenshot({path:'artifacts/'+browserName+'-workspace-'+size.width+'x'+size.height+'.png',fullPage:true});
