@@ -1,6 +1,6 @@
 # NOVA — Early Demo Pitch Script
 
-**Use this script for an honest product-preview / design-partner conversation.** The integrated three-workspace build is a Draft release candidate, not the current Production release. Do not promise availability, uptime, response quality, integrations, or paid-plan entitlements that have not been verified live.
+**Use this script for an honest product-preview / design-partner conversation.** The unified three-workspace + Business Intelligence build is a Draft release candidate, not the current Production release. Do not promise availability, uptime, response quality, integrations, or paid-plan entitlements that have not been verified live.
 
 ## 30-second Hindi pitch
 
@@ -30,7 +30,7 @@ NOVA is a Hindi-English AI workspace designed to bring learning, digital creatio
 ## Safe answers to common questions
 
 **Is NOVA publicly launched?**  
-The integrated three-workspace experience is still a release candidate. We are gathering feedback before calling it a public production release.
+The unified NOVA experience, including Business Intelligence, is still a release candidate. We are gathering feedback before calling it a public production release.
 
 **Can you guarantee every AI answer or generation will work?**  
 No. AI providers can be unavailable, slow, or rate-limited. We are testing fallbacks and reliability before making service guarantees.
@@ -45,7 +45,7 @@ Not for this early demo. Use synthetic or non-sensitive sample data only.
 Do not quote a price or promise a plan until provider costs, usage limits, billing, support, privacy terms, and refund terms have been confirmed.
 
 **Is NOVA Business Intelligence included?**  
-No. NOVA Business Intelligence is a separate development candidate and must not be presented as a launched or generally available module.
+No. NOVA Business Intelligence is included in the unified preview candidate but is not launched or generally available.
 
 ## Do not claim
 
