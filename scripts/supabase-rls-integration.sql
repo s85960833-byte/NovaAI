@@ -226,7 +226,7 @@ begin
   ) then
     raise exception 'Rate-limit counters must have an explicit deny-all client policy';
   end if;
-end $$;
+end $bi_block$;
 
 begin;
 set local role service_role;
