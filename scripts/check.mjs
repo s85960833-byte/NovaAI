@@ -30,6 +30,8 @@ if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start
 if (pkg.engines?.node !== '22.x') throw new Error('Render and CI must use the same pinned Node.js 22 LTS runtime');
 for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api/live/selftest'", "app.get('/api/feed'", "app.get('/nova-reference.js'"]) if (!server.includes(route)) throw new Error('Required backend route missing: ' + route);
 if (!server.includes("app.disable('x-powered-by')") || !server.includes("'X-Content-Type-Options': 'nosniff'") || !server.includes("'X-Frame-Options': 'DENY'") || !server.includes("frame-ancestors 'none'")) throw new Error('Required HTTP security headers are missing');
+const cloudClient = readFileSync('nova-business-cloud.js', 'utf8');
+if (!cloudClient.includes('const orgId=state.orgId') || !cloudClient.includes('if(state.orgId!==orgId)return')) throw new Error('Company switch must discard stale tenant responses');
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
 if (!server.includes('Your developer is Thakur Shreyansh Singh ji.') || !server.includes("Respond in the user's language while keeping the developer name exactly as written.") || server.includes('Respond in English only, regardless of the user')) throw new Error('Developer identity must be exact and compatible with the user language');
 if (!server.includes("via: 'arxiv+science-rss-fallback'") || !server.includes("T('openalex', async () =>") || !server.includes("feedCat('science', 6)")) throw new Error('Live science retrieval must fall back to independent arXiv and science RSS when OpenAlex fails');
