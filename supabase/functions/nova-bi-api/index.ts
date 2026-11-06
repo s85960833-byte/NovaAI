@@ -335,6 +335,6 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
     if (message.includes("Active organization owner or admin")) return fail("Owner or admin role required", 403);
     if (message.includes("Proposal creator cannot approve")) return fail("A proposal creator cannot approve their own proposal", 403);
     if (message.includes("Only proposed workflows")) return fail("This workflow already has a decision", 409);
-    return fail("NOVA Business Intelligence request failed", 400);
+    return fail("NOVA Business Intelligence request failed", 500);
   }
 }));
