@@ -25,7 +25,7 @@ const css=`
 `;
 const st=document.createElement('style');st.textContent=css;document.head.append(st);
 const root=document.createElement('section');root.id='novaModes';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-hidden','true');root.setAttribute('aria-label',tr('NOVA workspace','NOVA वर्कस्पेस'));root.innerHTML=`
-<header class="nmhead"><button id="nmBack" type="button" aria-label="Back / वापस">←</button><strong id="nmTitle" tabindex="-1">${tr('Nova AI · Modes','Nova AI · मोड्स')}</strong><button id="nmClose" type="button">${tr('Close','बंद करें')}</button></header>
+<header class="nmhead"><button id="nmBack" type="button" aria-label="Back / वापस">←</button><strong id="nmTitle" tabindex="0">${tr('Nova AI · Modes','Nova AI · मोड्स')}</strong><button id="nmClose" type="button">${tr('Close','बंद करें')}</button></header>
 <main class="nmcontent" id="nmContent"></main>
 <footer class="nmcompose" id="nmCompose" hidden><div class="nmhint" id="nmUploadName"></div><textarea id="nmInput" aria-label="Message NOVA / NOVA को संदेश" placeholder="${tr('Type your question…','अपना सवाल लिखें…')}"></textarea><div class="nmbar"><button id="nmFile">📎 ${tr('Attach file/photo','फ़ाइल/फोटो जोड़ें')}</button><input id="nmPick" type="file" accept=".pdf,.txt,.md,.csv,image/*" hidden><button id="nmMic">🎙 ${tr('Speak','बोलें')}</button><button id="nmSend" class="primary">${tr('Send','भेजें')}</button></div><div class="nmstatus" id="nmStatus" aria-live="polite"></div></footer>`;
 document.body.append(root);
