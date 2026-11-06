@@ -20,6 +20,11 @@ for (const size of sizes) {
     await expect(page.locator('#main')).toBeVisible();
     await expect(page.locator('#hi .nr-cards')).toBeVisible();
     await expect(page.locator('#hi .nr-card[data-group="learn"]')).toBeVisible();
+    await expect(page.locator('#new')).toBeHidden();
+    await expect(page.locator('#nImg')).toBeHidden();
+    await expect(page.locator('#nLive')).toBeHidden();
+    await expect(page.locator('#nrSidebarLinks button')).toHaveCount(3);
+    await expect(page.locator('#nrSidebarLinks')).not.toContainText('Explore');
     const layout = await page.evaluate(() => {
       const rect = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { x:r.x, right:r.right, width:r.width, bottom:r.bottom }; };
       return { documentWidth:document.documentElement.scrollWidth, bodyWidth:document.body.scrollWidth,
