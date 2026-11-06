@@ -25,7 +25,7 @@ Do not merge or deploy feature branches without reviewing the combined changes a
 
 ## Verification
 
-The integrated release candidate in Draft PR #66 has a successful combined GitHub Actions run (#869), covering syntax, mode registry, the 60-case evaluation fixture, dependency audit, local routes/PWA, security headers, Chromium workspace interactions, five-viewport responsive layout and drawer/settings/sidebar regression tests. The separate candidate PRs also had their own successful runs:
+The integrated release candidate in Draft PR #66 has a successful combined GitHub Actions run (#871), covering syntax, mode registry, the 60-case evaluation fixture, dependency audit, local routes/PWA, security headers, Chromium workspace interactions, five-viewport responsive layout and drawer/settings/sidebar regression tests. The separate candidate PRs also had their own successful runs:
 - PR #65: syntax, mode registry, evaluation fixture, dependency audit, local routes/PWA, Chromium workspace interaction checks.
 - PR #64: syntax, mode registry, evaluation fixture, dependency audit, local routes/PWA, mobile browser layout/drawer checks.
 - PR #46 (separate Business Intelligence candidate): PostgreSQL migration/RLS integration, Deno type-check, Edge Function auth/CORS checks, calculations/CSV validation, and Playwright Company Cloud flow.
