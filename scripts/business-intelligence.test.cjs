@@ -308,6 +308,9 @@ test('NOVA BI API rate limits are atomic, server-only and stricter for invitatio
  assert.ok(migration.includes('revoke all on table public.nova_bi_rate_limits from public, anon, authenticated'));
  assert.ok(migration.includes('security definer'));
  assert.ok(migration.includes("set search_path = ''"));
+ const forwardMigration=readFileSync('supabase/migrations/20261106195900_nova_bi_rate_limit_search_path_hardening.sql','utf8');
+ assert.match(forwardMigration,/alter function public\\.nova_bi_consume_rate_limit[\\s\\S]*?set search_path = ''/i);
+ assert.match(forwardMigration,/revoke all[\\s\\S]*?from public, anon, authenticated/i);
  assert.ok(edge.includes('return fail("NOVA Business Intelligence request failed", 500);'));
  assert.ok(migration.includes('revoke all on function public.nova_bi_consume_rate_limit(uuid, text, integer, integer) from public, anon, authenticated'));
  assert.ok(migration.includes('to service_role'));
