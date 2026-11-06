@@ -195,7 +195,19 @@ begin
 end $$;
 
 
-do $$
+do $
+begin
+  if exists (
+    select 1 from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.prosecdef
+      and not coalesce(p.proconfig, array[]::text[]) @> array['search_path=""']
+  ) then
+    raise exception 'Every public SECURITY DEFINER function must pin an empty search_path';
+  end if;
+end $;
+
+do $
 begin
   if has_table_privilege('authenticated','public.nova_bi_rate_limits','select') then
     raise exception 'Authenticated clients must not read API rate-limit counters';
