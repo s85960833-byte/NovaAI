@@ -46,7 +46,7 @@ The browser parses CSV files locally. Cloud save persists dataset metadata, aggr
 | Invite another admin | Yes | No | No | No |
 | Manage company branding | Yes | Yes | No | No |
 
-Membership writes are not available directly to authenticated clients. Invitation acceptance can only activate the authenticated invitee's own pending membership. Owner/admin roster access is checked server-side.
+Authenticated clients have no general membership write access. Invitation acceptance is the sole narrow exception: only the `status` column is granted for update, and RLS/trigger checks restrict it to the authenticated invitee's own pending membership. Role, organization and user identity columns remain non-updatable. Owner/admin roster access is checked server-side.
 
 ## Deletion and audit
 - Owners/admins can permanently delete saved analysis records and dataset metadata.
