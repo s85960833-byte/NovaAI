@@ -25,7 +25,7 @@ The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab2
 
 ## Verification — integrated three-workspace candidate
 
-The current candidate head is `64e0ac4346bf51be96d5d5052c9f878b59027db5`. Its latest GitHub Actions run, [#888](https://github.com/s85960833-byte/NovaAI/actions/runs/42222609196), passed the verification job. Checks included:
+The current candidate head is `27526913c799b96e5be566ab8c7ff8b41d39bc37`. Its latest GitHub Actions run, [#890](https://github.com/s85960833-byte/NovaAI/actions/runs/42223613374), passed the verification job. Checks included:
 
 - Backend/frontend syntax and isolated mode registry.
 - 60-case AI evaluation fixture structure (not a live model accuracy score).
@@ -39,7 +39,7 @@ The same run **skipped** live Render/provider checks and the free-provider image
 
 ## Separate NOVA Business Intelligence candidate
 
-NOVA BI is a separate Draft PR #46 and is not part of the three-workspace release candidate. Its latest branch head is `c64887340cebf4f0ca18d6f83ca300e2cd3d0c19`; this newer head has no verified PR-triggered CI run in the current audit. Keep it separate until its merge conflicts, latest-commit CI, real-account/email tests, retention/backup, privacy and device checks are closed.
+NOVA BI is a separate Draft PR #46 and is not part of the three-workspace release candidate. Its latest branch head is `c64887340cebf4f0ca18d6f83ca300e2cd3d0c19`; push-triggered [CI #887](https://github.com/s85960833-byte/NovaAI/actions/runs/42222549923) passed PostgreSQL migration/RLS integration, Deno type-check, deployed Edge Function auth/CORS checks, calculation/CSV tests and the Company Cloud mobile browser flow. PR #46 remains non-mergeable (196 commits ahead / 18 behind the inspected main head). Keep BI separate until merge conflicts, real-account/email tests, retention/backup, privacy and device checks are closed.
 
 The NOVA BI Supabase project has 12 migrations, 10 RLS-enabled tables, and an ACTIVE JWT-protected Edge Function v13. The latest Security and Health Advisors reported zero findings. Performance Advisor reported 13 unused-index INFO notices. Auth user, organization, and membership counts are currently zero. These database checks are not an enterprise certification or a public-launch approval.
 
