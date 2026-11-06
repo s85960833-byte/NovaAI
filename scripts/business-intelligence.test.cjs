@@ -307,7 +307,8 @@ test('NOVA BI API rate limits are atomic, server-only and stricter for invitatio
  assert.ok(migration.includes('alter table public.nova_bi_rate_limits enable row level security'));
  assert.ok(migration.includes('revoke all on table public.nova_bi_rate_limits from public, anon, authenticated'));
  assert.ok(migration.includes('security definer'));
- assert.ok(migration.includes('set search_path = public, pg_temp'));
+ assert.ok(migration.includes("set search_path = ''"));
+ assert.ok(edge.includes('return fail("NOVA Business Intelligence request failed", 500);'));
  assert.ok(migration.includes('revoke all on function public.nova_bi_consume_rate_limit(uuid, text, integer, integer) from public, anon, authenticated'));
  assert.ok(migration.includes('to service_role'));
  assert.ok(edge.includes('nova_bi_consume_rate_limit'));
