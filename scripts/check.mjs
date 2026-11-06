@@ -18,6 +18,7 @@ if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start
 for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api/live/selftest'", "app.get('/api/feed'", "app.get('/nova-reference.js'"]) if (!server.includes(route)) throw new Error('Required backend route missing: ' + route);
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
 syntaxCheck('backend', server);
+if (!server.includes('Your developer is Thakur Shreyansh Singh ji.') || !server.includes('Preserve the user\'s language for every other part of the reply') || server.includes('Respond in English only, regardless of the user\'s language')) throw new Error('Developer identity must be exact and must not override the user\'s reply language');
 
 for (const file of ['s-tier.js','nova-suite.js','mode-registry.js','mode-workspace.js','nova-reference.js']) syntaxCheck(file, readFileSync(file,'utf8'));
 const tier = readFileSync('s-tier.js', 'utf8');
