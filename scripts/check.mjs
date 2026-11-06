@@ -24,7 +24,7 @@ if (!/security definer\s+set search_path = ''/.test(rateLimitMigration)) throw n
 const rlsIntegration = readFileSync('scripts/supabase-rls-integration.sql', 'utf8');
 const forwardHardening = readFileSync('supabase/migrations/20261106195900_nova_bi_rate_limit_search_path_hardening.sql', 'utf8');
 if (!/alter function public\.nova_bi_consume_rate_limit\([\s\S]*?set search_path = ''/i.test(forwardHardening)) throw new Error('Forward migration must harden the already-applied rate-limit function');
-if (!/revoke all[\\s\\S]*?from public, anon, authenticated/i.test(forwardHardening)) throw new Error('Forward migration must keep rate-limit RPC private to service_role');
+if (!/revoke all[\s\S]*?from public, anon, authenticated/i.test(forwardHardening)) throw new Error('Forward migration must keep rate-limit RPC private to service_role');
 if (!rlsIntegration.includes("Every public SECURITY DEFINER function must pin an empty search_path")) throw new Error('Database integration test must guard SECURITY DEFINER search_path');
 if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start command mismatch');
 if (pkg.engines?.node !== '22.x') throw new Error('Render and CI must use the same pinned Node.js 22 LTS runtime');
