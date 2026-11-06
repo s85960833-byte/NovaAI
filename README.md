@@ -1,6 +1,6 @@
 # NOVA AI
 
-NOVA is an India-oriented, Hindi-and-English AI web application. Its current product direction organizes work into three workspaces:
+NOVA is an India-oriented, Hindi-and-English AI web application. The current product direction organizes work into three workspaces:
 
 - **NOVA Learn** — study and learning workflows.
 - **NOVA Build** — digital creation workflows.
@@ -8,11 +8,11 @@ NOVA is an India-oriented, Hindi-and-English AI web application. Its current pro
 
 ## Project status
 
-The three-workspace bilingual experience is being prepared on the `pitch-readiness-20261106` branch. It is not the Production release. The Production app is served from:
+The integrated three-workspace candidate is on `pitch-readiness-20261106` in Draft PR #66. It is not the Production release. The Production app is served from:
 
 https://novaai-4auo.onrender.com
 
-Do not merge or deploy feature branches without reviewing the combined changes and receiving release approval.
+The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab24`. No merge or deployment of the candidate was performed during the 6 November 2026 audit.
 
 ## Architecture
 
@@ -23,21 +23,32 @@ Do not merge or deploy feature branches without reviewing the combined changes a
 - Existing chat/settings data uses browser-local storage. Do not describe it as cloud-synced.
 - Provider keys belong in server-side environment variables, never in browser code or commits.
 
-## Verification
+## Verification — integrated three-workspace candidate
 
-The integrated release candidate in Draft PR #66 has a successful combined GitHub Actions run (#878), covering syntax, mode registry, the 60-case evaluation fixture, dependency audit, local routes/PWA, security headers, Chromium workspace interactions, five-viewport responsive layout and drawer/settings/sidebar regression tests. The separate candidate PRs also had their own successful runs:
-- PR #65: syntax, mode registry, evaluation fixture, dependency audit, local routes/PWA, Chromium workspace interaction checks.
-- PR #64: syntax, mode registry, evaluation fixture, dependency audit, local routes/PWA, mobile browser layout/drawer checks.
-- PR #46 (separate Business Intelligence candidate): PostgreSQL migration/RLS integration, Deno type-check, Edge Function auth/CORS checks, calculations/CSV validation, and Playwright Company Cloud flow.
+The current candidate head is `64e0ac4346bf51be96d5d5052c9f878b59027db5`. Its latest GitHub Actions run, [#888](https://github.com/s85960833-byte/NovaAI/actions/runs/42222609196), passed the verification job. Checks included:
 
-These are separate runs; they do not prove the PRs work together or that the exact candidate is live in Production. Live provider and physical Android verification remain separate release gates.
+- Backend/frontend syntax and isolated mode registry.
+- 60-case AI evaluation fixture structure (not a live model accuracy score).
+- Production dependency vulnerability audit.
+- Local server routes, PWA assets, and local security-header assertions.
+- Chromium workspace interaction tests.
+- Responsive layout, drawer, Settings, and sidebar checks at 360, 390, 412, 760, and 1280 CSS-pixel widths.
+- Devanagari font installation and browser screenshot artifact upload.
+
+The same run **skipped** live Render/provider checks and the free-provider image-generation smoke test. Physical Android testing was not performed. These checks do not prove that the candidate is deployed or error-free in Production.
+
+## Separate NOVA Business Intelligence candidate
+
+NOVA BI is a separate Draft PR #46 and is not part of the three-workspace release candidate. Its latest branch head is `c64887340cebf4f0ca18d6f83ca300e2cd3d0c19`; this newer head has no verified PR-triggered CI run in the current audit. Keep it separate until its merge conflicts, latest-commit CI, real-account/email tests, retention/backup, privacy and device checks are closed.
+
+The NOVA BI Supabase project has 12 migrations, 10 RLS-enabled tables, and an ACTIVE JWT-protected Edge Function v13. The latest Security and Health Advisors reported zero findings. Performance Advisor reported 13 unused-index INFO notices. Auth user, organization, and membership counts are currently zero. These database checks are not an enterprise certification or a public-launch approval.
 
 ## Honest product limitations
 
 - Provider availability, free-tier quotas, latency, and output quality can vary.
 - Browser-local saved chats can be lost if site data is cleared.
-- General NOVA account login/cloud chat sync is not established by this repository's current production baseline.
-- Do not use the separate NOVA Business Intelligence feature branch with sensitive or regulated company data before its documented release gates are completed.
+- General NOVA account login and cloud chat sync are not established by the current Production baseline.
+- Do not use the separate NOVA BI feature branch with sensitive or regulated company data before its release gates are complete.
 - Automated checks are not a security certification or a guarantee of zero errors.
 
-See [PITCH_READINESS.md](PITCH_READINESS.md) for the approved demo narrative, safe claims, and release checklist.
+See [PITCH_READINESS.md](PITCH_READINESS.md) for the current pitch scope, verified evidence, safe claims, and remaining release gates. See [PITCH_SCRIPT.md](PITCH_SCRIPT.md) for the short pitch and demo flow.
