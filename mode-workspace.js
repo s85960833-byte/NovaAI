@@ -33,7 +33,7 @@ const content=$('#nmContent'),compose=$('#nmCompose'),input=$('#nmInput');
 function show(groupFilter){syncStaticLabels();root.classList.add('open');drawHome(groupFilter)}
 function hide(){root.classList.remove('open');stopSpeech()}
 function drawHome(groupFilter){
- syncStaticLabels();active=null;activeGroup=groupFilter||null;upload=null;compose.hidden=true;$('#nmBack').hidden=true;$('#nmTitle').textContent=tr('Nova AI · Modes','Nova AI · मोड्स');
+ stopSpeech();syncStaticLabels();active=null;activeGroup=groupFilter||null;upload=null;compose.hidden=true;$('#nmBack').hidden=true;$('#nmTitle').textContent=tr('Nova AI · Modes','Nova AI · मोड्स');
  const quick={learn:[['openPhoto','▧','Photo Questions / फोटो वाले सवाल'],['openArchive','◷','History Archive / इतिहास संग्रह']],build:[['openImageStudio','✦','Image Studio / इमेज स्टूडियो']],agents:[['startVoice','◉','Live Voice / लाइव वॉइस'],['openAgentsSuite','✦','Agents Studio / एजेंट स्टूडियो']]};
  const quickHtml=groupFilter&&quick[groupFilter]?'<section class="nmgroup nmquick"><h3>'+tr('Workspace Tools','वर्कस्पेस टूल्स')+'</h3><div class="nmcards">'+quick[groupFilter].map(x=>'<button class="nmmode nmquick-action" type="button" data-quick="'+x[0]+'"><b>'+x[1]+' '+x[2]+'</b></button>').join('')+'</div></section>':'';
  content.innerHTML=REG.groups.filter(g=>!groupFilter||g.id===groupFilter).map(g=>'<section class="nmgroup"><h3>'+esc(g.name+' / '+g.nameHi)+'</h3><div class="nmcards">'+REG.modes.filter(m=>m.group===g.id).map(m=>{const v=mode(m.id);return '<button class="nmmode" data-mode="'+m.id+'"><b>'+esc(v.name)+'</b><small>'+esc(v.desc)+'</small></button>'}).join('')+'</div></section>').join('')+quickHtml+'<button id="nmLowData" class="nmmode" type="button">'+tr('Low Data / Lite Mode','कम डेटा / लाइट मोड')+'</button><p class="nmhint">'+tr('Each mode has its own chat history. Your existing Nova chats and settings remain unchanged. Saved chats are available offline.','हर मोड की अलग चैट हिस्ट्री है। आपकी पुरानी Nova चैट और सेटिंग्स सुरक्षित हैं। सेव की गई चैट ऑफलाइन भी खुलेंगी।')+'</p>';
@@ -49,8 +49,8 @@ function drawChat(){
  const vl=$('#nmVoiceLang');if(vl){const d=data();if(!d.voiceLangUserSet){d.voiceLang=isHi()?'hi-IN':'en-IN';saveData(d)}vl.value=d.voiceLang||'hi-IN';vl.onchange=()=>{const next=data();next.voiceLang=vl.value;next.voiceLangUserSet=true;saveData(next)}}
  content.scrollTop=content.scrollHeight;input.placeholder=active==='document'?tr('Upload a bill, notice, or form, or type a question…','बिल, नोटिस या फॉर्म अपलोड करें, या सवाल लिखें…'):active==='photo'?tr('Choose a photo of the question or type it…','सवाल की फोटो चुनें या सवाल लिखें…'):tr('Type your question…','अपना सवाल लिखें…');
 }
-function openMode(id){active=id;const d=data();d.lastMode=id;saveData(d);upload=null;$('#nmUploadName').textContent='';drawChat()}
-function stopSpeech(){try{if(recognition)recognition.stop()}catch(e){}recognition=null}
+function openMode(id){stopSpeech();active=id;const d=data();d.lastMode=id;saveData(d);upload=null;$('#nmUploadName').textContent='';drawChat()}
+function stopSpeech(){try{if(recognition)recognition.stop()}catch(e){}recognition=null;try{if(window.speechSynthesis)window.speechSynthesis.cancel()}catch(e){}}
 async function extractFile(f){
  if(f.size>8*1024*1024)throw Error(tr('Keep files under 8 MB.','फ़ाइल 8 MB से छोटी रखें।'));
  if(f.type.startsWith('image/')){if(f.size>(lowData()?1.5:4)*1024*1024)throw Error(lowData()?tr('In Low Data Mode, keep photos under 1.5 MB.','कम डेटा मोड में फोटो 1.5 MB से छोटी रखें।'):tr('Keep photos under 4 MB.','फोटो 4 MB से छोटी रखें।'));return {image:await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result));r.onerror=no;r.readAsDataURL(f)}),text:tr('Read and explain the content in this image in clear English.','इस फोटो में मौजूद सामग्री को सरल हिंदी में पढ़कर समझाएँ।')};}
@@ -76,9 +76,9 @@ async function schemeSources(profile){
  return {profile:{age,state,work,income},results:official.slice(0,6)};
 }
 async function send(){
- if(!active||sending)return;const m=mode(active),question=input.value.trim();if(!question&&!upload)return;
- const schemeInput=active==='schemes'?{age:$('#nmAge')?.value,state:$('#nmState')?.value.trim(),work:$('#nmWork')?.value.trim(),income:$('#nmIncome')?.value}:null;
- const d=data(),h=d.histories[active]||(d.histories[active]=[]),now=Date.now();
+ if(!active||sending)return;const modeId=active,m=mode(modeId),question=input.value.trim();if(!question&&!upload)return;
+ const schemeInput=modeId==='schemes'?{age:$('#nmAge')?.value,state:$('#nmState')?.value.trim(),work:$('#nmWork')?.value.trim(),income:$('#nmIncome')?.value}:null;
+ const d=data(),h=d.histories[modeId]||(d.histories[modeId]=[]),now=Date.now();
  d.limits=d.limits||[];d.limits=d.limits.filter(t=>now-t<10*60*1000);if(d.limits.length>=20){$('#nmStatus').textContent=tr('Please pause. The limit is 20 new requests per 10 minutes.','कृपया थोड़ा रुकें। 10 मिनट में अधिकतम 20 नए अनुरोध भेज सकते हैं।');return}
  if(!navigator.onLine){$('#nmStatus').textContent=tr('Offline mode: saved chats are available, but new AI replies are not.','ऑफलाइन मोड: सेव चैट उपलब्ध हैं, लेकिन नए AI जवाब नहीं मिलेंगे।');return}
  d.limits.push(now);saveData(d);sending=true;$('#nmSend').disabled=true;$('#nmMic').disabled=true;$('#nmFile').disabled=true;input.disabled=true;
@@ -86,36 +86,35 @@ async function send(){
  const userText=question||('📎 '+(file?.name||'Uploaded file'));h.push({role:'user',text:userText,at:now});if(h.length>100)h.splice(0,h.length-100);saveData(d);input.value='';drawChat();$('#nmStatus').textContent=tr('Preparing your answer…','जवाब तैयार हो रहा है…');
  try{
    let extra='',profile=null,sourceLinks=[];
-   if(active==='schemes'){const x=await schemeSources(schemeInput);profile=x.profile;if(!x.results.length)throw Error(tr('No official government sources were found right now. Please check the official portal directly.','अभी कोई आधिकारिक सरकारी स्रोत नहीं मिला। कृपया सीधे सरकारी पोर्टल देखें।'));sourceLinks=x.results.map(z=>({title:z.title,url:z.url}));extra='\nUse only the official government-domain sources listed below. If eligibility cannot be verified from them, clearly say so.\n'+JSON.stringify(x.results);}
+   if(modeId==='schemes'){const x=await schemeSources(schemeInput);profile=x.profile;if(!x.results.length)throw Error(tr('No official government sources were found right now. Please check the official portal directly.','अभी कोई आधिकारिक सरकारी स्रोत नहीं मिला। कृपया सीधे सरकारी पोर्टल देखें।'));sourceLinks=x.results.map(z=>({title:z.title,url:z.url}));extra='\nUse only the official government-domain sources listed below. If eligibility cannot be verified from them, clearly say so.\n'+JSON.stringify(x.results);}
    if(file?.text)extra+='\nUploaded content (for this request only; do not store it permanently):\n'+file.text;
    if(profile)extra+='\nUser eligibility details: '+JSON.stringify(profile);
    const voiceLabels={'hi-IN':'Hindi (India)','en-IN':'English (India)','en-US':'English (US)','en-GB':'English (UK)'};
-   const selectedVoice=active==='voice'?(data().voiceLang||(isHi()?'hi-IN':'en-IN')):null;
+   const selectedVoice=modeId==='voice'?(data().voiceLang||(isHi()?'hi-IN':'en-IN')):null;
    const voiceInstruction=selectedVoice?' In Voice Chat, respond in '+(voiceLabels[selectedVoice]||'Hindi')+' using short, natural sentences suitable for speech.':'';
-   const prompt=m.prompt+voiceInstruction+(active==='math'||active==='photo'?' Independently verify the final answer.':'');
+   const prompt=m.prompt+voiceInstruction+(modeId==='math'||modeId==='photo'?' Independently verify the final answer.':'');
    const messages=[{role:'system',content:prompt},...h.slice(-(lowData()?4:8)).map(x=>({role:x.role,content:x.text}))];
    let last=messages[messages.length-1];const appendInstruction=text=>{if(Array.isArray(last.content))last.content.unshift({type:'text',text});else last.content+='\n'+text};
    if(file?.image){last={role:'user',content:[{type:'text',text:q+'\n'+extra},{type:'image_url',image_url:{url:file.image}}]};messages[messages.length-1]=last;}
    else if(extra)last.content+=extra;
-   if(active==='shopkeeper'&&/GST/i.test(q)){
+   if(modeId==='shopkeeper'&&/GST/i.test(q)){
      const gst=(q.match(/(?:₹|Rs\.?\s*)?([0-9][0-9,]*(?:\.[0-9]+)?)\s*(?:at|@)?\s*([0-9]+(?:\.[0-9]+)?)\s*%/i)||[]);
      if(gst.length){
        const base=Number(gst[1].replace(/,/g,'')),rate=Number(gst[2]),tax=base*rate/100;
        if(Number.isFinite(base)&&Number.isFinite(rate)&&base>=0&&rate>=0&&rate<=100)appendInstruction('Calculation check (user-provided rate): taxable amount ₹'+base.toFixed(2)+'; GST rate '+rate+'%; GST ₹'+tax.toFixed(2)+'; total ₹'+(base+tax).toFixed(2)+'. Determine CGST/SGST versus IGST based on the transaction location.');
      }else appendInstruction('Ask for the applicable GST rate first; never guess the rate.');
    }
-   const ck=cacheKey(active,q+extra),cached=file?.image?null:cacheGet(ck);let answer=cached;
+   const ck=cacheKey(modeId,q+extra),cached=file?.image?null:cacheGet(ck);let answer=cached;
    if(!answer){
      const cfg=await fetch(API+'/config',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!cfg.ok)throw Error(tr('The AI service is not configured yet.','AI सेवा अभी कॉन्फ़िगर नहीं है।'));
-     const config=await cfg.json(),r=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:config.model,stream:false,max_tokens:lowData()?500:900,messages}),signal:AbortSignal.timeout(60000)});
+     const config=await cfg.json(),r=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:config.model,stream:false,max_tokens:lowData()?500:900,messages}),signal:AbortSignal.timeout(100000)});
      const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(tr('The AI provider is unavailable.','AI सेवा अभी उपलब्ध नहीं है।'));
      answer=String(j.choices?.[0]?.message?.content||'').trim();if(!answer)throw Error('The AI returned an empty response.');if(!file?.image)cacheSet(ck,answer);
    }
-   if(active==='document'&&/(RTI|right to information|complaint|application|draft)/i.test(q)&&!answer.includes('This is not legal advice.'))answer+='\n\n'+tr('This is not legal advice.','ये कानूनी सलाह नहीं है।');
-   if(active==='schemes'&&!answer.includes('Please verify details on the official website'))answer+='\n\n'+tr('Please verify details on the official website.','पक्का करने के लिए आधिकारिक साइट देखें।');
-   h.push({role:'assistant',text:answer,at:Date.now()});if(h.length>100)h.splice(0,h.length-100);saveData(d);drawChat();if(active==='voice')speak(answer);
-   $('#nmStatus').textContent=cached?tr('Answer from cache','कैश से जवाब मिला'):tr('Answer ready','जवाब तैयार है');
- }catch(e){h.push({role:'assistant',text:'⚠️ '+String(e.message||e),at:Date.now()});if(h.length>100)h.splice(0,h.length-100);saveData(d);drawChat();$('#nmStatus').textContent='';}
+   if(modeId==='document'&&/(RTI|right to information|complaint|application|draft)/i.test(q)&&!answer.includes('This is not legal advice.'))answer+='\n\n'+tr('This is not legal advice.','ये कानूनी सलाह नहीं है।');
+   if(modeId==='schemes'&&!answer.includes('Please verify details on the official website'))answer+='\n\n'+tr('Please verify details on the official website.','पक्का करने के लिए आधिकारिक साइट देखें।');
+   h.push({role:'assistant',text:answer,at:Date.now()});if(h.length>100)h.splice(0,h.length-100);saveData(d);if(active===modeId){drawChat();if(modeId==='voice'&&root.classList.contains('open'))speak(answer);$('#nmStatus').textContent=cached?tr('Answer from cache','कैश से जवाब मिला'):tr('Answer ready','जवाब तैयार है');}
+ }catch(e){h.push({role:'assistant',text:'⚠️ '+String(e.message||e),at:Date.now()});if(h.length>100)h.splice(0,h.length-100);saveData(d);if(active===modeId){drawChat();$('#nmStatus').textContent='';}}
  finally{sending=false;$('#nmSend').disabled=false;$('#nmMic').disabled=false;$('#nmFile').disabled=false;input.disabled=false;}
 }
 function speak(text){if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(text);u.lang=data().voiceLang||'en-IN';speechSynthesis.cancel();speechSynthesis.speak(u)}
