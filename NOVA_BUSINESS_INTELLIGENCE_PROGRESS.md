@@ -50,7 +50,7 @@ Updated: 2026-11-06
 8. Review privacy notice, data processing terms, incident response and secret-rotation procedures before using real or regulated company data.
 
 ## Release controls
-- Keep PR #67 Draft until all automated and manual release gates pass. PR #46 is the older divergent branch and must not be merged as a substitute.
+- Keep unified PR #73 Draft until all automated and manual release gates pass. PR #67 is the BI-only predecessor and PR #46 is the older divergent branch; neither should be merged as a substitute.
 - Do not merge to `main`, deploy to Render, enable public customer onboarding, or represent the system as enterprise-certified without explicit owner approval and verified evidence.
 - No paid resource or external service purchase has been authorized.
 
