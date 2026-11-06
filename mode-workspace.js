@@ -3,7 +3,7 @@
 const REG=window.NovaModeRegistry;if(!REG)return;
 const STORE='nova_modes_v1',CACHE='nova_mode_cache_v1',API='/api';
 const $=s=>document.querySelector(s);
-let active=null,activeGroup=null,upload=null,scheme=null,recognition=null,offline=false;
+let active=null,activeGroup=null,upload=null,scheme=null,recognition=null,offline=false,sending=false;
 const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}};
 const write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const data=()=>read(STORE,{version:1,histories:{},lastMode:'general'});
@@ -70,18 +70,18 @@ async function schemeSources(profile){
  const age=profile?.age,state=profile?.state,work=profile?.work,income=profile?.income;
  if(!age||!state||!work||income==='')throw Error(tr('Enter your age, state, work/status, and annual income to search for schemes.','योजना खोजने के लिए उम्र, राज्य, काम और सालाना आय भरें।'));
  const q='government schemes '+state+' '+work+' eligibility benefits application age '+age+' annual income '+income;
- const r=await fetch(API+'/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q})});
+ const r=await fetch(API+'/search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q}),signal:AbortSignal.timeout(20000)});
  if(!r.ok)throw Error(tr('Official scheme search is unavailable right now. Please try again later.','अभी सरकारी योजना खोज उपलब्ध नहीं है। कृपया बाद में फिर कोशिश करें।'));
  const j=await r.json(),official=(j.results||[]).filter(x=>{try{return /(^|\.)(gov\.in|nic\.in)$/i.test(new URL(x.url).hostname)}catch(e){return false}});
  return {profile:{age,state,work,income},results:official.slice(0,6)};
 }
 async function send(){
- if(!active)return;const m=mode(active),question=input.value.trim();if(!question&&!upload)return;
+ if(!active||sending)return;const m=mode(active),question=input.value.trim();if(!question&&!upload)return;
  const schemeInput=active==='schemes'?{age:$('#nmAge')?.value,state:$('#nmState')?.value.trim(),work:$('#nmWork')?.value.trim(),income:$('#nmIncome')?.value}:null;
  const d=data(),h=d.histories[active]||(d.histories[active]=[]),now=Date.now();
  d.limits=d.limits||[];d.limits=d.limits.filter(t=>now-t<10*60*1000);if(d.limits.length>=20){$('#nmStatus').textContent=tr('Please pause. The limit is 20 new requests per 10 minutes.','कृपया थोड़ा रुकें। 10 मिनट में अधिकतम 20 नए अनुरोध भेज सकते हैं।');return}
  if(!navigator.onLine){$('#nmStatus').textContent=tr('Offline mode: saved chats are available, but new AI replies are not.','ऑफलाइन मोड: सेव चैट उपलब्ध हैं, लेकिन नए AI जवाब नहीं मिलेंगे।');return}
- d.limits.push(now);saveData(d);
+ d.limits.push(now);saveData(d);sending=true;$('#nmSend').disabled=true;$('#nmMic').disabled=true;$('#nmFile').disabled=true;input.disabled=true;
  let q=question||upload?.text||tr('Explain this content','इस सामग्री को समझाएँ'),file=upload;upload=null;$('#nmUploadName').textContent='';
  const userText=question||('📎 '+(file?.name||'Uploaded file'));h.push({role:'user',text:userText,at:now});if(h.length>100)h.splice(0,h.length-100);saveData(d);input.value='';drawChat();$('#nmStatus').textContent=tr('Preparing your answer…','जवाब तैयार हो रहा है…');
  try{
@@ -106,8 +106,8 @@ async function send(){
    }
    const ck=cacheKey(active,q+extra),cached=file?.image?null:cacheGet(ck);let answer=cached;
    if(!answer){
-     const cfg=await fetch(API+'/config');if(!cfg.ok)throw Error(tr('The AI service is not configured yet.','AI सेवा अभी कॉन्फ़िगर नहीं है।'));
-     const config=await cfg.json(),r=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:config.model,stream:false,max_tokens:lowData()?500:900,messages})});
+     const cfg=await fetch(API+'/config',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!cfg.ok)throw Error(tr('The AI service is not configured yet.','AI सेवा अभी कॉन्फ़िगर नहीं है।'));
+     const config=await cfg.json(),r=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:config.model,stream:false,max_tokens:lowData()?500:900,messages}),signal:AbortSignal.timeout(60000)});
      const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(tr('The AI provider is unavailable.','AI सेवा अभी उपलब्ध नहीं है।'));
      answer=String(j.choices?.[0]?.message?.content||'').trim();if(!answer)throw Error('The AI returned an empty response.');if(!file?.image)cacheSet(ck,answer);
    }
@@ -116,6 +116,7 @@ async function send(){
    h.push({role:'assistant',text:answer,at:Date.now()});if(h.length>100)h.splice(0,h.length-100);saveData(d);drawChat();if(active==='voice')speak(answer);
    $('#nmStatus').textContent=cached?tr('Answer from cache','कैश से जवाब मिला'):tr('Answer ready','जवाब तैयार है');
  }catch(e){h.push({role:'assistant',text:'⚠️ '+String(e.message||e),at:Date.now()});if(h.length>100)h.splice(0,h.length-100);saveData(d);drawChat();$('#nmStatus').textContent='';}
+ finally{sending=false;$('#nmSend').disabled=false;$('#nmMic').disabled=false;$('#nmFile').disabled=false;input.disabled=false;}
 }
 function speak(text){if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(text);u.lang=data().voiceLang||'en-IN';speechSynthesis.cancel();speechSynthesis.speak(u)}
 function voice(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('#nmStatus').textContent=tr('Speech recognition is not available in this browser. You can type your question instead.','इस ब्राउज़र में आवाज़ पहचान उपलब्ध नहीं है। आप सवाल टाइप कर सकते हैं।');return}stopSpeech();recognition=new SR();recognition.lang=data().voiceLang||'en-IN';recognition.interimResults=false;recognition.onresult=e=>{input.value=e.results[0][0].transcript;send()};recognition.onerror=()=>$('#nmStatus').textContent=tr('Microphone unavailable. Check browser permissions or type your question.','माइक उपलब्ध नहीं है। ब्राउज़र अनुमति जाँचें या सवाल टाइप करें।');recognition.start();$('#nmStatus').textContent=tr('Listening…','सुन रहा है…')}

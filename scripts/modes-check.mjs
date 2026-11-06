@@ -47,6 +47,8 @@ assert.ok(r.modes.find(x=>x.id==='math').prompt.includes('step'));
 assert.ok(r.modes.find(x=>x.id==='math').promptHi.includes('चरण'));
 for(const token of ['nova_modes_v1','nova_mode_cache_v1','SpeechRecognition','speechSynthesis','pdfjsLib','gov','nic'])assert.ok(workspace.includes(token)||source.includes(token),'missing workspace capability '+token);
 assert.ok(workspace.includes('navigator.onLine'),'offline-aware saved chat mode missing');
+assert.ok(workspace.includes('sending=false')&&workspace.includes('if(!active||sending)return')&&workspace.includes('finally{sending=false;'),'duplicate mode submissions must be blocked and controls restored after every request');
+assert.ok(workspace.includes('AbortSignal.timeout(20000)')&&workspace.includes('AbortSignal.timeout(15000)')&&workspace.includes('AbortSignal.timeout(60000)'),'scheme search, config and AI requests must have bounded timeouts');
 assert.ok(html.includes('id="photo"')&&server.includes("app.get('/api/image/status/:id'"),'standard UI image panel and asynchronous image API must remain available');
 assert.ok(workspace.includes("voiceLabels={'hi-IN':'Hindi (India)','en-IN':'English (India)'"),'Hindi and English voice options missing');
 assert.ok(workspace.includes('10*60*1000'),'per-user rolling request limit missing');
