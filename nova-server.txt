@@ -19,7 +19,7 @@ app.use((q, r, next) => {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'Referrer-Policy': 'no-referrer',
-    'Permissions-Policy': 'camera=(), geolocation=(), microphone=(self)',
+    'Permissions-Policy': 'camera=(self), geolocation=(), microphone=(self)',
     'Content-Security-Policy': "frame-ancestors 'none'"
   });
   next();
