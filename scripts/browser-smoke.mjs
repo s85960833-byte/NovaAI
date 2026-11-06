@@ -58,6 +58,12 @@ try{
  assert.ok(mobileState.scrollWidth<=mobileState.width+1,'mobile horizontal overflow');
  assert.equal(mobileState.columns,1,'mobile should stack workspace cards in one column');
  assert.ok(mobileState.card.height>=140,'mobile workspace card touch target is too small');
+ await mobile.locator('#nrGlobalSearch').fill('saved physics');
+ await mobile.keyboard.press('Enter');
+ await mobile.waitForFunction(()=>document.querySelector('#side')?.classList.contains('open'));
+ assert.equal(await mobile.locator('#q').inputValue(),'saved physics','top search should route to saved-chat search and open the mobile drawer');
+ await mobile.locator('#scrim').tap({position:{x:360,y:450}});
+ await mobile.waitForFunction(()=>!document.querySelector('#side')?.classList.contains('open'));
  await mobile.locator('#hi .nr-card[data-group="build"]').tap();
  await mobile.locator('#novaModes.open').waitFor();
  const buildText=await mobile.locator('#nmContent').innerText();
@@ -76,12 +82,7 @@ try{
  await mobile.locator('#nmContent [data-mode="general"]').tap();
  await mobile.locator('#nmCompose').waitFor({state:'visible'});
  assert.equal(await mobile.locator('#nmInput').isVisible(),true,'Agents chat composer should remain available inside Agents');
- await mobile.locator('#nrGlobalSearch').fill('saved physics');
- await mobile.keyboard.press('Enter');
- await mobile.waitForFunction(()=>document.querySelector('#side')?.classList.contains('open'));
- assert.equal(await mobile.locator('#q').inputValue(),'saved physics','top search should route to saved-chat search and open the mobile drawer');
- await mobile.locator('#scrim').tap();
-const inputLabel=await mobile.locator('#nmInput').getAttribute('aria-label');
+ const inputLabel=await mobile.locator('#nmInput').getAttribute('aria-label');
  assert.ok(inputLabel.includes('NOVA को संदेश'));
  await mobile.keyboard.press('Escape');
  await mobile.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
