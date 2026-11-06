@@ -10,11 +10,11 @@
   const number=(v)=>{
     if(typeof v==='number')return Number.isFinite(v)?v:null;
     const value=text(v),sign=value.startsWith('-')?-1:1;
-    const s=value.replace(/^-/, '').replace(/^(?:₹|[$€£]|Rs\\.?)\\s*/i,'');
+    const s=value.replace(/^-/, '').replace(/^(?:₹|[$€£]|Rs\.?)\s*/i,'');
     if(!s)return null;
-    const plain=/^\\d+(?:\\.\\d{1,4})?$/.test(s);
-    const international=/^\\d{1,3}(?:,\\d{3})+(?:\\.\\d{1,4})?$/.test(s);
-    const indian=/^\\d{1,2}(?:,\\d{2})+,\\d{3}(?:\\.\\d{1,4})?$/.test(s);
+    const plain=/^\d+(?:\.\d{1,4})?$/.test(s);
+    const international=/^\d{1,3}(?:,\d{3})+(?:\.\d{1,4})?$/.test(s);
+    const indian=/^\d{1,2}(?:,\d{2})+,\d{3}(?:\.\d{1,4})?$/.test(s);
     if(!plain&&!international&&!indian)return null;
     const n=sign*Number(s.replace(/,/g,''));return Number.isFinite(n)?n:null;
   };
