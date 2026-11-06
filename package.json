@@ -6,7 +6,7 @@
     "start": "node nova-server.txt"
   },
   "engines": {
-    "node": ">=18"
+    "node": "22.x"
   },
   "dependencies": {
     "express": "^4.19.2"
