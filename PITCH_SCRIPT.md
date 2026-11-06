@@ -45,7 +45,7 @@ Not for this early demo. Use synthetic or non-sensitive sample data only.
 Do not quote a price or promise a plan until provider costs, usage limits, billing, support, privacy terms, and refund terms have been confirmed.
 
 **Is NOVA Business Intelligence included?**  
-No. NOVA Business Intelligence is included in the unified preview candidate but is not launched or generally available.
+NOVA Business Intelligence is part of the unified Draft preview candidate, but it is not deployed or generally available. Do not use it with real company data.
 
 ## Do not claim
 
