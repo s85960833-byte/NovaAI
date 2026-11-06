@@ -184,6 +184,14 @@ begin
   if not has_column_privilege('authenticated','public.nova_bi_workflow_proposals','status','update') then
     raise exception 'Authenticated role must have the narrow workflow status update grant';
   end if;
+  if not has_column_privilege('authenticated','public.nova_bi_memberships','status','update') then
+    raise exception 'Authenticated role must have the narrow invitation status update grant';
+  end if;
+  if has_column_privilege('authenticated','public.nova_bi_memberships','role','update')
+     or has_column_privilege('authenticated','public.nova_bi_memberships','organization_id','update')
+     or has_column_privilege('authenticated','public.nova_bi_memberships','user_id','update') then
+    raise exception 'Authenticated invitees must not change membership role, tenant or user identity';
+  end if;
 end $$;
 
 
