@@ -275,11 +275,20 @@ async function generateFreeImage(prompt, body) {
   const generated = result.generations && result.generations[0] && result.generations[0].img;
   if (!status.ok || !generated) throw new Error('Free community image result was empty');
   if (/^data:image\//i.test(generated)) return { image: generated, provider: 'community-free' };
-  if (/^https?:\/\//i.test(generated)) {
-    const imageResponse = await fetch(generated, { signal: AbortSignal.timeout(15000) });
+  if (/^https:\/\//i.test(generated)) {
+    // The upstream image URL is untrusted input. Only fetch the provider's documented Discord CDN
+    // attachment host; reject redirects so the CDN cannot bounce this server to a private address.
+    let imageUrl;
+    try { imageUrl = new URL(generated); } catch (e) { throw new Error('Free community image URL was invalid'); }
+    if (imageUrl.protocol !== 'https:' || imageUrl.hostname !== 'cdn.discordapp.com' || imageUrl.port || imageUrl.username || imageUrl.password || !imageUrl.pathname.startsWith('/attachments/')) {
+      throw new Error('Free community image host was not allowed');
+    }
+    const imageResponse = await fetch(imageUrl.href, { redirect: 'error', signal: AbortSignal.timeout(15000) });
     const type = String(imageResponse.headers.get('content-type') || 'image/webp').split(';')[0];
-    if (!imageResponse.ok || !/^image\//i.test(type)) throw new Error('Free community image download failed');
+    const declaredLength = Number(imageResponse.headers.get('content-length') || 0);
+    if (!imageResponse.ok || !/^image\//i.test(type) || declaredLength > 8 * 1024 * 1024) throw new Error('Free community image download failed');
     const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+    if (imageBuffer.length > 8 * 1024 * 1024) throw new Error('Free community image exceeded the size limit');
     if (imageBuffer.length > 1000) return { image: 'data:' + type + ';base64,' + imageBuffer.toString('base64'), provider: 'community-free' };
   } else if (/^[A-Za-z0-9+/=]+$/.test(generated)) {
     return { image: 'data:image/webp;base64,' + generated, provider: 'community-free' };
