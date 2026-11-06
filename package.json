@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "main": "nova-server.txt",
   "scripts": {
-    "start": "node nova-server.txt"
+    "start": "node nova-server.txt",
+    "test:mobile-layout": "playwright test tests/mobile-layout.spec.mjs"
   },
   "engines": {
     "node": "22.x"
   },
   "dependencies": {
     "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
   }
 }
