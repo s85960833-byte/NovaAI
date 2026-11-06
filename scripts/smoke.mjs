@@ -33,6 +33,11 @@ if (homeHtml.includes('id="novaSplash"') || homeHtml.includes('id="novaLivingCor
 if (!homeHtml.includes('hi:{')) throw new Error('Bilingual standard UI dictionary is missing');
 console.log('PASS restored standard NOVA chat UI, bilingual labels, Settings, image panel and preserved chat storage');
 
+const referenceResponse = await request('/nova-reference.js');
+const reference = await referenceResponse.text();
+if (!referenceResponse.ok || !['NOVA Build / नोवा बिल्ड','NOVA Learn / नोवा लर्न','NOVA Agents / नोवा एजेंट्स','body.nova-dashboard-home #box'].every(x=>reference.includes(x)) || reference.includes('id=\"nrAsk\"') || reference.includes('data-nr=') || reference.includes('NovaWorkspaceActions')) throw new Error('Live reference dashboard is not bilingual or exposes tools outside their workspace');
+console.log('PASS bilingual three-workspace home and strict feature placement');
+
 const tier = await request('/s-tier.js');
 if (!tier.ok) throw new Error('Optional S-tier feature bundle is missing');
 const suiteResponse = await request('/nova-suite.js');

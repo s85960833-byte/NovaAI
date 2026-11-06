@@ -9,7 +9,7 @@ await expect('standard UI language dictionaries','/',{},(r,b)=>r.ok&&b.includes(
 await expect('standard UI Settings and image panels','/',{},(r,b)=>r.ok&&b.includes('id="dset"')&&b.includes('id="photo"')&&b.includes('id="pprev"'));
 await expect('instant health endpoint','/health',{},(r,b)=>r.ok&&JSON.parse(b).status==='ok'&&JSON.parse(b).ready===true);
 await expect('optional S-tier feature bundle','/s-tier.js',{},(r,b)=>r.ok&&b.length>1000);
-await expect('reference dashboard asset and home mount','/nova-reference.js',{},(r,b)=>r.ok&&b.includes("const root=$('#hi');")&&b.includes("const host=$('#log');")&&!b.includes('#novaSHome')&&b.includes('data-group=\"build\"')&&b.includes('data-group=\"learn\"')&&b.includes('data-group=\"agents\"'));
+await expect('bilingual reference dashboard and strict workspace home','/nova-reference.js',{},(r,b)=>r.ok&&b.includes("const root=$('#hi');")&&b.includes("const host=$('#log');")&&['NOVA Build / नोवा बिल्ड','NOVA Learn / नोवा लर्न','NOVA Agents / नोवा एजेंट्स','body.nova-dashboard-home #box'].every(x=>b.includes(x))&&b.includes('data-group=\"build\"')&&b.includes('data-group=\"learn\"')&&b.includes('data-group=\"agents\"')&&!b.includes('id=\"nrAsk\"')&&!b.includes('data-nr=')&&!b.includes('NovaWorkspaceActions'));
 await expect('NOVA Build feature bundle','/nova-suite.js',{},(r,b)=>r.ok&&b.includes('Project Brain')&&b.includes('AI Council')&&b.includes('Idea-to-Business'));
 await expect('mode registry asset','/mode-registry.js',{},(r,b)=>r.ok&&b.includes('NovaModeRegistry'));
 await expect('mode workspace asset','/mode-workspace.js',{},(r,b)=>r.ok&&b.includes('NovaModeWorkspace'));
