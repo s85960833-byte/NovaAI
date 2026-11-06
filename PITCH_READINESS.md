@@ -4,7 +4,7 @@
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Integrated demo candidate:** `pitch-readiness-20261106` — Draft PR [#66](https://github.com/s85960833-byte/NovaAI/pull/66)  
 **Application code snapshot:** `344f46ad4b4b08fae035adf0a52a5049548cf58f`  
-**Documentation-integrated branch head:** `d3c2ad6a45b6442bfc71363e942b3269c6874200`  
+**Documentation and pitch materials:** maintained on the Draft PR #66 branch; see the PR for its current head  
 **Latest candidate CI:** [Run #896 — passed on current documentation-integrated head](https://github.com/s85960833-byte/NovaAI/actions/runs/42226220598)  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
