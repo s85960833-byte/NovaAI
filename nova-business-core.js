@@ -134,7 +134,7 @@
     if(due===null)fail('A valid ISO due date is required for project risk review.');
     if(reference===null)fail('Reference date must be an ISO date.');
     const progress=number(p.progressPct);if(progress===null||progress<0||progress>100)fail('Progress must be between 0 and 100.');
-    const blockers=number(p.blockers==null?0:p.blockers);if(blockers===null||blockers<0)fail('Blocker count must be a non-negative number.');
+    const blockers=number(p.blockers==null?0:p.blockers);if(blockers===null||!Number.isInteger(blockers)||blockers<0)fail('Blocker count must be a non-negative whole number.');
     const daysLeft=(due-reference)/86400000,remaining=100-progress,factors=[];let score=0;
     if(daysLeft<0){score+=35;factors.push({factor:'Deadline passed',points:35})}
     else if(daysLeft<=7&&remaining>20){score+=25;factors.push({factor:'Due within 7 days with more than 20% remaining',points:25})}
