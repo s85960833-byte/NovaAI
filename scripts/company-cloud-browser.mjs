@@ -189,6 +189,7 @@ assert.equal(authAfterSignup.options.emailRedirectTo, 'http://127.0.0.1:8787');
 await page.locator('#ncbResend').click();
 await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('new confirmation email'), null, { timeout: 10000 });
 assert.ok((await page.evaluate(() => window.__authCalls)).some(x => x.method === 'resend' && x.options.type === 'signup'));
+await page.locator('#ncbEmail').fill('owner@example.test');
 await page.locator('#ncbForgot').click();
 await page.waitForFunction(() => window.__authCalls.some(x => x.method === 'resetPasswordForEmail') || document.querySelector('#ncbMessage')?.textContent.includes('Could not request a password reset'), null, { timeout: 10000 });
 const resetCall = await page.evaluate(() => window.__authCalls.find(x => x.method === 'resetPasswordForEmail'));
