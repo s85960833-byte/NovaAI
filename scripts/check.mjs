@@ -5,6 +5,7 @@ import { join } from 'node:path';
 function syntaxCheck(name, source) {
   const extension = name.endsWith('.mjs') ? '.mjs' : '.js';
   const file = join('/tmp', 'novaai-' + name.replace(/[^a-z0-9]/gi, '-') + extension);
+  writeFileSync(file, source);
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
   try { unlinkSync(file); } catch {}
   if (result.status !== 0) throw new Error(result.stderr || result.stdout || name + ' syntax check failed');
