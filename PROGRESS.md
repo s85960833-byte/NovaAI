@@ -152,3 +152,17 @@ Upgrade the existing Nova AI app without breaking existing chats, settings, or f
 - Full Android/browser interaction checks for workspace routing, legacy chat, Settings, microphone permissions and image flow remain unverified. Keep this PR in Draft and do not merge or deploy until those checks are completed.
 
 - Follow-up: the Voice Chat home card now opens the existing full Live Voice flow (speech recognition plus spoken replies) when available, with the dedicated Voice mode group as fallback. Added a CI assertion so future changes cannot silently bypass the existing live voice path.
+
+
+## Deep audit continuation (2026-11-06)
+- Production main at audit start: `385e846c4c84a6291130842fea821bee603079e8`; Render service `srv-dbidhpc9v7es73d6ia80` deploy `dep-dbmmndrbc2fs73addrrg` was LIVE on that exact commit.
+- Additional audit branches / PRs created:
+  - PR #60: wire the existing arXiv + Science RSS fallback into the actual live science retrieval path when OpenAlex fails. Existing free/public sources only.
+  - PR #61: make image queue polling promptly abortable and prevent a 429 rate-limit response from being bypassed by a direct-provider fallback.
+  - PR #62: add a 60-case bilingual AI quality evaluation fixture, zero-network structure validator, and CI dependency audit.
+- These PRs must remain unmerged until their CI checks are confirmed green. The connected GitHub status endpoint did not yet expose completed workflow runs during this audit.
+- The 60-case fixture is not a live model score. Running model calls may consume configured API credits and is intentionally not performed without explicit cost approval.
+- Real microphone/speaker, camera/gallery, Add to Home Screen, touch/keyboard/screen-reader, slow-network and actual-device visual checks still require physical device/browser interaction; connector-only access cannot verify them.
+- Centralized feedback storage is not implemented. Current app storage is browser-local and there is no confirmed NOVA production authentication/database design. Do not reuse the separate NOVA BI Supabase project or start paid infrastructure without explicit approval and a reviewed privacy/retention design.
+- NOVA Business Intelligence remains isolated in Draft PR #46 and is not part of the current production release. Its separate real-account, SMTP, tenant-isolation, retention/restore and security review gates remain open.
+- No tracked implementation requirement for a Lunar/Festival Calendar was found in the current repository search; do not add a new feature under the guise of closing an audit defect.
