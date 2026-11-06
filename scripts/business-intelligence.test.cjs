@@ -71,6 +71,8 @@ test('company invitation links explicitly redirect to the NOVA app origin',()=>{
 
 test('invalid numeric values are never silently treated as zero',()=>{
  assert.equal(core.number('not-a-number'),null);assert.equal(core.number('Infinity'),null);
+ assert.equal(core.number('₹1,23,456.78'),123456.78);assert.equal(core.number('$1,234,567.89'),1234567.89);
+ assert.equal(core.number('-₹1,23,456'),-123456);assert.equal(core.number('1,2,3'),null);assert.equal(core.number('12,3456'),null);
  const r=core.analyzeExpenses([{amount:'bad',category:'Cloud'}],{amount:'amount',category:'category'});
  assert.equal(r.validRows,0);assert.equal(r.invalidRows,1);assert.equal(r.total,0);
  assert.throws(()=>core.analyzeExpenses([],{ }),/Choose a column for amount/);
