@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const $=s=>document.querySelector(s);
+const $=s=>document.querySelector(s),tr=(en,hi)=>`${en} / ${hi}`;
 const css=`
 html,body{background:#050817!important}body{background-image:radial-gradient(ellipse at 75% 10%,#18216b55,transparent 40%),radial-gradient(ellipse at 90% 80%,#5514a522,transparent 38%)!important}
 #side{width:218px!important;min-width:218px;background:linear-gradient(180deg,#080d20f5,#090b1bf5)!important;border-right:1px solid #263a7b!important;padding:16px 12px!important;gap:12px!important}
@@ -46,18 +46,59 @@ html,body{background:#050817!important}body{background-image:radial-gradient(ell
     #main{width:100dvw!important;max-width:100dvw!important}
   }
 }
+
+body.nova-dashboard-home #box,body.nova-dashboard-home .note{display:none!important}
+#nrGlobalSearch{min-height:44px}
+#nrSidebarLinks button{min-height:44px}
+#nrSidebarLinks button:focus-visible{outline:3px solid #8deaff;outline-offset:3px}
+#hi .nr-card:focus-visible{outline:3px solid #8deaff;outline-offset:4px}
+@media(prefers-reduced-motion:reduce){#hi .nr-card{transition:none!important;transform:none!important}#nrSidebarLinks button{transition:none!important}}
+@media(hover:none){#hi .nr-card:hover{transform:none!important;box-shadow:0 12px 28px -16px #000,0 0 18px #304cff30}}
+
 `;
 function style(){if($('#nova-reference-style'))return;const s=document.createElement('style');s.id='nova-reference-style';s.textContent=css;document.head.append(s)}
-const svg={build:'<svg viewBox="0 0 24 24"><path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 4l-4 16"/></svg>',learn:'<svg viewBox="0 0 24 24"><path d="M2 8 12 3l10 5-10 5L2 8Z"/><path d="M6 10v6c3 3 9 3 12 0v-6"/></svg>',agent:'<svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="4"/><path d="M12 3v4M9 13h.01M15 13h.01M9 17h6"/></svg>',photo:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></svg>',voice:'<svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>'};
-function render(root){if(!root||root.dataset.referenceUi==='1')return;root.dataset.referenceUi='1';let chats=0,projects=0,apps=0;try{const s=JSON.parse(localStorage.getItem('nova')||'{}');chats=Array.isArray(s.chats)?s.chats.length:0}catch{}try{const s=JSON.parse(localStorage.getItem('nova_suite_v1')||'{}');projects=Array.isArray(s.projects)?s.projects.length:0;apps=Array.isArray(s.apps)?s.apps.length:0}catch{}const hour=new Date().getHours(),g=hour<12?'Good morning':hour<17?'Welcome back':'Good evening';
-root.innerHTML='<div class="nr-wrap"><section class="nr-hero"><div><div class="nr-kicker">✦ NEXT-GENERATION INTELLIGENCE · MADE FOR INDIA</div><h1 class="nr-title">Welcome to<br><span>NOVA AI</span></h1><p class="nr-tag">One AI. Three powerful ways to work, learn, and create.</p><p class="nr-desc">'+g+'. Explore your connected AI workspaces, ask questions, create, and learn — all in one place.</p><div class="nr-pill">✦ Smarter · Faster · More Powerful</div></div><div class="nr-scene" aria-hidden="true"><div class="nr-sun"></div><div class="nr-orbit"></div><div class="nr-flag"></div><div class="nr-ai"></div><div class="nr-city"></div><div class="nr-gate"></div><div class="nr-train"></div></div></section>'+
-'<section class="nr-journey"><strong>✦ Your AI Journey<small>Your workspaces, one intelligent companion.</small></strong><span class="nr-count"><b>'+chats+'</b><small>Chats</small></span><span class="nr-count"><b>'+apps+'</b><small>Apps</small></span><span class="nr-count"><b>'+projects+'</b><small>Projects</small></span></section>'+
-'<form class="nr-ask" id="nrAsk"><span>✧</span><input id="nrPrompt" maxlength="4000" autocomplete="off" placeholder="Ask anything in NOVA…"><button type="button" data-nr="photo" aria-label="Ask with a photo">'+svg.photo+'</button><button type="button" data-nr="voice" aria-label="Start voice">'+svg.voice+'</button><button class="nr-send" type="submit" aria-label="Send prompt">➤</button></form>'+
-'<div class="nr-section">CHOOSE YOUR WORKSPACE</div><div class="nr-cards"><button class="nr-card build" type="button" data-group="build"><span class="nr-card-icon">'+svg.build+'</span><h2>NOVA BUILD</h2><p>Create apps, websites, SaaS products, dashboards and prototypes with AI.</p><span class="nr-cta">Start Building <b>→</b></span></button><button class="nr-card learn" type="button" data-group="learn"><span class="nr-card-icon">'+svg.learn+'</span><h2>NOVA LEARN</h2><p>Explore knowledge, study subjects, understand documents and prepare for exams.</p><span class="nr-cta">Start Learning <b>→</b></span></button><button class="nr-card agent" type="button" data-group="agents"><span class="nr-card-icon">'+svg.agent+'</span><h2>NOVA AGENTS</h2><p>Your AI companion for chat, voice, research, documents and guided workflows.</p><span class="nr-cta">Start Chatting <b>→</b></span></button></div>'+
-'<div class="nr-bottom"><div class="nr-features"><div class="nr-feature"><b>◎ Real-Time Web Search</b><small>Find fresh information and sources.</small></div><div class="nr-feature"><b>▧ Multimodal AI</b><small>Text · Image · Voice · Documents</small></div><div class="nr-feature"><b>⚡ Fast & Lightweight</b><small>Responsive layout and reduced-motion support.</small></div></div><div class="nr-made"><span>🇮🇳</span><div>MADE FOR INDIA<small style="display:block;color:#c8d5ee;font-size:9px">BUILT FOR THE WORLD</small></div></div></div></div>';
-const send=q=>{const input=$('#in');if(input){input.value=q;input.dispatchEvent(new Event('input',{bubbles:true}));$('#send')?.click()}};$('#nrAsk')?.addEventListener('submit',e=>{e.preventDefault();const q=$('#nrPrompt')?.value.trim();if(q)send(q)});root.querySelector('[data-nr="photo"]')?.addEventListener('click',()=>window.NovaWorkspaceActions?.openPhoto?.());root.querySelector('[data-nr="voice"]')?.addEventListener('click',()=>window.NovaWorkspaceActions?.startVoice?.());root.querySelectorAll('[data-group]').forEach(b=>b.addEventListener('click',()=>window.NovaModeWorkspace?.openGroup?.(b.dataset.group)))}
-function boot(){style();const top=$('#top');if(top&&!$('#nrGlobalSearch')){const s=document.createElement('input');s.id='nrGlobalSearch';s.type='search';s.placeholder='⌕  Search anything in NOVA…';s.setAttribute('aria-label','Search anything in NOVA');s.style.cssText='flex:1;min-width:70px;max-width:450px;margin:auto;padding:10px 15px;border:1px solid #354da0;border-radius:99px;background:#0b1230;color:#fff';s.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const i=$('#in');if(i&&s.value.trim()){i.value=s.value.trim();$('#send')?.click()}}};top.insertBefore(s,top.querySelector('#mode'));document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();s.focus()}})}
-const side=$('#side'),nav=side?.querySelector('.nav');if(nav&&!$('#nrSidebarLinks')){const x=document.createElement('div');x.id='nrSidebarLinks';x.innerHTML='<button data-k="explore">⌕　Explore</button><button data-k="build">⌘　NOVA Build</button><button data-k="learn">▱　NOVA Learn</button><button data-k="agents">◈　NOVA Agents</button><button data-k="tools">▦　Tools</button>';x.querySelectorAll('button').forEach(b=>{b.type='button';b.onclick=()=>{const k=b.dataset.k;if(k==='explore'){$('#q')?.focus();return}if(k==='tools'){window.NovaWorkspaceActions?.openImageStudio?.();return}window.NovaModeWorkspace?.openGroup?.(k)}});nav.after(x)}
-const host=$('#log');if(host){const apply=()=>{const root=$('#hi');if(root)render(root)};apply();new MutationObserver(apply).observe(host,{childList:true,subtree:true})}}
+const svg={build:'<svg viewBox="0 0 24 24"><path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 4l-4 16"/></svg>',learn:'<svg viewBox="0 0 24 24"><path d="M2 8 12 3l10 5-10 5L2 8Z"/><path d="M6 10v6c3 3 9 3 12 0v-6"/></svg>',agent:'<svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="4"/><path d="M12 3v4M9 13h.01M15 13h.01M9 17h6"/></svg>'};
+function render(root){
+ if(!root||root.dataset.referenceUi==='1')return;
+ root.dataset.referenceUi='1';document.body.classList.add('nova-dashboard-home');
+ let chats=0,projects=0,apps=0;
+ try{const s=JSON.parse(localStorage.getItem('nova')||'{}');chats=Array.isArray(s.chats)?s.chats.length:0}catch{}
+ try{const s=JSON.parse(localStorage.getItem('nova_suite_v1')||'{}');projects=Array.isArray(s.projects)?s.projects.length:0;apps=Array.isArray(s.apps)?s.apps.length:0}catch{}
+ const hour=new Date().getHours(),g=hour<12?tr('Good morning','सुप्रभात'):hour<17?tr('Welcome back','वापस स्वागत है'):tr('Good evening','शुभ संध्या');
+ root.innerHTML=
+ '<div class="nr-wrap"><section class="nr-hero"><div><div class="nr-kicker">✦ '+tr('NEXT-GENERATION INTELLIGENCE · MADE FOR INDIA','नई पीढ़ी की बुद्धिमत्ता · भारत के लिए')+'</div><h1 class="nr-title">'+tr('Welcome to','स्वागत है')+'<br><span>NOVA AI</span></h1><p class="nr-tag">'+tr('One AI. Three powerful ways to work, learn, and create.','एक AI। काम, सीखने और निर्माण के तीन शक्तिशाली तरीके।')+'</p><p class="nr-desc">'+g+'. '+tr('Explore your connected AI workspaces, create, and learn — all in one place.','अपने AI वर्कस्पेस खोजें, बनाएँ और सीखें — सब एक ही जगह।')+'</p><div class="nr-pill">✦ '+tr('Smarter · Faster · More Powerful','और स्मार्ट · तेज़ · अधिक शक्तिशाली')+'</div></div><div class="nr-scene" aria-hidden="true"><div class="nr-sun"></div><div class="nr-orbit"></div><div class="nr-flag"></div><div class="nr-ai"></div><div class="nr-city"></div><div class="nr-gate"></div><div class="nr-train"></div></div></section>'+
+ '<section class="nr-journey"><strong>✦ '+tr('Your AI Journey','आपकी AI यात्रा')+'<small>'+tr('Your workspaces, one intelligent companion.','आपके वर्कस्पेस, एक बुद्धिमान साथी।')+'</small></strong><span class="nr-count"><b>'+chats+'</b><small>'+tr('Chats','चैट')+'</small></span><span class="nr-count"><b>'+apps+'</b><small>'+tr('Apps','ऐप्स')+'</small></span><span class="nr-count"><b>'+projects+'</b><small>'+tr('Projects','प्रोजेक्ट')+'</small></span></section>'+
+ '<div class="nr-section">'+tr('CHOOSE YOUR WORKSPACE','अपना वर्कस्पेस चुनें')+'</div><div class="nr-cards">'+
+ '<button class="nr-card build" type="button" data-group="build" aria-label="'+tr('NOVA Build','नोवा बिल्ड')+'"><span class="nr-card-icon" aria-hidden="true">'+svg.build+'</span><h2>NOVA Build / नोवा बिल्ड</h2><p>'+tr('Create apps, websites, SaaS products, dashboards and prototypes with AI.','AI की मदद से ऐप, वेबसाइट, SaaS उत्पाद, डैशबोर्ड और प्रोटोटाइप बनाएँ।')+'</p><span class="nr-cta">'+tr('Start Building','बनाना शुरू करें')+' <b>→</b></span></button>'+
+ '<button class="nr-card learn" type="button" data-group="learn" aria-label="'+tr('NOVA Learn','नोवा लर्न')+'"><span class="nr-card-icon" aria-hidden="true">'+svg.learn+'</span><h2>NOVA Learn / नोवा लर्न</h2><p>'+tr('Explore knowledge, study subjects, understand lessons and prepare for exams.','ज्ञान खोजें, विषय पढ़ें, पाठ समझें और परीक्षाओं की तैयारी करें।')+'</p><span class="nr-cta">'+tr('Start Learning','पढ़ना शुरू करें')+' <b>→</b></span></button>'+
+ '<button class="nr-card agent" type="button" data-group="agents" aria-label="'+tr('NOVA Agents','नोवा एजेंट्स')+'"><span class="nr-card-icon" aria-hidden="true">'+svg.agent+'</span><h2>NOVA Agents / नोवा एजेंट्स</h2><p>'+tr('Your AI agents for chat, voice, research, documents and guided workflows.','चैट, वॉइस, रिसर्च, दस्तावेज़ और निर्देशित कार्यों के लिए आपके AI एजेंट।')+'</p><span class="nr-cta">'+tr('Meet Your Agents','अपने एजेंट्स खोलें')+' <b>→</b></span></button></div>'+
+ '<div class="nr-bottom"><div class="nr-features"><div class="nr-feature"><b>◎ '+tr('Real-Time Web Search','रीयल-टाइम वेब खोज')+'</b><small>'+tr('Find fresh information and sources.','नई जानकारी और स्रोत खोजें।')+'</small></div><div class="nr-feature"><b>▧ '+tr('Multimodal AI','मल्टीमॉडल AI')+'</b><small>'+tr('Text · Image · Voice · Documents','टेक्स्ट · इमेज · वॉइस · दस्तावेज़')+'</small></div><div class="nr-feature"><b>⚡ '+tr('Fast & Lightweight','तेज़ और हल्का')+'</b><small>'+tr('Responsive layout and reduced-motion support.','तेज़ लेआउट और कम मोशन सपोर्ट।')+'</small></div></div><div class="nr-made"><span aria-hidden="true">🇮🇳</span><div>'+tr('MADE FOR INDIA','भारत के लिए')+'<small style="display:block;color:#c8d5ee;font-size:9px">'+tr('BUILT FOR THE WORLD','दुनिया के लिए')+'</small></div></div></div></div>';
+ root.querySelectorAll('[data-group]').forEach(b=>b.addEventListener('click',()=>window.NovaModeWorkspace?.openGroup?.(b.dataset.group)));
+}
+function boot(){
+ style();
+ const top=$('#top');
+ if(top&&!$('#nrGlobalSearch')){
+  const s=document.createElement('input');s.id='nrGlobalSearch';s.type='search';s.autocomplete='off';
+  s.placeholder='⌕  '+tr('Search saved chats…','सेव की गई चैट खोजें…');
+  s.setAttribute('aria-label',tr('Search saved chats','सेव की गई चैट खोजें'));
+  s.style.cssText='flex:1;min-width:70px;max-width:450px;min-height:44px;margin:auto;padding:10px 15px;border:1px solid #354da0;border-radius:99px;background:#0b1230;color:#fff';
+  s.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const q=$('#q');if(q&&s.value.trim()){q.value=s.value.trim();q.dispatchEvent(new Event('input',{bubbles:true}));q.focus()}}};
+  top.insertBefore(s,top.querySelector('#mode'));
+ }
+ const side=$('#side'),nav=side?.querySelector('.nav');
+ if(nav&&!$('#nrSidebarLinks')){
+  const x=document.createElement('div');x.id='nrSidebarLinks';
+  const links=[['explore','⌕',tr('Explore','खोजें')],['build','⌘',tr('NOVA Build','नोवा बिल्ड')],['learn','▱',tr('NOVA Learn','नोवा लर्न')],['agents','◈',tr('NOVA Agents','नोवा एजेंट्स')]];
+  links.forEach(([key,icon,label])=>{const b=document.createElement('button');b.type='button';b.dataset.k=key;b.textContent=icon+'　'+label;b.addEventListener('click',()=>{if(key==='explore'){$('#q')?.focus();return}window.NovaModeWorkspace?.openGroup?.(key)});x.append(b)});
+  nav.after(x);
+ }
+ const host=$('#log');
+ if(host){
+  const apply=()=>{const root=$('#hi');if(root&&!root.hidden){render(root);document.body.classList.add('nova-dashboard-home')}else document.body.classList.remove('nova-dashboard-home')};
+  apply();
+  new MutationObserver(apply).observe(host,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
+ }
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
