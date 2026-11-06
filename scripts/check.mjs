@@ -20,7 +20,7 @@ if (supabaseDeno.imports?.['@supabase/server'] !== 'npm:@supabase/server@1.9.2')
 const biEdge = readFileSync('supabase/functions/nova-bi-api/index.ts', 'utf8');
 if (!biEdge.includes('return fail("NOVA Business Intelligence request failed", 500);')) throw new Error('Unexpected BI backend failures must return a server-error status');
 const rateLimitMigration = readFileSync('supabase/migrations/20261101000010_nova_bi_api_rate_limits.sql', 'utf8');
-if (!rateLimitMigration.includes("security definer\\nset search_path = ''")) throw new Error('Rate-limit SECURITY DEFINER function must use an empty search_path');
+if (!/security definer\s+set search_path = ''/.test(rateLimitMigration)) throw new Error('Rate-limit SECURITY DEFINER function must use an empty search_path');
 const rlsIntegration = readFileSync('scripts/supabase-rls-integration.sql', 'utf8');
 if (!rlsIntegration.includes("Every public SECURITY DEFINER function must pin an empty search_path")) throw new Error('Database integration test must guard SECURITY DEFINER search_path');
 if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start command mismatch');
