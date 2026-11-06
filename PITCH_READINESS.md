@@ -2,10 +2,10 @@
 
 **Audit snapshot:** 6 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
-**Integrated demo candidate:** `pitch-readiness-20261106` — Draft PR [#66](https://github.com/s85960833-byte/NovaAI/pull/66)  
-**Application code snapshot:** `344f46ad4b4b08fae035adf0a52a5049548cf58f`  
-**Documentation and pitch materials:** maintained on the Draft PR #66 branch; see the PR for its current head  
-**Latest candidate CI:** [Run #896 — passed on current documentation-integrated head](https://github.com/s85960833-byte/NovaAI/actions/runs/42226220598)  
+**Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
+**Unified candidate head:** see Draft PR #73 for the current exact commit and CI run.  
+**Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
+**Latest candidate CI:** combined run #992/#994 is in progress; check PR #73 for the exact head status.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -45,7 +45,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 ## 4. What has been verified in the candidate
 
-Draft PR #66 combines the three-workspace interface and the security-hardening work that was previously split across PRs #64 and #65.
+Draft PR #73 combines the three-workspace interface, BI module and security-hardening work. PR #66 is the earlier UI-only predecessor.
 
 The application code snapshot `344f46ad4b4b08fae035adf0a52a5049548cf58f`, with documentation-integrated branch head `d3c2ad6a45b6442bfc71363e942b3269c6874200`, has a successful [CI #896](https://github.com/s85960833-byte/NovaAI/actions/runs/42226220598). Its single verification job passed:
 
@@ -84,7 +84,7 @@ Keep a screenshot or screen-recording backup of the candidate. Clearly label scr
 | Image security | Worker-controlled remote image URL fetching is disabled; decoded image payload size/type validation is bounded; local security-header checks passed | Live HTTPS response-header/HSTS verification and live free-provider image result |
 | Saved data | Existing `nova` / `nova_t` storage contract is preserved by design; new mode history is additive | Existing chats/settings must be checked on the actual presentation device |
 | General NOVA account | No general assistant account-backed login is established | Signup, sign-in, cross-device chat sync and account recovery are not launch claims |
-| NOVA Business Intelligence | Separate BI branch and Supabase controls have been audited | real-account/email flows, privacy/retention, backup/restore and manual Android checks |
+| NOVA Business Intelligence | BI code, Supabase controls and tenant tests are included in unified Draft PR #73 | real-account/email flows, privacy/retention, backup/restore and manual Android checks |
 | Production release | PR #73 is isolated from `main`; no merge or deployment was performed | Owner-approved merge/release, Render deploy, exact deployed commit and full production smoke test |
 
 ## 7. Product and data boundaries
@@ -96,7 +96,7 @@ Keep a screenshot or screen-recording backup of the candidate. Clearly label scr
 - Do not claim security certification, regulatory compliance, enterprise readiness, or zero errors.
 - No customer count, revenue, retention, or traction is currently evidenced in this audit.
 
-## 8. NOVA Business Intelligence — separate and not part of this pitch demo
+## 8. NOVA Business Intelligence — included in the unified candidate, not production
 
 NOVA Business Intelligence is included in unified Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), alongside the three-workspace UI. It remains a feature candidate, not a launched service, and is not part of Production.
 
@@ -117,7 +117,7 @@ BI capabilities such as profitability analysis, cost-leak review, productivity i
 
 ## 9. Repository and branch history — what to use
 
-- **PR #66:** use this as the one integrated three-workspace demo candidate. Keep it Draft until the manual and release gates are cleared.
+- **PR #73:** use this as the unified UI + BI preview candidate. Keep it Draft until the manual and release gates are cleared.
 - **PR #64 and PR #65:** their security and workspace changes are incorporated into #66. Do not merge these older source PRs separately.
 - **PR #10 and PR #35:** older, diverged four-section UI branches. They are not the current three-workspace pitch candidate. Do not merge them into this release.
 - **PR #73:** unified NOVA UI + Business Intelligence candidate. Keep it clearly labelled as preview and out of Production until all gates pass.
@@ -136,7 +136,7 @@ BI capabilities such as profitability analysis, cost-leak review, productivity i
 ## 11. Common questions — safe answers
 
 **Is NOVA publicly launched?**  
-The integrated three-workspace experience is a Draft candidate. We are validating it before calling it a public production release.
+The unified NOVA experience, including Business Intelligence, is a Draft candidate. We are validating it before calling it a public production release.
 
 **Can you guarantee every AI answer or generation will work?**  
 No. Providers can be unavailable, slow, or rate-limited. We will report failures honestly and keep validating reliability.
@@ -148,7 +148,7 @@ The current general NOVA chat/settings history is browser-local. Account-backed 
 Not for this early preview. Use synthetic or non-sensitive data only.
 
 **Is Business Intelligence included?**  
-No. NOVA BI is a separate development candidate with its own release gates.
+NOVA BI is included in the unified Draft PR #73 preview candidate, but it is not deployed or generally available. Its separate security, real-account and privacy gates still apply.
 
 **What does NOVA cost?**  
 Pricing and usage limits are not being promised until provider costs, support, privacy, billing, and refund terms have been reviewed.
