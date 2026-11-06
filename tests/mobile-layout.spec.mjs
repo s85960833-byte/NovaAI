@@ -67,7 +67,7 @@ test('mobile navigation drawer and Settings dialog open and close', async ({ pag
 
   await page.locator('#menu').click();
   await expect(page.locator('#side')).toHaveClass(/open/);
-  await page.locator('#scrim').click();
+  await page.locator('#scrim').click({ position: { x: 380, y: 420 } });
   await expect(page.locator('#side')).not.toHaveClass(/open/);
 
   await page.locator('#menu').click();
