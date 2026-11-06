@@ -63,6 +63,12 @@ test('business workspace does not upload or persist raw company CSV data',()=>{
  assert.equal(ui.includes('fetch('),false);assert.equal(ui.includes('XMLHttpRequest'),false);assert.equal(ui.includes('localStorage'),false);
  assert.equal(ui.includes('Raw rows are not uploaded to NOVA'),true);
 });
+test('company invitation links explicitly redirect to the NOVA app origin',()=>{
+ const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ assert.match(edge,/const inviteRedirectTo = Deno\\.env\\.get\\("NOVA_BI_SITE_URL"\\) \\|\\| "https:\\/\\/novaai-4auo\\.onrender\\.com"/);
+ assert.match(edge,/inviteUserByEmail\\(email,\\s*\\{\\s*redirectTo:\\s*inviteRedirectTo\\s*\\}\\)/);
+});
+
 test('invalid numeric values are never silently treated as zero',()=>{
  assert.equal(core.number('not-a-number'),null);assert.equal(core.number('Infinity'),null);
  const r=core.analyzeExpenses([{amount:'bad',category:'Cloud'}],{amount:'amount',category:'category'});
