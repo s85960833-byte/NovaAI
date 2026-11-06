@@ -3,9 +3,11 @@
 Updated: 2026-11-06
 
 ## Current release state
-- Feature branch: `feature/nova-business-intelligence`.
-- Review: [Draft PR #46](https://github.com/s85960833-byte/NovaAI/pull/46).
-- Latest code commit includes the invitation-acceptance grant reconciliation; re-run CI on the updated branch before treating it as verified.
+- Unified feature branch: `feature/nova-integrated-release-20261106`.
+- Review: [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73), which combines the three-workspace UI and NOVA BI.
+- BI-only PR #67 is a predecessor; PR #46 is an older divergent branch. Do not merge either as a substitute for PR #73.
+- Combined exact-head CI is running; check PR #73 for the latest result.
+- Production `main`, Render and the live Supabase schema/function remain unchanged. No merge, production deployment, live migration, Auth config change or SMTP change has been performed.
 - Production `main` and Render service `srv-dbidhpc9v7es73d6ia80` remain untouched. No merge or production deployment has been performed.
 - Approved NOVA BI Supabase project: `qrfwsewppafhxibdboam`. The separate Research-to-Code project has not been used.
 
