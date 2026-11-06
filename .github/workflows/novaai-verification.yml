@@ -30,6 +30,11 @@ jobs:
           echo $! > /tmp/novaai-test.pid
       - name: Exercise local routes and PWA assets
         run: node scripts/runtime-smoke.mjs
+      - name: Install Devanagari fonts for visual regression screenshots
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-core
+          fc-match 'Noto Sans Devanagari' | grep -q 'Noto Sans Devanagari'
       - name: Install Chromium for workspace browser tests
         run: npx playwright install chromium
       - name: Verify responsive workspace interactions in Chromium
