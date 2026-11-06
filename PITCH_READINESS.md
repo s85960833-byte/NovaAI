@@ -3,8 +3,8 @@
 **Audit snapshot:** 6 November 2026, 18:38 IST  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Integrated demo candidate:** `pitch-readiness-20261106` — Draft PR [#66](https://github.com/s85960833-byte/NovaAI/pull/66)  
-**Candidate commit:** `64e0ac4346bf51be96d5d5052c9f878b59027db5`  
-**Latest candidate CI:** [Run #888 — passed](https://github.com/s85960833-byte/NovaAI/actions/runs/42222609196)  
+**Candidate commit:** `27526913c799b96e5be566ab8c7ff8b41d39bc37`  
+**Latest candidate CI:** [Run #890 — passed](https://github.com/s85960833-byte/NovaAI/actions/runs/42223613374)  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -46,7 +46,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #66 combines the three-workspace interface and the security-hardening work that was previously split across PRs #64 and #65.
 
-The exact candidate commit `64e0ac4346bf51be96d5d5052c9f878b59027db5` has a successful [CI #888](https://github.com/s85960833-byte/NovaAI/actions/runs/42222609196). Its single verification job passed:
+The current candidate head `27526913c799b96e5be566ab8c7ff8b41d39bc37` has a successful [CI #890](https://github.com/s85960833-byte/NovaAI/actions/runs/42223613374). Its single verification job passed:
 
 - Backend and frontend syntax checks.
 - Mode registry checks.
@@ -109,8 +109,8 @@ Latest checks on the approved Supabase project `qrfwsewppafhxibdboam` found:
 - Performance Advisor: 13 unused-index INFO notices. These are observations, not security findings; indexes were not removed without workload evidence.
 - Current live counts: 0 Auth users, 0 organizations, 0 memberships.
 - The invitation-acceptance permission gap was fixed with a narrow `UPDATE(status)` grant. SQL confirms authenticated users cannot update membership `role`, `organization_id`, or `user_id`.
-- The latest BI branch head `c64887340cebf4f0ca18d6f83ca300e2cd3d0c19` has no verified PR-triggered CI run in this audit; an older passing run does not verify this newer head.
-- PR #46 is still reported as non-mergeable. Its auth/email, two-real-account tenant isolation, SMTP delivery, retention, backup/restore, privacy, incident response, and manual device gates remain open.
+- The latest BI branch head `c64887340cebf4f0ca18d6f83ca300e2cd3d0c19` passed push-triggered [CI #887](https://github.com/s85960833-byte/NovaAI/actions/runs/42222549923), including PostgreSQL migration/RLS integration, Deno type-check, deployed Edge Function auth/CORS checks, calculations/CSV validation, and the Company Cloud mobile browser flow. The run skipped live Render/provider checks.
+- PR #46 remains non-mergeable and is 196 commits ahead / 18 behind the inspected `main` head. Its auth/email, two-real-account tenant isolation, SMTP delivery, retention, backup/restore, privacy, incident response, and manual device gates remain open.
 
 BI capabilities such as profitability analysis, cost-leak review, productivity indicators, heuristic project risk, scenario modeling, workflow proposals, Action Proof, and workspace branding must be described as a separate development candidate only. The risk model is heuristic; the Digital Twin is assumption-based; workflow items are approval-gated proposals and do not execute external company actions. Do not present BI as launched, certified, or ready for production customers.
 
