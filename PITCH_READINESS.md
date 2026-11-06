@@ -1,10 +1,10 @@
 # NOVA — Pitch Readiness Pack
 
-**Audit snapshot:** 6 November 2026, 18:38 IST  
+**Audit snapshot:** 6 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Integrated demo candidate:** `pitch-readiness-20261106` — Draft PR [#66](https://github.com/s85960833-byte/NovaAI/pull/66)  
-**Candidate commit:** `27526913c799b96e5be566ab8c7ff8b41d39bc37`  
-**Latest candidate CI:** [Run #890 — passed](https://github.com/s85960833-byte/NovaAI/actions/runs/42223613374)  
+**Candidate commit:** `b833156ce4e5b5b57e5040b6fdd9fdabc33dcb9c`  
+**Latest candidate CI:** [Run #891 — passed](https://github.com/s85960833-byte/NovaAI/actions/runs/42223774432)  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -46,7 +46,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #66 combines the three-workspace interface and the security-hardening work that was previously split across PRs #64 and #65.
 
-The current candidate head `27526913c799b96e5be566ab8c7ff8b41d39bc37` has a successful [CI #890](https://github.com/s85960833-byte/NovaAI/actions/runs/42223613374). Its single verification job passed:
+The candidate head `b833156ce4e5b5b57e5040b6fdd9fdabc33dcb9c` has a successful [CI #891](https://github.com/s85960833-byte/NovaAI/actions/runs/42223774432). Its single verification job passed:
 
 - Backend and frontend syntax checks.
 - Mode registry checks.
@@ -83,7 +83,7 @@ Keep a screenshot or screen-recording backup of the candidate. Clearly label scr
 | Image security | Worker-controlled remote image URL fetching is disabled; decoded image payload size/type validation is bounded; local security-header checks passed | Live HTTPS response-header/HSTS verification and live free-provider image result |
 | Saved data | Existing `nova` / `nova_t` storage contract is preserved by design; new mode history is additive | Existing chats/settings must be checked on the actual presentation device |
 | General NOVA account | No general assistant account-backed login is established | Signup, sign-in, cross-device chat sync and account recovery are not launch claims |
-| NOVA Business Intelligence | Separate BI branch and Supabase controls have been audited | BI branch CI for its latest commit, real-account/email flows, privacy/retention, backup/restore and manual Android checks |
+| NOVA Business Intelligence | Separate BI branch and Supabase controls have been audited | real-account/email flows, privacy/retention, backup/restore and manual Android checks |
 | Production release | PR #66 is isolated from `main`; no merge or deployment was performed | Owner-approved merge/release, Render deploy, exact deployed commit and full production smoke test |
 
 ## 7. Product and data boundaries
