@@ -25,7 +25,7 @@ The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab2
 
 ## Verification — integrated three-workspace candidate
 
-The current candidate head is `344f46ad4b4b08fae035adf0a52a5049548cf58f`. Its latest GitHub Actions run, [#891](https://github.com/s85960833-byte/NovaAI/actions/runs/42223976701), passed the verification job. Checks included:
+The application code snapshot is `344f46ad4b4b08fae035adf0a52a5049548cf58f`; the documentation-integrated branch head is `d3c2ad6a45b6442bfc71363e942b3269c6874200`. Its latest GitHub Actions run, [#894](https://github.com/s85960833-byte/NovaAI/actions/runs/42224917442), passed the verification job. Checks included:
 
 - Backend/frontend syntax and isolated mode registry.
 - 60-case AI evaluation fixture structure (not a live model accuracy score).
@@ -35,7 +35,7 @@ The current candidate head is `344f46ad4b4b08fae035adf0a52a5049548cf58f`. Its la
 - Responsive layout, drawer, Settings, and sidebar checks at 360, 390, 412, 760, and 1280 CSS-pixel widths.
 - Devanagari font installation and browser screenshot artifact upload.
 
-The same run **skipped** live Render/provider checks and the free-provider image-generation smoke test. Physical Android testing was not performed. These checks do not prove that the candidate is deployed or error-free in Production.
+CI #894 **skipped** live provider and free-provider image-generation smoke tests by design. A separate read-only Render audit confirmed Production is live on commit `48e12a68af656b471853ac2a4509da0e3df7ab24`; the Draft candidate is not deployed. Physical Android testing was not performed. These checks do not prove that the candidate is error-free.
 
 ## Separate NOVA Business Intelligence candidate
 
