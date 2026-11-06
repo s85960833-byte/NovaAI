@@ -39,7 +39,7 @@ CI #894 **skipped** live provider and free-provider image-generation smoke tests
 
 ## NOVA Business Intelligence in the unified candidate
 
-NOVA BI is included in the unified Draft PR #73 candidate. It remains unlaunched and must not be used with sensitive company data until its real-account, privacy, retention and backup/restore release gates are completed. Its latest branch head is `c64887340cebf4f0ca18d6f83ca300e2cd3d0c19`; push-triggered [CI #887](https://github.com/s85960833-byte/NovaAI/actions/runs/42222549923) passed PostgreSQL migration/RLS integration, Deno type-check, deployed Edge Function auth/CORS checks, calculation/CSV tests and the Company Cloud mobile browser flow. PR #46 remains non-mergeable (196 commits ahead / 18 behind the inspected main head). Keep BI separate until merge conflicts, real-account/email tests, retention/backup, privacy and device checks are closed.
+NOVA BI is included in unified Draft PR #73. It remains unlaunched and must not be used with sensitive company data until real-account, privacy, retention and backup/restore gates are completed. BI-only PR #67 is a predecessor; PR #46 is an older divergent branch. The unified PR #73 CI is the authoritative verification for the combined candidate.
 
 The NOVA BI Supabase project has 12 migrations, 10 RLS-enabled tables, and an ACTIVE JWT-protected Edge Function v13. The latest Security and Health Advisors reported zero findings. Performance Advisor reported 13 unused-index INFO notices. Auth user, organization, and membership counts are currently zero. These database checks are not an enterprise certification or a public-launch approval.
 
