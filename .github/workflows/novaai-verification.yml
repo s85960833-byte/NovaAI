@@ -31,7 +31,7 @@ jobs:
       - name: Exercise local routes and PWA assets
         run: node scripts/runtime-smoke.mjs
       - name: Install Chromium for mobile browser verification
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: Run real-browser mobile layout and drawer checks
         run: |
           mkdir -p artifacts
