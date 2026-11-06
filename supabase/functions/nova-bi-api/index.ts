@@ -24,6 +24,10 @@ const safeJson = (value: unknown, maxBytes = 50000) => {
 
 const fail = (message: string, status = 400) => json({ error: message }, status);
 
+// Invitation links return to the deployed NOVA app, not Auth's default Site URL.
+// Override for an approved preview and add that exact URL to the Auth redirect allow-list.
+const inviteRedirectTo = Deno.env.get("NOVA_BI_SITE_URL") || "https://novaai-4auo.onrender.com";
+
 const rateLimited = (retryAfter: number) =>
   new Response(JSON.stringify({ error: "Too many requests. Please try again later." }), {
     status: 429,
@@ -116,7 +120,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       if (!actor || !["owner", "admin"].includes(actor.role)) return fail("Owner or admin role required", 403);
       if (role === "admin" && actor.role !== "owner") return fail("Only the organization owner can invite another admin", 403);
 
-      const { data: invitation, error: inviteError } = await ctx.supabaseAdmin.auth.admin.inviteUserByEmail(email);
+      const { data: invitation, error: inviteError } = await ctx.supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: inviteRedirectTo });
       if (inviteError || !invitation?.user?.id) {
         console.error("NOVA BI invitation email could not be issued");
         return fail("Invitation could not be sent. The address may already have an account or email delivery may not be configured.", 409);
