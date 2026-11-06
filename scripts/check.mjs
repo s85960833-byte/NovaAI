@@ -30,6 +30,7 @@ if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start
 if (pkg.engines?.node !== '22.x') throw new Error('Render and CI must use the same pinned Node.js 22 LTS runtime');
 for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api/live/selftest'", "app.get('/api/feed'", "app.get('/nova-reference.js'"]) if (!server.includes(route)) throw new Error('Required backend route missing: ' + route);
 if (!server.includes("app.disable('x-powered-by')") || !server.includes("'X-Content-Type-Options': 'nosniff'") || !server.includes("'X-Frame-Options': 'DENY'") || !server.includes("frame-ancestors 'none'")) throw new Error('Required HTTP security headers are missing');
+if (!server.includes("'Permissions-Policy': 'camera=(self), geolocation=(), microphone=(self)'")) throw new Error('Camera and microphone permissions must remain available to the same origin');
 const cloudClient = readFileSync('nova-business-cloud.js', 'utf8');
 if (!cloudClient.includes('const orgId=state.orgId') || !cloudClient.includes('if(state.orgId!==orgId)return')) throw new Error('Company switch must discard stale tenant responses');
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
