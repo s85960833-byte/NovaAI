@@ -5,7 +5,7 @@
 **Integrated demo candidate:** `pitch-readiness-20261106` — Draft PR [#66](https://github.com/s85960833-byte/NovaAI/pull/66)  
 **Application code snapshot:** `344f46ad4b4b08fae035adf0a52a5049548cf58f`  
 **Documentation-integrated branch head:** `d3c2ad6a45b6442bfc71363e942b3269c6874200`  
-**Latest candidate CI:** [Run #894 — passed on documentation-integrated head](https://github.com/s85960833-byte/NovaAI/actions/runs/42224917442)  
+**Latest candidate CI:** [Run #896 — passed on current documentation-integrated head](https://github.com/s85960833-byte/NovaAI/actions/runs/42226220598)  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -47,7 +47,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #66 combines the three-workspace interface and the security-hardening work that was previously split across PRs #64 and #65.
 
-The application code snapshot `344f46ad4b4b08fae035adf0a52a5049548cf58f`, with documentation-integrated branch head `d3c2ad6a45b6442bfc71363e942b3269c6874200`, has a successful [CI #894](https://github.com/s85960833-byte/NovaAI/actions/runs/42224917442). Its single verification job passed:
+The application code snapshot `344f46ad4b4b08fae035adf0a52a5049548cf58f`, with documentation-integrated branch head `d3c2ad6a45b6442bfc71363e942b3269c6874200`, has a successful [CI #896](https://github.com/s85960833-byte/NovaAI/actions/runs/42226220598). Its single verification job passed:
 
 - Backend and frontend syntax checks.
 - Mode registry checks.
