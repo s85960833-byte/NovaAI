@@ -3,8 +3,9 @@
 **Audit snapshot:** 6 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Integrated demo candidate:** `pitch-readiness-20261106` — Draft PR [#66](https://github.com/s85960833-byte/NovaAI/pull/66)  
-**Candidate commit:** `344f46ad4b4b08fae035adf0a52a5049548cf58f`  
-**Latest candidate CI:** [Run #893 — passed](https://github.com/s85960833-byte/NovaAI/actions/runs/42223976701)  
+**Application code snapshot:** `344f46ad4b4b08fae035adf0a52a5049548cf58f`  
+**Documentation-integrated branch head:** `d3c2ad6a45b6442bfc71363e942b3269c6874200`  
+**Latest candidate CI:** [Run #894 — passed on documentation-integrated head](https://github.com/s85960833-byte/NovaAI/actions/runs/42224917442)  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -46,7 +47,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #66 combines the three-workspace interface and the security-hardening work that was previously split across PRs #64 and #65.
 
-The candidate head `344f46ad4b4b08fae035adf0a52a5049548cf58f` has a successful [CI #891](https://github.com/s85960833-byte/NovaAI/actions/runs/42223976701). Its single verification job passed:
+The application code snapshot `344f46ad4b4b08fae035adf0a52a5049548cf58f`, with documentation-integrated branch head `d3c2ad6a45b6442bfc71363e942b3269c6874200`, has a successful [CI #894](https://github.com/s85960833-byte/NovaAI/actions/runs/42224917442). Its single verification job passed:
 
 - Backend and frontend syntax checks.
 - Mode registry checks.
@@ -158,11 +159,11 @@ Pricing and usage limits are not being promised until provider costs, support, p
 
 Before the new three-workspace build can be presented as a live demo, the remaining gates are:
 
-1. Confirm read-only Render service/deployment/log status and the exact Production commit.
-2. Obtain an approved release/preview path, then test the candidate on the actual Android phone.
+1. Obtain an approved preview/release path for the Draft candidate; Production remains on `main`.
+2. Test the candidate on the actual Android phone, including touch, keyboard, visual fit and low-network behavior.
 3. Verify existing saved chats/settings and each exact Learn / Build / Agents action on that phone.
-4. Run live, non-paid provider smoke tests and image generation on the approved deployment.
-5. Check real HTTPS security headers and run post-deploy regression tests.
+4. Run live, non-paid provider smoke tests and image generation on the approved candidate preview.
+5. Check real HTTPS response headers/HSTS and run post-deploy regression tests after an approved release.
 6. Keep general NOVA authentication and NOVA BI outside the offer unless their separate release requirements are completed.
 
 No tool can honestly guarantee that a future pitch/demo will encounter zero errors. The goal is to make the demonstrated scope small, tested, clearly labelled, and backed by a fallback recording.
