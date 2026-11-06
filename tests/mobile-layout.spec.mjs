@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test';
 
 mkdirSync('artifacts', { recursive: true });
 
+const BASE = process.env.NOVAAI_URL || 'http://127.0.0.1:8787';
+
 const sizes = [
   { width: 360, height: 800 },
   { width: 390, height: 844 },
@@ -16,7 +18,7 @@ for (const size of sizes) {
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
     await page.setViewportSize(size);
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#main')).toBeVisible();
     await expect(page.locator('#box')).toBeVisible();
 
@@ -63,7 +65,7 @@ for (const size of sizes) {
 
 test('mobile navigation drawer and Settings dialog open and close', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
 
   await page.locator('#menu').click();
   await expect(page.locator('#side')).toHaveClass(/open/);
