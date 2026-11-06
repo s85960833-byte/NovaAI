@@ -2,7 +2,7 @@
 
 **Document status:** Internal working draft  
 **Product status:** Demo candidate; not yet approved as a public production release  
-**Reference build:** `pitch-readiness-20261106` (based on the bilingual three-workspace candidate)  
+**Reference build:** `pitch-readiness-20261106` — integrated Draft PR #66, combining the three-workspace UI with security hardening  
 **Production branch:** `main` — unchanged by this document  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -44,12 +44,12 @@ The bilingual candidate labels the three workspaces in Hindi and English. Existi
 
 ## 6. Claims that must NOT be made yet
 
-- Do not say that the latest three-workspace candidate is live in Production. It is on a feature branch.
+- Do not say that the integrated three-workspace candidate is live in Production. It remains on a feature branch in Draft PR #66.
 - Do not promise 100% uptime, zero errors, guaranteed answers, guaranteed image generation, or unlimited free usage.
 - Do not describe browser-local chat history as cloud-synced or account-backed.
 - Do not claim full account login/authentication for the general NOVA assistant.
 - Do not claim enterprise security certification, compliance, or audited production readiness.
-- Do not present NOVA Business Intelligence as a launched customer feature. Its separate PR is a Draft and has real-account/email/retention/backup release gates.
+- Do not present NOVA Business Intelligence as a launched customer feature. Its separate PR #46 is a Draft and has real-account/email/retention/backup release gates.
 - Do not claim the AI always cites sources or never hallucinates; users should verify important answers.
 - Do not publish pricing, service limits, or provider guarantees until the owner has approved the exact commercial terms.
 
@@ -57,8 +57,8 @@ The bilingual candidate labels the three workspaces in Hindi and English. Existi
 
 | Area | Evidence available | Still required before a production pitch/demo promise |
 |---|---|---|
-| Three-workspace UI | PR #65 Chromium CI passed desktop and 412px mobile workspace checks | Merge/release approval and physical Android visual/touch check |
-| Security headers and image input hardening | PR #64 CI passed syntax, dependency audit, route and browser checks | Integrate with the UI candidate, run combined CI, deploy and inspect live response headers |
+| Three-workspace UI | PR #65 isolated Chromium checks passed; PR #66 adds integrated desktop/mobile browser checks | Confirm latest integrated CI, then release approval and physical Android visual/touch check |
+| Security headers and image input hardening | PR #64 isolated CI passed; its server changes are integrated into Draft PR #66 | Confirm combined CI, deploy only after approval, and inspect live response headers |
 | AI chat/search/voice/image providers | Existing server routes and local smoke checks | Live provider smoke on the exact release; microphone/speaker/camera check on the actual phone |
 | Saved data | Existing local storage contract preserved by design | Verify old saved chats/settings on the actual device and explain browser-local storage clearly |
 | General NOVA authentication | Not established for the general assistant | Do not sell as account-based until implemented and tested |
@@ -86,4 +86,4 @@ The bilingual candidate labels the three workspaces in Hindi and English. Existi
 
 **Current decision: Not yet production-pitch-ready as a guaranteed, error-free customer product.**
 
-The candidate has successful automated checks, but PR #64 and PR #65 remain separate Draft PRs, live Production checks have not run on their combined code, and physical Android/provider tests remain outstanding. Use this pack only for an honest prototype/demo conversation until those gates are closed.
+Draft PR #66 is the integrated release candidate. It combines the code from the separate security and workspace workstreams; #64 and #65 remain open Draft PRs and have not been merged. The first integrated run passed syntax, dependency audit, local routes, and workspace Chromium checks, but the added five-viewport suite exposed a test-harness issue (using tap in a non-touch context). That test was corrected to use click; the corrected integrated run is pending. Production checks on the combined code, Render deployment, live provider checks, and physical Android testing are still outstanding. Use this pack only for an honest prototype/demo conversation until those gates are closed.
