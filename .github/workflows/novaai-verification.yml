@@ -31,7 +31,7 @@ jobs:
       - name: Exercise local routes and PWA assets
         run: node scripts/runtime-smoke.mjs
       - name: Install Chromium for workspace browser tests
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: Verify responsive workspace interactions in Chromium
         run: node scripts/browser-smoke.mjs
       - name: Run five-viewport mobile and drawer regression tests
