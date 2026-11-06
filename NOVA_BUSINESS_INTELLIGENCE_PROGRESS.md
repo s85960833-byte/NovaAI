@@ -63,3 +63,12 @@ Updated: 2026-11-06
 - Static regression assertions and local syntax checks were added for these changes. The new forward migration is included in the fresh PostgreSQL migration test sequence. It has **not** been applied to the live Supabase project.
 - The live Supabase project remains on its previously deployed schema/function versions; no Production Render deployment, PR merge, Auth settings change, SMTP change, or paid resource change was made in this update.
 - Remaining external release gates are real signup/confirmation email, two real accounts and tenant isolation, production/preview redirect allow-list verification, Preview deployment, physical Android checks, backup/restore, retention, privacy and incident-response review.
+
+
+## Final candidate verification — 2026-11-06
+- Exact candidate head `dc0f9864d0c77534eaeba8bcdaa771e93ebf63b9` was verified by GitHub Actions run #978: 27/27 steps successful, 0 failed. The workflow's live Render wait and live website/provider smoke steps were skipped by design because no preview/production deployment was authorized.
+- PostgreSQL migrations/RLS integration, Deno dependency install and Edge Function type-check, authenticated Edge Function auth/CORS smoke, BI calculation/CSV validation, 60-case fixture validation, dependency audit, local route/PWA checks, and Chromium Company Cloud mobile browser workflows all passed on this exact candidate head.
+- Camera/microphone browser access is explicitly preserved by the same-origin Permissions-Policy; geolocation remains disabled. Runtime smoke and static CI assertions verify the policy.
+- Company workspace switching clears the previous tenant's cached display data and discards any late response belonging to the previously selected organization; static CI assertion added.
+- Temporary CI-only PRs #68, #70 and #71 were closed without merging. The authoritative BI PR remains Draft #67; the separate UI candidate remains Draft #66. Neither has been merged or deployed.
+- This is automated candidate verification, not production certification. Signup/SMTP, two real-user tenant isolation, production/preview redirect allow-list, Preview and physical Android checks, backup/restore and privacy/retention review remain release gates.
