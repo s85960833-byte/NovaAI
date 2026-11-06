@@ -3,7 +3,8 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 
 function syntaxCheck(name, source) {
-  const file = join('/tmp', 'novaai-' + name.replace(/[^a-z0-9]/gi, '-') + '.js');
+  const extension = name.endsWith('.mjs') ? '.mjs' : '.js';
+  const file = join('/tmp', 'novaai-' + name.replace(/[^a-z0-9]/gi, '-') + extension);
   writeFileSync(file, source);
   const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
   try { unlinkSync(file); } catch {}
@@ -25,7 +26,7 @@ const liveSmoke=readFileSync('scripts/smoke.mjs','utf8');
 syntaxCheck('live production smoke',liveSmoke);
 if (!liveSmoke.includes("process.env.NOVA_LIVE_FULL_TESTS === '1'") || !liveSmoke.includes('invalid-input guard') || !liveSmoke.includes('SKIP full provider')) throw new Error('Live production smoke must avoid provider/API credit use unless explicitly opted in');
 
-for (const file of ['s-tier.js','nova-suite.js','mode-registry.js','mode-workspace.js','nova-reference.js']) syntaxCheck(file, readFileSync(file,'utf8'));
+for (const file of ['s-tier.js','nova-suite.js','nova-business-core.js','nova-business.js','nova-business-cloud.js','mode-registry.js','mode-workspace.js','nova-reference.js']) syntaxCheck(file, readFileSync(file,'utf8'));
 const tier = readFileSync('s-tier.js', 'utf8');
 const workspace = readFileSync('mode-workspace.js', 'utf8');
 const registry = readFileSync('mode-registry.js', 'utf8');
@@ -47,11 +48,12 @@ if (!html.includes("h.id='hi'")) throw new Error('Legacy home renderer no longer
 if (!reference.includes("const root=$('#hi');") || !reference.includes("const host=$('#log');") || reference.includes('#novaSHome')) throw new Error('Reference dashboard must mount into #hi and observe #log for future home renders');
 
 
-for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
+for (const file of ['scripts/runtime-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs','scripts/company-cloud-browser.mjs','scripts/supabase-edge-smoke.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
 
 if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
 if (!html.includes("typeof en==='string'&&typeof hi==='string'") || !html.includes("return en+' / '+hi")) throw new Error('Core NOVA interface must render English and Hindi together');
 if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>html.includes(x))) throw new Error('NOVA Learn, Build and Agents workspace scripts are not connected in the homepage');
+if (!['src="/nova-business-core.js"','src="/nova-business.js"','src="/nova-business-cloud.js"'].every(x=>html.includes(x)) || !html.includes('@supabase/supabase-js@2.80.0')) throw new Error('NOVA BI scripts and Supabase client are not connected in the homepage');
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>html.includes(x))) throw new Error('NOVA dashboard UI components missing');
 if (!html.includes('localStorage.getItem(\'nova\')') || !html.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Existing Nova chat storage contract changed');
 
@@ -62,7 +64,7 @@ if (!html.includes('backend hosted on Render') || !html.includes('account-based 
 if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
 if (!html.includes('async function pollImageJob(') || !html.includes("API+'/image/status/'") || !html.includes('pollImageJob(j.jobId,sig)') || !html.includes("sig.addEventListener('abort',abort,{once:true})") || !html.includes("e1?.status===429")) throw new Error('Image studio must abort polling promptly and must not bypass server image rate limits');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
-if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'")) throw new Error('Existing optional feature asset routes missing');
+if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'")) throw new Error('Existing optional feature asset routes missing');
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(x => x.trim());
 if (!scripts.length) throw new Error('No inline frontend JavaScript found');
 scripts.forEach((source, i) => syntaxCheck('frontend-' + (i + 1), source));
