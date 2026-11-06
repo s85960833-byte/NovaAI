@@ -4,6 +4,6 @@
     "strict": true
   },
   "imports": {
-    "@supabase/server": "npm:@supabase/server"
+    "@supabase/server": "npm:@supabase/server@1.9.2"
   }
 }
