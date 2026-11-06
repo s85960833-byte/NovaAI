@@ -75,7 +75,7 @@ for (const [path,method,body,expected] of [
 let self;
 if (process.env.NOVA_LIVE_FULL_TESTS === '1') {
 const selfResponse = await request('/api/live/selftest', { signal: AbortSignal.timeout(90000) });
-const self = await json(selfResponse);
+self = await json(selfResponse);
 if (!selfResponse.ok || !Array.isArray(self.results)) throw new Error('Provider self-test endpoint failed');
 const lines = self.results.map(x => (x.ok ? 'PASS ' : 'FAIL ') + x.name + ' — ' + x.ms + 'ms' + (x.note ? ' (' + x.note + ')' : ''));
 console.log(lines.join('\n'));
