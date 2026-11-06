@@ -57,8 +57,8 @@ The bilingual candidate labels the three workspaces in Hindi and English. Existi
 
 | Area | Evidence available | Still required before a production pitch/demo promise |
 |---|---|---|
-| Three-workspace UI | PR #65 isolated Chromium checks passed; PR #66 adds integrated desktop/mobile browser checks | Confirm latest integrated CI, then release approval and physical Android visual/touch check |
-| Security headers and image input hardening | PR #64 isolated CI passed; its server changes are integrated into Draft PR #66 | Confirm combined CI, deploy only after approval, and inspect live response headers |
+| Three-workspace UI | Integrated PR #66 CI run #859 passed workspace Chromium interaction checks and five-viewport layout/drawer regression checks | Physical Android visual/touch check and a release preview are still required |
+| Security headers and image input hardening | Integrated PR #66 CI run #859 passed static hardening assertions and local HTTP response-header checks | Deploy only after approval, then inspect live response headers and run a real free-provider image test |
 | AI chat/search/voice/image providers | Existing server routes and local smoke checks | Live provider smoke on the exact release; microphone/speaker/camera check on the actual phone |
 | Saved data | Existing local storage contract preserved by design | Verify old saved chats/settings on the actual device and explain browser-local storage clearly |
 | General NOVA authentication | Not established for the general assistant | Do not sell as account-based until implemented and tested |
@@ -86,4 +86,4 @@ The bilingual candidate labels the three workspaces in Hindi and English. Existi
 
 **Current decision: Not yet production-pitch-ready as a guaranteed, error-free customer product.**
 
-Draft PR #66 is the integrated release candidate. It combines the code from the separate security and workspace workstreams; #64 and #65 remain open Draft PRs and have not been merged. The first integrated run passed syntax, dependency audit, local routes, and workspace Chromium checks, but the added five-viewport suite exposed a test-harness issue (using tap in a non-touch context). That test was corrected to use click; the corrected integrated run is pending. Production checks on the combined code, Render deployment, live provider checks, and physical Android testing are still outstanding. Use this pack only for an honest prototype/demo conversation until those gates are closed.
+Draft PR #66 is the integrated release candidate. It combines the code from the separate security and workspace workstreams; #64 and #65 remain open Draft PRs and have not been merged. Integrated PR #66 CI run #859 passed syntax, mode registry, the 60-case evaluation fixture, production dependency audit, local routes/PWA and security-header checks, workspace Chromium interaction tests, and five-viewport layout/drawer/settings checks. The first test attempt exposed two test-harness issues (touch simulation in a non-touch context and a drawer left open after Settings); both were corrected and the integrated run passed. Production checks on the combined code, Render deployment, live provider checks, screenshot review, and physical Android testing are still outstanding. Use this pack only for an honest prototype/demo conversation until those gates are closed.
