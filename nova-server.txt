@@ -220,8 +220,10 @@ function pruneImageJobs() {
   }
 }
 async function generateFreeImage(prompt, body) {
+  // The live free-provider smoke test sets freeOnly=true so it can never consume paid image credits.
+  const freeOnly = body.freeOnly === true;
   // Existing optional paid provider is disabled unless explicitly opted in by the service owner.
-  if (E.ALLOW_PAID_IMAGE === 'true' && E.IMAGE_KEY && E.IMAGE_MODEL) {
+  if (!freeOnly && E.ALLOW_PAID_IMAGE === 'true' && E.IMAGE_KEY && E.IMAGE_MODEL) {
     try {
       const u = await fetch((E.IMAGE_BASE || 'https://api.openai.com/v1').replace(/\/$/, '') + '/images/generations', {
         method: 'POST',
@@ -238,7 +240,7 @@ async function generateFreeImage(prompt, body) {
   const w = Math.min(1024, Number(body.width) || 768), h = Math.min(1024, Number(body.height) || 768);
   const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
   const qs = 'width=' + w + '&height=' + h + '&seed=' + seed + '&nologo=true&safe=true&enhance=false' + (E.POLLI_KEY ? '&key=' + encodeURIComponent(E.POLLI_KEY) : '');
-  const tries = E.POLLI_KEY
+  const tries = freeOnly ? [] : E.POLLI_KEY
     ? [['https://gen.pollinations.ai/image/', 'flux'], ['https://image.pollinations.ai/prompt/', 'flux']]
     : [['https://image.pollinations.ai/prompt/', 'flux']];
   for (const [host, model] of tries) {
