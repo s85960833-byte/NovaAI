@@ -55,7 +55,7 @@ test('mobile drawer, Settings and workspace composer boundaries',async({page})=>
   await expect(page.locator('#dset')).toBeVisible();
   await page.locator('#sclose').click();
   await expect(page.locator('#dset')).not.toBeVisible();
-  await page.locator('#hi .nr-card[data-group="agents"]').tap();
+  await page.locator('#hi .nr-card[data-group="agents"]').click();
   await expect(page.locator('#novaModes.open')).toBeVisible();
   await expect(page.locator('#nmCompose')).toBeHidden();
   await page.locator('#nmContent [data-mode="general"]').tap();
