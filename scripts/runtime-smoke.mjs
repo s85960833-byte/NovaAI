@@ -8,7 +8,7 @@ await expect('NOVA workspace scripts connected','/',{},(r,b)=>r.ok&&['src="/mode
 await expect('standard UI language dictionaries','/',{},(r,b)=>r.ok&&b.includes('hi:{')&&b.includes('phSolve:'));
 await expect('standard UI Settings and image panels','/',{},(r,b)=>r.ok&&b.includes('id="dset"')&&b.includes('id="photo"')&&b.includes('id="pprev"'));
 await expect('instant health endpoint','/health',{},(r,b)=>r.ok&&JSON.parse(b).status==='ok'&&JSON.parse(b).ready===true);
-await expect('baseline security response headers','/health',{},r=>r.ok&&r.headers.get('x-content-type-options')==='nosniff'&&r.headers.get('x-frame-options')==='DENY'&&r.headers.get('referrer-policy')==='strict-origin-when-cross-origin'&&r.headers.get('permissions-policy')==='camera=(self), microphone=(self), geolocation=()');
+await expect('baseline security response headers','/health',{},r=>r.ok&&r.headers.get('x-content-type-options')==='nosniff'&&r.headers.get('x-frame-options')==='DENY'&&r.headers.get('referrer-policy')==='strict-origin-when-cross-origin'&&r.headers.get('permissions-policy')==='camera=(self), microphone=(self), geolocation=()'&&r.headers.get('strict-transport-security')==='max-age=31536000; includeSubDomains');
 await expect('optional S-tier feature bundle','/s-tier.js',{},(r,b)=>r.ok&&b.length>1000);
 await expect('reference dashboard asset and home mount','/nova-reference.js',{},(r,b)=>r.ok&&b.includes("const root=$('#hi');")&&b.includes("const host=$('#log');")&&!b.includes('#novaSHome')&&b.includes('data-group=\"build\"')&&b.includes('data-group=\"learn\"')&&b.includes('data-group=\"agents\"'));
 await expect('NOVA Build feature bundle','/nova-suite.js',{},(r,b)=>r.ok&&b.includes('Project Brain')&&b.includes('AI Council')&&b.includes('Idea-to-Business'));
