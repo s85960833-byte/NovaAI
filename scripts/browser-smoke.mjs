@@ -76,7 +76,12 @@ try{
  await mobile.locator('#nmContent [data-mode="general"]').tap();
  await mobile.locator('#nmCompose').waitFor({state:'visible'});
  assert.equal(await mobile.locator('#nmInput').isVisible(),true,'Agents chat composer should remain available inside Agents');
- const inputLabel=await mobile.locator('#nmInput').getAttribute('aria-label');
+ await mobile.locator('#nrGlobalSearch').fill('saved physics');
+ await mobile.keyboard.press('Enter');
+ await mobile.waitForFunction(()=>document.querySelector('#side')?.classList.contains('open'));
+ assert.equal(await mobile.locator('#q').inputValue(),'saved physics','top search should route to saved-chat search and open the mobile drawer');
+ await mobile.locator('#scrim').tap();
+const inputLabel=await mobile.locator('#nmInput').getAttribute('aria-label');
  assert.ok(inputLabel.includes('NOVA को संदेश'));
  await mobile.keyboard.press('Escape');
  await mobile.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
