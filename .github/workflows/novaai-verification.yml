@@ -56,3 +56,8 @@ jobs:
         env:
           NOVAAI_URL: https://novaai-4auo.onrender.com
         run: node scripts/smoke.mjs
+      - name: Smoke-test live free image generation without paid AI credits
+        if: github.ref == 'refs/heads/main'
+        env:
+          NOVAAI_URL: https://novaai-4auo.onrender.com
+        run: node scripts/smoke-free-image.mjs
