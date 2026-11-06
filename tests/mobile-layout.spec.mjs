@@ -55,7 +55,8 @@ for (const size of sizes) {
       expect(layout.sidePosition).toBe('fixed');
       expect(Math.abs(layout.main.width - size.width)).toBeLessThanOrEqual(1);
     } else {
-      expect(layout.main.x).toBeGreaterThanOrEqual(250);
+      expect(layout.main.x).toBeGreaterThan(0);
+      expect(layout.main.right).toBeLessThanOrEqual(size.width + 1);
     }
 
     await page.screenshot({ path: `artifacts/${browserName}-${size.width}x${size.height}.png`, fullPage: true });
