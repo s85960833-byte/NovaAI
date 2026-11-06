@@ -32,6 +32,7 @@ test('project risk is heuristic and validates inputs',()=>{
  const r=core.scoreProjectRisk({dueDate:'2026-01-01',progressPct:10,blockers:2},'2026-01-05');
  assert.equal(r.score,75);assert.equal(r.band,'High');assert.match(r.confidence,/not a trained/);
  assert.throws(()=>core.scoreProjectRisk({dueDate:'yesterday',progressPct:20},'2026-01-01'),/ISO due date/);
+ assert.throws(()=>core.scoreProjectRisk({dueDate:'2026-01-10',progressPct:50,blockers:1.5},'2026-01-01'),/whole number/);
 });
 test('scenario math is deterministic and validates assumptions',()=>{
  const r=core.simulateScenario({monthlyBaseline:100000,automationSharePct:20,realizationPct:50,oneTimeCost:10000,horizonMonths:12,currency:'INR'});
