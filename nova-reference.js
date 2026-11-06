@@ -83,7 +83,7 @@ function boot(){
   s.placeholder='⌕  '+tr('Search saved chats…','सेव की गई चैट खोजें…');
   s.setAttribute('aria-label',tr('Search saved chats','सेव की गई चैट खोजें'));
   s.style.cssText='flex:1;min-width:70px;max-width:450px;min-height:44px;margin:auto;padding:10px 15px;border:1px solid #354da0;border-radius:99px;background:#0b1230;color:#fff';
-  s.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const q=$('#q');if(q&&s.value.trim()){q.value=s.value.trim();q.dispatchEvent(new Event('input',{bubbles:true}));q.focus()}}};
+  s.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const side=$('#side');side?.classList.add('open');const q=$('#q');if(q&&s.value.trim()){q.value=s.value.trim();q.dispatchEvent(new Event('input',{bubbles:true}));q.focus()}}};
   top.insertBefore(s,top.querySelector('#mode'));
  }
  const side=$('#side'),nav=side?.querySelector('.nav');
