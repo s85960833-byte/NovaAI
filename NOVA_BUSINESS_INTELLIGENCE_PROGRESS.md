@@ -1,18 +1,18 @@
 # NOVA Business Intelligence — Engineering Progress
 
-Updated: 2026-11-01
+Updated: 2026-11-06
 
 ## Current release state
 - Feature branch: `feature/nova-business-intelligence`.
 - Review: [Draft PR #46](https://github.com/s85960833-byte/NovaAI/pull/46).
-- Latest verified code commit: `bea974e15e50f9bda4b657d1bd2a7564fba28ef0`.
+- Latest code commit includes the invitation-acceptance grant reconciliation; re-run CI on the updated branch before treating it as verified.
 - Production `main` and Render service `srv-dbidhpc9v7es73d6ia80` remain untouched. No merge or production deployment has been performed.
 - Approved NOVA BI Supabase project: `qrfwsewppafhxibdboam`. The separate Research-to-Code project has not been used.
 
 ## Implemented and deployed to the approved Supabase project
-- Eleven migrations are recorded; nine tenant tables plus one server-only rate-limit table (10 total) exist.
+- Twelve migrations are recorded; nine tenant tables plus one server-only rate-limit table (10 total) exist.
 - All ten tables have RLS enabled; tenant data tables use active-membership/role policies and the rate-limit table has an explicit deny-all client policy.
-- Supabase Security Advisor currently reports zero security findings.
+- Supabase Security Advisor currently reports zero security findings. A live invitation-acceptance permission gap was found during the A–Z audit and fixed with a narrow `UPDATE(status)` column grant; direct role/tenant/user identity updates remain denied. The deployed migration is `20261106130204_nova_bi_membership_accept_status_grant`.
 - Edge Function `nova-bi-api` is ACTIVE at version 13 with JWT verification enabled.
 - Server-enforced limits allow 120 authenticated API requests per user per minute and 5 invitation attempts per user per hour; rate-limit counters are inaccessible to client roles. IP-level abuse monitoring remains a separate release gate.
 - The authenticated server API supports organization bootstrap, own invitation acceptance, owner/admin invitations and roster access, dataset/analysis metadata, workflow proposals and approval decisions, branding, audit reads, and audited dataset/analysis deletion.
