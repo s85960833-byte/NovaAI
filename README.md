@@ -25,7 +25,7 @@ The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab2
 
 ## Verification — integrated three-workspace candidate
 
-The application code snapshot is `344f46ad4b4b08fae035adf0a52a5049548cf58f`; the documentation-integrated branch head is `d3c2ad6a45b6442bfc71363e942b3269c6874200`. Its latest GitHub Actions run, [#894](https://github.com/s85960833-byte/NovaAI/actions/runs/42224917442), passed the verification job. Checks included:
+The application code snapshot is `344f46ad4b4b08fae035adf0a52a5049548cf58f`; the documentation-integrated branch head is `d3c2ad6a45b6442bfc71363e942b3269c6874200`. Its latest GitHub Actions run, [#896](https://github.com/s85960833-byte/NovaAI/actions/runs/42226220598), passed the verification job. Checks included:
 
 - Backend/frontend syntax and isolated mode registry.
 - 60-case AI evaluation fixture structure (not a live model accuracy score).
