@@ -13,6 +13,18 @@ const E = process.env;
 const BASE = E.LLM_BASE || 'https://openrouter.ai/api/v1';
 const app = express();
 app.set('trust proxy', 1); // Render sits behind one trusted proxy; use the real client IP for rate limits
+
+// Baseline browser security headers. Keep CSP separate until inline scripts/styles and
+// provider integrations have been migrated and tested; an incomplete CSP can break the app.
+app.use((q, r, next) => {
+  r.setHeader('X-Content-Type-Options', 'nosniff');
+  r.setHeader('X-Frame-Options', 'DENY');
+  r.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  r.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
+  // Render terminates TLS before forwarding to this service; send HSTS on every response.
+  r.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  next();
+});
 app.use(express.json({ limit: '6mb' }));
 
 // Bounded per-IP request windows; discard inactive keys to keep memory stable.
@@ -250,7 +262,7 @@ async function generateFreeImage(prompt, body) {
     method: 'POST', headers,
     body: JSON.stringify({
       prompt, params: { width: 512, height: 512, n: 1, steps: 20, cfg_scale: 7 },
-      nsfw: false, censor_nsfw: true, replacement_filter: true, r2: true, shared: true
+      nsfw: false, censor_nsfw: true, replacement_filter: true, r2: false, shared: true
     }),
     signal: AbortSignal.timeout(12000)
   });
@@ -274,17 +286,33 @@ async function generateFreeImage(prompt, body) {
   const result = await status.json().catch(() => ({}));
   const generated = result.generations && result.generations[0] && result.generations[0].img;
   if (!status.ok || !generated) throw new Error('Free community image result was empty');
-  if (/^data:image\//i.test(generated)) return { image: generated, provider: 'community-free' };
-  if (/^https?:\/\//i.test(generated)) {
-    const imageResponse = await fetch(generated, { signal: AbortSignal.timeout(15000) });
-    const type = String(imageResponse.headers.get('content-type') || 'image/webp').split(';')[0];
-    if (!imageResponse.ok || !/^image\//i.test(type)) throw new Error('Free community image download failed');
-    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-    if (imageBuffer.length > 1000) return { image: 'data:' + type + ';base64,' + imageBuffer.toString('base64'), provider: 'community-free' };
-  } else if (/^[A-Za-z0-9+/=]+$/.test(generated)) {
-    return { image: 'data:image/webp;base64,' + generated, provider: 'community-free' };
+  // AI Horde returns base64 WebP when R2 URL delivery is disabled. Never fetch
+  // worker-controlled URLs from the server: that would create an SSRF boundary.
+  const rawImage = String(generated);
+  let encoded = rawImage;
+  let declaredType = 'image/webp';
+  const dataMatch = rawImage.match(/^data:(image\/(?:webp|png|jpeg|gif));base64,([A-Za-z0-9+/]+={0,2})$/i);
+  if (dataMatch) {
+    declaredType = dataMatch[1].toLowerCase();
+    encoded = dataMatch[2];
   }
-  throw new Error('Free community image format was not supported');
+  const maxImageBytes = 8 * 1024 * 1024;
+  if (encoded.length > Math.ceil(maxImageBytes * 4 / 3) + 8 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded)) {
+    throw new Error('Free community image exceeded the supported size or format');
+  }
+  const imageBuffer = Buffer.from(encoded, 'base64');
+  if (imageBuffer.length < 1000 || imageBuffer.length > maxImageBytes) {
+    throw new Error('Free community image exceeded the supported size');
+  }
+  const isWebp = imageBuffer.length >= 12 && imageBuffer.toString('ascii', 0, 4) === 'RIFF' && imageBuffer.toString('ascii', 8, 12) === 'WEBP';
+  const isPng = imageBuffer.length >= 8 && imageBuffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+  const isJpeg = imageBuffer.length >= 3 && imageBuffer[0] === 0xff && imageBuffer[1] === 0xd8 && imageBuffer[2] === 0xff;
+  const isGif = imageBuffer.length >= 6 && ['GIF87a', 'GIF89a'].includes(imageBuffer.toString('ascii', 0, 6));
+  const detectedType = isWebp ? 'image/webp' : isPng ? 'image/png' : isJpeg ? 'image/jpeg' : isGif ? 'image/gif' : '';
+  if (!detectedType || (rawImage.startsWith('data:') && detectedType !== declaredType)) {
+    throw new Error('Free community image format was not supported');
+  }
+  return { image: 'data:' + detectedType + ';base64,' + imageBuffer.toString('base64'), provider: 'community-free' };
 }
 app.post('/api/image', (q, r) => {
   const body = q.body || {}, prompt = String(body.prompt || '').trim().slice(0, 1000);
