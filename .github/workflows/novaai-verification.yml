@@ -1,7 +1,7 @@
 name: NovaAI verification
 on:
   push:
-    branches: [main, feature/nova-business-intelligence, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101, feature-indian-future-ui]
+    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101, feature-indian-future-ui, feature-nova-next-ui-20261101, feature/nova-business-intelligence]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -57,6 +57,10 @@ jobs:
         run: node scripts/supabase-edge-smoke.mjs
       - name: Test NOVA Business Intelligence calculations and CSV validation
         run: node --test scripts/business-intelligence.test.cjs
+      - name: Validate 60-case AI evaluation fixture
+        run: node scripts/validate-ai-evaluation.mjs
+      - name: Audit production dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
       - name: Start local server with test-only credentials
         run: |
           LLM_KEY=test LLM_MODEL=test-model PORT=8787 node nova-server.txt > /tmp/novaai-test.log 2>&1 &
