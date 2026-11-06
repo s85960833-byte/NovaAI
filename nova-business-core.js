@@ -9,10 +9,15 @@
   const text=(v)=>String(v==null?'':v).trim();
   const number=(v)=>{
     if(typeof v==='number')return Number.isFinite(v)?v:null;
-    const s=text(v).replace(/[₹$€£]/g,'').replace(/^Rs\.?\s*/i,'').replace(/,/g,'');
+    const raw=text(v).replace(/^-?(?:₹|[$€£]|Rs\\.?)\\s*/i,'');
+    const sign=text(v).startsWith('-')?-1:1;
+    const s=raw;
     if(!s)return null;
-    if(!/^-?\d+(?:\.\d{1,4})?$/.test(s))return null;
-    const n=Number(s);return Number.isFinite(n)?n:null;
+    const plain=/^\\d+(?:\\.\\d{1,4})?$/.test(s);
+    const international=/^\\d{1,3}(?:,\\d{3})+(?:\\.\\d{1,4})?$/.test(s);
+    const indian=/^\\d{1,2}(?:,\\d{2})+,\\d{3}(?:\\.\\d{1,4})?$/.test(s);
+    if(!plain&&!international&&!indian)return null;
+    const n=sign*Number(s.replace(/,/g,''));return Number.isFinite(n)?n:null;
   };
   const date=(v)=>{
     const s=text(v);if(!/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?)?$/.test(s))return null;
