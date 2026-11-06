@@ -1,98 +1,168 @@
 # NOVA — Pitch Readiness Pack
 
-**Document status:** Internal working draft  
-**Product status:** Demo candidate; not yet approved as a public production release  
-**Reference build:** `pitch-readiness-20261106` — integrated Draft PR #66, combining the three-workspace UI with security hardening  
-**Production branch:** `main` — unchanged by this document  
+**Audit snapshot:** 6 November 2026, 18:38 IST  
+**Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
+**Integrated demo candidate:** `pitch-readiness-20261106` — Draft PR [#66](https://github.com/s85960833-byte/NovaAI/pull/66)  
+**Candidate commit:** `64e0ac4346bf51be96d5d5052c9f878b59027db5`  
+**Latest candidate CI:** [Run #888 — passed](https://github.com/s85960833-byte/NovaAI/actions/runs/42222609196)  
+**Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
-## 1. One-sentence pitch
+## 1. What NOVA is
 
-NOVA is an India-oriented, Hindi-and-English AI workspace that brings learning, building, and everyday AI assistance into one mobile-first experience.
+NOVA is an India-oriented, Hindi-English AI workspace intended to make study, digital creation, and everyday AI assistance easier to access from one mobile-first web app.
 
-## 2. The user problem
+Its intended navigation has three workspaces:
 
-People often switch between separate AI tools for studying, creating digital projects, asking questions, working with files, and using voice. NOVA's product direction is to make these workflows easier to discover from one interface, with clear separation between Learn, Build, and Agents.
+- **NOVA Learn:** study and learning workflows, including photo-based questions and learning modes.
+- **NOVA Build:** digital creation workflows, including Image Studio and builder-oriented tools.
+- **NOVA Agents:** general assistant, agent-oriented workflows, voice entry points, and saved history.
 
-Do not claim that this problem is solved for every user segment. Validate the message with actual demos and customer interviews.
+The current product message is a **product direction and prototype**, not a claim that every workflow is already live, reliable, or used by customers.
 
-## 3. Product story
+## 2. Pitch positioning
 
-- **NOVA Learn:** guided learning and study-oriented tools, including photo-based questions.
-- **NOVA Build:** a workspace for creating and working on digital projects, including the Image Studio.
-- **NOVA Agents:** the everyday assistant workspace, including voice interaction, agent tools, and saved history.
+**One-line pitch**
 
-The bilingual candidate labels the three workspaces in Hindi and English. Existing chat, settings, and mode-history storage is intended to remain backward-compatible.
+NOVA is a Hindi-English AI workspace for India that brings learning, digital creation, and everyday AI assistance together in one mobile-first experience.
 
-## 4. Demo sequence (about 5 minutes)
+**30-second Hindi pitch**
 
-1. Open the app on a phone-sized screen and show the three workspaces.
-2. Switch the interface language and show that the workspace labels remain understandable.
-3. Open Learn and demonstrate one study/photo-question workflow using a harmless sample question.
-4. Return home, open Build, and show the Image Studio entry point. If the free image provider is queued or unavailable, explain that provider availability can vary; do not fake a completed result.
-5. Open Agents, demonstrate a short chat, then show the voice entry point. Only claim live voice works after a real microphone/speaker test on the demo device.
-6. Show saved history and explain where the user's browser-local data is stored.
-7. Close by describing the next step as a guided pilot, not a fully scaled enterprise rollout.
+NOVA एक Hindi-English AI workspace है, जिसका उद्देश्य पढ़ाई, digital creation और रोज़मर्रा की AI सहायता को एक ही mobile-first अनुभव में व्यवस्थित करना है। इसमें तीन स्पष्ट हिस्से हैं — NOVA Learn, NOVA Build और NOVA Agents। हम भारत के users के लिए इसे सरल और bilingual बनाने पर काम कर रहे हैं। अभी हम शुरुआती demo partners से feedback लेना चाहते हैं, ताकि public launch से पहले वास्तविक उपयोग के आधार पर product को बेहतर बनाया जा सके।
 
-## 5. Claims that are safe to make
+**30-second English pitch**
 
-- NOVA is designed around three distinct workspaces: Learn, Build, and Agents.
-- The candidate UI provides Hindi/English labels.
-- The app is built as a mobile-first web application.
-- Existing AI workflows include chat and selected study, file, voice, image, and search capabilities, subject to the configured provider and browser.
-- The team is validating reliability and mobile behavior before public rollout.
+NOVA is a Hindi-English AI workspace designed to bring learning, digital creation, and everyday AI assistance into one mobile-first experience. It is organized into three clear areas: NOVA Learn, NOVA Build, and NOVA Agents. We are preparing an India-focused experience and are looking for early design partners to test real workflows and help us improve the product before a wider release.
 
-## 6. Claims that must NOT be made yet
+## 3. The problem and product hypothesis
 
-- Do not say that the integrated three-workspace candidate is live in Production. It remains on a feature branch in Draft PR #66.
-- Do not promise 100% uptime, zero errors, guaranteed answers, guaranteed image generation, or unlimited free usage.
-- Do not describe browser-local chat history as cloud-synced or account-backed.
-- Do not claim full account login/authentication for the general NOVA assistant.
-- Do not claim enterprise security certification, compliance, or audited production readiness.
-- Do not present NOVA Business Intelligence as a launched customer feature. Its separate PR #46 is a Draft and has real-account/email/retention/backup release gates.
-- Do not claim the AI always cites sources or never hallucinates; users should verify important answers.
-- Do not publish pricing, service limits, or provider guarantees until the owner has approved the exact commercial terms.
+People may need separate tools for study help, creating digital work, asking questions, handling files, and voice-based assistance. NOVA's hypothesis is that a clear bilingual workspace can make these workflows easier to discover and use.
 
-## 7. Known release gates
+This is a hypothesis to validate. Do not claim market demand, willingness to pay, user retention, customer traction, revenue, or product-market fit without independently collected evidence.
 
-| Area | Evidence available | Still required before a production pitch/demo promise |
+**Differentiation to test in conversations:** the combination of Hindi-English navigation, three task-specific workspaces, and a mobile-first experience. Do not claim that these features are unique in the market.
+
+## 4. What has been verified in the candidate
+
+Draft PR #66 combines the three-workspace interface and the security-hardening work that was previously split across PRs #64 and #65.
+
+The exact candidate commit `64e0ac4346bf51be96d5d5052c9f878b59027db5` has a successful [CI #888](https://github.com/s85960833-byte/NovaAI/actions/runs/42222609196). Its single verification job passed:
+
+- Backend and frontend syntax checks.
+- Mode registry checks.
+- Validation of the 60-case AI evaluation fixture. This validates the test fixture structure; it is **not** a live model accuracy score.
+- Production dependency vulnerability audit.
+- Local Express routes and PWA asset checks.
+- Local HTTP security-header assertions.
+- Chromium workspace interaction tests.
+- Responsive layout, drawer, Settings, and sidebar regression tests at 360, 390, 412, 760, and 1280 CSS-pixel widths.
+- Devanagari font installation and visual screenshot artifact upload.
+
+**The same CI run skipped** the live Render website/provider checks and the free-provider image-generation smoke test. No claim is made that those tests passed.
+
+## 5. Exact demo plan
+
+Use this sequence only on the exact candidate build after opening that build on the presentation device. The candidate is not currently the Production deployment; do not silently substitute the existing Production URL and describe it as the new three-workspace build.
+
+1. **Home — 45 seconds:** show Learn, Build, and Agents and explain the job of each.
+2. **Language — 30 seconds:** switch interface language and show the bilingual labels. Do not claim every provider response is translated.
+3. **Learn — 60 seconds:** try one harmless sample learning question. Use a working path only; do not use private student data.
+4. **Build — 60 seconds:** open the Image Studio / creation entry point. A queue, timeout, or provider limit must be described honestly; never fake a generated result.
+5. **Agents — 60 seconds:** ask one short general question. Show voice only after a real microphone and speaker check on that device.
+6. **Saved history and close — 45 seconds:** explain that the existing chat/settings history is browser-local, then ask for feedback.
+
+Keep a screenshot or screen-recording backup of the candidate. Clearly label screenshots as candidate/preview images, not proof of a live Production release.
+
+## 6. What is not yet cleared
+
+| Area | Verified evidence | Still not verified |
 |---|---|---|
-| Three-workspace UI | Integrated PR #66 CI run #880 passed workspace Chromium interaction checks and five-viewport layout/drawer/settings/sidebar regression checks; Noto Sans Devanagari was installed for visual review and screenshots were inspected | Physical Android visual/touch check and a release preview are still required |
-| Security headers and image input hardening | Integrated PR #66 CI run #880 passed static hardening assertions and local HTTP response-header checks | Deploy only after approval, then inspect live response headers and run a real free-provider image test |
-| AI chat/search/voice/image providers | Existing server routes and local smoke checks | Live provider smoke on the exact release; microphone/speaker/camera check on the actual phone |
-| Saved data | Existing local storage contract preserved by design | Verify old saved chats/settings on the actual device and explain browser-local storage clearly |
-| General NOVA authentication | Not established for the general assistant | Do not sell as account-based until implemented and tested |
-| NOVA Business Intelligence | Separate feature branch with automated DB/RLS and browser tests | Keep out of launch scope until real signup, email invitations, retention, backup/restore, monitoring and privacy review pass |
-| Production deployment | Current Production branch remains separate from candidate PRs | Explicit release approval, deploy, verify exact commit and run production smoke tests |
+| Candidate UI | CI Chromium interaction and five viewport widths passed | Physical Android touch, visual fit, keyboard, accessibility, reduced-motion and low-network behavior |
+| Backend and PWA | Local routes, PWA assets and syntax checks passed | Production Render logs, live health, current deployment SHA and production route checks |
+| AI providers | Static/local route checks and provider fallback code exist | Fresh live chat, search, voice transcription/speech and image-generation checks on the exact candidate |
+| Image security | Worker-controlled remote image URL fetching is disabled; decoded image payload size/type validation is bounded; local security-header checks passed | Live HTTPS response-header/HSTS verification and live free-provider image result |
+| Saved data | Existing `nova` / `nova_t` storage contract is preserved by design; new mode history is additive | Existing chats/settings must be checked on the actual presentation device |
+| General NOVA account | No general assistant account-backed login is established | Signup, sign-in, cross-device chat sync and account recovery are not launch claims |
+| NOVA Business Intelligence | Separate BI branch and Supabase controls have been audited | BI branch CI for its latest commit, real-account/email flows, privacy/retention, backup/restore and manual Android checks |
+| Production release | PR #66 is isolated from `main`; no merge or deployment was performed | Owner-approved merge/release, Render deploy, exact deployed commit and full production smoke test |
 
-## 8. Recommended first-pilot format
+## 7. Product and data boundaries
 
-- Start with a small, supervised demonstration using synthetic or non-sensitive sample prompts/files.
-- Ask participants to evaluate clarity, usefulness, response quality, and mobile usability.
-- Do not upload confidential company, student, employee, financial, or personal data.
-- Record issues and user feedback without collecting unnecessary personal information.
-- Avoid paid usage or provider commitments until costs and limits have been checked and approved.
+- Existing general NOVA chat/settings are browser-local. Clearing browser/site data can remove that local history. Do not say it is synced to a NOVA account.
+- AI provider availability, response quality, latency, and free-tier quotas can change. No perfect-answer or always-available promise is appropriate.
+- Use synthetic or non-sensitive sample prompts and files during early demos. Do not upload confidential company, employee, student, financial, or personal data.
+- Do not quote pricing, subscription entitlements, monthly limits, refunds, or provider guarantees until the actual cost and commercial terms are reviewed and approved.
+- Do not claim security certification, regulatory compliance, enterprise readiness, or zero errors.
+- No customer count, revenue, retention, or traction is currently evidenced in this audit.
 
-## 9. Questions to answer before taking payment or making a delivery promise
+## 8. NOVA Business Intelligence — separate and not part of this pitch demo
 
-1. Which exact features are included in the first offer?
-2. What usage limits and provider costs apply?
-3. What is the support and incident-response process?
-4. What data is stored locally versus sent to AI providers?
-5. What happens when a provider is down or rate-limited?
-6. What refund, cancellation, and privacy terms will apply?
+NOVA Business Intelligence remains a separate Draft PR [#46](https://github.com/s85960833-byte/NovaAI/pull/46) on `feature/nova-business-intelligence`; it is not integrated into PR #66 or the Production release.
 
-## 10. Release decision
+Latest checks on the approved Supabase project `qrfwsewppafhxibdboam` found:
 
-**Current decision: Not yet production-pitch-ready as a guaranteed, error-free customer product.**
+- Project state: `ACTIVE_HEALTHY`, PostgreSQL 17.
+- 12 migrations recorded.
+- 10 NOVA BI tables; RLS enabled on all 10.
+- `nova-bi-api` Edge Function is ACTIVE at version 13 with JWT verification enabled.
+- Supabase Security Advisor: 0 findings; Health Advisor: 0 findings.
+- Performance Advisor: 13 unused-index INFO notices. These are observations, not security findings; indexes were not removed without workload evidence.
+- Current live counts: 0 Auth users, 0 organizations, 0 memberships.
+- The invitation-acceptance permission gap was fixed with a narrow `UPDATE(status)` grant. SQL confirms authenticated users cannot update membership `role`, `organization_id`, or `user_id`.
+- The latest BI branch head `c64887340cebf4f0ca18d6f83ca300e2cd3d0c19` has no verified PR-triggered CI run in this audit; an older passing run does not verify this newer head.
+- PR #46 is still reported as non-mergeable. Its auth/email, two-real-account tenant isolation, SMTP delivery, retention, backup/restore, privacy, incident response, and manual device gates remain open.
 
-Draft PR #66 is the integrated release candidate. It combines the code from the separate security and workspace workstreams; #64 and #65 remain open Draft PRs and have not been merged. Integrated PR #66 CI run #880 passed syntax, mode registry, the 60-case evaluation fixture, production dependency audit, local routes/PWA and security-header checks, workspace Chromium interaction tests, and five-viewport layout/drawer/settings/sidebar checks. The first test attempts exposed test-harness issues (touch simulation in a non-touch context and a drawer left open after Settings); both were corrected. Visual artifact review also found missing Devanagari glyphs in the Linux runner; Noto Sans Devanagari fallback and CI font installation were added, and the subsequent screenshots rendered Hindi correctly. The legacy global New Chat, Image Studio, Live Voice and Explore shortcuts were removed from the new sidebar so the visible navigation is Home / Build / Learn / Agents. Production checks on the combined code, Render deployment, live provider checks, and physical Android testing are still outstanding. Use this pack only for an honest prototype/demo conversation until those gates are closed.
+BI capabilities such as profitability analysis, cost-leak review, productivity indicators, heuristic project risk, scenario modeling, workflow proposals, Action Proof, and workspace branding must be described as a separate development candidate only. The risk model is heuristic; the Digital Twin is assumption-based; workflow items are approval-gated proposals and do not execute external company actions. Do not present BI as launched, certified, or ready for production customers.
 
+## 9. Repository and branch history — what to use
 
-## 11. Internal history / branch audit
+- **PR #66:** use this as the one integrated three-workspace demo candidate. Keep it Draft until the manual and release gates are cleared.
+- **PR #64 and PR #65:** their security and workspace changes are incorporated into #66. Do not merge these older source PRs separately.
+- **PR #10 and PR #35:** older, diverged four-section UI branches. They are not the current three-workspace pitch candidate. Do not merge them into this release.
+- **PR #46:** separate NOVA Business Intelligence development branch. Keep out of the #66 pitch demo and out of Production.
+- **Production `main`:** remains separate from the candidate. No PR was merged and no Render deployment was triggered during this audit.
 
-- PR #64 (security) and PR #65 (three-workspace UI) each had their own successful isolated CI run. Their changes are combined in Draft PR #66; do not merge either older PR separately.
-- PR #66 is the integrated release candidate. Latest verified integrated CI run #880 passed. The preceding visual-artifact run #868 screenshots were inspected at 360, 390, 412, 760 and 1280 CSS-pixel widths. This is browser emulation, not a physical Android certification.
-- PR #10 and PR #35 are old, diverged four-workspace/mobile UI branches (112/57 and 164/57 ahead/behind respectively). Their older UI direction is superseded; do not merge them.
-- The red X icons in the supplied PR #46 video are historical commit-level CI results, not the final PR result. Earlier iterations had JavaScript syntax failures in the auth handler/browser test strings and later Company Cloud browser-test timeouts. The final email-reset precondition fix at commit `aa5066402b4e01ace6ef0d3e189b3dfa0327507a` was followed by a successful CI run (#845). The PR still cannot merge: it is 189 commits ahead and 18 behind `main`, with a merge conflict. The separate PR now has 195 commits ahead and remains merge-conflicted; a live invitation-acceptance database permission gap was fixed with a status-only grant and a matching migration/test was added, but the updated BI branch still needs a fresh CI run. Real signup/email/retention/backup/privacy gates remain open.
-- Production `main` remains unchanged. No PR was merged, no Render deployment was triggered, and no paid provider test was run.
+## 10. Questions to ask a prospective design partner
+
+1. Which workspace — Learn, Build, or Agents — is most useful to you?
+2. What task do you currently find slow, confusing, or fragmented?
+3. Would bilingual Hindi-English labels make the experience easier?
+4. Which exact action would you test more than once a week?
+5. What would need to work reliably before you would consider adopting it?
+
+**Recommended ask:** invite a small number of early design partners to try a supervised preview with non-sensitive sample data and give structured feedback. Do not ask them to pay for an unverified service or promise a delivery date.
+
+## 11. Common questions — safe answers
+
+**Is NOVA publicly launched?**  
+The integrated three-workspace experience is a Draft candidate. We are validating it before calling it a public production release.
+
+**Can you guarantee every AI answer or generation will work?**  
+No. Providers can be unavailable, slow, or rate-limited. We will report failures honestly and keep validating reliability.
+
+**Is chat history saved to an account?**  
+The current general NOVA chat/settings history is browser-local. Account-backed cross-device sync is not established.
+
+**Can a company upload confidential data?**  
+Not for this early preview. Use synthetic or non-sensitive data only.
+
+**Is Business Intelligence included?**  
+No. NOVA BI is a separate development candidate with its own release gates.
+
+**What does NOVA cost?**  
+Pricing and usage limits are not being promised until provider costs, support, privacy, billing, and refund terms have been reviewed.
+
+## 12. Final go / no-go
+
+6 November 2026 audit decision: **GO for an honest concept and early design-partner pitch. NO-GO for a guaranteed live-product demo, public onboarding, paid subscriptions, or a zero-error promise.**
+
+Before the new three-workspace build can be presented as a live demo, the remaining gates are:
+
+1. Confirm read-only Render service/deployment/log status and the exact Production commit.
+2. Obtain an approved release/preview path, then test the candidate on the actual Android phone.
+3. Verify existing saved chats/settings and each exact Learn / Build / Agents action on that phone.
+4. Run live, non-paid provider smoke tests and image generation on the approved deployment.
+5. Check real HTTPS security headers and run post-deploy regression tests.
+6. Keep general NOVA authentication and NOVA BI outside the offer unless their separate release requirements are completed.
+
+No tool can honestly guarantee that a future pitch/demo will encounter zero errors. The goal is to make the demonstrated scope small, tested, clearly labelled, and backed by a fallback recording.
