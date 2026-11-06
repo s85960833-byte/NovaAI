@@ -28,7 +28,7 @@ assert.ok(tier.includes('DESIGNED IN INDIA / भारत में निर्
 assert.ok(workspace.includes('openGroup(group)'));
 assert.ok(workspace.includes("learn:[['openPhoto','▧','Photo Questions / फोटो वाले सवाल']]")&&!workspace.includes("learn:[['openPhoto','▧','Photo Questions / फोटो वाले सवाल'],['openArchive'")&&workspace.includes("build:[['openImageStudio'")&&workspace.includes("agents:[['startVoice'")&&workspace.includes("['openArchive','◷','History Archive / इतिहास संग्रह']"),'photo must stay in Learn, image creation in Build, and voice/history tools in Agents');
 assert.ok(workspace.includes("querySelectorAll('[data-quick]')")&&workspace.includes('NovaWorkspaceActions?.[b.dataset.quick]'),'workspace quick actions must invoke real legacy handlers');
-assert.ok(workspace.includes("if(typeof fn==='function'){hide();fn()}"),'workspace overlay must close before opening legacy tool panels');
+assert.ok(workspace.includes("if(typeof fn==='function'){hide(false);fn()}"),'workspace overlay must close before opening legacy tool panels without stealing focus from the newly opened legacy tool');
 assert.ok(html.includes('window.NovaWorkspaceActions=Object.freeze({openPhoto,openArchive:openArch,startVoice:startLive,openAgentsSuite(){window.NovaSuite?.open()},openImageStudio()'),'legacy feature action bridge missing');
 assert.ok(html.includes('id="nPhoto" data-i="nPhoto" hidden')&&html.includes('id="nArch" data-i="nArch" hidden'),'learning-only legacy shortcuts must not remain in global sidebar');
 
