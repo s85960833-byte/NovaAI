@@ -85,7 +85,7 @@ Keep a screenshot or screen-recording backup of the candidate. Clearly label scr
 | Saved data | Existing `nova` / `nova_t` storage contract is preserved by design; new mode history is additive | Existing chats/settings must be checked on the actual presentation device |
 | General NOVA account | No general assistant account-backed login is established | Signup, sign-in, cross-device chat sync and account recovery are not launch claims |
 | NOVA Business Intelligence | Separate BI branch and Supabase controls have been audited | real-account/email flows, privacy/retention, backup/restore and manual Android checks |
-| Production release | PR #66 is isolated from `main`; no merge or deployment was performed | Owner-approved merge/release, Render deploy, exact deployed commit and full production smoke test |
+| Production release | PR #73 is isolated from `main`; no merge or deployment was performed | Owner-approved merge/release, Render deploy, exact deployed commit and full production smoke test |
 
 ## 7. Product and data boundaries
 
@@ -98,7 +98,7 @@ Keep a screenshot or screen-recording backup of the candidate. Clearly label scr
 
 ## 8. NOVA Business Intelligence — separate and not part of this pitch demo
 
-NOVA Business Intelligence remains a separate Draft PR [#46](https://github.com/s85960833-byte/NovaAI/pull/46) on `feature/nova-business-intelligence`; it is not integrated into PR #66 or the Production release.
+NOVA Business Intelligence is included in unified Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), alongside the three-workspace UI. It remains a feature candidate, not a launched service, and is not part of Production.
 
 Latest checks on the approved Supabase project `qrfwsewppafhxibdboam` found:
 
@@ -111,16 +111,16 @@ Latest checks on the approved Supabase project `qrfwsewppafhxibdboam` found:
 - Current live counts: 0 Auth users, 0 organizations, 0 memberships.
 - The invitation-acceptance permission gap was fixed with a narrow `UPDATE(status)` grant. SQL confirms authenticated users cannot update membership `role`, `organization_id`, or `user_id`.
 - The latest BI branch head `c64887340cebf4f0ca18d6f83ca300e2cd3d0c19` passed push-triggered [CI #887](https://github.com/s85960833-byte/NovaAI/actions/runs/42222549923), including PostgreSQL migration/RLS integration, Deno type-check, deployed Edge Function auth/CORS checks, calculations/CSV validation, and the Company Cloud mobile browser flow. The run skipped live Render/provider checks.
-- PR #46 remains non-mergeable and is 196 commits ahead / 18 behind the inspected `main` head. Its auth/email, two-real-account tenant isolation, SMTP delivery, retention, backup/restore, privacy, incident response, and manual device gates remain open.
+- Older PR #46 is a divergent legacy branch and must not be merged as a substitute. Unified PR #73 is the current integrated candidate. Its auth/email, two-real-account tenant isolation, SMTP delivery, retention, backup/restore, privacy, incident response, Preview and manual device gates remain open.
 
-BI capabilities such as profitability analysis, cost-leak review, productivity indicators, heuristic project risk, scenario modeling, workflow proposals, Action Proof, and workspace branding must be described as a separate development candidate only. The risk model is heuristic; the Digital Twin is assumption-based; workflow items are approval-gated proposals and do not execute external company actions. Do not present BI as launched, certified, or ready for production customers.
+BI capabilities such as profitability analysis, cost-leak review, productivity indicators, heuristic project risk, scenario modeling, workflow proposals, Action Proof, and workspace branding are included in the unified development candidate only; do not present them as launched or generally available. The risk model is heuristic; the Digital Twin is assumption-based; workflow items are approval-gated proposals and do not execute external company actions. Do not present BI as launched, certified, or ready for production customers.
 
 ## 9. Repository and branch history — what to use
 
 - **PR #66:** use this as the one integrated three-workspace demo candidate. Keep it Draft until the manual and release gates are cleared.
 - **PR #64 and PR #65:** their security and workspace changes are incorporated into #66. Do not merge these older source PRs separately.
 - **PR #10 and PR #35:** older, diverged four-section UI branches. They are not the current three-workspace pitch candidate. Do not merge them into this release.
-- **PR #46:** separate NOVA Business Intelligence development branch. Keep out of the #66 pitch demo and out of Production.
+- **PR #73:** unified NOVA UI + Business Intelligence candidate. Keep it clearly labelled as preview and out of Production until all gates pass.
 - **Production `main`:** remains separate from the candidate. No PR was merged and no Render deployment was triggered during this audit.
 
 ## 10. Questions to ask a prospective design partner
