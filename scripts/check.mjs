@@ -51,6 +51,8 @@ if (!html.includes('localStorage.getItem(\'nova\')') || !html.includes('localSto
 
 if (html.includes('CHAT · LEARN · MASTER') || html.includes('IMAGINE · DESIGN · CREATE') || html.includes('RESEARCH · DISCOVER · EXPLORE')) throw new Error('Old four-workspace visual shell remains');
 if (!html.includes('id="dset"')) throw new Error('Settings panel missing');
+if (html.includes('Nova AI has no server of its own') || html.includes('Nova AI का अपना कोई सर्वर नहीं है।')) throw new Error('Outdated privacy disclosure incorrectly says NOVA has no backend');
+if (!html.includes('backend hosted on Render') || !html.includes('account-based cloud chat sync')) throw new Error('NOVA backend and local-storage privacy disclosures are missing');
 if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'")) throw new Error('Existing optional feature asset routes missing');
