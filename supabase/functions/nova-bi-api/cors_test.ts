@@ -1,4 +1,4 @@
-import { configuredSiteOrigin, createCorsHeaders, isAllowedOrigin } from "./cors.ts";
+import { configuredSiteOrigin, createCorsHeaders, isAllowedOrigin, withSiteOrigin } from "./cors.ts";
 
 Deno.test("NOVA BI CORS allows only the configured exact origin", () => {
   const site = configuredSiteOrigin("https://nova.example.com/app");
@@ -29,4 +29,43 @@ Deno.test("NOVA BI CORS headers never use wildcard origins", () => {
   for (const required of ["GET", "POST", "DELETE", "OPTIONS"]) {
     if (!allowedMethods.includes(required)) throw new Error("Required browser request method is not allowed: " + required);
   }
+});
+
+
+Deno.test("NOVA BI handles preflight before authentication and never reflects an untrusted origin", async () => {
+  const site = "https://nova.example.com";
+  let handlerCalls = 0;
+  const wrapped = withSiteOrigin(async () => {
+    handlerCalls += 1;
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }, site);
+
+  const preflight = await wrapped(new Request(site + "/functions/v1/nova-bi-api/me", {
+    method: "OPTIONS",
+    headers: {
+      Origin: site,
+      "Access-Control-Request-Method": "POST",
+      "Access-Control-Request-Headers": "authorization, apikey, content-type",
+    },
+  }));
+  if (preflight.status !== 200) throw new Error("Allowed preflight must succeed before auth");
+  if (preflight.headers.get("Access-Control-Allow-Origin") !== site) throw new Error("Preflight must use the exact site origin");
+  if (handlerCalls !== 0) throw new Error("Preflight must not invoke the authenticated handler");
+
+  const denied = await wrapped(new Request(site + "/functions/v1/nova-bi-api/me", {
+    method: "OPTIONS",
+    headers: { Origin: "https://attacker.example", "Access-Control-Request-Method": "POST" },
+  }));
+  if (denied.status !== 403) throw new Error("Untrusted preflight origin must be rejected");
+  if (denied.headers.has("Access-Control-Allow-Origin")) throw new Error("Untrusted origin must not receive CORS permission");
+  if (handlerCalls !== 0) throw new Error("Untrusted preflight must not invoke the handler");
+
+  const response = await wrapped(new Request(site + "/functions/v1/nova-bi-api/me", {
+    headers: { Origin: site },
+  }));
+  if (response.status !== 200) throw new Error("Allowed request must reach the handler");
+  if (response.headers.get("Access-Control-Allow-Origin") !== site) throw new Error("Authenticated responses must use the exact site origin");
+  if (handlerCalls !== 1) throw new Error("Allowed non-preflight request should invoke the handler once");
 });
