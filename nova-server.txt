@@ -10,24 +10,39 @@
 const express = require('express');
 const path = require('path');
 const E = process.env;
-const BASE = E.LLM_BASE || 'https://openrouter.ai/api/v1';
+const { secureProviderBase } = require('./nova-provider-url');
+const BASE = secureProviderBase('LLM_BASE', E.LLM_BASE, 'https://openrouter.ai/api/v1');
 const app = express();
+app.disable('x-powered-by');
 app.set('trust proxy', 1); // Render sits behind one trusted proxy; use the real client IP for rate limits
-app.use(express.json({ limit: '6mb' }));
 
-// Bounded per-IP request windows; discard inactive keys to keep memory stable.
-function rateWindow(map, key, now, windowMs) {
-  const a = (map.get(key) || []).filter(t => now - t < windowMs);
-  if (map.size > 2000) for (const [k, v] of map) if (!v.some(t => now - t < windowMs)) map.delete(k);
-  map.set(key, a);
-  return a;
-}
+// Baseline browser security headers. The HTTP CSP header enforces the resource policy and frame
+// isolation; index.html repeats the resource policy as defense in depth. Executable script blocks
+// and inline HTML event-handler attributes are absent from the audited app surfaces, so script-src
+// does not need 'unsafe-inline'. Inline styles and broad HTTPS connect-src remain; this is not yet a
+// fully strict CSP.
+app.use((q, r, next) => {
+  r.setHeader('X-Content-Type-Options', 'nosniff');
+  r.setHeader('X-Frame-Options', 'DENY');
+  r.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  r.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
+  // Render terminates TLS before forwarding to this service; send HSTS on every response.
+  r.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  r.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
+  next();
+});
+// Bounded per-IP request windows run before body parsing so abusive API traffic
+// cannot repeatedly spend CPU/memory in JSON decoding before being throttled.
+const { rateWindow } = require('./nova-rate-limit');
 const hits = new Map();
 app.use('/api', (q, r, next) => {
   const now = Date.now(), a = rateWindow(hits, q.ip, now, 6e4);
+  if (!a) return r.status(503).json({ error: 'Rate limit capacity reached; retry shortly' });
   if (a.length >= 60) return r.status(429).json({ error: 'Too many requests' });
   a.push(now); hits.set(q.ip, a); next();
 });
+
+app.use(express.json({ limit: '6mb' }));
 
 app.get('/api/config', (q, r) => {
   if (!E.LLM_KEY && !E.GROQ_API_KEY && !E.OPENROUTER_API_KEY) return r.status(503).end();
@@ -44,7 +59,7 @@ app.post('/api/transcribe', express.raw({ type: () => true, limit: '8mb' }), asy
     const lang = String(q.query.lang || '').toLowerCase();
     const providers = [];
     if (E.LLM_KEY) providers.push({ base: BASE, key: E.LLM_KEY });
-    if (E.GROQ_API_KEY && E.GROQ_API_KEY !== E.LLM_KEY) providers.push({ base: E.GROQ_BASE || 'https://api.groq.com/openai/v1', key: E.GROQ_API_KEY });
+    if (E.GROQ_API_KEY && E.GROQ_API_KEY !== E.LLM_KEY) providers.push({ base: secureProviderBase('GROQ_BASE', E.GROQ_BASE, 'https://api.groq.com/openai/v1'), key: E.GROQ_API_KEY });
     if (!providers.length) return r.status(503).json({ error: 'No speech provider is configured' });
     let last = { status: 502, text: 'No speech provider succeeded' };
     for (const provider of providers) {
@@ -154,8 +169,8 @@ app.post('/api/chat/completions', async (q, r) => {
     const providers = [];
     if (E.LLM_KEY) providers.push({ base: BASE, key: E.LLM_KEY, models });
     // Optional free-tier OpenAI-compatible providers; secrets are read only from Render env vars.
-    if (E.GROQ_API_KEY) providers.push({ base: E.GROQ_BASE || 'https://api.groq.com/openai/v1', key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL || 'llama-3.3-70b-versatile'] });
-    if (E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: E.OPENROUTER_BASE || 'https://openrouter.ai/api/v1', key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'] });
+    if (E.GROQ_API_KEY) providers.push({ base: secureProviderBase('GROQ_BASE', E.GROQ_BASE, 'https://api.groq.com/openai/v1'), key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL || 'llama-3.3-70b-versatile'] });
+    if (E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: secureProviderBase('OPENROUTER_BASE', E.OPENROUTER_BASE, 'https://openrouter.ai/api/v1'), key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'] });
     let extra = vis ? { reasoning_format: 'hidden' } : {};   // keep the model's private thinking out of the answer
     let good = null, first = null, last = 0;
     for (const provider of providers) {
@@ -208,10 +223,12 @@ function pruneImageJobs() {
   }
 }
 async function generateFreeImage(prompt, body) {
+  // The live free-provider smoke test sets freeOnly=true so it can never consume paid image credits.
+  const freeOnly = body.freeOnly === true;
   // Existing optional paid provider is disabled unless explicitly opted in by the service owner.
-  if (E.ALLOW_PAID_IMAGE === 'true' && E.IMAGE_KEY && E.IMAGE_MODEL) {
+  if (!freeOnly && E.ALLOW_PAID_IMAGE === 'true' && E.IMAGE_KEY && E.IMAGE_MODEL) {
     try {
-      const u = await fetch((E.IMAGE_BASE || 'https://api.openai.com/v1').replace(/\/$/, '') + '/images/generations', {
+      const u = await fetch(secureProviderBase('IMAGE_BASE', E.IMAGE_BASE, 'https://api.openai.com/v1') + '/images/generations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.IMAGE_KEY },
         body: JSON.stringify({ model: E.IMAGE_MODEL, prompt, size: '1024x1024', response_format: 'b64_json' }),
@@ -226,7 +243,7 @@ async function generateFreeImage(prompt, body) {
   const w = Math.min(1024, Number(body.width) || 768), h = Math.min(1024, Number(body.height) || 768);
   const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
   const qs = 'width=' + w + '&height=' + h + '&seed=' + seed + '&nologo=true&safe=true&enhance=false' + (E.POLLI_KEY ? '&key=' + encodeURIComponent(E.POLLI_KEY) : '');
-  const tries = E.POLLI_KEY
+  const tries = freeOnly ? [] : E.POLLI_KEY
     ? [['https://gen.pollinations.ai/image/', 'flux'], ['https://image.pollinations.ai/prompt/', 'flux']]
     : [['https://image.pollinations.ai/prompt/', 'flux']];
   for (const [host, model] of tries) {
@@ -244,13 +261,13 @@ async function generateFreeImage(prompt, body) {
   }
   // Free community queue. Anonymous requests have the lowest priority and may take several minutes.
   if (!E.HORDE_API_KEY) throw new Error('No free image provider is currently configured');
-  const base = (E.HORDE_BASE || 'https://aihorde.net/api/v2').replace(/\/$/, '');
+  const base = secureProviderBase('HORDE_BASE', E.HORDE_BASE, 'https://aihorde.net/api/v2');
   const headers = { 'Content-Type': 'application/json', apikey: E.HORDE_API_KEY, 'Client-Agent': 'NovaAI:1.0:https://novaai-4auo.onrender.com' };
   const submit = await fetch(base + '/generate/async', {
     method: 'POST', headers,
     body: JSON.stringify({
       prompt, params: { width: 512, height: 512, n: 1, steps: 20, cfg_scale: 7 },
-      nsfw: false, censor_nsfw: true, replacement_filter: true, r2: true, shared: true
+      nsfw: false, censor_nsfw: true, replacement_filter: true, r2: false, shared: true
     }),
     signal: AbortSignal.timeout(12000)
   });
@@ -274,17 +291,33 @@ async function generateFreeImage(prompt, body) {
   const result = await status.json().catch(() => ({}));
   const generated = result.generations && result.generations[0] && result.generations[0].img;
   if (!status.ok || !generated) throw new Error('Free community image result was empty');
-  if (/^data:image\//i.test(generated)) return { image: generated, provider: 'community-free' };
-  if (/^https?:\/\//i.test(generated)) {
-    const imageResponse = await fetch(generated, { signal: AbortSignal.timeout(15000) });
-    const type = String(imageResponse.headers.get('content-type') || 'image/webp').split(';')[0];
-    if (!imageResponse.ok || !/^image\//i.test(type)) throw new Error('Free community image download failed');
-    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-    if (imageBuffer.length > 1000) return { image: 'data:' + type + ';base64,' + imageBuffer.toString('base64'), provider: 'community-free' };
-  } else if (/^[A-Za-z0-9+/=]+$/.test(generated)) {
-    return { image: 'data:image/webp;base64,' + generated, provider: 'community-free' };
+  // AI Horde returns base64 WebP when R2 URL delivery is disabled. Never fetch
+  // worker-controlled URLs from the server: that would create an SSRF boundary.
+  const rawImage = String(generated);
+  let encoded = rawImage;
+  let declaredType = 'image/webp';
+  const dataMatch = rawImage.match(/^data:(image\/(?:webp|png|jpeg|gif));base64,([A-Za-z0-9+/]+={0,2})$/i);
+  if (dataMatch) {
+    declaredType = dataMatch[1].toLowerCase();
+    encoded = dataMatch[2];
   }
-  throw new Error('Free community image format was not supported');
+  const maxImageBytes = 8 * 1024 * 1024;
+  if (encoded.length > Math.ceil(maxImageBytes * 4 / 3) + 8 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded)) {
+    throw new Error('Free community image exceeded the supported size or format');
+  }
+  const imageBuffer = Buffer.from(encoded, 'base64');
+  if (imageBuffer.length < 1000 || imageBuffer.length > maxImageBytes) {
+    throw new Error('Free community image exceeded the supported size');
+  }
+  const isWebp = imageBuffer.length >= 12 && imageBuffer.toString('ascii', 0, 4) === 'RIFF' && imageBuffer.toString('ascii', 8, 12) === 'WEBP';
+  const isPng = imageBuffer.length >= 8 && imageBuffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+  const isJpeg = imageBuffer.length >= 3 && imageBuffer[0] === 0xff && imageBuffer[1] === 0xd8 && imageBuffer[2] === 0xff;
+  const isGif = imageBuffer.length >= 6 && ['GIF87a', 'GIF89a'].includes(imageBuffer.toString('ascii', 0, 6));
+  const detectedType = isWebp ? 'image/webp' : isPng ? 'image/png' : isJpeg ? 'image/jpeg' : isGif ? 'image/gif' : '';
+  if (!detectedType || (rawImage.startsWith('data:') && detectedType !== declaredType)) {
+    throw new Error('Free community image format was not supported');
+  }
+  return { image: 'data:' + detectedType + ';base64,' + imageBuffer.toString('base64'), provider: 'community-free' };
 }
 app.post('/api/image', (q, r) => {
   const body = q.body || {}, prompt = String(body.prompt || '').trim().slice(0, 1000);
@@ -293,6 +326,7 @@ app.post('/api/image', (q, r) => {
   if (unsafeImagePrompt.test(prompt)) return r.status(400).json({ error: 'This image prompt is not supported. Choose a safe, non-graphic subject.' });
   if (E.IMAGE_OFF) return r.status(404).end();
   const now = Date.now(), a = rateWindow(imageJobHits, q.ip, now, 10 * 60 * 1000);
+  if (!a) return r.status(503).json({ error: 'Image rate-limit capacity reached; retry shortly' });
   if (a.length >= 3) return r.status(429).json({ error: 'Image generation limit reached. Please try again later.' });
   a.push(now); imageJobHits.set(q.ip, a);
   pruneImageJobs();
@@ -333,11 +367,17 @@ app.get('/icons/nova-emblem.svg', (q, r) => r.set('Cache-Control','public, max-a
 app.get(['/icons/icon-192.png', '/icons/icon-512.png'], (q, r) => r.set('Content-Type', 'image/png').send(ICONS[q.path.includes('512') ? 512 : 192]));
 app.get('/mode-registry.js', (q, r) => r.type('application/javascript').sendFile(path.join(__dirname, 'mode-registry.js')));
 app.get('/mode-workspace.js', (q, r) => r.type('application/javascript').sendFile(path.join(__dirname, 'mode-workspace.js')));
-app.get('/sw.js', (q, r) => r.set('Content-Type', 'application/javascript').send("const CACHE='nova-shell-v15-indian-future-ui';const CORE=['/','/mode-registry.js','/mode-workspace.js','/s-tier.js','/nova-suite.js','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png','/icons/nova-emblem.svg'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(k=>k.startsWith('nova-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==location.origin||u.pathname.startsWith('/api/'))return;e.respondWith(fetch(e.request).then(r=>{if(r.ok&&r.type==='basic'){const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match(e.request).then(hit=>hit||caches.match('/'))))});"));
-app.get('/health', (q, r) => r.status(200).json({ status: 'ok', ready: true, service: 'nova-ai', timestamp: new Date().toISOString() }));
+app.get('/sw.js', (q, r) => r.set('Content-Type', 'application/javascript').send("const CACHE='nova-shell-v17-csp-scripts';const CORE=['/','/nova-config.js','/nova-app.js','/mode-registry.js','/mode-workspace.js','/s-tier.js','/nova-suite.js','/nova-reference.js','/nova-business-core.js','/nova-business.js','/nova-business-cloud.js','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png','/icons/nova-emblem.svg'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(k=>k.startsWith('nova-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==location.origin||u.pathname.startsWith('/api/'))return;e.respondWith(fetch(e.request).then(r=>{if(r.ok&&r.type==='basic'){const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match(e.request).then(hit=>hit||caches.match('/'))))});"));
+let shuttingDown = false;
+app.get('/health', (q, r) => r.status(shuttingDown ? 503 : 200).json({ status: shuttingDown ? 'shutting_down' : 'ok', ready: !shuttingDown, service: 'nova-ai', timestamp: new Date().toISOString() }));
 app.get('/s-tier.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 's-tier.js')));
 app.get('/nova-suite.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-suite.js')));
+app.get('/nova-config.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-config.js')));
+app.get('/nova-app.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-app.js')));
 app.get('/nova-reference.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-reference.js')));
+app.get('/nova-business-core.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business-core.js')));
+app.get('/nova-business.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business.js')));
+app.get('/nova-business-cloud.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business-cloud.js')));
 app.get('/', (q, r) => r.set('Cache-Control', 'no-store, no-cache, must-revalidate').sendFile(path.join(__dirname, 'index.html')));
 // ===================== LIVE INTELLIGENCE (keyless connectors + optional keys) =====================
 // Every connector returns normalized sources: { title, url, publisher, date, kind, connector, snippet, eventDate? }
@@ -984,6 +1024,7 @@ app.post('/api/live', async (q, r) => {
   const b = q.body || {}, text = String(b.q || '').trim().slice(0, 500);
   if (!text) return r.status(400).json({ ok: false, error: 'No question' });
   const nw = Date.now(), a = rateWindow(liveHits, q.ip, nw, 6e4);
+  if (!a) return r.status(503).json({ ok: false, error: 'Live-search rate-limit capacity reached; retry shortly.' });
   if (a.length >= 24) return r.status(429).json({ ok: false, error: 'Too many live searches. Please wait a minute.' });
   if (liveActive >= LIVE_MAX) return r.status(429).json({ ok: false, error: 'Live search is busy. Try again in a few seconds.' });
   a.push(nw); liveHits.set(q.ip, a); liveActive++;
@@ -993,7 +1034,11 @@ app.post('/api/live', async (q, r) => {
 });
 const stHits = new Map();
 app.get('/api/live/selftest', async (q, r) => {
+  // This diagnostic fans out to many external providers. Keep it disabled on
+  // public deployments unless an operator explicitly enables it for a check.
+  if (E.LIVE_SELFTEST_ENABLED !== '1') return r.status(404).end();
   const nw = Date.now(), a = rateWindow(stHits, q.ip, nw, 6e4);
+  if (!a) return r.status(503).json({ error: 'Provider self-test capacity reached; retry shortly' });
   if (a.length >= 4) return r.status(429).json({ error: 'Please wait a minute before testing again.' });
   a.push(nw); stHits.set(q.ip, a);
   const y = new Date(nw - 864e5), probes = [
@@ -1035,8 +1080,46 @@ app.get('/api/feed', async (q, r) => {
 setTimeout(() => { CATS.slice(0, 2).forEach(c => cached('fc:' + c, 8 * 6e4, () => feedCat(c, 6)).catch(() => {})); }, 6000).unref();
 setInterval(() => { ['world', 'india'].forEach(c => cached('fc:' + c, 0, () => feedCat(c, 6)).catch(() => {})); }, 10 * 6e4).unref();
 
+// Normalize JSON parser failures for API clients instead of leaking Express HTML errors.
+app.use((err, q, r, next) => {
+  if (r.headersSent) return next(err);
+  if (String(q.path || '').startsWith('/api/')) {
+    const status = err && err.type === 'entity.too.large' ? 413
+      : err && err.type === 'entity.parse.failed' ? 400 : 500;
+    const message = status === 413 ? 'Request body is too large'
+      : status === 400 ? 'Request body must be valid JSON' : 'Request could not be processed';
+    return r.status(status).json({ error: message });
+  }
+  return next(err);
+});
+
 const PORT = Number(E.PORT) || 3000;
-app.listen(PORT, () => console.log('Nova AI running on port ' + PORT));
+const server = app.listen(PORT, () => console.log('Nova AI running on port ' + PORT));
+let shutdownStarted = false;
+function gracefulShutdown(signal) {
+  if (shutdownStarted) return;
+  shutdownStarted = true;
+  shuttingDown = true;
+  console.log('NOVA graceful shutdown requested: ' + signal);
+  const forceTimer = setTimeout(() => {
+    console.error('NOVA graceful shutdown timed out; closing remaining connections');
+    server.closeAllConnections?.();
+    process.exit(1);
+  }, 25000);
+  forceTimer.unref();
+  server.close(error => {
+    clearTimeout(forceTimer);
+    if (error) {
+      console.error('NOVA graceful shutdown error: ' + error.message);
+      process.exitCode = 1;
+      return;
+    }
+    console.log('NOVA graceful shutdown complete');
+  });
+  server.closeIdleConnections?.();
+}
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 console.log('NovaAI startup audit flag: ' + (E.SELFTEST_ON_START === '1' ? 'enabled' : 'disabled'));
 
 // Optional one-time live verification, enabled only temporarily through Render env.
@@ -1068,9 +1151,13 @@ if (E.SELFTEST_ON_START === '1') {
       await probe('PWA icon', '/icons/icon-192.png', {}, r => r.ok && (r.headers.get('content-type') || '').includes('image/png'));
       await probe('service worker', '/sw.js', {}, r => r.ok);
       await probe('news feed', '/api/feed?cat=all&lang=en', {}, (r, j) => r.ok && Object.keys(j.cats || {}).length > 0);
-      const self = await probe('provider self-test endpoint', '/api/live/selftest', { timeout: 120000 }, (r, j) => r.ok && Array.isArray(j.results));
-      console.log('NOVA_SELFTEST_PROVIDERS ' + JSON.stringify(self && self.data && self.data.results || []));
-      if (self && self.data.results) self.data.results.forEach(x => results.push({ name: 'provider: ' + x.name, ok: !!x.ok, status: x.status || null, ms: x.ms, provider: x.provider || '', note: x.note || '' }));
+      if (E.LIVE_SELFTEST_ENABLED === '1') {
+        const self = await probe('provider self-test endpoint', '/api/live/selftest', { timeout: 120000 }, (r, j) => r.ok && Array.isArray(j.results));
+        console.log('NOVA_SELFTEST_PROVIDERS ' + JSON.stringify(self && self.data && self.data.results || []));
+        if (self && self.data.results) self.data.results.forEach(x => results.push({ name: 'provider: ' + x.name, ok: !!x.ok, status: x.status || null, ms: x.ms, provider: x.provider || '', note: x.note || '' }));
+      } else {
+        results.push({ name: 'provider self-test endpoint', ok: true, status: 404, note: 'Disabled by default; set LIVE_SELFTEST_ENABLED=1 for an operator-authorized check.' });
+      }
       await probe('live retrieval', '/api/live', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: 'Latest NASA news', mode: 'always', lang: 'en', tz: 'Asia/Kolkata' }), timeout: 60000 }, (r, j) => r.ok && j.ok && !!j.context);
       await probe('AI chat', '/api/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: (config && config.data.model) || E.LLM_MODEL, stream: false, max_tokens: 16, messages: [{ role: 'user', content: 'Reply exactly NOVAAI_OK.' }] }), timeout: 60000 }, (r, j) => r.ok && !!(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content));
       if (config && config.data.providers && config.data.providers.tavily) {

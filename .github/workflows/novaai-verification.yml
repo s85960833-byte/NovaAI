@@ -1,25 +1,75 @@
 name: NovaAI verification
+permissions:
+  contents: read
 on:
   push:
-    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101, feature-indian-future-ui, feature-nova-next-ui-20261101]
+    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101, feature-indian-future-ui, feature-nova-next-ui-20261101, feature/nova-business-intelligence, feature/nova-bi-reconciled-20261106, feature/nova-integrated-release-20261106]
   pull_request:
     branches: [main]
   workflow_dispatch:
+concurrency:
+  group: novaai-verification-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nova_bi_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d nova_bi_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Install runtime dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Check backend and frontend syntax
         run: node scripts/check.mjs
+      - name: Test Markdown link escaping against attribute injection
+        run: node --test scripts/security-markdown.test.cjs
       - name: Check isolated mode registry
         run: node scripts/modes-check.mjs
+      - name: Test bounded per-IP rate window
+        run: node --test scripts/rate-limit.test.cjs
+      - name: Test HTTPS-only secret-bearing provider endpoints
+        run: node --test scripts/provider-url.test.cjs
+      - name: Test PDF.js untrusted-document eval mitigation
+        run: node --test scripts/pdf-security.test.cjs
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Apply NOVA BI migrations and verify tenant RLS in PostgreSQL
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: nova_bi_test
+        run: bash scripts/test-supabase-migrations.sh
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Install authenticated NOVA BI Edge Function dependencies
+        run: deno install --config supabase/functions/nova-bi-api/deno.json
+      - name: Type-check authenticated NOVA BI Edge Function
+        run: deno check --config supabase/functions/nova-bi-api/deno.json --no-lock supabase/functions/nova-bi-api/index.ts
+      - name: Test existing-account company invitation lookup
+        run: deno test --config supabase/functions/nova-bi-api/deno.json supabase/functions/nova-bi-api/invitations_test.ts supabase/functions/nova-bi-api/cors_test.ts
+      - name: Smoke-test deployed NOVA BI Edge Function auth and CORS
+        if: github.ref == 'refs/heads/main'
+        run: node scripts/supabase-edge-smoke.mjs
+      - name: Test NOVA Business Intelligence calculations and CSV validation
+        run: node --test scripts/business-intelligence.test.cjs
       - name: Validate 60-case AI evaluation fixture
         run: node scripts/validate-ai-evaluation.mjs
       - name: Audit production dependency vulnerabilities
@@ -29,7 +79,37 @@ jobs:
           LLM_KEY=test LLM_MODEL=test-model PORT=8787 node nova-server.txt > /tmp/novaai-test.log 2>&1 &
           echo $! > /tmp/novaai-test.pid
       - name: Exercise local routes and PWA assets
-        run: node scripts/runtime-smoke.mjs
+        run: |
+          node scripts/runtime-smoke.mjs || { echo '--- NOVA server startup log ---'; cat /tmp/novaai-test.log; exit 1; }
+      - name: Verify graceful server shutdown
+        run: node scripts/shutdown-smoke.mjs
+      - name: Install Devanagari fonts for visual regression screenshots
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-core
+          fc-match 'Noto Sans Devanagari' | grep -q 'Noto Sans Devanagari'
+      - name: Install Playwright Chromium for Company Cloud browser tests
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify responsive workspace interactions and PDF.js worker in Chromium
+        run: node scripts/browser-smoke.mjs
+      - name: Test Company Cloud mobile browser workflows
+        timeout-minutes: 6
+        run: node scripts/company-cloud-browser.mjs
+      - name: Run five-viewport mobile and drawer regression tests
+        run: npm run test:mobile-layout
+      - name: Upload integrated browser screenshots and reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nova-integrated-browser-verification
+          path: |
+            artifacts/
+            playwright-report/
+            test-results/
+            package-lock.json
+          if-no-files-found: ignore
       - name: Wait for the merged bilingual revision to become live on Render
         if: github.ref == 'refs/heads/main'
         env:
@@ -40,3 +120,8 @@ jobs:
         env:
           NOVAAI_URL: https://novaai-4auo.onrender.com
         run: node scripts/smoke.mjs
+      - name: Smoke-test live free image generation without paid AI credits
+        if: github.ref == 'refs/heads/main'
+        env:
+          NOVAAI_URL: https://novaai-4auo.onrender.com
+        run: node scripts/smoke-free-image.mjs
