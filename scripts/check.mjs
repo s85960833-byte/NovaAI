@@ -15,6 +15,10 @@ function syntaxCheck(name, source) {
 const server = readFileSync('nova-server.txt', 'utf8');
 const html = readFileSync('index.html', 'utf8');
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+const gitignore = readFileSync('.gitignore', 'utf8');
+for (const pattern of ['.env', '.env.*', '*.pem', '*.key', '*.p12', '*.pfx', 'service-account*.json', 'credentials*.json', 'node_modules/']) {
+  if (!gitignore.split(/\r?\n/).includes(pattern)) throw new Error('Local secrets and generated files must be ignored: ' + pattern);
+}
 const verificationWorkflow = readFileSync('.github/workflows/novaai-verification.yml', 'utf8');
 if (!/^permissions:\n  contents: read$/m.test(verificationWorkflow)) throw new Error('Verification workflow must use least-privilege read-only repository permissions');
 const supabaseDeno = JSON.parse(readFileSync('supabase/functions/nova-bi-api/deno.json', 'utf8'));
