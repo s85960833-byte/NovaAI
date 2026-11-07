@@ -33,13 +33,13 @@ try{
  await desktop.reload({waitUntil:'domcontentloaded'});
  const migrated=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg?.key||'');
  assert.equal(migrated,'','legacy BYOK key must be removed from localStorage during migration');
- await desktop.evaluate(()=>document.querySelector('#dcfg').showModal());
+ await desktop.evaluate(()=>document.querySelector('#cfg').onclick());
  assert.equal(await desktop.locator('#key').inputValue(),'legacy-test-key','legacy key should remain usable in the active tab after migration');
  await desktop.locator('#csave').click();
  const savedKey=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg?.key||'');
  assert.equal(savedKey,'','saving provider settings must not persist the API key');
  await desktop.reload({waitUntil:'domcontentloaded'});
- await desktop.evaluate(()=>document.querySelector('#dcfg').showModal());
+ await desktop.evaluate(()=>document.querySelector('#cfg').onclick());
  assert.equal(await desktop.locator('#key').inputValue(),'','BYOK key must not survive a page reload');
  console.log('PASS BYOK legacy-key migration, active-tab use and non-persistent key storage');
 
