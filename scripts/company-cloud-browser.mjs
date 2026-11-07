@@ -207,34 +207,30 @@ await page.locator('#file').setInputFiles({
   mimeType: 'application/pdf',
   buffer: makePdfFixture()
 });
-try {
-  await page.waitForFunction(() => {
-    try {
-      const state = JSON.parse(localStorage.getItem('nova') || '{}');
-      return (state.chats || []).some(chat => chat.doc?.t?.includes('NOVA PDF SECURITY TEST'));
-    } catch { return false; }
-  }, null, { timeout: 30000 });
-} catch (error) {
-  const diagnostic = await page.evaluate(() => {
-    let savedText = '';
-    try {
-      const state = JSON.parse(localStorage.getItem('nova') || '{}');
-      savedText = (state.chats || []).map(chat => chat.doc?.t || '').join(' ').slice(0, 180);
-    } catch {}
-    const docbar = document.querySelector('#docbar');
-    const toast = document.querySelector('#toast');
-    return {
-      pdfModuleLoaded: !!window.pdfjsLib,
-      docbarHidden: !!docbar?.hidden,
-      docbarText: docbar?.textContent || '',
-      toastHidden: !!toast?.hidden,
-      toastText: toast?.textContent || '',
-      savedText
-    };
-  });
-  progress('PDF upload diagnostic ' + JSON.stringify(diagnostic));
-  throw error;
-}
+await page.waitForFunction(() => {
+  const docbar = document.querySelector('#docbar');
+  const toast = document.querySelector('#toast');
+  return (!!docbar && !docbar.hidden) || (!!toast && !toast.hidden);
+}, null, { timeout: 30000 });
+const pdfDiagnostic = await page.evaluate(() => {
+  let savedText = '';
+  try {
+    const state = JSON.parse(localStorage.getItem('nova') || '{}');
+    savedText = (state.chats || []).map(chat => chat.doc?.t || '').join(' ').slice(0, 180);
+  } catch {}
+  const docbar = document.querySelector('#docbar');
+  const toast = document.querySelector('#toast');
+  return {
+    pdfModuleLoaded: !!window.pdfjsLib,
+    docbarHidden: !!docbar?.hidden,
+    docbarText: docbar?.textContent || '',
+    toastHidden: !!toast?.hidden,
+    toastText: toast?.textContent || '',
+    savedText
+  };
+});
+progress('PDF upload result ' + JSON.stringify(pdfDiagnostic));
+assert.ok(!pdfDiagnostic.docbarHidden && pdfDiagnostic.savedText.includes('NOVA PDF SECURITY TEST'), 'PDF text extraction failed: ' + pdfDiagnostic.toastText);
 progress('patched PDF.js module and worker extracted sample text');
 progress('before bootstrap inspection');
 const bootstrap = await inspectPage('NOVA bootstrap inspection', () => ({ ready: document.readyState, hasHome: !!document.querySelector('#hi'), logHtml: document.querySelector('#log')?.innerHTML.slice(0,160) || '', registryGroups: window.NovaModeRegistry?.groups?.length || 0, workspaceApi: typeof window.NovaModeWorkspace }));
