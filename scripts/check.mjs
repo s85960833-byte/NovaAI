@@ -101,7 +101,5 @@ if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
 if (!appScript.includes('async function pollImageJob(') || !appScript.includes("API+'/image/status/'") || !appScript.includes('pollImageJob(j.jobId,sig)') || !appScript.includes("sig.addEventListener('abort',abort,{once:true})") || !appScript.includes("e1?.status===429")) throw new Error('Image studio must abort polling promptly and must not bypass server image rate limits');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'")) throw new Error('Existing optional feature asset routes missing');
-const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(x => x.trim());
-if (!scripts.length) throw new Error('No inline frontend JavaScript found');
-scripts.forEach((source, i) => syntaxCheck('frontend-' + (i + 1), source));
+// Frontend entry points are external files and are syntax-checked above.
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
