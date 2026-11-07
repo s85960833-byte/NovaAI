@@ -133,15 +133,13 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       const input = await body();
       const name = typeof input.name === "string" ? input.name.trim() : "";
       if (name.length < 2 || name.length > 160) return fail("Organization name must be 2 to 160 characters");
-      // Organization creation is intentionally centralized in a SECURITY DEFINER RPC:
-      // authenticated clients have no direct INSERT grant/policy on the tenant root table.
-      const { data: organizationId, error } = await db.rpc("nova_bi_create_organization", { p_name: name });
+      // The tenant migration grants INSERT only when created_by matches auth.uid().
+      // A database trigger atomically creates the owner's membership and audit event.
+      const { data: organization, error } = await db.from("nova_bi_organizations")
+        .insert({ name, created_by: userId })
+        .select("id,name,created_at").single();
       if (error) throw error;
-      if (!uuid(organizationId)) throw new Error("Organization creation returned an invalid identifier");
-      const { data: organization, error: readError } = await db.from("nova_bi_organizations")
-        .select("id,name,created_at").eq("id", organizationId).single();
-      if (readError) throw readError;
-      return json({ organization_id: organizationId, organization }, 201);
+      return json({ organization_id: organization.id, organization }, 201);
     }
 
     if (req.method === "GET" && path === "invitations") {
