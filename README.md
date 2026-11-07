@@ -25,7 +25,7 @@ The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab2
 
 ## Verification — integrated candidate
 
-The unified candidate is maintained in Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73). Candidate head `5b193cb276297ffbfcfea410d217603909b9fe3b` passed GitHub Actions run [#1175](https://github.com/s85960833-byte/NovaAI/actions/runs/42342022799). Its verification job passed syntax, mode registry, rate-limit unit tests, PostgreSQL migration/RLS integration, Deno Edge Function type-check and invitation tests, auth/CORS smoke, BI calculations/CSV validation, 60-case fixture validation (fixture structure only, not a live AI accuracy score), dependency audit, local routes/PWA runtime smoke, Company Cloud browser workflows, Chromium workspace interactions, five-viewport mobile/drawer regression tests and artifact upload. Live Render/provider/image steps were skipped by design because no preview deployment was authorized. Runtime smoke tests verify throttling before JSON parsing, JSON 400/413 handling, and that the provider fan-out diagnostic endpoint is disabled by default. A reproducible `npm ci` lockfile is included. The workflow included:
+The unified candidate is maintained in Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73). Candidate head `44189761b4927283fce4b8ecd55af274ce3270f6` passed GitHub Actions run [#1187](https://github.com/s85960833-byte/NovaAI/actions/runs/42342592027). Its verification job passed syntax, mode registry, rate-limit unit tests, PostgreSQL migration/RLS integration, Deno Edge Function type-check and invitation tests, auth/CORS smoke, BI calculations/CSV validation, 60-case fixture validation (fixture structure only, not a live AI accuracy score), dependency audit, local routes/PWA runtime smoke, Company Cloud browser workflows, Chromium workspace interactions, five-viewport mobile/drawer regression tests and artifact upload. Live Render/provider/image steps were skipped by design because no preview deployment was authorized. Runtime smoke tests verify throttling before JSON parsing, JSON 400/413 handling, and that the provider fan-out diagnostic endpoint is disabled by default. A reproducible `npm ci` lockfile is included. The workflow included:
 
 - Backend/frontend syntax and isolated mode registry checks.
 - PostgreSQL migration application and tenant RLS integration tests.
@@ -37,7 +37,7 @@ The unified candidate is maintained in Draft PR [#73](https://github.com/s859608
 - Chromium workspace interactions and five-viewport mobile/drawer regression checks at 360, 390, 412, 760 and 1280 CSS-pixel widths.
 - Devanagari font setup and browser screenshot/report artifact upload.
 
-The workflow **skipped** live Render/provider checks and live free-provider image generation by design. Those steps require an authorized preview/deployment. Physical Android testing was not performed. Passing CI does not prove the candidate is error-free or production-ready.
+The workflow **skipped** live Render/provider checks and live free-provider image generation by design. Those steps require an authorized preview/deployment. Physical Android testing was not performed. Run #1187 is the latest verified run on the current candidate head. Passing CI does not prove the candidate is error-free or production-ready.
 
 ## Release gates still open
 
