@@ -63,7 +63,7 @@ Cloud save sends the selected dataset metadata and calculated aggregates/evidenc
 
 **Status: NOT production-ready; do not merge or deploy yet.**
 
-The integrated candidate is on Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`, candidate head `cda51b75cd2722252ab1a4f546c8b107745ce3a5`. Both CI runs for this exact SHA passed: [push run #42377209743](https://github.com/s85960833-byte/NovaAI/actions/runs/42377209743) and [pull-request run #42377214654](https://github.com/s85960833-byte/NovaAI/actions/runs/42377214654). The successful candidate checks include syntax, injection/rate-limit/provider/PDF security tests, PostgreSQL tenant-RLS migration tests, Deno type-check and CORS tests, BI calculations/CSV validation, 60-case AI evaluation fixture validation, dependency vulnerability audit, local route/PWA smoke tests, graceful shutdown, Chromium workspace/PDF tests, Company Cloud mobile workflows, and five-viewport layout/drawer regressions.
+The integrated candidate is on Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`, latest candidate head `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`. Exact-head CI push run [#42379148497](https://github.com/s85960833-byte/NovaAI/actions/runs/42379148497) and PR run [#42379153742](https://github.com/s85960833-byte/NovaAI/actions/runs/42379153742) both passed.
 
 **Important scope:** CI's deployed-function smoke test and all live Render website/provider/image smoke tests were skipped because the candidate has not been merged/deployed. Chromium mobile viewport tests are not a physical Android device test. A green candidate CI run is not proof of production readiness.
 
@@ -82,3 +82,10 @@ The integrated candidate is on Draft PR [#73](https://github.com/s85960833-byte/
 12. Re-run full live smoke tests after deployment and record rollback/recovery evidence.
 
 No live service, production database, Auth setting, billing plan, branch protection or production deployment was changed by this candidate update. These external gates require owner access/approval and, where relevant, an authorized adult/account owner. Keep PR #73 Draft and unmerged until every applicable gate is evidenced.
+
+
+## Current verification addendum — 7 November 2026
+
+- Latest candidate head: `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`; exact-head push and PR CI runs #42379148497 and #42379153742 both passed.
+- Automated CI skipped the deployed Edge Function CORS smoke and live Render/provider/image checks because the candidate remains undeployed. It does not prove live Auth/email, physical Android, or real-account tenant isolation.
+- PR #73 remains Draft and unmerged. Production `main` remains unchanged. No live service, database, Auth setting, billing plan or deployment was changed.
