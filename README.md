@@ -14,7 +14,7 @@ The unified NOVA candidate (three-workspace UI + Business Intelligence) is on `f
 
 Production URL: https://novaai-4auo.onrender.com
 
-The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab24`. The unified candidate has not been merged or deployed. For the exact current PR branch head and latest CI result, see [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73). Do not present the candidate as the live Production build.
+The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab24`. The unified candidate has not been merged or deployed. At the 7 November 2026 audit, exact head `136ef1b30f4d273af359958dcad56c37ae3a14be` passed push run [#42378924871](https://github.com/s85960833-byte/NovaAI/actions/runs/42378924871) and PR run [#42378928787](https://github.com/s85960833-byte/NovaAI/actions/runs/42378928787). Live-only checks are intentionally skipped on the feature branch. For release gates, see [PITCH_READINESS.md](PITCH_READINESS.md). Do not present the candidate as the live Production build.
 
 ## Architecture
 
