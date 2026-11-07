@@ -30,7 +30,7 @@ page.on('dialog', dialog => dialog.accept());
 await page.route('https://fonts.googleapis.com/**', route => route.fulfill({ status: 200, contentType: 'text/css; charset=utf-8', body: '' }));
 await page.route('https://fonts.gstatic.com/**', route => route.abort());
 
-await page.route(/supabase-js@2\\.119\\.0\\/dist\\/umd\\/supabase\\.min\\.js/, route =>
+await page.route(/supabase-js@2\.119\.0\/dist\/umd\/supabase\.min\.js/, route =>
   route.fulfill({ status: 200, contentType: 'application/javascript', body: `let testSession = null; let authListener = null;
 window.__authCalls = [];
 window.__emitAuthEvent = (event, session) => authListener && authListener(event, session);
