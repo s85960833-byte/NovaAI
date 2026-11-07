@@ -29,7 +29,7 @@ The unified candidate is maintained in Draft PR [#73](https://github.com/s859608
 
 The candidate now uses exact-origin NOVA BI CORS with tests for exact-origin, lookalike-origin, opaque-origin and insecure-URL rejection. Its two inline frontend script blocks have been moved into `nova-config.js` and `nova-app.js`; the backend serves them and the PWA offline shell caches them. Static and runtime tests cover those changes and the secret-safe `persistable()` storage contract.
 
-The workflow skipped live Render/provider and free-provider image-generation steps because no isolated candidate preview is deployed. Physical Android testing, real signup/password-reset email delivery and two-real-account tenant isolation were not performed. The 60-case evaluation fixture validates fixture structure only; it is not a live AI accuracy score. CSP is not strict yet: legacy inline event handlers, inline styles and broad HTTPS `connect-src` still require hardening. Passing CI does not prove the candidate is error-free or production-ready.
+The workflow skipped live Render/provider and free-provider image-generation steps because no isolated candidate preview is deployed. Physical Android testing, real signup/password-reset email delivery and two-real-account tenant isolation were not performed. The 60-case evaluation fixture validates fixture structure only; it is not a live AI accuracy score. CSP is improved but not strict: `script-src` no longer permits `'unsafe-inline'`; inline styles and broad HTTPS `connect-src` still require hardening. Passing CI does not prove the candidate is error-free or production-ready.
 
 ## Release gates still open
 
