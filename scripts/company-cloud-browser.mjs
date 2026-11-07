@@ -28,6 +28,35 @@ let branding = {
   accent_color: '#14B8A6'
 };
 page.on('pageerror', error => pageErrors.push(error.message));
+page.on('console', message => { if (message.type() === 'error') progress('browser console error: ' + message.text()); });
+const inspectPage = async (label, evaluate, timeoutMs = 5000) => {
+  let timer;
+  try {
+    return await Promise.race([
+      page.evaluate(evaluate),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(label + ' timed out after ' + timeoutMs + 'ms')), timeoutMs); })
+    ]);
+  } catch (error) {
+    progress(label + ' timed out; collecting renderer stack');
+    let session;
+    try {
+      session = await page.context().newCDPSession(page);
+      await session.send('Debugger.enable');
+      const paused = new Promise(resolve => session.once('Debugger.paused', resolve));
+      await session.send('Debugger.pause');
+      const event = await Promise.race([paused, new Promise(resolve => setTimeout(() => resolve(null), 2000))]);
+      if (event) progress('renderer stack: ' + JSON.stringify(event.callFrames.slice(0, 10).map(frame => ({ fn: frame.functionName, url: frame.url, line: frame.location.lineNumber + 1, column: frame.location.columnNumber + 1 }))));
+      await session.send('Debugger.resume').catch(() => {});
+    } catch (diagnosticError) {
+      progress('renderer diagnostic unavailable: ' + diagnosticError.message);
+    } finally {
+      if (session) await session.detach().catch(() => {});
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+};
 page.on('dialog', dialog => dialog.accept());
 
 // Keep the browser test independent of external Google Fonts availability; CI installs the Devanagari fallback locally.
@@ -141,9 +170,12 @@ const homeResponse = await page.goto('http://127.0.0.1:8787', { waitUntil: 'comm
 assert.equal(homeResponse?.status(), 200, 'local NOVA homepage must return HTTP 200');
 await page.waitForTimeout(1000);
 progress('local homepage loaded');
-const bootstrap = await page.evaluate(() => ({ ready: document.readyState, hasHome: !!document.querySelector('#hi'), logHtml: document.querySelector('#log')?.innerHTML.slice(0,160) || '', registryGroups: window.NovaModeRegistry?.groups?.length || 0, workspaceApi: typeof window.NovaModeWorkspace }));
+progress('before bootstrap inspection');
+const bootstrap = await inspectPage('NOVA bootstrap inspection', () => ({ ready: document.readyState, hasHome: !!document.querySelector('#hi'), logHtml: document.querySelector('#log')?.innerHTML.slice(0,160) || '', registryGroups: window.NovaModeRegistry?.groups?.length || 0, workspaceApi: typeof window.NovaModeWorkspace }));
+progress('bootstrap inspection returned');
 console.log('NOVA bootstrap', JSON.stringify(bootstrap));
-const idleCloudMutations = await page.evaluate(async () => {
+progress('before Company Cloud observer stability inspection');
+const idleCloudMutations = await inspectPage('Company Cloud observer stability inspection', async () => {
   const overlay = document.querySelector('#novaBICloud');
   if (!overlay) return null;
   const sample = () => new Promise(resolve => {
