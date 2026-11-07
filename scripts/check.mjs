@@ -13,6 +13,7 @@ function syntaxCheck(name, source) {
 }
 
 const server = readFileSync('nova-server.txt', 'utf8');
+const providerUrl = readFileSync('nova-provider-url.js', 'utf8');
 const html = readFileSync('index.html', 'utf8');
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 const gitignore = readFileSync('.gitignore', 'utf8');
@@ -32,6 +33,7 @@ if (!/alter function public\.nova_bi_consume_rate_limit\([\s\S]*?set search_path
 if (!/revoke all[\s\S]*?from public, anon, authenticated/i.test(forwardHardening)) throw new Error('Forward migration must keep rate-limit RPC private to service_role');
 const rlsIntegration = readFileSync('scripts/supabase-rls-integration.sql', 'utf8');
 if (!rlsIntegration.includes('Every public SECURITY DEFINER function must pin an empty search_path')) throw new Error('Database integration test must guard SECURITY DEFINER search_path');
+if (!server.includes("secureProviderBase('LLM_BASE'") || !server.includes("secureProviderBase('GROQ_BASE'") || !server.includes("secureProviderBase('OPENROUTER_BASE'") || !server.includes("secureProviderBase('IMAGE_BASE'") || !server.includes("secureProviderBase('HORDE_BASE'")) throw new Error('All secret-bearing provider endpoints must require validated HTTPS URLs');
 if (!server.includes('app.disable(\'x-powered-by\')') || !server.includes('nova-business-core.js') || !server.includes('nova-business-cloud.js') || !server.includes("'/nova-reference.js','/nova-business-core.js'")) throw new Error('BI server routes or offline dashboard cache are missing');
 if (!server.includes('Content-Security-Policy') || !server.includes('frame-ancestors \'none\'') || !server.includes('camera=(self), microphone=(self), geolocation=()')) throw new Error('Combined browser security policy is incomplete');
 const requiredCspFragments = ['http-equiv="Content-Security-Policy"', "default-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'self'"];
@@ -59,6 +61,7 @@ if (!server.includes("r.setHeader('X-Content-Type-Options', 'nosniff')") || !ser
 if (!server.includes('r2: false') || !server.includes('maxImageBytes = 8 * 1024 * 1024') || !server.includes("imageBuffer.toString('ascii', 8, 12) === 'WEBP'") || server.includes('fetch(generated') || !server.includes('const freeOnly = body.freeOnly === true') || !server.includes('if (!freeOnly && E.ALLOW_PAID_IMAGE') || !server.includes('const tries = freeOnly ? [] : E.POLLI_KEY')) throw new Error('Community image SSRF, payload validation, or paid-provider bypass guards are missing');
 if (!server.includes('Your developer is Thakur Shreyansh Singh ji.') || !server.includes("Respond in the user's language while keeping the developer name exactly as written.") || server.includes('Respond in English only, regardless of the user')) throw new Error('Developer identity must be exact and compatible with the user language');
 if (!server.includes("via: 'arxiv+science-rss-fallback'") || !server.includes("T('openalex', async () =>") || !server.includes("feedCat('science', 6)")) throw new Error('Live science retrieval must fall back to independent arXiv and science RSS when OpenAlex fails');
+syntaxCheck('provider URL validation', providerUrl);
 syntaxCheck('backend', server);
 const liveSmoke=readFileSync('scripts/smoke.mjs','utf8');
 syntaxCheck('live production smoke',liveSmoke);
