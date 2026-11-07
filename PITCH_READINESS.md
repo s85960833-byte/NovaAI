@@ -198,3 +198,15 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - The current head differs from the last application-code-verified snapshot `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d` only in documentation (`NOVA_PITCH_KIT.md`, `PITCH_READINESS.md`, `PITCH_SCRIPT.md`, `README.md`). These CI results do not constitute live deployment or physical-device certification.
 - Live Render/provider and free image-generation checks were skipped because no isolated preview was authorized. Signup/email delivery, two-real-account tenant isolation, physical Android, preview runtime, backup/restore, privacy/retention and incident-response checks remain open.
 - Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; no merge, deployment or live Supabase changes were made. This addendum supersedes older candidate-head/checkpoint references above; use PR #73 for newer status.
+
+## 14. Exact-head verification update — 7 November 2026
+
+- Unified candidate Draft PR #73 is at `bf7c6447e9a2db0c43dd5d4dcdcb972c3d1ebbdc`, targeting `main`. It remains open, Draft, unmerged and undeployed.
+- Exact-head GitHub Actions runs [#42369819473](https://github.com/s85960833-byte/NovaAI/actions/runs/42369819473) and [#42369814312](https://github.com/s85960833-byte/NovaAI/actions/runs/42369814312) completed successfully. Both jobs passed; the only skipped steps were the three main-branch live Render/provider/image smoke checks, which cannot run on an undeployed feature branch.
+- The CI pass verifies the candidate's source and isolated test suite. It does not prove production runtime, actual signup or email delivery, real-account tenant isolation, physical Android behavior, live provider availability, backup recovery, or privacy/legal readiness.
+- A fresh read-only Supabase advisor check on 7 November returned zero Security findings and zero Health findings; Performance returned 13 INFO unused-index notices. No indexes were dropped.
+- The candidate's exact-origin NOVA BI CORS policy and its Deno tests are included in the successful exact-head runs. This does not replace testing against the deployed Edge Function.
+- The frontend CSP still permits `'unsafe-inline'` and broad HTTPS `connect-src`. The server adds `frame-ancestors 'none'`, but this is not equivalent to a fully strict nonce/hash-based CSP. Do not claim strict CSP hardening is complete.
+- The Render workspace ID previously surfaced as `tea-dbf2qb7avr4c73ck5p1g` has not been confirmed by the owner as NOVA's workspace. No workspace-scoped Render changes were made. The service health-check path remains unconfigured.
+- No production deploy, merge, live Supabase migration, Edge Function replacement, Auth configuration change, paid infrastructure change, or branch-protection change was made.
+- **Current decision remains NO-GO for production customer onboarding or paid-service promises.** The outstanding gates in sections 0, 6, 8 and 12 remain mandatory. Concept/discovery discussions may describe NOVA as a candidate/prototype only; do not describe it as production-ready.
