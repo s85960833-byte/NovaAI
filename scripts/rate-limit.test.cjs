@@ -25,16 +25,17 @@ test('rate window prunes expired IP buckets before reaching its memory cap', () 
   assert.equal(store.has('active-b'), true);
 });
 
-test('rate window evicts the oldest bucket when all capped buckets are active', () => {
+test('rate window preserves active client counters and fails closed at capacity', () => {
   const store = new Map([
     ['oldest', [9900]],
     ['newer', [9950]],
   ]);
-  rateWindow(store, 'new-ip', 10000, 1000, 2);
+  assert.equal(rateWindow(store, 'new-ip', 10000, 1000, 2), null);
   assert.equal(store.size, 2);
-  assert.equal(store.has('oldest'), false);
+  assert.equal(store.has('oldest'), true);
   assert.equal(store.has('newer'), true);
-  assert.equal(store.has('new-ip'), true);
+  assert.equal(store.has('new-ip'), false);
+  assert.deepEqual(rateWindow(store, 'newer', 10000, 1000, 2), [9950]);
 });
 
 test('rate window rejects invalid arguments', () => {
