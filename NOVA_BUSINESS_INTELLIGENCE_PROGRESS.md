@@ -1,12 +1,21 @@
 # NOVA Business Intelligence — Engineering Progress
 
-Updated: 2026-11-06
+Updated: 2026-11-07
+
+## Authoritative current release checkpoint
+- The current unified candidate is Draft PR #73 on `feature/nova-integrated-release-20261106`; it includes the three-workspace UI and NOVA BI. Earlier PR #67 / BI-only branch statements below are historical checkpoints and must not be treated as the current release target.
+- Latest application-code verification snapshot: `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf`; exact-head push/PR CI #42382919198 and #42382923272 passed. Later audit commits are documentation-only; use PR #73 for the current branch head and exact CI status.
+- Live production remains unchanged. Supabase has 12 migrations; the candidate rate-limit search_path migration is pending. Live `nova-bi-api` v13 still has wildcard CORS. All 10 BI tables have RLS enabled; Security and Health Advisors returned zero findings; Performance Advisor has 13 INFO-only unused-index notices.
+- Authenticated users can update only `nova_bi_memberships.status`; they cannot update membership `role`, `organization_id`, or `user_id`. Live SMTP delivery, two-account tenant isolation, physical Android, hosting/recovery and privacy reviews remain unverified.
+- **Paid-sales status: NO-GO.** See `PITCH_READINESS.md` and Draft PR #73 for current release gates.
+
+
 
 ## Current release state
 - Unified feature branch: `feature/nova-integrated-release-20261106`.
 - Review: [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73), which combines the three-workspace UI and NOVA BI.
 - BI-only PR #67 is a predecessor; PR #46 is an older divergent branch. Do not merge either as a substitute for PR #73.
-- Latest documentation head `7b58d7b6ceac4a15ef6c93c72e6639f240a13fef` passed exact-head push CI #42383854278 and PR CI #42383859510. Latest application-code verification snapshot is `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf` (exact-head push/PR CI #42382919198 and #42382923272). PR #73 remains Draft, unmerged and undeployed; live CORS and migration are not fixed yet.
+- Latest application-code verification snapshot is `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf` (exact-head push/PR CI #42382919198 and #42382923272). Subsequent audit commits are documentation-only; use PR #73 for current branch-head and exact CI status. PR #73 remains Draft, unmerged and undeployed; live CORS and migration are not fixed yet.
 - Production `main`, Render and the live Supabase schema/function remain unchanged. No merge, production deployment, live migration, Auth config change or SMTP change has been performed.
 - Production `main` and Render service `srv-dbidhpc9v7es73d6ia80` remain untouched. No merge or production deployment has been performed.
 - Approved NOVA BI Supabase project: `qrfwsewppafhxibdboam`. The separate Research-to-Code project has not been used.
