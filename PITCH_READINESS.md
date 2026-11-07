@@ -279,3 +279,15 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 
 - **Allowed:** concept/discovery conversations and non-sensitive feedback with explicit disclosure that the integrated build is an undeployed release candidate.
 - **Not allowed:** paid sale, production onboarding, customer data, live demo guarantees, SLA, zero-error or production-ready claims until the release gates above are evidenced and approved.
+
+## 20. Fresh live Supabase read-only check — 7 November 2026
+
+- Project `qrfwsewppafhxibdboam` reports `ACTIVE_HEALTHY`, PostgreSQL 17.11, region `eu-west-1` (Ireland).
+- Current Supabase security advisor response: zero security lints.
+- Performance advisor response: 13 INFO-only unused-index notices. These are observations, not proof that the indexes are safe to drop; do not remove tenant/query indexes without workload evidence.
+- Live Edge Function `nova-bi-api` remains ACTIVE, version 13, with `verify_jwt=true`. Its retrieved deployed source still sets `Access-Control-Allow-Origin: *` and handles OPTIONS without exact-Origin validation. This is a confirmed production CORS release blocker.
+- Candidate PR #73 contains exact-origin CORS middleware and tests, but it is not live. No Edge Function deployment or database/Auth setting was changed during this read-only check.
+- GitHub branch-protection endpoint returned HTTP 403 (integration permission unavailable); branch protection is **unverified**, not assumed absent or enabled.
+- No real SMTP delivery, Auth redirect allow-list, two-real-user live isolation, Render health-check, off-site backup/restore, or physical Android test was performed by this read-only audit.
+- **Decision unchanged: NO-GO for paid customer onboarding or production claims.** Candidate CI and clean security-advisor output do not close the live CORS or operational release gates.
+
