@@ -3,9 +3,9 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Last verified candidate snapshot:** `4173eee7df01d64bc0637335f8d476ae7f5f7f5f` (GitHub Actions run [#1100](https://github.com/s85960833-byte/NovaAI/actions/runs/42335572164): 33 steps completed, 30 succeeded, 3 live-environment checks skipped by design, 0 failures).  
+**Last verified candidate snapshot:** `2b4a681c7970d49816c9e32594cb9beaf7eb31b3` (GitHub Actions run [#1108](https://github.com/s85960833-byte/NovaAI/actions/runs/42335931391): 33 steps completed, 30 succeeded, 3 live-environment checks skipped by design, 0 failures).  
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
-**Application-code CI:** run [#1100](https://github.com/s85960833-byte/NovaAI/actions/runs/42335572164) passed on candidate snapshot `4173eee7df01d64bc0637335f8d476ae7f5f7f5f`: 33 steps completed, 30 succeeded, 3 live-environment steps skipped by design, and 0 failures. Live Render/provider and live image-generation checks were skipped.  
+**Application-code CI:** run [#1108](https://github.com/s85960833-byte/NovaAI/actions/runs/42335931391) passed on candidate snapshot `2b4a681c7970d49816c9e32594cb9beaf7eb31b3`: 33 steps completed, 30 succeeded, 3 live-environment steps skipped by design, and 0 failures. Live Render/provider and live image-generation checks were skipped.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -47,7 +47,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #73 combines the three-workspace interface, BI module and security-hardening work. PR #66 is the earlier UI-only predecessor.
 
-The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Application-code CI run #1100 passed on snapshot `4173eee7df01d64bc0637335f8d476ae7f5f7f5f`. Its checks cover:
+The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Application-code CI run #1108 passed on snapshot `2b4a681c7970d49816c9e32594cb9beaf7eb31b3`. Its checks cover:
 
 - Backend/frontend syntax and mode registry.
 - PostgreSQL migration application and tenant RLS integration.
@@ -58,7 +58,7 @@ The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are
 - Company Cloud browser workflows.
 - Chromium workspace navigation and five viewport widths, including drawer and Settings regression checks.
 
-CI #1100 passed on candidate snapshot `4173eee7df01d64bc0637335f8d476ae7f5f7f5f`. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped.
+CI #1108 passed on candidate snapshot `2b4a681c7970d49816c9e32594cb9beaf7eb31b3`. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped.
 ## 5. Exact demo plan
 
 Use this sequence only on the exact candidate build after opening that build on the presentation device. The candidate is not currently the Production deployment; do not silently substitute the existing Production URL and describe it as the new three-workspace build.
