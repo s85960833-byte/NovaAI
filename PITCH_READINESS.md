@@ -3,8 +3,8 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** LIMITED CONCEPT DISCOVERY ONLY — explain the product direction and request non-sensitive feedback while clearly stating that the unified candidate is not deployed. No paid sales, customer onboarding, confidential-data use, live demo guarantees, SLA or production-readiness claims until the release gates close.
 **Unified candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Current candidate head:** `5129f0cbac94064b39b89fce2761f128dd452ebe`; exact-head documentation CI run [#42380234279](https://github.com/s85960833-byte/NovaAI/actions/runs/42380234279) completed successfully.
-**Latest application-code verification snapshot:** `3014e4bcd4600c09320045e8caacdab7c53ba53d`; exact-head push CI run [#42379943971](https://github.com/s85960833-byte/NovaAI/actions/runs/42379943971) completed successfully. The suite covered syntax/security, PostgreSQL migration and tenant-RLS integration, Deno Edge Function type-check/CORS tests, BI calculations/CSV, dependency audit, local runtime/PWA, Chromium workspace/PDF, Company Cloud browser workflows and five-viewport mobile/drawer regression tests.
+**Current candidate head at latest audit:** `6c53223686943b068ac36c48fd5ae72c58edc226`; exact-head CI runs #42381308464 and #42381303719 passed. See the latest authoritative checkpoint at the end of this file for the current head and remaining release gates.
+**Latest full application-code verification snapshot:** `3014e4bcd4600c09320045e8caacdab7c53ba53d`; its exact-head CI run #42379943971 passed. The newer `6c532...` commit was documentation-only and also passed both exact-head checks.
 **Live and physical checks not covered:** deployed Edge Function CORS, live Render/provider/image smoke, real SMTP/Auth email delivery, two-real-account live tenant isolation, and physical Android testing. CI success does not close these gates.
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
