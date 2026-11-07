@@ -192,17 +192,49 @@ const homeResponse = await page.goto('http://127.0.0.1:8787', { waitUntil: 'comm
 assert.equal(homeResponse?.status(), 200, 'local NOVA homepage must return HTTP 200');
 await page.waitForTimeout(1000);
 progress('local homepage loaded');
+const pdfModuleCheck = await page.evaluate(async () => {
+  try {
+    const module = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.mjs');
+    return { ok: true, version: module.version };
+  } catch (error) {
+    return { ok: false, error: String(error?.message || error) };
+  }
+});
+progress('PDF.js module import ' + JSON.stringify(pdfModuleCheck));
+assert.equal(pdfModuleCheck.ok, true, 'pinned PDF.js module must load under the production CSP');
 await page.locator('#file').setInputFiles({
   name: 'nova-security-test.pdf',
   mimeType: 'application/pdf',
   buffer: makePdfFixture()
 });
-await page.waitForFunction(() => {
-  try {
-    const state = JSON.parse(localStorage.getItem('nova') || '{}');
-    return (state.chats || []).some(chat => chat.doc?.t?.includes('NOVA PDF SECURITY TEST'));
-  } catch { return false; }
-}, null, { timeout: 30000 });
+try {
+  await page.waitForFunction(() => {
+    try {
+      const state = JSON.parse(localStorage.getItem('nova') || '{}');
+      return (state.chats || []).some(chat => chat.doc?.t?.includes('NOVA PDF SECURITY TEST'));
+    } catch { return false; }
+  }, null, { timeout: 30000 });
+} catch (error) {
+  const diagnostic = await page.evaluate(() => {
+    let savedText = '';
+    try {
+      const state = JSON.parse(localStorage.getItem('nova') || '{}');
+      savedText = (state.chats || []).map(chat => chat.doc?.t || '').join(' ').slice(0, 180);
+    } catch {}
+    const docbar = document.querySelector('#docbar');
+    const toast = document.querySelector('#toast');
+    return {
+      pdfModuleLoaded: !!window.pdfjsLib,
+      docbarHidden: !!docbar?.hidden,
+      docbarText: docbar?.textContent || '',
+      toastHidden: !!toast?.hidden,
+      toastText: toast?.textContent || '',
+      savedText
+    };
+  });
+  progress('PDF upload diagnostic ' + JSON.stringify(diagnostic));
+  throw error;
+}
 progress('patched PDF.js module and worker extracted sample text');
 progress('before bootstrap inspection');
 const bootstrap = await inspectPage('NOVA bootstrap inspection', () => ({ ready: document.readyState, hasHome: !!document.querySelector('#hi'), logHtml: document.querySelector('#log')?.innerHTML.slice(0,160) || '', registryGroups: window.NovaModeRegistry?.groups?.length || 0, workspaceApi: typeof window.NovaModeWorkspace }));
