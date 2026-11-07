@@ -221,6 +221,14 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - This was candidate-branch work only. Production `main` and the live Supabase deployment were not changed; PR #73 remains Draft/unmerged. The previous blockers remain: isolated preview/live smoke, real signup and email delivery, two-real-account tenant isolation, physical Android testing, hosting/backup/restore and region decision, confirmed Render workspace/health-check configuration, branch protection, and privacy/retention/incident-response review.
 - **Decision: still NO-GO for production onboarding, paid customer data, or service/SLA promises.** Candidate CI success is a necessary engineering gate, not a production release certificate.
 
+## 17. Live NOVA BI CORS discrepancy found — 7 November 2026
+
+- A fresh read-only fetch of the deployed Supabase Edge Function `nova-bi-api` confirms production is still version 13 and its deployed `index.ts` returns `Access-Control-Allow-Origin: *` and answers every OPTIONS request without validating the request Origin.
+- This is a real live-production security gap. The candidate code has exact-origin validation and Deno unit tests, but it has **not** been deployed. Do not treat candidate CORS tests as proof that the live endpoint is hardened.
+- Corrected `scripts/supabase-edge-smoke.mjs` to require the exact configured NOVA origin, reject an attacker origin with HTTP 403 and no CORS permission, and keep the DELETE preflight check. The deployed-function smoke step is now gated to `main`; candidate PR CI validates the candidate CORS implementation through Deno tests without relying on the older live deployment.
+- The next live release sequence still requires an approved Supabase Edge Function deployment followed by the exact-origin smoke test. No live function replacement was performed in this audit.
+- Current release status remains NO-GO until the live CORS mismatch and the other listed production gates are closed.
+
 ## 16. Security regression verification — 7 November 2026
 
 - Candidate code/browser snapshot `bed9e17576e13f1003c10c09fbde7d3f165c0b33` passed exact-head GitHub Actions run [#42372386751](https://github.com/s85960833-byte/NovaAI/actions/runs/42372386751).
