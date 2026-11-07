@@ -23,6 +23,18 @@ const health = await request('/health', { timeout: 10000 });
 const healthData = await json(health);
 if (!health.ok || healthData.status !== 'ok' || healthData.ready !== true) throw new Error('Instant /health endpoint is not ready');
 console.log('PASS instant /health');
+const requiredSecurityHeaders = [
+  ['x-content-type-options', 'nosniff'],
+  ['x-frame-options', 'DENY'],
+  ['referrer-policy', 'strict-origin-when-cross-origin'],
+  ['permissions-policy', 'camera=(self), microphone=(self), geolocation=()'],
+  ['content-security-policy', "frame-ancestors 'none'"],
+  ['strict-transport-security', 'max-age=31536000; includeSubDomains'],
+];
+for (const [name, expected] of requiredSecurityHeaders) {
+  if (health.headers.get(name) !== expected) throw new Error('Live security header ' + name + ' expected "' + expected + '", got "' + health.headers.get(name) + '"');
+}
+console.log('PASS live HTTP security headers and HSTS');
 const home = await request('/');
 const homeHtml = await home.text();
 if (!home.ok || !homeHtml.includes('<html lang="en">') || !homeHtml.includes('id="msgs"') || !homeHtml.includes('id="dset"') || !homeHtml.includes('id="photo"')) throw new Error('Previous standard NOVA chat UI, Settings, or image panel is missing');
@@ -31,6 +43,7 @@ if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>homeHtml.includes(x))) throw new Error('Cosmic India dashboard UI is not live');
 if (homeHtml.includes('id="novaSplash"') || homeHtml.includes('id="novaLivingCore"')) throw new Error('New workspace/splash interface unexpectedly returned');
 if (!homeHtml.includes('hi:{')) throw new Error('Bilingual standard UI dictionary is missing');
+if (!homeHtml.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net") || homeHtml.includes("script-src 'self' 'unsafe-inline'")) throw new Error('Live document script CSP is not hardened against inline script execution');
 console.log('PASS restored standard NOVA chat UI, bilingual labels, Settings, image panel and preserved chat storage');
 
 const referenceResponse = await request('/nova-reference.js');
