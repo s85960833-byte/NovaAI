@@ -35,10 +35,11 @@ try{
   source+='xref\n0 '+(objects.length+1)+'\n0000000000 65535 f \n';
   for(const offset of offsets.slice(1))source+=String(offset).padStart(10,'0')+' 00000 n \n';
   source+='trailer\n<< /Size '+(objects.length+1)+' /Root 1 0 R >>\nstartxref\n'+xrefOffset+'\n%%EOF';
-  const pdf=await pdfjs.getDocument({data:new TextEncoder().encode(source),isEvalSupported:false}).promise;
+  const loadingTask=pdfjs.getDocument({data:new TextEncoder().encode(source),isEvalSupported:false});
+  const pdf=await loadingTask.promise;
   const page=await pdf.getPage(1),content=await page.getTextContent();
   const text=content.items.map(item=>item.str).join(' ');
-  await pdf.destroy();
+  await loadingTask.destroy();
   return {version:pdfjs.version,text};
  });
  assert.equal(pdfSmoke.version,'6.5.438','PDF.js version must match the patched pinned release');
