@@ -3,9 +3,8 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Last verified candidate snapshot:** `97551b5ce85787fd418f3f65d3d2da0711b77093` (GitHub Actions run [#1118](https://github.com/s85960833-byte/NovaAI/actions/runs/42336743193): 33 steps completed, 30 succeeded, 3 live-environment checks skipped by design, 0 failures).  
+**Latest verified application snapshot:** `b9ef1faec228270da5615abaebf846465de641fd`. GitHub Actions push run [#1131](https://github.com/s85960833-byte/NovaAI/actions/runs/42337442433) and PR run [#1132](https://github.com/s85960833-byte/NovaAI/actions/runs/42337446623) both completed successfully. Their automated checks cover syntax, PostgreSQL migration/RLS integration, authenticated BI Edge Function checks, calculations/CSV validation, dependency audit, local route/PWA smoke tests, Company Cloud browser workflows, Chromium workspace interactions and five viewport widths. Three live deployment/provider/image checks were skipped by design. Browser screenshots are emulated Chromium evidence, not physical Android validation.  
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
-**Application-code CI:** run [#1118](https://github.com/s85960833-byte/NovaAI/actions/runs/42336743193) passed on candidate snapshot `97551b5ce85787fd418f3f65d3d2da0711b77093`: 33 steps completed, 30 succeeded, 3 live-environment steps skipped by design, and 0 failures. Live Render/provider and live image-generation checks were skipped.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -58,6 +57,7 @@ The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are
 - Express per-IP throttling before JSON parsing, plus normalized JSON 400/413 responses for malformed and oversized API bodies; runtime smoke tests cover the ordering and status codes.
 - Company Cloud browser workflows.
 - Chromium workspace navigation and five viewport widths, including drawer and Settings regression checks.
+- BYOK API keys remain active-tab-only, are excluded from normal browser persistence, and are never embedded in exported shareable HTML; each recipient must enter their own provider key. A static regression guard enforces this export boundary.
 
 CI #1118 passed on candidate snapshot `97551b5ce85787fd418f3f65d3d2da0711b77093`. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped.
 ## 5. Exact demo plan
