@@ -16,10 +16,11 @@ const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1); // Render sits behind one trusted proxy; use the real client IP for rate limits
 
-// Baseline browser security headers. The HTTP CSP header enforces frame isolation;
-// index.html carries the resource policy. Executable script blocks and inline HTML event-handler
-// attributes are absent from the audited app surfaces, so script-src no longer needs 'unsafe-inline'.
-// Inline styles and broad connect-src remain; this is not yet a fully strict CSP.
+// Baseline browser security headers. The HTTP CSP header enforces the resource policy and frame
+// isolation; index.html repeats the resource policy as defense in depth. Executable script blocks
+// and inline HTML event-handler attributes are absent from the audited app surfaces, so script-src
+// does not need 'unsafe-inline'. Inline styles and broad HTTPS connect-src remain; this is not yet a
+// fully strict CSP.
 app.use((q, r, next) => {
   r.setHeader('X-Content-Type-Options', 'nosniff');
   r.setHeader('X-Frame-Options', 'DENY');
