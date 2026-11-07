@@ -102,5 +102,5 @@ function boot(){
   new MutationObserver(apply).observe(host,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
  }
 }
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+if($('#log')&&$('#top'))boot();else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
