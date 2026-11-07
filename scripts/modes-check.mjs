@@ -66,5 +66,5 @@ assert.ok(server.includes("app.get('/api/image/status/:id'")&&server.includes('U
 assert.ok(html.includes('hi:{'),'Previous standard UI Hindi dictionary missing');
 assert.ok(html.includes('hi:{'),'Hindi UI dictionary missing');
 assert.ok(server.includes('manifest')||server.includes('service-worker'),'PWA backend support missing');
-assert.ok(html.includes("localStorage.getItem('nova')")&&html.includes("localStorage.setItem('nova',JSON.stringify(S))"),'legacy chat storage key changed');
+assert.ok(html.includes("localStorage.getItem('nova')")&&html.includes("const persistable=()=>")&&html.includes("JSON.stringify(persistable())"),'legacy chat storage key or secret-safe persistence changed');
 console.log('PASS bilingual mode registry: 13 isolated modes, Hindi/English app UI and prompts, separate histories, voice, PDF/photo, official scheme filtering, rate/cache, offline and PWA install');
