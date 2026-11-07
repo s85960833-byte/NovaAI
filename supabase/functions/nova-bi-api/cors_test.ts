@@ -21,4 +21,12 @@ Deno.test("NOVA BI CORS headers never use wildcard origins", () => {
   if (headers["Access-Control-Allow-Origin"] !== "https://nova.example.com") throw new Error("Exact origin header missing");
   if (String(headers["Access-Control-Allow-Origin"]) === "*") throw new Error("Wildcard CORS is forbidden");
   if (headers["Vary"] !== "Origin") throw new Error("Vary: Origin header missing");
+  const allowedHeaders = headers["Access-Control-Allow-Headers"].toLowerCase().split(",").map((value) => value.trim());
+  for (const required of ["authorization", "apikey", "content-type", "x-client-info", "idempotency-key"]) {
+    if (!allowedHeaders.includes(required)) throw new Error("Required browser request header is not allowed: " + required);
+  }
+  const allowedMethods = headers["Access-Control-Allow-Methods"].toUpperCase().split(",").map((value) => value.trim());
+  for (const required of ["GET", "POST", "DELETE", "OPTIONS"]) {
+    if (!allowedMethods.includes(required)) throw new Error("Required browser request method is not allowed: " + required);
+  }
 });
