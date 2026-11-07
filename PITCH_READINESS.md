@@ -3,9 +3,9 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Last verified candidate snapshot:** `97551b5ce85787fd418f3f65d3d2da0711b77093` (GitHub Actions run [#1108](https://github.com/s85960833-byte/NovaAI/actions/runs/42336743193): 33 steps completed, 30 succeeded, 3 live-environment checks skipped by design, 0 failures).  
+**Last verified candidate snapshot:** `97551b5ce85787fd418f3f65d3d2da0711b77093` (GitHub Actions run [#1118](https://github.com/s85960833-byte/NovaAI/actions/runs/42336743193): 33 steps completed, 30 succeeded, 3 live-environment checks skipped by design, 0 failures).  
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
-**Application-code CI:** run [#1108](https://github.com/s85960833-byte/NovaAI/actions/runs/42336743193) passed on candidate snapshot `97551b5ce85787fd418f3f65d3d2da0711b77093`: 33 steps completed, 30 succeeded, 3 live-environment steps skipped by design, and 0 failures. Live Render/provider and live image-generation checks were skipped.  
+**Application-code CI:** run [#1118](https://github.com/s85960833-byte/NovaAI/actions/runs/42336743193) passed on candidate snapshot `97551b5ce85787fd418f3f65d3d2da0711b77093`: 33 steps completed, 30 succeeded, 3 live-environment steps skipped by design, and 0 failures. Live Render/provider and live image-generation checks were skipped.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
