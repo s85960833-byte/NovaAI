@@ -55,9 +55,10 @@ Ask each person about their current workflow before describing NOVA in detail. D
 
 ## 6A. Competitive context — answer honestly
 
-This is an initial public-web scan, not an exhaustive competitor audit or proof of market position. There are already Indian products addressing parts of the problem:
+This is an initial public-web scan conducted on 7 November 2026, not an exhaustive competitor audit or proof of market position. The examples below overlap with the learning portion of NOVA; they do not necessarily offer the same overall workspace combination. Competitor features, pricing and availability can change. There are already Indian products addressing parts of the problem:
 
 - [PadhoAI](https://padhoai.in/) publicly describes multilingual AI learning for students, teachers, parents and schools, including 39 Indian languages and multiple school boards.
+- [Padhaao](https://www.padhaao.in/) publicly describes board-aligned learning for Indian students, 10 learning modes, Hindi/Hinglish support and a web-based experience.
 - [Shrutam SAAVI](https://www.shrutam.ai/hi/) describes personalized, audio-first learning in Hindi, Hinglish, English, Telugu and Marathi.
 - [Shiksha Nation AI Tutor](https://shikshanation.com/best-ai-tutor) describes a Hindi/English course-linked tutor with interactive teaching workflows.
 - [Manthan AI](https://manthanai.bhaaratmind.com/) describes a Hindi, English and Hinglish tutor for CBSE, ICSE and state-board learners.
@@ -66,6 +67,8 @@ This is an initial public-web scan, not an exhaustive competitor audit or proof 
 **Approved answer to “How is NOVA different?”**
 
 “We are not claiming to have a better foundation model or to be the only Indian-language AI product. NOVA's hypothesis is about product organization: putting learning, digital creation and everyday assistance into clearly separated workspaces in one bilingual mobile-first experience. We need real user feedback to learn whether that organization is meaningfully better for a specific group.”
+
+**Positioning implication:** Hindi/English learning is already a competitive category in India. NOVA's proposed Learn + Build + Agents organization may be a product hypothesis worth testing, but no evidence yet establishes that users prefer this combination or that the three-workspace model is defensible.
 
 Do not claim that no Indian competitor offers similar features, or that NOVA is first, unique, more accurate, cheaper or more capable without a current feature-by-feature study and measured evidence.
 
