@@ -10,7 +10,8 @@
 const express = require('express');
 const path = require('path');
 const E = process.env;
-const BASE = E.LLM_BASE || 'https://openrouter.ai/api/v1';
+const { secureProviderBase } = require('./nova-provider-url');
+const BASE = secureProviderBase('LLM_BASE', E.LLM_BASE, 'https://openrouter.ai/api/v1');
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1); // Render sits behind one trusted proxy; use the real client IP for rate limits
@@ -57,7 +58,7 @@ app.post('/api/transcribe', express.raw({ type: () => true, limit: '8mb' }), asy
     const lang = String(q.query.lang || '').toLowerCase();
     const providers = [];
     if (E.LLM_KEY) providers.push({ base: BASE, key: E.LLM_KEY });
-    if (E.GROQ_API_KEY && E.GROQ_API_KEY !== E.LLM_KEY) providers.push({ base: E.GROQ_BASE || 'https://api.groq.com/openai/v1', key: E.GROQ_API_KEY });
+    if (E.GROQ_API_KEY && E.GROQ_API_KEY !== E.LLM_KEY) providers.push({ base: secureProviderBase('GROQ_BASE', E.GROQ_BASE, 'https://api.groq.com/openai/v1'), key: E.GROQ_API_KEY });
     if (!providers.length) return r.status(503).json({ error: 'No speech provider is configured' });
     let last = { status: 502, text: 'No speech provider succeeded' };
     for (const provider of providers) {
@@ -167,8 +168,8 @@ app.post('/api/chat/completions', async (q, r) => {
     const providers = [];
     if (E.LLM_KEY) providers.push({ base: BASE, key: E.LLM_KEY, models });
     // Optional free-tier OpenAI-compatible providers; secrets are read only from Render env vars.
-    if (E.GROQ_API_KEY) providers.push({ base: E.GROQ_BASE || 'https://api.groq.com/openai/v1', key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL || 'llama-3.3-70b-versatile'] });
-    if (E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: E.OPENROUTER_BASE || 'https://openrouter.ai/api/v1', key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'] });
+    if (E.GROQ_API_KEY) providers.push({ base: secureProviderBase('GROQ_BASE', E.GROQ_BASE, 'https://api.groq.com/openai/v1'), key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL || 'llama-3.3-70b-versatile'] });
+    if (E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: secureProviderBase('OPENROUTER_BASE', E.OPENROUTER_BASE, 'https://openrouter.ai/api/v1'), key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'] });
     let extra = vis ? { reasoning_format: 'hidden' } : {};   // keep the model's private thinking out of the answer
     let good = null, first = null, last = 0;
     for (const provider of providers) {
@@ -226,7 +227,7 @@ async function generateFreeImage(prompt, body) {
   // Existing optional paid provider is disabled unless explicitly opted in by the service owner.
   if (!freeOnly && E.ALLOW_PAID_IMAGE === 'true' && E.IMAGE_KEY && E.IMAGE_MODEL) {
     try {
-      const u = await fetch((E.IMAGE_BASE || 'https://api.openai.com/v1').replace(/\/$/, '') + '/images/generations', {
+      const u = await fetch(secureProviderBase('IMAGE_BASE', E.IMAGE_BASE, 'https://api.openai.com/v1') + '/images/generations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.IMAGE_KEY },
         body: JSON.stringify({ model: E.IMAGE_MODEL, prompt, size: '1024x1024', response_format: 'b64_json' }),
@@ -259,7 +260,7 @@ async function generateFreeImage(prompt, body) {
   }
   // Free community queue. Anonymous requests have the lowest priority and may take several minutes.
   if (!E.HORDE_API_KEY) throw new Error('No free image provider is currently configured');
-  const base = (E.HORDE_BASE || 'https://aihorde.net/api/v2').replace(/\/$/, '');
+  const base = secureProviderBase('HORDE_BASE', E.HORDE_BASE, 'https://aihorde.net/api/v2');
   const headers = { 'Content-Type': 'application/json', apikey: E.HORDE_API_KEY, 'Client-Agent': 'NovaAI:1.0:https://novaai-4auo.onrender.com' };
   const submit = await fetch(base + '/generate/async', {
     method: 'POST', headers,
