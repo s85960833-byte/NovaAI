@@ -8,7 +8,7 @@ await expect('NOVA workspace scripts connected','/',{},(r,b)=>r.ok&&['src="/nova
 await expect('externalized NOVA app script','/nova-app.js',{},(r,b)=>r.ok&&b.includes('const CFG=Object.assign')&&b.includes("localStorage.getItem('nova')")&&b.includes('const persistable=()=>')&&b.includes('JSON.stringify(persistable())')&&b.length>100000);
 await expect('externalized NOVA config script','/nova-config.js',{},(r,b)=>r.ok&&b.includes('window.NOVA_CONFIG'));
 await expect('Business Intelligence scripts included on homepage','/',{},(r,b)=>r.ok&&b.includes('src="/nova-business-core.js"')&&b.includes('src="/nova-business.js"')&&b.includes('src="/nova-business-cloud.js"'));
-await expect('standard UI language dictionaries','/',{},(r,b)=>r.ok&&b.includes('hi:{')&&b.includes('phSolve:'));
+await expect('standard UI language dictionaries','/nova-app.js',{},(r,b)=>r.ok&&b.includes('hi:{')&&b.includes('phSolve:'));
 await expect('standard UI Settings and image panels','/',{},(r,b)=>r.ok&&b.includes('id="dset"')&&b.includes('id="photo"')&&b.includes('id="pprev"'));
 await expect('instant health endpoint','/health',{},(r,b)=>r.ok&&JSON.parse(b).status==='ok'&&JSON.parse(b).ready===true);
 await expect('HTTP security headers','/health',{},r=>r.ok&&r.headers.get('x-content-type-options')==='nosniff'&&r.headers.get('x-frame-options')==='DENY'&&r.headers.get('referrer-policy')==='strict-origin-when-cross-origin'&&r.headers.get('permissions-policy')==='camera=(self), microphone=(self), geolocation=()'&&r.headers.get('content-security-policy')==="frame-ancestors 'none'"&&r.headers.get('strict-transport-security')==='max-age=31536000; includeSubDomains'&&!r.headers.has('x-powered-by'));
