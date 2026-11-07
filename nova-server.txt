@@ -1066,6 +1066,19 @@ app.get('/api/feed', async (q, r) => {
 setTimeout(() => { CATS.slice(0, 2).forEach(c => cached('fc:' + c, 8 * 6e4, () => feedCat(c, 6)).catch(() => {})); }, 6000).unref();
 setInterval(() => { ['world', 'india'].forEach(c => cached('fc:' + c, 0, () => feedCat(c, 6)).catch(() => {})); }, 10 * 6e4).unref();
 
+// Normalize JSON parser failures for API clients instead of leaking Express HTML errors.
+app.use((err, q, r, next) => {
+  if (r.headersSent) return next(err);
+  if (String(q.path || '').startsWith('/api/')) {
+    const status = err && err.type === 'entity.too.large' ? 413
+      : err && err.type === 'entity.parse.failed' ? 400 : 500;
+    const message = status === 413 ? 'Request body is too large'
+      : status === 400 ? 'Request body must be valid JSON' : 'Request could not be processed';
+    return r.status(status).json({ error: message });
+  }
+  return next(err);
+});
+
 const PORT = Number(E.PORT) || 3000;
 app.listen(PORT, () => console.log('Nova AI running on port ' + PORT));
 console.log('NovaAI startup audit flag: ' + (E.SELFTEST_ON_START === '1' ? 'enabled' : 'disabled'));
