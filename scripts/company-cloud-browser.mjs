@@ -7,6 +7,7 @@ const pageErrors = [];
 const calls = [];
 const authCalls = [];
 let accepted = false;
+let nextInviteIsExistingAccount = false;
 let datasets = [
   { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', organization_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', name: 'Linked dataset', row_count: 12, created_at: '2026-11-01T00:00:00Z' },
   { id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', organization_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', name: 'Unused dataset', row_count: 4, created_at: '2026-11-01T00:00:00Z' }
@@ -105,8 +106,9 @@ await page.route('**/functions/v1/nova-bi-api/**', async route => {
     }] };
   } else if (path.startsWith('members')) {
     payload = method === 'POST'
-      ? { invitation: { id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', role: body.role, status: 'invited' } }
+      ? { invitation: { id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', role: body.role, status: 'invited' }, notification_sent: !nextInviteIsExistingAccount }
       : { members: [{ id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', user_id: '11111111-1111-4111-8111-111111111111', role: 'owner', status: 'active' }] };
+    if (method === 'POST') nextInviteIsExistingAccount = false;
   } else if (path.startsWith('audit')) payload = { events: [] };
   else if (path.startsWith('branding')) {
     if (method === 'POST') branding = { ...branding, ...body, updated_at: new Date().toISOString() };
@@ -236,6 +238,13 @@ await page.locator('#ncbInviteRole').selectOption('analyst');
 await page.locator('#ncbInviteForm button[type="submit"]').click();
 await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Invitation sent'), null, { timeout: 10000 });
 assert.ok(calls.some(call => call.path === 'members/invite' && call.method === 'POST' && call.body.role === 'analyst'));
+
+nextInviteIsExistingAccount = true;
+await page.locator('#ncbInviteEmail').fill('existing@example.test');
+await page.locator('#ncbInviteRole').selectOption('viewer');
+await page.locator('#ncbInviteForm button[type="submit"]').click();
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('no email was sent'), null, { timeout: 10000 });
+assert.ok(calls.some(call => call.path === 'members/invite' && call.method === 'POST' && call.body.email === 'existing@example.test'));
 
 await page.locator('[data-accept-invite]').click();
 await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Company invitation accepted.'), null, { timeout: 10000 });
