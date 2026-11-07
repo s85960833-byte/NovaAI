@@ -333,3 +333,12 @@ test('NOVA BI API enforces request byte limits while streaming instead of buffer
  assert.ok(edge.includes('readBoundedBody(req)'));
  assert.ok(!edge.includes('const raw = await req.text()'));
 });
+
+
+test('NOVA BI invitation failures compensate temporary Auth and membership records',()=>{
+ const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ assert.match(edge,/if \(memberError\)[\s\S]*?auth\.admin\.deleteUser\(invitedUserId\)/);
+ assert.match(edge,/if \(auditError\)[\s\S]*?from\("nova_bi_memberships"\)[\s\S]*?\.delete\(\)\.eq\("id", member\.id\)[\s\S]*?auth\.admin\.deleteUser\(invitedUserId\)/);
+ assert.ok(edge.includes('automatic cleanup was incomplete'));
+ assert.ok(edge.includes('email link is no longer valid'));
+});
