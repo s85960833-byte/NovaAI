@@ -92,11 +92,11 @@ jobs:
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
           npx playwright install --with-deps chromium
+      - name: Verify responsive workspace interactions and PDF.js worker in Chromium
+        run: node scripts/browser-smoke.mjs
       - name: Test Company Cloud mobile browser workflows
         timeout-minutes: 6
         run: node scripts/company-cloud-browser.mjs
-      - name: Verify responsive workspace interactions in Chromium
-        run: node scripts/browser-smoke.mjs
       - name: Run five-viewport mobile and drawer regression tests
         run: npm run test:mobile-layout
       - name: Upload integrated browser screenshots and reports
