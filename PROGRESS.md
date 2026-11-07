@@ -387,3 +387,16 @@ This section supersedes the earlier BI entries above where they state that authe
 - Product limitations remain explicit: heuristic project risk, assumption-based scenarios, team-level productivity, approval-gated workflow proposals without external execution, and workspace branding without custom domains/full brand removal.
 - Remaining release gates: real signup/email confirmation and two-account browser testing; SMTP/invitation delivery verification; retention, backup/restore and full account deletion; IP-level abuse monitoring; manual Android/accessibility/performance checks; production regression/live smoke tests.
 - Keep PR #46 Draft. Do not merge or deploy without explicit approval.
+
+
+## Unified NOVA release candidate checkpoint (2026-11-07)
+
+This checkpoint supersedes older progress entries above wherever they describe NOVA UI and NOVA Business Intelligence as separate release candidates.
+
+- Authoritative unified candidate: Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`.
+- Verified candidate snapshot: `cd2d1d53c7fc186ce7a82ed062c54574e34e843a`; Production `main` remains at `48e12a68af656b471853ac2a4509da0e3df7ab24` in the latest recorded comparison. The candidate is 128 commits ahead and 0 behind that base at this checkpoint.
+- GitHub Actions [run #1022](https://github.com/s85960833-byte/NovaAI/actions/runs/42328252932) passed on the exact candidate snapshot: 55/55 steps completed, 52 succeeded, 3 live-environment checks skipped by design, 0 failures.
+- Verified in CI: frontend/backend syntax, mode registry, PostgreSQL 17 migration and tenant-RLS integration, Deno Edge Function type-check and auth/CORS smoke, BI calculations/CSV validation, 60-case fixture validation (not live AI accuracy), production dependency audit, local route/PWA checks, Company Cloud browser flows, Chromium workspace interactions and five responsive viewport/drawer tests.
+- Browser screenshots are CI-emulated Chromium evidence only; they do not replace physical Android testing.
+- Live Render/provider/image-generation checks were skipped; the candidate was not deployed. Real signup/email, two-account tenant isolation, physical Android behavior, live HTTPS headers, backup/restore, retention/privacy and incident-response gates remain open.
+- No PR merge, Production deployment, live Supabase migration, Edge Function replacement, Auth configuration change or paid-resource change was performed. Keep the candidate Draft until the owner authorizes the relevant release steps.
