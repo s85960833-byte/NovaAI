@@ -189,7 +189,10 @@ test('NOVA BI company cloud uses authenticated Edge Function routes and session-
  assert.ok(!/service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY/.test(cloud));
  assert.ok(cloud.includes('storage:window.sessionStorage'));
  assert.ok(cloud.includes('/functions/v1/\'+CFG.fn+\'/'));
- assert.ok(edge.includes('withSupabase({ auth: "user" }'));
+ assert.ok(edge.includes('withSupabase({ auth: "user", cors: "disabled" }'));
+  assert.ok(edge.includes("Deno.serve(withSiteOrigin(authenticatedHandler, siteOrigin))"));
+  assert.ok(edge.includes("withSiteOrigin"));
+  assert.ok(!edge.includes("Access-Control-Allow-Origin\": \"*"));
  assert.ok(edge.includes('ctx.jwtClaims?.sub'));
  assert.ok(edge.includes('functions\\/v1\\/nova-bi-api'));
  assert.ok(edge.includes('db.from("nova_bi_organizations")'));
