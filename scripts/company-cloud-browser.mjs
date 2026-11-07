@@ -30,7 +30,10 @@ page.on('dialog', dialog => dialog.accept());
 await page.route('https://fonts.googleapis.com/**', route => route.fulfill({ status: 200, contentType: 'text/css; charset=utf-8', body: '' }));
 await page.route('https://fonts.gstatic.com/**', route => route.abort());
 
-await page.route(/supabase-js@2\.119\.0\/dist\/umd\/supabase\.min\.js/, route =>
+let supabaseStubHit = false;
+await page.route(/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js/, route => {
+  supabaseStubHit = true;
+  return route.fulfill
   route.fulfill({ status: 200, contentType: 'application/javascript', body: `let testSession = null; let authListener = null;
 window.__authCalls = [];
 window.__emitAuthEvent = (event, session) => authListener && authListener(event, session);
@@ -52,8 +55,8 @@ window.supabase = {
       }
     };
   }
-};` })
-);
+};` });
+});
 
 await page.route('**/functions/v1/nova-bi-api/**', async route => {
   const request = route.request();
@@ -138,6 +141,7 @@ const bootstrap = await page.evaluate(() => ({ ready: document.readyState, hasHo
 console.log('NOVA bootstrap', JSON.stringify(bootstrap));
 await page.locator('#hi .nr-card[data-group="agents"]').waitFor({ state: 'visible', timeout: 15000 });
 await page.waitForFunction(() => typeof window.supabase?.createClient === 'function', null, { timeout: 10000 });
+assert.equal(supabaseStubHit, true, 'Supabase CDN must be replaced by the deterministic browser auth stub');
 
 // Exercise the local analysis workspace from the only allowed entry point: NOVA Agents.
 await page.locator('#hi .nr-card[data-group="agents"]').waitFor({ state: 'visible', timeout: 15000 });
