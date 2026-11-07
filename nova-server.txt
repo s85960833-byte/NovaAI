@@ -33,6 +33,7 @@ const { rateWindow } = require('./nova-rate-limit');
 const hits = new Map();
 app.use('/api', (q, r, next) => {
   const now = Date.now(), a = rateWindow(hits, q.ip, now, 6e4);
+  if (!a) return r.status(503).json({ error: 'Rate limit capacity reached; retry shortly' });
   if (a.length >= 60) return r.status(429).json({ error: 'Too many requests' });
   a.push(now); hits.set(q.ip, a); next();
 });
