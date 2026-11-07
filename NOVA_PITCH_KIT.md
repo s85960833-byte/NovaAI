@@ -1,11 +1,11 @@
 # NOVA — Pitch Kit (Internal Founder Copy Pack)
 
-> **INTERNAL ONLY — HOLD. Do not send, present, or use this pitch externally until `PITCH_READINESS.md` explicitly clears NOVA for external pitching after all production gates pass.**
+> **LIMITED CONCEPT DISCOVERY ONLY. This pack may explain the product direction and invite feedback; it is not a live-product sales offer. Do not promise a demo, subscription, deployment, SLA, or production availability.**
 
 **Prepared:** 7 November 2026  
-**Purpose:** Internal preparation only. External conversations are on hold until production readiness is verified.  
+**Purpose:** Controlled concept discovery only. No paid sales, customer onboarding, production demo, or customer-data use until the release gates are closed.
 **Product:** NOVA main app only. NOVA Business Intelligence is a separate, unreleased candidate and must not be sold or demonstrated as a live module.  
-**Release truth:** The current three-workspace candidate is Draft PR #73 and is not deployed to Production. Production `main` remains at `48e12a68af656b471853ac2a4509da0e3df7ab24`. The last application-code verification snapshot is `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d`; CI runs #1200 and #1201 passed on that exact SHA. The current documentation-only candidate head at the 7 November 2026 audit is `136ef1b30f4d273af359958dcad56c37ae3a14be`; exact-head CI push run [#42378924871](https://github.com/s85960833-byte/NovaAI/actions/runs/42378924871) and PR run [#42378928787](https://github.com/s85960833-byte/NovaAI/actions/runs/42378928787) passed. Live-only checks remain skipped on the feature branch. These are code/browser automation results, not a live-device or production release certification.
+**Release truth:** Draft PR #73 is open, Draft, unmerged and undeployed. Production `main` remains at `48e12a68af656b471853ac2a4509da0e3df7ab24`. Latest candidate head: `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`. Exact-head GitHub Actions push run [#42379148497](https://github.com/s85960833-byte/NovaAI/actions/runs/42379148497) and pull-request run [#42379153742](https://github.com/s85960833-byte/NovaAI/actions/runs/42379153742) both completed successfully on `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`. All executable syntax, security, PostgreSQL migration/RLS, Deno Edge Function, BI calculation/CSV, dependency audit, local runtime/PWA, Chromium workspace/PDF, Company Cloud mobile-browser and five-viewport regression steps passed. The deployed Edge Function smoke and live Render/provider/image smoke steps were skipped because this branch is not deployed. These results are not physical Android, real SMTP/Auth, or two-real-account live tests.
 
 ---
 
@@ -196,7 +196,7 @@ No price, subscription, contract, SLA, refund promise or paid pilot is approved 
 
 <badge>GO — concept / discovery pitch only</badge>
 
-**Not cleared:** live demo of the unified candidate, public onboarding, paid subscriptions, BI customer deployment, confidential data, SLA or zero-error claims.
+**Not cleared:** live demo of the unified candidate, public onboarding, paid subscriptions, BI customer deployment, confidential data, SLA or zero-error claims. Limited concept/discovery conversations are allowed only with clear prototype status and no commercial commitment.
 
 The goal is a credible first conversation: explain the product direction, state what is actually verified, ask for feedback, and make no promises that the current release cannot support.
 
@@ -210,3 +210,10 @@ The goal is a credible first conversation: explain the product direction, state 
 - Exact-head GitHub Actions runs [#1222](https://github.com/s85960833-byte/NovaAI/actions/runs/42346535889) and [#1223](https://github.com/s85960833-byte/NovaAI/actions/runs/42346539792) both completed successfully. All candidate CI verification steps passed; the live Render/provider and free image-generation steps were skipped because no isolated preview was authorized.
 - The changes after the last application-code-verified snapshot `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d` are documentation-only. The current candidate remains unmerged and undeployed; physical Android, real signup/email and two-account tenant-isolation checks remain open.
 - This addendum supersedes earlier candidate-head and CI references in this file. Always consult Draft PR #73 for any newer head/checks.
+
+
+## Current verification addendum — 7 November 2026
+
+- Exact-head GitHub Actions push run [#42379148497](https://github.com/s85960833-byte/NovaAI/actions/runs/42379148497) and pull-request run [#42379153742](https://github.com/s85960833-byte/NovaAI/actions/runs/42379153742) both completed successfully on `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`. All executable syntax, security, PostgreSQL migration/RLS, Deno Edge Function, BI calculation/CSV, dependency audit, local runtime/PWA, Chromium workspace/PDF, Company Cloud mobile-browser and five-viewport regression steps passed. The deployed Edge Function smoke and live Render/provider/image smoke steps were skipped because this branch is not deployed. These results are not physical Android, real SMTP/Auth, or two-real-account live tests.
+- The release remains **not production-ready**. Real signup/email delivery, two-account live tenant isolation, physical Android testing, approved preview/live smoke, CSP hardening, production hosting/backup/restore, region decision, privacy/retention review, health-check configuration and branch protection remain open.
+- This addendum supersedes all earlier candidate-head and CI references in this file. See `PITCH_READINESS.md` for the current release gates.
