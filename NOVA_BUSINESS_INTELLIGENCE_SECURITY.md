@@ -2,7 +2,7 @@
 
 **Status:** Core tenant-authentication and database isolation controls are implemented. Automated tests are not a security certification. Keep the feature branch isolated until all release gates pass.
 
-## Deployed security controls
+## Implemented candidate controls (not a deployment claim)
 - Supabase Auth handles account authentication.
 - Edge Function `nova-bi-api` requires a verified user JWT.
 - The browser contains only a Supabase publishable key; the service-role key remains server-side.
@@ -13,7 +13,7 @@
 - Authenticated users cannot directly insert or modify membership roles. Invitation acceptance has a narrow column-level `UPDATE(status)` grant only; `role`, `organization_id` and `user_id` remain non-updatable by the authenticated role.
 - CSV contents remain browser-local; cloud persistence is limited to metadata, analysis aggregates, assumptions and evidence.
 - Edge Function request bodies and JSON payloads have explicit size limits; list endpoints are capped. Per-user throttling allows 120 authenticated API requests/minute and 5 invitations/hour. Rate-limit counters and the limiter function are inaccessible to anon/authenticated roles.
-- Security Advisor returned zero findings on the approved project at the latest check.
+- The last read-only Security Advisor check on the connected project returned zero findings. That result is not a certification of this entire candidate: pending candidate migrations and Edge Function changes have not all been applied to the live project.
 
 ## Data classification and user notice
 Do not use this release candidate with regulated, highly sensitive, or production employee personal data until privacy, retention, backup and incident-response controls are reviewed. Productivity insights are team-level and must not be used as individual surveillance or automated employment decisions.
