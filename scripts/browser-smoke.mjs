@@ -3,14 +3,20 @@ import { chromium } from 'playwright';
 
 const BASE=process.env.NOVAAI_URL||'http://127.0.0.1:8787';
 const browser=await chromium.launch({headless:true});
-const errors=[];
-const track=page=>page.on('pageerror',e=>errors.push(String(e.message||e)));
+const errors=[],cspErrors=[];
+const track=page=>{
+ page.on('pageerror',e=>errors.push(String(e.message||e)));
+ page.on('console',msg=>{if(msg.type()==='error'&&/content security policy|refused to (?:load|execute|apply)/i.test(msg.text()))cspErrors.push(msg.text())});
+};
 
 try{
  const desktop=await browser.newPage({viewport:{width:1365,height:900}});
  track(desktop);
  await desktop.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{onAuthStateChange(){},getSession:async()=>({data:{session:null}})}})};'}));
  await desktop.goto(BASE,{waitUntil:'domcontentloaded'});
+ const csp=await desktop.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content');
+ assert.ok(csp.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net"),'script CSP must allow only reviewed self/CDN script sources');
+ assert.doesNotMatch(csp,/script-src[^;]*'unsafe-inline'/,'script CSP must not permit inline execution');
  await desktop.locator('#hi .nr-card[data-group="learn"]').waitFor({state:'visible',timeout:15000});
  await desktop.waitForFunction(()=>document.body.classList.contains('nova-dashboard-home'));
  const desktopState=await desktop.evaluate(()=>({
@@ -145,7 +151,8 @@ try{
  await reducedContext.close();
 
  assert.deepEqual(errors,[],'browser runtime errors: '+errors.join('; '));
- console.log('PASS no browser page errors');
+ assert.deepEqual(cspErrors,[],'browser CSP violations: '+cspErrors.join('; '));
+ console.log('PASS no browser page errors or CSP violations');
 }finally{
  await browser.close();
 }
