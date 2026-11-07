@@ -73,7 +73,7 @@ NOVA Business Intelligence is part of the unified Draft preview candidate, but i
 
 
 
-**Current boundary (7 Nov 2026):** PR #73 is Draft, unmerged and undeployed. Latest documentation head `7b58d7b6ceac4a15ef6c93c72e6639f240a13fef` passed exact-head CI #42383854278 and #42383859510; latest application-code snapshot `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf` passed #42382919198 and #42382923272. GitHub comparison reports 469 commits ahead, 0 behind and 63 changed files. Production `main` is untouched. Only disclosed non-sensitive concept feedback is appropriate; no payment, confidential data, production service/SLA or live-product promise. See `PITCH_READINESS.md` for all release gates.
+**Current boundary (7 Nov 2026):** PR #73 is Draft, unmerged and undeployed. The latest application-code snapshot `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf` passed exact-head CI #42382919198 and #42382923272; subsequent audit commits are documentation-only. Use PR #73 for the current branch head and exact CI status. The full PR history and 63-file diff require owner review before any merge. Production `main` is untouched. Only disclosed non-sensitive concept feedback is appropriate; no payment, confidential data, production service/SLA or live-product promise. See `PITCH_READINESS.md` for all release gates.
 
 
 ## Authoritative release-status checkpoint — 7 November 2026 (latest)
