@@ -9,6 +9,7 @@ const track=page=>page.on('pageerror',e=>errors.push(String(e.message||e)));
 try{
  const desktop=await browser.newPage({viewport:{width:1365,height:900}});
  track(desktop);
+ await desktop.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{onAuthStateChange(){},getSession:async()=>({data:{session:null}})}})};'}));
  await desktop.goto(BASE,{waitUntil:'domcontentloaded'});
  await desktop.locator('#hi .nr-card[data-group="learn"]').waitFor({state:'visible',timeout:15000});
  await desktop.waitForFunction(()=>document.body.classList.contains('nova-dashboard-home'));
@@ -59,6 +60,27 @@ try{
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
  assert.equal(await desktop.evaluate(()=>document.activeElement.dataset.group),'learn','closing with Escape should restore focus to the launch card');
  console.log('PASS keyboard open/close, dialog semantics, focus entry/restoration and Learn isolation');
+
+ const agents=desktop.locator('#hi .nr-card[data-group="agents"]');
+ await agents.click();
+ await desktop.locator('#novaModes.open').waitFor();
+ const agentsWorkspace=await desktop.locator('#nmContent').innerText();
+ assert.ok(agentsWorkspace.includes('Business Intelligence / बिज़नेस इंटेलिजेंस'));
+ assert.ok(agentsWorkspace.includes('Company Account Cloud / कंपनी अकाउंट क्लाउड'));
+ await desktop.locator('#nmContent [data-quick="openBusinessIntelligence"]').click();
+ await desktop.locator('#novaBusiness.show').waitFor();
+ await desktop.keyboard.press('Escape');
+ await desktop.waitForFunction(()=>!document.querySelector('#novaBusiness').classList.contains('show'));
+ assert.equal(await desktop.locator('#novaModes').evaluate(el=>el.classList.contains('open')),true,'Agents workspace should remain open after closing Business Intelligence');
+ await desktop.locator('#nmContent [data-quick="openCompanyCloud"]').click();
+ await desktop.locator('#novaBICloud.show').waitFor();
+ await desktop.keyboard.press('Escape');
+ await desktop.waitForFunction(()=>!document.querySelector('#novaBICloud').classList.contains('show'));
+ assert.equal(await desktop.locator('#novaModes').evaluate(el=>el.classList.contains('open')),true,'Agents workspace should remain open after closing Company Cloud');
+ await desktop.keyboard.press('Escape');
+ await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
+ console.log('PASS Business Intelligence and Company Cloud launch only from Agents; nested dialogs restore focus');
+
 
  const mobileContext=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2,isMobile:true,hasTouch:true});
  const mobile=await mobileContext.newPage();
