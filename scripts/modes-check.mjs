@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const source=readFileSync('mode-registry.js','utf8');
 const workspace=readFileSync('mode-workspace.js','utf8');
 const html=readFileSync('index.html','utf8');
+const app=readFileSync('nova-app.js','utf8');
 const server=readFileSync('nova-server.txt','utf8');
 const context={window:{}};vm.runInNewContext(source,context);
 const r=context.window.NovaModeRegistry;
@@ -20,7 +21,7 @@ assert.ok(suite.includes('const bi=s=>')&&suite.includes('Project Brain / प्
 assert.ok(suite.includes('esc(bi(label))')&&suite.includes('esc(bi(ph))'),'NOVA Agents suite form labels and placeholders must be bilingual');
 assert.ok(suite.includes('function bilingualize(root)')&&suite.includes('bilingualize(b);')&&suite.includes('esc(bi(txt))'),'NOVA Agents suite descriptions and output placeholders must be bilingualized');
 assert.ok(!suite.includes("btn.id='novaSuiteLauncher'")&&!suite.includes("append(btn)"),'Agents Studio must not be launched from the global sidebar');
-assert.ok(workspace.includes("['openAgentsSuite','✦','Agents Studio / एजेंट स्टूडियो']")&&html.includes('openAgentsSuite(){window.NovaSuite?.open()}'),'Agents Studio must launch only from NOVA Agents workspace');
+assert.ok(workspace.includes("['openAgentsSuite','✦','Agents Studio / एजेंट स्टूडियो']")&&app.includes('openAgentsSuite(){window.NovaSuite?.open()}'),'Agents Studio must launch only from NOVA Agents workspace');
 const tier=readFileSync('s-tier.js','utf8');
 for(const label of ['NOVA Learn / नोवा लर्न','NOVA Build / नोवा बिल्ड','NOVA Agents / नोवा एजेंट्स','INDIAN INTELLIGENCE / भारतीय बुद्धिमत्ता','HINDI / हिन्दी · ENGLISH / अंग्रेज़ी','Nova Experience / NOVA अनुभव','Data Saver / Lite Mode · डेटा सेवर / लाइट मोड','Startup Chime · स्टार्टअप ध्वनि','Festival Greetings · त्योहारों की शुभकामनाएँ','Accent Palette / रंग थीम'])assert.ok(tier.includes(label),'missing bilingual home/settings label: '+label);
 assert.ok(tier.includes('DESIGNED IN INDIA / भारत में निर्मित')&&tier.includes('BUILT FOR THE WORLD / दुनिया के लिए'),'brand origin must be bilingual');
@@ -32,7 +33,7 @@ assert.ok(workspace.includes("if(typeof fn==='function'){if(!['openBusinessIntel
 const business=readFileSync('nova-business.js','utf8');
 const cloud=readFileSync('nova-business-cloud.js','utf8');
 assert.ok(workspace.includes("['openBusinessIntelligence','▦','Business Intelligence / बिज़नेस इंटेलिजेंस']")&&workspace.includes("['openCompanyCloud','◈','Company Account Cloud / कंपनी अकाउंट क्लाउड']"),'Business Intelligence and Company Cloud must be reachable only inside NOVA Agents');
-assert.ok(html.includes('openBusinessIntelligence(){window.NovaBusiness?.open()}')&&html.includes('openCompanyCloud(){window.NovaBusinessCloud?.open()}'),'Agents workspace business action bridge is missing');
+assert.ok(app.includes('openBusinessIntelligence(){window.NovaBusiness?.open()}')&&app.includes('openCompanyCloud(){window.NovaBusinessCloud?.open()}'),'Agents workspace business action bridge is missing');
 assert.ok(!business.includes("btn.id='novaBusinessLauncher'")&&!business.includes("side.insertBefore(btn,list||null)"),'Business Intelligence must not add a fourth global sidebar item');
 assert.ok(!cloud.includes("launcher.id='novaBICloudLauncher'")&&!cloud.includes("side.insertBefore(launcher"),'Company Cloud must not add a fourth global sidebar item');
 assert.ok(business.includes('window.NovaBusiness=Object.freeze({open,close,')&&cloud.includes('window.NovaBusinessCloud=Object.freeze({open,close,'),'Business workspace launch APIs must remain available');
@@ -40,7 +41,7 @@ assert.match(business, /["']Business Intelligence Dashboard["']\s*:\s*["']बि
 assert.ok(business.includes('function bilingualize(root)')&&business.includes('bilingualize(b)'), 'Business Intelligence screens must apply bilingualization to rendered content');
 assert.match(cloud, /["']Sign in to your company workspace["']\s*:\s*["']अपने कंपनी वर्कस्पेस में साइन इन करें["']/, 'Company Cloud Hindi dictionary entry is missing');
 assert.ok(cloud.includes('function bilingualize(root)')&&cloud.includes('bilingualize(overlay)')&&cloud.includes('bilingualValue(m)'), 'Company Cloud forms and status messages must be bilingualized');
-for(const action of ['openPhoto,openArchive:openArch','startVoice:startLive','openAgentsSuite(){window.NovaSuite?.open()}','openBusinessIntelligence(){window.NovaBusiness?.open()}','openCompanyCloud(){window.NovaBusinessCloud?.open()}','openImageStudio(){'])assert.ok(html.includes(action),'legacy feature action bridge missing: '+action);
+for(const action of ['openPhoto,openArchive:openArch','startVoice:startLive','openAgentsSuite(){window.NovaSuite?.open()}','openBusinessIntelligence(){window.NovaBusiness?.open()}','openCompanyCloud(){window.NovaBusinessCloud?.open()}','openImageStudio(){'])assert.ok(app.includes(action),'legacy feature action bridge missing: '+action);
 assert.ok(html.includes('id="nPhoto" data-i="nPhoto" hidden')&&html.includes('id="nArch" data-i="nArch" hidden'),'learning-only legacy shortcuts must not remain in global sidebar');
 
 assert.ok(workspace.includes("g.name+' / '+g.nameHi"),'workspace group labels must always show Hindi and English');
@@ -74,8 +75,8 @@ assert.ok(workspace.includes("document.querySelector('#lang')?.addEventListener(
 assert.ok(server.includes('HORDE_API_KEY')&&server.includes('/generate/async')&&server.includes('/generate/check/')&&server.includes('/generate/status/'),'free community image fallback is missing');
 assert.ok(server.includes('censor_nsfw: true')&&server.includes('nsfw: false'),'image safety settings are missing');
 assert.ok(server.includes("app.get('/api/image/status/:id'")&&server.includes('UUID job IDs are unguessable'),'image status polling must tolerate proxy IP rotation');
-assert.ok(html.includes('hi:{'),'Previous standard UI Hindi dictionary missing');
+assert.ok(app.includes('hi:{'),'Previous standard UI Hindi dictionary missing');
 assert.ok(html.includes('hi:{'),'Hindi UI dictionary missing');
 assert.ok(server.includes('manifest')||server.includes('service-worker'),'PWA backend support missing');
-assert.ok(html.includes("localStorage.getItem('nova')")&&html.includes("const persistable=()=>")&&html.includes("JSON.stringify(persistable())"),'legacy chat storage key or secret-safe persistence changed');
+assert.ok(app.includes("localStorage.getItem('nova')")&&app.includes("const persistable=()=>")&&app.includes("JSON.stringify(persistable())"),'legacy chat storage key or secret-safe persistence changed');
 console.log('PASS bilingual mode registry: 13 isolated modes, Hindi/English app UI and prompts, separate histories, voice, PDF/photo, official scheme filtering, rate/cache, offline and PWA install');
