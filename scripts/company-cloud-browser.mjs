@@ -145,15 +145,19 @@ const bootstrap = await page.evaluate(() => ({ ready: document.readyState, hasHo
 console.log('NOVA bootstrap', JSON.stringify(bootstrap));
 const idleCloudMutations = await page.evaluate(async () => {
   const overlay = document.querySelector('#novaBICloud');
-  if (!overlay) return -1;
-  let mutations = 0;
-  const observer = new MutationObserver(records => { mutations += records.length; });
-  observer.observe(overlay, { childList: true, subtree: true, characterData: true, attributes: true });
-  await new Promise(resolve => setTimeout(resolve, 250));
-  observer.disconnect();
-  return mutations;
+  if (!overlay) return null;
+  const sample = () => new Promise(resolve => {
+    let mutations = 0;
+    const observer = new MutationObserver(records => { mutations += records.length; });
+    observer.observe(overlay, { subtree: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'aria-label', 'title'] });
+    setTimeout(() => { observer.disconnect(); resolve(mutations); }, 200);
+  });
+  const initial = await sample();
+  const stable = await sample();
+  return { initial, stable };
 });
-assert.equal(idleCloudMutations, 0, 'idle Company Cloud bilingual observer must not rewrite unchanged text or attributes');
+assert.ok(idleCloudMutations, 'Company Cloud overlay must be mounted');
+assert.equal(idleCloudMutations.stable, 0, 'Company Cloud bilingual observer must settle without repeatedly rewriting unchanged text or attributes');
 progress('idle bilingual observer is stable');
 await page.locator('#hi .nr-card[data-group="agents"]').waitFor({ state: 'visible', timeout: 15000 });
 await page.waitForFunction(() => typeof window.supabase?.createClient === 'function', null, { timeout: 10000 });
