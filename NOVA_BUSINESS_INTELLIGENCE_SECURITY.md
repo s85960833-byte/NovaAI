@@ -60,4 +60,25 @@ Cloud save sends the selected dataset metadata and calculated aggregates/evidenc
 - Data export and deletion must be scoped to the active organization and leave required audit evidence.
 
 ## Release decision
-This is a verified feature-branch release candidate, not a public production product. Automated CI on exact candidate SHA `e2702c12c89749b4f623857c6ac924b5f1871739` passed run [#1288](https://github.com/s85960833-byte/NovaAI/actions/runs/42367968496), but real Auth/email, two-account tenant isolation, backup/restore, hosting-tier suitability, physical Android, privacy/retention and incident-response gates remain open. Do not merge or deploy until these controls are completed and the owner explicitly approves.
+
+**Status: NOT production-ready; do not merge or deploy yet.**
+
+The integrated candidate is on Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`, candidate head `cda51b75cd2722252ab1a4f546c8b107745ce3a5`. Both CI runs for this exact SHA passed: [push run #42377209743](https://github.com/s85960833-byte/NovaAI/actions/runs/42377209743) and [pull-request run #42377214654](https://github.com/s85960833-byte/NovaAI/actions/runs/42377214654). The successful candidate checks include syntax, injection/rate-limit/provider/PDF security tests, PostgreSQL tenant-RLS migration tests, Deno type-check and CORS tests, BI calculations/CSV validation, 60-case AI evaluation fixture validation, dependency vulnerability audit, local route/PWA smoke tests, graceful shutdown, Chromium workspace/PDF tests, Company Cloud mobile workflows, and five-viewport layout/drawer regressions.
+
+**Important scope:** CI's deployed-function smoke test and all live Render website/provider/image smoke tests were skipped because the candidate has not been merged/deployed. Chromium mobile viewport tests are not a physical Android device test. A green candidate CI run is not proof of production readiness.
+
+### Remaining release blockers (must be closed before a sales-ready production claim)
+1. Deploy the candidate only after owner approval; then verify live exact-origin CORS, authenticated function behavior and provider/image flows against the real production origin.
+2. Complete real signup, confirmation, resend, password reset, sign-in/out, token refresh and revoked-session checks using controlled test accounts and verified custom SMTP; set the production Site URL and redirect allow-list.
+3. Complete two real accounts in separate organizations and test cross-tenant reads/writes/deletes, role changes/removal, invitations and audit evidence.
+4. Complete physical Android checks (touch, keyboard, screen reader, contrast, low bandwidth and performance) on supported devices; browser emulation alone is insufficient.
+5. Finish CSP hardening. Inline style attributes and runtime style mutation remain; broad `connect-src https:` is still permissive. Refactor and test before removing unsafe inline style allowances or narrowing provider connections.
+6. Configure and verify the Render health-check path as `/health`; it currently is not configured on the service. This requires the correct Render workspace/service to be confirmed by the owner.
+7. Establish off-site backups and complete a successful restore drill. Supabase Free does not provide the required automatic backup/recovery assurance for production.
+8. Choose and verify production-suitable hosting, backup, monitoring and alerting; current Render Free/Supabase Free settings are not a demonstrated production SLA/recovery plan.
+9. Complete privacy/data-processing notice, retention/deletion design, organization-owner transfer, audit retention, incident response and secret-rotation runbooks. Do not promise full account erasure or process real employee/customer personal data before this is reviewed.
+10. Decide and document region/data-residency strategy; the current Render/Supabase regions are different.
+11. Enable and verify required branch protections/status checks before production merge.
+12. Re-run full live smoke tests after deployment and record rollback/recovery evidence.
+
+No live service, production database, Auth setting, billing plan, branch protection or production deployment was changed by this candidate update. These external gates require owner access/approval and, where relevant, an authorized adult/account owner. Keep PR #73 Draft and unmerged until every applicable gate is evidenced.
