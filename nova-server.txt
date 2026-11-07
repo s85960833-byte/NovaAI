@@ -322,6 +322,7 @@ app.post('/api/image', (q, r) => {
   if (unsafeImagePrompt.test(prompt)) return r.status(400).json({ error: 'This image prompt is not supported. Choose a safe, non-graphic subject.' });
   if (E.IMAGE_OFF) return r.status(404).end();
   const now = Date.now(), a = rateWindow(imageJobHits, q.ip, now, 10 * 60 * 1000);
+  if (!a) return r.status(503).json({ error: 'Image rate-limit capacity reached; retry shortly' });
   if (a.length >= 3) return r.status(429).json({ error: 'Image generation limit reached. Please try again later.' });
   a.push(now); imageJobHits.set(q.ip, a);
   pruneImageJobs();
@@ -1016,6 +1017,7 @@ app.post('/api/live', async (q, r) => {
   const b = q.body || {}, text = String(b.q || '').trim().slice(0, 500);
   if (!text) return r.status(400).json({ ok: false, error: 'No question' });
   const nw = Date.now(), a = rateWindow(liveHits, q.ip, nw, 6e4);
+  if (!a) return r.status(503).json({ ok: false, error: 'Live-search rate-limit capacity reached; retry shortly.' });
   if (a.length >= 24) return r.status(429).json({ ok: false, error: 'Too many live searches. Please wait a minute.' });
   if (liveActive >= LIVE_MAX) return r.status(429).json({ ok: false, error: 'Live search is busy. Try again in a few seconds.' });
   a.push(nw); liveHits.set(q.ip, a); liveActive++;
@@ -1025,7 +1027,11 @@ app.post('/api/live', async (q, r) => {
 });
 const stHits = new Map();
 app.get('/api/live/selftest', async (q, r) => {
+  // This diagnostic fans out to many external providers. Keep it disabled on
+  // public deployments unless an operator explicitly enables it for a check.
+  if (E.LIVE_SELFTEST_ENABLED !== '1') return r.status(404).end();
   const nw = Date.now(), a = rateWindow(stHits, q.ip, nw, 6e4);
+  if (!a) return r.status(503).json({ error: 'Provider self-test capacity reached; retry shortly' });
   if (a.length >= 4) return r.status(429).json({ error: 'Please wait a minute before testing again.' });
   a.push(nw); stHits.set(q.ip, a);
   const y = new Date(nw - 864e5), probes = [
@@ -1113,9 +1119,13 @@ if (E.SELFTEST_ON_START === '1') {
       await probe('PWA icon', '/icons/icon-192.png', {}, r => r.ok && (r.headers.get('content-type') || '').includes('image/png'));
       await probe('service worker', '/sw.js', {}, r => r.ok);
       await probe('news feed', '/api/feed?cat=all&lang=en', {}, (r, j) => r.ok && Object.keys(j.cats || {}).length > 0);
-      const self = await probe('provider self-test endpoint', '/api/live/selftest', { timeout: 120000 }, (r, j) => r.ok && Array.isArray(j.results));
-      console.log('NOVA_SELFTEST_PROVIDERS ' + JSON.stringify(self && self.data && self.data.results || []));
-      if (self && self.data.results) self.data.results.forEach(x => results.push({ name: 'provider: ' + x.name, ok: !!x.ok, status: x.status || null, ms: x.ms, provider: x.provider || '', note: x.note || '' }));
+      if (E.LIVE_SELFTEST_ENABLED === '1') {
+        const self = await probe('provider self-test endpoint', '/api/live/selftest', { timeout: 120000 }, (r, j) => r.ok && Array.isArray(j.results));
+        console.log('NOVA_SELFTEST_PROVIDERS ' + JSON.stringify(self && self.data && self.data.results || []));
+        if (self && self.data.results) self.data.results.forEach(x => results.push({ name: 'provider: ' + x.name, ok: !!x.ok, status: x.status || null, ms: x.ms, provider: x.provider || '', note: x.note || '' }));
+      } else {
+        results.push({ name: 'provider self-test endpoint', ok: true, status: 404, note: 'Disabled by default; set LIVE_SELFTEST_ENABLED=1 for an operator-authorized check.' });
+      }
       await probe('live retrieval', '/api/live', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: 'Latest NASA news', mode: 'always', lang: 'en', tz: 'Asia/Kolkata' }), timeout: 60000 }, (r, j) => r.ok && j.ok && !!j.context);
       await probe('AI chat', '/api/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: (config && config.data.model) || E.LLM_MODEL, stream: false, max_tokens: 16, messages: [{ role: 'user', content: 'Reply exactly NOVAAI_OK.' }] }), timeout: 60000 }, (r, j) => r.ok && !!(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content));
       if (config && config.data.providers && config.data.providers.tavily) {
