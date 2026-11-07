@@ -83,7 +83,7 @@ if (!reference.includes("const root=$('#hi');") || !reference.includes("const ho
 
 for (const file of ['scripts/runtime-smoke.mjs','scripts/browser-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs','scripts/company-cloud-browser.mjs','scripts/supabase-edge-smoke.mjs','scripts/smoke-free-image.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
 
-if (!appScript.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
+if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
 if (!appScript.includes("typeof en==='string'&&typeof hi==='string'") || !appScript.includes("return en+' / '+hi")) throw new Error('Core NOVA interface must render English and Hindi together');
 if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>html.includes(x))) throw new Error('NOVA Learn, Build and Agents workspace scripts are not connected in the homepage');
 if (!['src="/nova-business-core.js"','src="/nova-business.js"','src="/nova-business-cloud.js"'].every(x=>html.includes(x)) || !html.includes('@supabase/supabase-js@2.119.0')) throw new Error('NOVA BI scripts and Supabase client are not connected in the homepage');
@@ -94,10 +94,10 @@ if (!shareHandler.includes('const exportedConfig={api:CFG.api,brand:CFG.brand,ba
 if (!appScript.includes('Your API key is never included') || !appScript.includes('आपकी API key शामिल नहीं होती')) throw new Error('BYOK export privacy disclosure must explain that recipients supply their own keys');
 
 if (html.includes('CHAT · LEARN · MASTER') || html.includes('IMAGINE · DESIGN · CREATE') || html.includes('RESEARCH · DISCOVER · EXPLORE')) throw new Error('Old four-workspace visual shell remains');
-if (!appScript.includes('id="dset"')) throw new Error('Settings panel missing');
+if (!html.includes('id="dset"')) throw new Error('Settings panel missing');
 if (appScript.includes('Nova AI has no server of its own') || appScript.includes('Nova AI का अपना कोई सर्वर नहीं है।')) throw new Error('Outdated privacy disclosure incorrectly says NOVA has no backend');
 if (!appScript.includes('backend hosted on Render') || !appScript.includes('account-based cloud chat sync')) throw new Error('NOVA backend and local-storage privacy disclosures are missing');
-if (!appScript.includes('id="photo"')) throw new Error('Image/photo panel missing');
+if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
 if (!appScript.includes('async function pollImageJob(') || !appScript.includes("API+'/image/status/'") || !appScript.includes('pollImageJob(j.jobId,sig)') || !appScript.includes("sig.addEventListener('abort',abort,{once:true})") || !appScript.includes("e1?.status===429")) throw new Error('Image studio must abort polling promptly and must not bypass server image rate limits');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'")) throw new Error('Existing optional feature asset routes missing');
