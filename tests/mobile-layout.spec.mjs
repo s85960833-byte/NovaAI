@@ -24,6 +24,8 @@ for (const size of sizes) {
     await expect(page.locator('#nImg')).toBeHidden();
     await expect(page.locator('#nLive')).toBeHidden();
     await expect(page.locator('#nrSidebarLinks button')).toHaveCount(3);
+    await expect(page.locator('#novaBusinessLauncher')).toHaveCount(0);
+    await expect(page.locator('#novaBICloudLauncher')).toHaveCount(0);
     await expect(page.locator('#nrSidebarLinks')).not.toContainText('Explore');
     const layout = await page.evaluate(() => {
       const rect = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { x:r.x, right:r.right, width:r.width, bottom:r.bottom }; };
@@ -68,6 +70,8 @@ test('mobile drawer, Settings and workspace composer boundaries',async({page})=>
   await expect(page.locator('#side')).not.toHaveClass(/open/);
   await page.locator('#hi .nr-card[data-group="agents"]').click();
   await expect(page.locator('#novaModes.open')).toBeVisible();
+  await expect(page.locator('#nmContent [data-quick="openBusinessIntelligence"]')).toBeVisible();
+  await expect(page.locator('#nmContent [data-quick="openCompanyCloud"]')).toBeVisible();
   await expect(page.locator('#nmCompose')).toBeHidden();
   await page.locator('#nmContent [data-mode="general"]').click();
   await expect(page.locator('#nmCompose')).toBeVisible();
