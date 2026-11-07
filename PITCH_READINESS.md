@@ -233,6 +233,14 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - Remaining CSP work: remove inline style allowances by migrating the remaining inline CSS/style attributes, and narrow the broad HTTPS `connect-src` while preserving configured BYOK provider support. This is a partial hardening improvement, not a strict CSP certification.
 - No production branch, Render service, Supabase migration, Auth configuration, paid plan or live customer data was changed. PR #73 remains Draft and unmerged.
 
+## 18. Auth email delivery and redirect configuration remain unverified
+
+- The Company Cloud UI calls Supabase Auth for signup confirmation, resend confirmation and password reset, and passes `window.location.origin` as the redirect target.
+- Supabase's current documentation says its built-in SMTP is not intended for production: it only sends to pre-authorized project-team addresses, currently has a 2-email/hour limit, and has no delivery SLA. A custom SMTP service, authenticated sending domain (SPF/DKIM/DMARC), and a real delivery test are required before public signup. Reference: [Supabase custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp).
+- Supabase requires the Site URL and Redirect URLs allow-list to match the application's actual redirect destinations. The Site URL defaults to `localhost:3000` and is used for confirmation and password-reset redirects. Confirm the production URL `https://novaai-4auo.onrender.com` is configured, and that no broad wildcard redirect is used. Reference: [Supabase redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).
+- The current Supabase connector does not expose Auth SMTP or URL-configuration settings, and no real email was sent in this audit. Therefore these settings and delivery are **unverified**, not passed. An authorized project owner must verify/configure them in the dashboard and run real signup, resend and password-reset tests using controlled test mailboxes.
+- Do not disable email confirmation as a workaround. Keep public signup gated until these checks pass.
+
 ## 17. Live NOVA BI CORS discrepancy found — 7 November 2026
 
 - A fresh read-only fetch of the deployed Supabase Edge Function `nova-bi-api` confirms production is still version 13 and its deployed `index.ts` returns `Access-Control-Allow-Origin: *` and answers every OPTIONS request without validating the request Origin.
