@@ -178,3 +178,11 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - Production remains `main` at `48e12a68af656b471853ac2a4509da0e3df7ab24`; the three-workspace candidate is not live on the Production URL.
 - Pitch clearance remains: concept/discovery/design-partner conversation only. No live candidate demo, public onboarding, paid plan, SLA, BI deployment, confidential-data handling or zero-error claim.
 - Earlier sections contain the full technical evidence and detailed gates. This addendum supersedes their older CI run/head references where those references are historical snapshots; always use PR #73 and its exact-head checks for the latest candidate status.
+
+## Current exact-head status — 7 November 2026 (supersedes older checkpoint references)
+
+- Draft PR #73 current head: `b51f0ff8c5234004455284aafcdc58b21a276823`; it remains open, Draft, unmerged and not deployed.
+- Exact-head CI runs [#1222](https://github.com/s85960833-byte/NovaAI/actions/runs/42346535889) and [#1223](https://github.com/s85960833-byte/NovaAI/actions/runs/42346539792) both passed. PostgreSQL migration/RLS integration, Edge Function type-check and invitation tests, dependency audit, local/PWA smoke, Company Cloud browser workflows and five-viewport Chromium tests passed.
+- The current head differs from the last application-code-verified snapshot `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d` only in documentation (`NOVA_PITCH_KIT.md`, `PITCH_READINESS.md`, `PITCH_SCRIPT.md`, `README.md`). These CI results do not constitute live deployment or physical-device certification.
+- Live Render/provider and free image-generation checks were skipped because no isolated preview was authorized. Signup/email delivery, two-real-account tenant isolation, physical Android, preview runtime, backup/restore, privacy/retention and incident-response checks remain open.
+- Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; no merge, deployment or live Supabase changes were made. This addendum supersedes older candidate-head/checkpoint references above; use PR #73 for newer status.
