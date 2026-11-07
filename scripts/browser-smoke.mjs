@@ -69,11 +69,15 @@ try{
  assert.ok(agentsWorkspace.includes('Company Account Cloud / कंपनी अकाउंट क्लाउड'));
  await desktop.locator('#nmContent [data-quick="openBusinessIntelligence"]').click();
  await desktop.locator('#novaBusiness.show').waitFor();
+ assert.ok((await desktop.locator('#nbBody').innerText()).includes('Business Intelligence Dashboard / बिज़नेस इंटेलिजेंस डैशबोर्ड'));
  await desktop.keyboard.press('Escape');
  await desktop.waitForFunction(()=>!document.querySelector('#novaBusiness').classList.contains('show'));
  assert.equal(await desktop.locator('#novaModes').evaluate(el=>el.classList.contains('open')),true,'Agents workspace should remain open after closing Business Intelligence');
  await desktop.locator('#nmContent [data-quick="openCompanyCloud"]').click();
  await desktop.locator('#novaBICloud.show').waitFor();
+ const cloudText=await desktop.locator('#ncbContent').innerText();
+ assert.ok(cloudText.includes('Sign in to your company workspace / अपने कंपनी वर्कस्पेस में साइन इन करें'));
+ assert.ok(cloudText.includes('Create account / खाता बनाएँ'));
  await desktop.keyboard.press('Escape');
  await desktop.waitForFunction(()=>!document.querySelector('#novaBICloud').classList.contains('show'));
  assert.equal(await desktop.locator('#novaModes').evaluate(el=>el.classList.contains('open')),true,'Agents workspace should remain open after closing Company Cloud');
