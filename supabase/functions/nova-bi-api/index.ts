@@ -162,7 +162,14 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
         .select("id,organization_id,user_id,role,status,created_at").single();
       if (memberError) {
         console.error("NOVA BI invitation membership could not be saved");
-        return fail("The invitation email was issued but membership setup failed. Contact the workspace owner before retrying.", 500);
+        const cleanup = await ctx.supabaseAdmin.auth.admin.deleteUser(invitedUserId);
+        if (cleanup.error) console.error("NOVA BI failed to clean up the invited Auth user after membership failure");
+        return fail(
+          cleanup.error
+            ? "Invitation setup failed and the temporary Auth account could not be cleaned up. Contact the workspace owner before retrying."
+            : "Invitation setup failed; the temporary Auth account was cleaned up. The email link is no longer valid. Please retry.",
+          500,
+        );
       }
       const { error: auditError } = await ctx.supabaseAdmin.from("nova_bi_audit_events").insert({
         organization_id: orgId, actor_id: userId, event_type: "membership.invitation.sent",
@@ -170,7 +177,17 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       });
       if (auditError) {
         console.error("NOVA BI invitation audit event could not be saved");
-        return fail("The invitation was issued, but its audit record could not be saved. Contact the workspace owner before retrying.", 500);
+        const membershipCleanup = await ctx.supabaseAdmin.from("nova_bi_memberships")
+          .delete().eq("id", member.id);
+        if (membershipCleanup.error) console.error("NOVA BI failed to clean up the incomplete invitation membership");
+        const authCleanup = await ctx.supabaseAdmin.auth.admin.deleteUser(invitedUserId);
+        if (authCleanup.error) console.error("NOVA BI failed to clean up the invited Auth user after audit failure");
+        return fail(
+          membershipCleanup.error || authCleanup.error
+            ? "Invitation audit failed and automatic cleanup was incomplete. Contact the workspace owner before retrying."
+            : "Invitation audit failed; the temporary account and membership were cleaned up. The email link is no longer valid. Please retry.",
+          500,
+        );
       }
       return json({ invitation: member }, 201);
     }
