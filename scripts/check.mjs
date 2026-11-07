@@ -75,7 +75,7 @@ if (!tier.includes('function ambientAtmosphere()') || !tier.includes('function s
 const reference = readFileSync('nova-reference.js', 'utf8');
 if (![html,reference,tier,workspace].every(source=>source.includes('Noto Sans Devanagari'))) throw new Error('Hindi/Devanagari font fallback is missing from a primary NOVA surface');
 if (!html.includes('src=\"/nova-reference.js\"') || !['data-group=\"build\"','data-group=\"learn\"','data-group=\"agents\"','NOVA Build / नोवा बिल्ड','NOVA Learn / नोवा लर्न','NOVA Agents / नोवा एजेंट्स'].every(x=>reference.includes(x)) || !reference.includes('tr=(en,hi)=>`${en} / ${hi}`') || !reference.includes('body.nova-dashboard-home #box') || !reference.includes("document.body.classList.remove('nova-dashboard-home')") || reference.includes('id=\"nrAsk\"') || reference.includes('data-nr=') || reference.includes('NovaWorkspaceActions') || !reference.includes('nova-reference-style')) throw new Error('Reference home must be bilingual and keep photo/voice/chat actions inside their workspaces');
-if (!html.includes("h.id='hi'")) throw new Error('Legacy home renderer no longer creates the S-Tier mount point');
+if (!appScript.includes("h.id='hi'")) throw new Error('Externalized legacy home renderer no longer creates the S-Tier mount point');
 if (!html.includes("document.body.classList.add('nova-dashboard-home')") || html.includes('NOVA ASSISTANT')) throw new Error('Legacy dashboard must render only the NOVA workspace mount and must not expose a global assistant card');
 if (!reference.includes("const root=$('#hi');") || !reference.includes("const host=$('#log');") || reference.includes('#novaSHome')) throw new Error('Reference dashboard must mount into #hi and observe #log for future home renders');
 
