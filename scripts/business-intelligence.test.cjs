@@ -79,6 +79,11 @@ test('invalid numeric values are never silently treated as zero',()=>{
  assert.throws(()=>core.analyzeExpenses([],{ }),/Choose a column for amount/);
 });
 
+test('expense monthly grouping preserves the source calendar month across timezone offsets',()=>{
+ const r=core.analyzeExpenses([{d:'2026-11-01T00:30:00+05:30',c:'Cloud',a:'100'},{d:'2026-10-31T23:30:00-04:00',c:'Cloud',a:'200'}],{date:'d',category:'c',amount:'a'});
+ assert.deepEqual(r.byMonth,[{name:'2026-10',value:200},{name:'2026-11',value:100}]);
+ assert.deepEqual(r.evidenceByMonth.map(x=>x.month),['2026-11','2026-10']);
+});
 test('expense analysis flags budget overruns and large month-to-month increases as review signals',()=>{
  const r=core.analyzeExpenses([{d:'2026-01-02',c:'Cloud',a:'100'},{d:'2026-02-02',c:'Cloud',a:'140'},{d:'2026-03-02',c:'Cloud',a:'90'}],{date:'d',category:'c',amount:'a',monthlyBudget:'120'});
  assert.equal(r.budgetOverruns.length,1);assert.equal(r.budgetOverruns[0].overrun,20);assert.equal(r.spendAlerts.length,1);assert.equal(r.spendAlerts[0].changePct,40);assert.match(r.note,/do not prove fraud/);
