@@ -3,7 +3,7 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Latest verified application snapshot:** `b9ef1faec228270da5615abaebf846465de641fd`. GitHub Actions push run [#1131](https://github.com/s85960833-byte/NovaAI/actions/runs/42337442433) and PR run [#1132](https://github.com/s85960833-byte/NovaAI/actions/runs/42337446623) both completed successfully. Their automated checks cover syntax, PostgreSQL migration/RLS integration, authenticated BI Edge Function checks, calculations/CSV validation, dependency audit, local route/PWA smoke tests, Company Cloud browser workflows, Chromium workspace interactions and five viewport widths. Three live deployment/provider/image checks were skipped by design. Browser screenshots are emulated Chromium evidence, not physical Android validation.  
+**Latest verified candidate head:** `3ad3dabfece583869812c104de2b61f0d51b5216`. GitHub Actions push run [#1138](https://github.com/s85960833-byte/NovaAI/actions/runs/42337948242) completed successfully. Its `verify` job passed syntax, mode registry, per-IP rate-window unit tests, PostgreSQL migration/RLS integration, authenticated BI Edge Function checks, BI calculations/CSV validation, 60-case evaluation-fixture validation, production dependency audit, local route/PWA smoke tests, Company Cloud browser workflows, Chromium workspace interactions, five-viewport mobile/drawer regression tests, and screenshot/report artifact upload. The three live Render/provider/image checks were skipped by design. Browser screenshots are emulated Chromium evidence, not physical Android validation. The latest commit updates the artifact-upload action; it does not represent a fresh physical-device or live-provider test.  
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
@@ -46,7 +46,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #73 combines the three-workspace interface, BI module and security-hardening work. PR #66 is the earlier UI-only predecessor.
 
-The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Application-code CI run #1118 passed on snapshot `97551b5ce85787fd418f3f65d3d2da0711b77093`. Its checks cover:
+The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. The latest candidate head `3ad3dabfece583869812c104de2b61f0d51b5216` passed GitHub Actions push run [#1138](https://github.com/s85960833-byte/NovaAI/actions/runs/42337948242). The latest commit updates the artifact-upload action; the verification job also covers:
 
 - Backend/frontend syntax and mode registry.
 - PostgreSQL migration application and tenant RLS integration.
@@ -59,7 +59,7 @@ The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are
 - Chromium workspace navigation and five viewport widths, including drawer and Settings regression checks.
 - BYOK API keys remain active-tab-only, are excluded from normal browser persistence, and are never embedded in exported shareable HTML; each recipient must enter their own provider key. A static regression guard enforces this export boundary.
 
-CI #1118 passed on candidate snapshot `97551b5ce85787fd418f3f65d3d2da0711b77093`. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped.
+CI #1138 passed on candidate head `3ad3dabfece583869812c104de2b61f0d51b5216`. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped.
 ## 5. Exact demo plan
 
 Use this sequence only on the exact candidate build after opening that build on the presentation device. The candidate is not currently the Production deployment; do not silently substitute the existing Production URL and describe it as the new three-workspace build.
