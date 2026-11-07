@@ -1,6 +1,6 @@
 import { withSupabase } from "@supabase/server";
 import { findAuthUserByEmail } from "./invitations.ts";
-import { configuredSiteOrigin, createCorsHeaders, isAllowedOrigin } from "./cors.ts";
+import { configuredSiteOrigin, createCorsHeaders, withSiteOrigin } from "./cors.ts";
 
 // BI API is browser-accessible only from the configured NOVA site origin.
 const siteOrigin = configuredSiteOrigin(Deno.env.get("NOVA_BI_SITE_URL"));
@@ -33,15 +33,7 @@ const rateLimited = (retryAfter: number) =>
     headers: { ...corsHeaders, "Retry-After": String(retryAfter) },
   });
 
-Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
-  const origin = req.headers.get("Origin");
-  if (!isAllowedOrigin(origin, siteOrigin)) {
-    return new Response("Origin not allowed", { status: 403, headers: { "Vary": "Origin" } });
-  }
-  if (req.method === "OPTIONS") {
-    if (!origin) return new Response("Origin required", { status: 400 });
-    return new Response("ok", { headers: corsHeaders });
-  }
+const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, async (req, ctx) => {
 
   const userId = String(ctx.jwtClaims?.sub || ctx.userClaims?.id || "");
   if (!uuid(userId)) return fail("Authenticated user context is missing", 401);
@@ -463,4 +455,8 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
     if (message.includes("Only proposed workflows")) return fail("This workflow already has a decision", 409);
     return fail("NOVA Business Intelligence request failed", 500);
   }
-}));
+});
+
+// Apply the exact-origin CORS gate before auth; the SDK wrapper's wildcard
+// preflight handler is disabled above so it cannot bypass this policy.
+Deno.serve(withSiteOrigin(authenticatedHandler, siteOrigin));
