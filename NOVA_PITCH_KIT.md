@@ -53,6 +53,22 @@ Treat these as **discovery hypotheses**, not proven customer segments:
 
 Ask each person about their current workflow before describing NOVA in detail. Do not claim market size, demand, willingness to pay or product-market fit without evidence.
 
+## 6A. Competitive context — answer honestly
+
+This is an initial public-web scan, not an exhaustive competitor audit or proof of market position. There are already Indian products addressing parts of the problem:
+
+- [PadhoAI](https://padhoai.in/) publicly describes multilingual AI learning for students, teachers, parents and schools, including 39 Indian languages and multiple school boards.
+- [Shrutam SAAVI](https://www.shrutam.ai/hi/) describes personalized, audio-first learning in Hindi, Hinglish, English, Telugu and Marathi.
+- [Shiksha Nation AI Tutor](https://shikshanation.com/best-ai-tutor) describes a Hindi/English course-linked tutor with interactive teaching workflows.
+- [Manthan AI](https://manthanai.bhaaratmind.com/) describes a Hindi, English and Hinglish tutor for CBSE, ICSE and state-board learners.
+- General-purpose assistants such as ChatGPT and Gemini are also alternatives for broad AI tasks.
+
+**Approved answer to “How is NOVA different?”**
+
+“We are not claiming to have a better foundation model or to be the only Indian-language AI product. NOVA's hypothesis is about product organization: putting learning, digital creation and everyday assistance into clearly separated workspaces in one bilingual mobile-first experience. We need real user feedback to learn whether that organization is meaningfully better for a specific group.”
+
+Do not claim that no Indian competitor offers similar features, or that NOVA is first, unique, more accurate, cheaper or more capable without a current feature-by-feature study and measured evidence.
+
 ## 7. The exact ask
 
 Use this closing:
