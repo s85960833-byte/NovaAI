@@ -181,18 +181,19 @@ test('date-only project deadlines are not marked passed during the due date',()=
  assert.equal(r.factors.some(x=>x.factor==='Deadline passed'),false);
 });
 
-test('NOVA BI company cloud uses authenticated Edge Function routes and session-scoped client auth',()=>{
+test('NOVA BI company cloud uses authenticated Edge Function routes and exact-origin CORS',()=>{
  const cloud=readFileSync(path.join(__dirname,'..','nova-business-cloud.js'),'utf8');
  const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ const cors=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','cors.ts'),'utf8');
  const index=readFileSync(path.join(__dirname,'..','index.html'),'utf8');
  assert.ok(cloud.includes('sb_publishable_'));
  assert.ok(!/service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY/.test(cloud));
  assert.ok(cloud.includes('storage:window.sessionStorage'));
- assert.ok(cloud.includes('/functions/v1/\'+CFG.fn+\'/'));
+ assert.ok(cloud.includes('/functions/v1/\\'+CFG.fn+\\'/'));
  assert.ok(edge.includes('withSupabase({ auth: "user", cors: "disabled" }'));
-  assert.ok(edge.includes("Deno.serve(withSiteOrigin(authenticatedHandler, siteOrigin))"));
-  assert.ok(edge.includes("withSiteOrigin"));
-  assert.ok(!edge.includes("Access-Control-Allow-Origin\": \"*"));
+ assert.ok(edge.includes('Deno.serve(withSiteOrigin(authenticatedHandler, siteOrigin))'));
+ assert.ok(cors.includes('"Access-Control-Allow-Origin": siteOrigin'));
+ assert.ok(!cors.includes('"Access-Control-Allow-Origin": "*"'));
  assert.ok(edge.includes('ctx.jwtClaims?.sub'));
  assert.ok(edge.includes('functions\\/v1\\/nova-bi-api'));
  assert.ok(edge.includes('db.from("nova_bi_organizations")'));
