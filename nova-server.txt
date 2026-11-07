@@ -364,7 +364,8 @@ app.get(['/icons/icon-192.png', '/icons/icon-512.png'], (q, r) => r.set('Content
 app.get('/mode-registry.js', (q, r) => r.type('application/javascript').sendFile(path.join(__dirname, 'mode-registry.js')));
 app.get('/mode-workspace.js', (q, r) => r.type('application/javascript').sendFile(path.join(__dirname, 'mode-workspace.js')));
 app.get('/sw.js', (q, r) => r.set('Content-Type', 'application/javascript').send("const CACHE='nova-shell-v16-business-intelligence';const CORE=['/','/mode-registry.js','/mode-workspace.js','/s-tier.js','/nova-suite.js','/nova-reference.js','/nova-business-core.js','/nova-business.js','/nova-business-cloud.js','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png','/icons/nova-emblem.svg'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(k=>k.startsWith('nova-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==location.origin||u.pathname.startsWith('/api/'))return;e.respondWith(fetch(e.request).then(r=>{if(r.ok&&r.type==='basic'){const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match(e.request).then(hit=>hit||caches.match('/'))))});"));
-app.get('/health', (q, r) => r.status(200).json({ status: 'ok', ready: true, service: 'nova-ai', timestamp: new Date().toISOString() }));
+let shuttingDown = false;
+app.get('/health', (q, r) => r.status(shuttingDown ? 503 : 200).json({ status: shuttingDown ? 'shutting_down' : 'ok', ready: !shuttingDown, service: 'nova-ai', timestamp: new Date().toISOString() }));
 app.get('/s-tier.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 's-tier.js')));
 app.get('/nova-suite.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-suite.js')));
 app.get('/nova-reference.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-reference.js')));
@@ -1087,7 +1088,32 @@ app.use((err, q, r, next) => {
 });
 
 const PORT = Number(E.PORT) || 3000;
-app.listen(PORT, () => console.log('Nova AI running on port ' + PORT));
+const server = app.listen(PORT, () => console.log('Nova AI running on port ' + PORT));
+let shutdownStarted = false;
+function gracefulShutdown(signal) {
+  if (shutdownStarted) return;
+  shutdownStarted = true;
+  shuttingDown = true;
+  console.log('NOVA graceful shutdown requested: ' + signal);
+  const forceTimer = setTimeout(() => {
+    console.error('NOVA graceful shutdown timed out; closing remaining connections');
+    server.closeAllConnections?.();
+    process.exit(1);
+  }, 25000);
+  forceTimer.unref();
+  server.close(error => {
+    clearTimeout(forceTimer);
+    if (error) {
+      console.error('NOVA graceful shutdown error: ' + error.message);
+      process.exitCode = 1;
+      return;
+    }
+    console.log('NOVA graceful shutdown complete');
+  });
+  server.closeIdleConnections?.();
+}
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 console.log('NovaAI startup audit flag: ' + (E.SELFTEST_ON_START === '1' ? 'enabled' : 'disabled'));
 
 // Optional one-time live verification, enabled only temporarily through Render env.
