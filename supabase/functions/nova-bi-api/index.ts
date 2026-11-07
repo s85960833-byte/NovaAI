@@ -172,6 +172,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       let authUserCreated = false;
       let notificationSent = false;
       if (existingUser) {
+        if (existingUser.id === userId) return fail("You cannot invite your own account to this company.", 400);
         invitedUserId = existingUser.id;
       } else {
         const { data: invitation, error: inviteError } = await ctx.supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: inviteRedirectTo });
