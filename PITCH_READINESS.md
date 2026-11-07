@@ -1,10 +1,11 @@
 # NOVA — Pitch Readiness Pack
 
 **Audit snapshot:** 7 November 2026  
-**Pitch status:** LIMITED CONCEPT DISCOVERY ONLY — explain the product direction and ask for feedback while clearly stating it is an undeployed release candidate. No paid sales, customer onboarding, production demo promises, confidential-data use, SLA or production-readiness claims until all gates close.
-**Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Latest full candidate code/browser verification snapshot:** SHA `8b127c4464bcaeec3c9fd059dd5105e264eeb1ca` passed both push run [#42376378783](https://github.com/s85960833-byte/NovaAI/actions/runs/42376378783) and pull-request run [#42376382553](https://github.com/s85960833-byte/NovaAI/actions/runs/42376382553). It covered syntax, Markdown link attribute-injection regression tests, exact-origin CORS unit tests, rate-limit tests, provider-URL validation, PDF.js 6.5.438 security tests and real Chromium PDF module/worker/text-extraction plus preloaded-module upload tests, PostgreSQL 17 migration/RLS integration, Edge Function type-check and invitation/CORS tests, BI calculations/CSV validation, dependency audit, local runtime/PWA checks, graceful shutdown, Company Cloud browser workflows, CSP violation checks and five-viewport mobile/drawer regression tests. Four live-only checks were skipped on this unmerged feature branch: deployed Edge Function CORS smoke, wait for merged Render deploy, live website/provider smoke, and live free-image smoke. The PostgreSQL RLS suite checks cross-tenant reads across tenant data surfaces plus outsider insert/update/delete attempts. CI evidence is not physical-device or production-release certification.
-**Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
+**Pitch status:** LIMITED CONCEPT DISCOVERY ONLY — explain the product direction and request non-sensitive feedback while clearly stating that the unified candidate is not deployed. No paid sales, customer onboarding, confidential-data use, live demo guarantees, SLA or production-readiness claims until the release gates close.
+**Unified candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
+**Current candidate head:** `5129f0cbac94064b39b89fce2761f128dd452ebe`; exact-head documentation CI run [#42380234279](https://github.com/s85960833-byte/NovaAI/actions/runs/42380234279) completed successfully.
+**Latest application-code verification snapshot:** `3014e4bcd4600c09320045e8caacdab7c53ba53d`; exact-head push CI run [#42379943971](https://github.com/s85960833-byte/NovaAI/actions/runs/42379943971) completed successfully. The suite covered syntax/security, PostgreSQL migration and tenant-RLS integration, Deno Edge Function type-check/CORS tests, BI calculations/CSV, dependency audit, local runtime/PWA, Chromium workspace/PDF, Company Cloud browser workflows and five-viewport mobile/drawer regression tests.
+**Live and physical checks not covered:** deployed Edge Function CORS, live Render/provider/image smoke, real SMTP/Auth email delivery, two-real-account live tenant isolation, and physical Android testing. CI success does not close these gates.
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -55,22 +56,22 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 ## 4. What has been verified in the candidate
 
-Draft PR #73 combines the three-workspace interface, BI module and security-hardening work. PR #66 is the earlier UI-only predecessor.
+Draft PR #73 combines the three-workspace interface, NOVA Business Intelligence and candidate security-hardening work. PR #66 (UI-only) and PR #67 (BI-only) are predecessors, not the release branch.
 
-The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. The last full code-verification snapshot was `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d` (runs #1200/#1201); see the audit addendum for later exact-head documentation checks. The verification job covers:
+The latest application-code snapshot `3014e4bcd4600c09320045e8caacdab7c53ba53d` passed exact-head CI run [#42379943971](https://github.com/s85960833-byte/NovaAI/actions/runs/42379943971). The later documentation-only candidate head `5129f0cbac94064b39b89fce2761f128dd452ebe` passed exact-head CI run [#42380234279](https://github.com/s85960833-byte/NovaAI/actions/runs/42380234279). The executed application-code checks cover:
 
-- Backend/frontend syntax and mode registry.
-- PostgreSQL migration application and tenant RLS integration.
-- Deno Edge Function dependency installation, type-check, auth and CORS smoke.
-- BI calculations, CSV validation and 60-case evaluation fixture validation (not a live AI accuracy score).
+- Backend/frontend syntax, security regression checks and mode registry.
+- PostgreSQL migration application and tenant RLS integration tests.
+- Deno Edge Function type-check and exact-origin CORS unit tests.
+- BI calculations and CSV validation (not a live AI accuracy score).
 - Production dependency audit.
-- Local routes, response headers and PWA assets, including offline caching of the bilingual home and BI scripts.
-- Express per-IP throttling before JSON parsing, plus normalized JSON 400/413 responses for malformed and oversized API bodies; runtime smoke tests cover the ordering and status codes.
-- Company Cloud browser workflows.
-- Chromium workspace navigation and five viewport widths, including drawer and Settings regression checks.
-- BYOK API keys remain active-tab-only, are excluded from normal browser persistence, and are never embedded in exported shareable HTML; each recipient must enter their own provider key. A static regression guard enforces this export boundary.
+- Local routes, response headers, PWA assets and runtime behavior.
+- Express per-IP throttling and malformed/oversized request handling.
+- Chromium workspace navigation, PDF module/worker/upload paths, Company Cloud browser workflows, and five viewport widths including drawer and Settings regressions.
+- BYOK API keys remain active-tab-only, are excluded from normal browser persistence, and are not embedded in exported shareable HTML; each recipient must enter their own provider key.
 
-The last full code-verification snapshot was `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d` (runs #1200/#1201); see the latest audit addendum and PR #73 for exact-head documentation checks. Live Render/provider and free-provider image checks were skipped because preview deployment was not authorized. Physical Android behavior, live signup/email, two-account tenant isolation, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped.
+These results are candidate-branch automated checks. They do **not** prove that the deployed Render/Supabase services are healthy, that Auth email reaches real inboxes, that two real customer accounts are isolated, or that the app works correctly on a physical Android device. Live Render/provider/image checks were skipped because an isolated candidate deployment has not been authorized.
+
 ## 5. Exact demo plan
 
 Use this sequence only on the exact candidate build after opening that build on the presentation device. The candidate is not currently the Production deployment; do not silently substitute the existing Production URL and describe it as the new three-workspace build.
