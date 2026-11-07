@@ -348,3 +348,13 @@ test('NOVA BI invitation failures compensate temporary Auth and membership recor
  assert.ok(edge.includes('automatic cleanup was incomplete'));
  assert.ok(edge.includes('email link is no longer valid'));
 });
+
+
+test('NOVA BI API distinguishes malformed and oversized request input from server errors',()=>{
+ const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ assert.ok(edge.includes('class RequestInputError extends Error'));
+ assert.ok(edge.includes('new RequestInputError("Request body is too large", 413)'));
+ assert.ok(edge.includes('new RequestInputError("Request body must be valid JSON", 400)'));
+ assert.ok(edge.includes('new RequestInputError("Request body must be valid UTF-8", 400)'));
+ assert.ok(edge.includes('if (error instanceof RequestInputError) return fail(message, error.status)'));
+});
