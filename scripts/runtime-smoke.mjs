@@ -29,4 +29,13 @@ await expect('image validation','/api/image',{method:'POST',headers:{'content-ty
 await expect('image job status validation','/api/image/status/not-a-real-job',{},r=>r.status===404);
 await expect('transcription validation','/api/transcribe',{method:'POST',headers:{'content-type':'audio/webm'},body:new Uint8Array()},r=>r.status===400);
 await expect('previous home UI without new four-workspace redesign','/',{},(r,b)=>r.ok&&b.includes('nova-home')&&b.includes('nova-workspaces')&&!b.includes('CHAT & STUDY')&&!b.includes('VOICE CHAT'));
+// Exercise the real Express middleware with an isolated test client IP.
+const rateLimitIp='198.51.100.240';
+for(let i=0;i<60;i++){
+ const response=await req('/api/config',{headers:{'x-forwarded-for':rateLimitIp}});
+ if(response.status!==200) throw new Error('API rate limit blocked request '+(i+1)+' before the configured threshold: HTTP '+response.status);
+}
+const blocked=await req('/api/config',{headers:{'x-forwarded-for':rateLimitIp}});
+if(blocked.status!==429) throw new Error('API rate limit did not reject request 61: HTTP '+blocked.status);
+console.log('PASS integrated per-IP API rate limit (60 allowed, 61st blocked)');
 console.log('PASS local runtime smoke tests');
