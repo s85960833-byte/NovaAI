@@ -15,6 +15,10 @@
 - Edge Function request bodies and JSON payloads have explicit size limits; list endpoints are capped. Per-user throttling allows 120 authenticated API requests/minute and 5 invitations/hour. Rate-limit counters and the limiter function are inaccessible to anon/authenticated roles.
 - The last read-only Security Advisor check on the connected project returned zero findings. That result is not a certification of this entire candidate: pending candidate migrations and Edge Function changes have not all been applied to the live project.
 
+## Live Edge Function CORS mismatch
+
+A fresh read-only inspection of deployed `nova-bi-api` v13 found that production still sends `Access-Control-Allow-Origin: *` and accepts OPTIONS preflights without validating Origin. The candidate's `cors.ts` enforces the configured exact origin and its Deno tests cover lookalike/opaque origins, but candidate code is not deployed. The live Edge Function replacement and post-deploy hostile-origin smoke test remain mandatory release gates. Do not describe the live endpoint as exact-origin protected until those checks pass.
+
 ## Hosting and recovery are not production-ready
 The connected Render service and Supabase organization are both on Free plans. Render explicitly says Free web services should not be used for production applications; they spin down after 15 minutes idle and may take about a minute to wake. Supabase Free does not include automatic backups. The Render service is in Singapore while the Supabase database is in Ireland (`eu-west-1`); evaluate a common or otherwise latency-appropriate region before customer onboarding. Supabase offers Mumbai and Singapore regions, but region changes require migration and are also data-residency decisions. Before customer data is accepted, choose an approved always-on hosting plan, implement off-site backups, complete a restore drill, and validate latency. References: [Render Free limits](https://render.com/docs/free), [Supabase Free backup FAQ](https://supabase.com/kb/faqs/platform/free-plan-backups), [Supabase backups](https://supabase.com/docs/guides/platform/backups).
 
