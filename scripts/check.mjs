@@ -32,7 +32,7 @@ const requiredCspFragments = ['http-equiv="Content-Security-Policy"', "default-s
 const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(match => !/\bsrc\s*=/.test(match[1]));
 const appScript = readFileSync('nova-app.js', 'utf8');
 const configScript = readFileSync('nova-config.js', 'utf8');
-if (inlineScripts.length) throw new Error('Inline scripts must be externalized before removing unsafe-inline from script-src');
+if (inlineScripts.length) throw new Error('Executable script blocks must be externalized; inline event-handler attributes are tracked separately');
 if (!html.includes("script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net")) throw new Error('Script CSP must preserve compatibility with remaining legacy inline event handlers until they are migrated');
 if (!appScript.includes('onclick=') || !appScript.includes('onchange=')) throw new Error('Legacy inline event-handler inventory changed; re-audit CSP before tightening');
 if (!server.includes("app.get('/nova-config.js'") || !server.includes("app.get('/nova-app.js'")) throw new Error('Externalized NOVA scripts are not served by the backend');
