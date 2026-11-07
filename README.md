@@ -37,7 +37,7 @@ The unified candidate is maintained in Draft PR [#73](https://github.com/s859608
 - Chromium workspace interactions and five-viewport mobile/drawer regression checks at 360, 390, 412, 760 and 1280 CSS-pixel widths.
 - Devanagari font setup and browser screenshot/report artifact upload.
 
-The workflow **skipped** live Render/provider checks and live free-provider image generation by design. Those steps require an authorized preview/deployment. Physical Android testing was not performed. Run #1194 is the latest full code-verification run before documentation-only updates; the later documentation-only head `5eb0d0cd92f7678636e57ca28ea2692100abff9a` also passed #1197 and #1198. Live Render/provider and free-provider image-generation steps were skipped because preview deployment was not authorized. Passing CI does not prove the candidate is error-free or production-ready.
+The workflow **skipped** live Render/provider checks and live free-provider image generation by design. Those steps require an authorized preview/deployment. Physical Android testing was not performed. The last full application-code verification is the `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d` snapshot (runs #1200/#1201). The exact-head docs CI #1213/#1214 passed on `51222883356029114e3d26b07f422e83bb1bbeb3`; newer documentation-only changes are tracked in PR #73 and their own exact-head checks. Live Render/provider and free-provider image-generation steps were skipped because preview deployment was not authorized. Passing CI does not prove the candidate is error-free or production-ready.
 
 ## Release gates still open
 
