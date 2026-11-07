@@ -71,9 +71,40 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
     if (inviteLimit.data !== true) return rateLimited(3600);
   }
 
+  async function readBoundedBody(request: Request, maxBytes = 70000): Promise<string> {
+    const declaredLength = Number(request.headers.get("content-length") || "0");
+    if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+      throw new Error("Request body is too large");
+    }
+    if (!request.body) return "";
+    const reader = request.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        totalBytes += value.byteLength;
+        if (totalBytes > maxBytes) {
+          try { await reader.cancel(); } catch { /* preserve the size-limit error */ }
+          throw new Error("Request body is too large");
+        }
+        chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    const merged = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      merged.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return new TextDecoder("utf-8", { fatal: true }).decode(merged);
+  }
+
   async function body() {
-    const raw = await req.text();
-    if (new TextEncoder().encode(raw).length > 70000) throw new Error("Request body is too large");
+    const raw = await readBoundedBody(req);
     try { return JSON.parse(raw || "{}"); }
     catch { throw new Error("Request body must be valid JSON"); }
   }
