@@ -3,7 +3,7 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Last exact-head CI verification:** candidate SHA `c055e3010bce4ff1f547733d4f03bf6f5816eba0` passed GitHub Actions run [#1304](https://github.com/s85960833-byte/NovaAI/actions/runs/42368519074), including syntax, migration/RLS integration, Edge Function type-check, dependency audit, graceful shutdown integration, Company Cloud browser workflows and five-viewport Chromium regression tests. Live-main-only Render/provider and free-image smoke steps were skipped because this is a feature branch. This is automated candidate evidence, not live-device or production-release certification.
+**Latest full candidate CI at audit time:** SHA `7cbaa9a6a9d4c09a652576c6bcafd008c961383a` passed GitHub Actions run [#1313](https://github.com/s85960833-byte/NovaAI/actions/runs/42369193470). This exact-head run covered syntax, PostgreSQL migration/RLS integration, Edge Function type-check and invitation tests, production dependency audit, local runtime, browser workflows and five-viewport Chromium checks. Live Render/provider/image steps were skipped because no candidate preview is deployed. Subsequent exact-origin CORS hardening is being verified separately; see Draft PR #73. CI evidence is not live-device or production-release certification.
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
@@ -87,7 +87,6 @@ Keep a screenshot or screen-recording backup of the candidate. Clearly label scr
 ## 6. What is not yet cleared
 
 | Area | Verified evidence | Still not verified |
-|---|---|---|
 | Hosting and recovery | Render and Supabase plans inspected; current regions confirmed | Paid always-on compute, tested off-site backup and restore drill, monitoring, and region decision (Render Singapore vs Supabase Ireland; India-focused Mumbai/Singapore options need latency and residency review) |
 |---|---|---|
 | Candidate UI | CI Chromium interaction and five viewport widths passed | Physical Android touch, visual fit, keyboard, accessibility, reduced-motion and low-network behavior |
