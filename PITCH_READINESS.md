@@ -1,7 +1,7 @@
 # NOVA — Pitch Readiness Pack
 
 **Audit snapshot:** 7 November 2026  
-**Pitch status:** HOLD — no external sales, customer, or design-partner pitch until all production gates are closed. This file is internal readiness tracking only.  
+**Pitch status:** LIMITED CONCEPT DISCOVERY ONLY — explain the product direction and ask for feedback while clearly stating it is an undeployed release candidate. No paid sales, customer onboarding, production demo promises, confidential-data use, SLA or production-readiness claims until all gates close.
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
 **Latest full candidate code/browser verification snapshot:** SHA `8b127c4464bcaeec3c9fd059dd5105e264eeb1ca` passed both push run [#42376378783](https://github.com/s85960833-byte/NovaAI/actions/runs/42376378783) and pull-request run [#42376382553](https://github.com/s85960833-byte/NovaAI/actions/runs/42376382553). It covered syntax, Markdown link attribute-injection regression tests, exact-origin CORS unit tests, rate-limit tests, provider-URL validation, PDF.js 6.5.438 security tests and real Chromium PDF module/worker/text-extraction plus preloaded-module upload tests, PostgreSQL 17 migration/RLS integration, Edge Function type-check and invitation/CORS tests, BI calculations/CSV validation, dependency audit, local runtime/PWA checks, graceful shutdown, Company Cloud browser workflows, CSP violation checks and five-viewport mobile/drawer regression tests. Four live-only checks were skipped on this unmerged feature branch: deployed Edge Function CORS smoke, wait for merged Render deploy, live website/provider smoke, and live free-image smoke. The PostgreSQL RLS suite checks cross-tenant reads across tenant data surfaces plus outsider insert/update/delete attempts. CI evidence is not physical-device or production-release certification.
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
@@ -169,7 +169,7 @@ Pricing and usage limits are not being promised until provider costs, support, p
 
 ## 12. Final go / no-go
 
-7 November 2026 audit decision: **NO-GO for any external sales, customer, or design-partner pitch until NOVA is production-ready. NO-GO also for live demo promises, public onboarding, paid subscriptions, or zero-error guarantees.**
+7 November 2026 audit decision: **LIMITED GO for concept/discovery conversations only. NO-GO for paid sales, customer onboarding, live demo promises, public signup, paid subscriptions, confidential-data handling, SLA or zero-error guarantees.** Explain clearly that the unified build is an undeployed candidate.
 
 Before the new three-workspace build can be presented as a live demo, the remaining gates are:
 
@@ -188,7 +188,7 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - Added [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md) as the copy-ready founder pack: one-line, 30-second Hindi/English, two-minute pitch, product map, target-segment hypotheses, discovery ask, five-minute demo guardrails, FAQ, claims to avoid, evidence collection and separate NOVA BI treatment.
 - The pitch-pack, competitor review, README and index updates are documentation-only commits on the unified candidate branch. The last fully code-verified parent snapshot was `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d`, with successful CI runs [#1200](https://github.com/s85960833-byte/NovaAI/actions/runs/42345216545) and [#1201](https://github.com/s85960833-byte/NovaAI/actions/runs/42345221304). The documentation-only candidate head `51222883356029114e3d26b07f422e83bb1bbeb3` passed exact-head CI runs [#1213](https://github.com/s85960833-byte/NovaAI/actions/runs/42346013628) and [#1214](https://github.com/s85960833-byte/NovaAI/actions/runs/42346016036). Later docs-only commits may supersede that head; always check Draft PR #73 for the latest head and matching checks.
 - Production remains `main` at `48e12a68af656b471853ac2a4509da0e3df7ab24`; the three-workspace candidate is not live on the Production URL.
-- External pitch clearance remains HOLD. No concept, discovery, design-partner, sales, or customer pitch until the production gates in this file are closed. No live candidate demo, public onboarding, paid plan, SLA, BI deployment, confidential-data handling or zero-error claim.
+- Only limited concept/discovery conversations are allowed, with the product described as a prototype/release candidate. No live candidate demo, public onboarding, paid plan, SLA, BI deployment, confidential-data handling or zero-error claim.
 - Earlier sections contain the full technical evidence and detailed gates. This addendum supersedes their older CI run/head references where those references are historical snapshots; always use PR #73 and its exact-head checks for the latest candidate status.
 
 ## Current exact-head status — 7 November 2026 (supersedes older checkpoint references)
@@ -209,7 +209,7 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - The candidate's `script-src` no longer permits `'unsafe-inline'`; the primary HTML/workspace surfaces contain no inline script blocks or inline event-handler markup. However, `style-src` still permits `'unsafe-inline'` for inline CSS/style attributes, and broad HTTPS `connect-src` remains. The server adds `frame-ancestors 'none'`, but this is not a fully strict nonce/hash-based policy. Do not claim complete CSP hardening.
 - The Render workspace ID previously surfaced as `tea-dbf2qb7avr4c73ck5p1g` has not been confirmed by the owner as NOVA's workspace. No workspace-scoped Render changes were made. The service health-check path remains unconfigured.
 - No production deploy, merge, live Supabase migration, Edge Function replacement, Auth configuration change, paid infrastructure change, or branch-protection change was made.
-- **Current decision remains NO-GO for external sales pitches, production customer onboarding, and paid-service promises.** The outstanding gates in sections 0, 6, 8 and 12 remain mandatory. Keep all product and sales materials internal until production readiness is verified; do not describe NOVA as production-ready.
+- **Current decision remains NO-GO for paid sales pitches, production customer onboarding, and paid-service promises.** Limited concept discovery only is permitted.
 
 ## 15. Latest candidate security and verification update — 7 November 2026
 
@@ -269,4 +269,14 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - The application-code changes immediately preceding the documentation-only update are at `cda51b75cd2722252ab1a4f546c8b107745ce3a5`; both push run [#42377209743](https://github.com/s85960833-byte/NovaAI/actions/runs/42377209743) and PR run [#42377214654](https://github.com/s85960833-byte/NovaAI/actions/runs/42377214654) passed. These include the corrected BI test assertion and candidate exact-origin CORS tests.
 - This exact-head CI evidence does not close any live-only, physical Android, real Auth email, real-account tenant-isolation, hosting/recovery, privacy, or legal gate. The live Edge Function v13 wildcard CORS discrepancy remains open until an approved deployment and post-deploy hostile-origin smoke test.
 - Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; the current candidate is not on the Production URL. No merge, deploy, migration, Auth change, paid resource change, or Render workspace change was made.
-- **Decision remains NO-GO for production customer onboarding, paid-service promises, confidential data, SLA claims, and external sales pitches represented as a live product.** Keep the pitch materials internal until all applicable release gates are evidenced and an authorized owner approves release.
+- **Decision remains NO-GO for production customer onboarding, paid-service promises, confidential data, SLA claims, and any pitch representing NOVA as a live production product.** Limited concept discovery is permitted with explicit prototype disclosure.
+
+
+## 21. Current exact-head verification and sales boundary — 7 November 2026
+
+- Candidate PR #73 remains open, Draft, unmerged and undeployed. Current candidate head: `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`.
+- Exact-head GitHub Actions push run [#42379148497](https://github.com/s85960833-byte/NovaAI/actions/runs/42379148497) and pull-request run [#42379153742](https://github.com/s85960833-byte/NovaAI/actions/runs/42379153742) both completed successfully on `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`. All executable syntax, security, PostgreSQL migration/RLS, Deno Edge Function, BI calculation/CSV, dependency audit, local runtime/PWA, Chromium workspace/PDF, Company Cloud mobile-browser and five-viewport regression steps passed. The deployed Edge Function smoke and live Render/provider/image smoke steps were skipped because this branch is not deployed. These results are not physical Android, real SMTP/Auth, or two-real-account live tests.
+- A green CI run does not close the live release gates listed above. No physical Android device, real signup/confirmation/password-reset email, or two-real-account tenant-isolation test has been completed against the live service.
+- **Allowed now:** explain the concept, interview potential users, gather non-sensitive feedback and test willingness-to-use without implying the candidate is live.
+- **Not allowed yet:** paid sale, production onboarding, customer-data upload, live feature guarantees, subscription/SLA promises, or presenting the integrated candidate as the deployed product.
+- All remaining live configuration, deployment, migration, paid hosting, backup and account changes require the authorized project owner’s explicit approval. This addendum supersedes earlier pitch-status and candidate-head statements in this file.
