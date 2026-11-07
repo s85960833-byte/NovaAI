@@ -116,13 +116,27 @@ begin
 end $rls_outsider$;
 update public.nova_bi_datasets set name='Hacked' where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 delete from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+delete from public.nova_bi_analyses where id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+update public.nova_bi_workflow_proposals set status='rejected'
+where id='acacacac-acac-4cac-8cac-acacacacacac';
+update public.nova_bi_branding set brand_name='Outsider Must Not Rebrand'
+where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 reset role;
-do $rls_owner$
+do $rls_outsider_write_check$
 begin
   if (select name from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd') is distinct from 'Finance CSV' then
     raise exception 'Outsider unexpectedly modified or deleted another tenant dataset';
   end if;
-end $rls_owner$;
+  if not exists(select 1 from public.nova_bi_analyses where id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee') then
+    raise exception 'Outsider unexpectedly deleted another tenant analysis';
+  end if;
+  if (select status from public.nova_bi_workflow_proposals where id='acacacac-acac-4cac-8cac-acacacacacac') is distinct from 'approved' then
+    raise exception 'Outsider unexpectedly changed another tenant workflow';
+  end if;
+  if (select brand_name from public.nova_bi_branding where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') is distinct from 'Acme Test' then
+    raise exception 'Outsider unexpectedly changed another tenant branding';
+  end if;
+end $rls_outsider_write_check$;
 
 set role authenticated;
 select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
