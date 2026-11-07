@@ -1,7 +1,9 @@
-# NOVA — Pitch Kit (Founder Copy Pack)
+# NOVA — Pitch Kit (Internal Founder Copy Pack)
+
+> **INTERNAL ONLY — HOLD. Do not send, present, or use this pitch externally until `PITCH_READINESS.md` explicitly clears NOVA for external pitching after all production gates pass.**
 
 **Prepared:** 7 November 2026  
-**Purpose:** Safe, accurate early conversations with potential users, design partners and supporters.  
+**Purpose:** Internal preparation only. External conversations are on hold until production readiness is verified.  
 **Product:** NOVA main app only. NOVA Business Intelligence is a separate, unreleased candidate and must not be sold or demonstrated as a live module.  
 **Release truth:** The current three-workspace candidate is Draft PR #73 and is not deployed to Production. Production `main` remains at `48e12a68af656b471853ac2a4509da0e3df7ab24`. The last application-code verification snapshot is `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d`; CI runs #1200 and #1201 passed on that exact SHA. The current documentation-only candidate head is `51222883356029114e3d26b07f422e83bb1bbeb3`; exact-head CI runs [#1213](https://github.com/s85960833-byte/NovaAI/actions/runs/42346013628) and [#1214](https://github.com/s85960833-byte/NovaAI/actions/runs/42346016036) also passed. These are code/browser automation results, not a live-device or production release certification.
 
