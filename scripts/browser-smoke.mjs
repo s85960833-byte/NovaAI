@@ -10,7 +10,7 @@ try{
  const desktop=await browser.newPage({viewport:{width:1365,height:900}});
  track(desktop);
  await desktop.goto(BASE,{waitUntil:'domcontentloaded'});
- await desktop.locator('#novaSHome button.ncat[data-cat="learn"]').waitFor({state:'visible',timeout:15000});
+ await desktop.locator('#hi .nr-card[data-group="learn"]').waitFor({state:'visible',timeout:15000});
  await desktop.waitForFunction(()=>document.body.classList.contains('nova-dashboard-home'));
  const desktopState=await desktop.evaluate(()=>({
   width:innerWidth,scrollWidth:document.documentElement.scrollWidth,
@@ -43,7 +43,7 @@ try{
  assert.equal(await desktop.locator('#key').inputValue(),'','BYOK key must not survive a page reload');
  console.log('PASS BYOK legacy-key migration, active-tab use and non-persistent key storage');
 
- const learn=desktop.locator('#novaSHome button.ncat[data-cat="learn"]');
+ const learn=desktop.locator('#hi .nr-card[data-group="learn"]');
  await learn.focus();
  await desktop.keyboard.press('Enter');
  await desktop.locator('#novaModes.open').waitFor();
@@ -64,7 +64,7 @@ try{
  const mobile=await mobileContext.newPage();
  track(mobile);
  await mobile.goto(BASE,{waitUntil:'domcontentloaded'});
- await mobile.locator('#novaSHome button.ncat[data-cat="build"]').waitFor({state:'visible',timeout:15000});
+ await mobile.locator('#hi .nr-card[data-group="build"]').waitFor({state:'visible',timeout:15000});
  const mobileState=await mobile.evaluate(()=>({
   width:innerWidth,scrollWidth:document.documentElement.scrollWidth,
   columns:getComputedStyle(document.querySelector('#hi .nr-cards')).gridTemplateColumns.split(' ').length,
@@ -79,7 +79,7 @@ try{
  assert.equal(await mobile.locator('#q').inputValue(),'saved physics','top search should route to saved-chat search and open the mobile drawer');
  await mobile.locator('#scrim').tap({position:{x:360,y:450}});
  await mobile.waitForFunction(()=>!document.querySelector('#side')?.classList.contains('open'));
- await mobile.locator('#novaSHome button.ncat[data-cat="build"]').tap();
+ await mobile.locator('#hi .nr-card[data-group="build"]').tap();
  await mobile.locator('#novaModes.open').waitFor();
  const buildText=await mobile.locator('#nmContent').innerText();
  assert.ok(buildText.includes('NOVA Build / नोवा बिल्ड'));
@@ -87,7 +87,7 @@ try{
  assert.ok(!buildText.includes('Live Voice / लाइव वॉइस'));
  assert.ok(!buildText.includes('Photo Questions / फोटो वाले सवाल'));
  await mobile.locator('#nmClose').tap();
- await mobile.locator('#novaSHome button.ncat[data-cat="agents"]').tap();
+ await mobile.locator('#hi .nr-card[data-group="agents"]').tap();
  await mobile.locator('#novaModes.open').waitFor();
  const agentsText=await mobile.locator('#nmContent').innerText();
  assert.ok(agentsText.includes('Live Voice / लाइव वॉइस'));
