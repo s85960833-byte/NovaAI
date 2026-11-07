@@ -75,7 +75,7 @@ if (!html.includes("typeof en==='string'&&typeof hi==='string'") || !html.includ
 if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>html.includes(x))) throw new Error('NOVA Learn, Build and Agents workspace scripts are not connected in the homepage');
 if (!['src="/nova-business-core.js"','src="/nova-business.js"','src="/nova-business-cloud.js"'].every(x=>html.includes(x)) || !html.includes('@supabase/supabase-js@2.119.0')) throw new Error('NOVA BI scripts and Supabase client are not connected in the homepage');
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>html.includes(x))) throw new Error('NOVA dashboard UI components missing');
-if (!html.includes('localStorage.getItem(\'nova\')') || !html.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Existing Nova chat storage contract changed');
+if (!html.includes('localStorage.getItem(\'nova\')') || !html.includes('const persistable=()=>') || !html.includes('JSON.stringify(persistable())') || !html.includes('One-time migration: keep any previously saved key available for this tab') || html.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Nova storage compatibility or BYOK secret-persistence protection changed');
 
 if (html.includes('CHAT · LEARN · MASTER') || html.includes('IMAGINE · DESIGN · CREATE') || html.includes('RESEARCH · DISCOVER · EXPLORE')) throw new Error('Old four-workspace visual shell remains');
 if (!html.includes('id="dset"')) throw new Error('Settings panel missing');
