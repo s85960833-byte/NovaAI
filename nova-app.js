@@ -168,7 +168,7 @@ $('file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)r
 if(f.type.startsWith('image/')){await takeImage(f,false);return}
 if(/\.pdf$/i.test(f.name)){if(f.size>1e7)return toast(t('max10'));doc={n:f.name,t:await pdfText(f)}}
 else{if(f.size>102400)return toast(t('max100'));doc={n:f.name,t:(await f.text()).slice(0,60000)}}const d0=doc;if(!chat())newChat();chat().doc=d0;save();render()}
-catch(x){doc=null;toast(t(x.message==='scan'?'scan':'rdfail'))}};
+catch(x){console.error('NOVA PDF import failed',x?.message||x);doc=null;toast(t(x.message==='scan'?'scan':'rdfail'))}};
 L.forEach(x=>{const p=x.split('|'),o=document.createElement('option');o.value=p[1]||p[0];o.textContent=p[0]==='Auto'?'🌐 Auto':p[0];$('lang').append(o)});
 $('lang').value=S.rl||'Auto';$('lang').onchange=e=>{S.rl=e.target.value;save();applyUI();render();trUI()};
 $('send').onclick=go;$('new').onclick=newChat;$('menu').onclick=()=>$('side').classList.toggle('open');
