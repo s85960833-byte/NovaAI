@@ -91,6 +91,7 @@ jobs:
             artifacts/
             playwright-report/
             test-results/
+            package-lock.json
           if-no-files-found: ignore
       - name: Wait for the merged bilingual revision to become live on Render
         if: github.ref == 'refs/heads/main'
