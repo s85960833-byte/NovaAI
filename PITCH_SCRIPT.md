@@ -73,7 +73,7 @@ NOVA Business Intelligence is part of the unified Draft preview candidate, but i
 
 
 
-**Current boundary:** PR #73 head `3014e4bcd4600c09320045e8caacdab7c53ba53d` passed candidate push CI #42379943971 but remains Draft, unmerged and undeployed. Only concept discovery is allowed. Do not demonstrate the integrated candidate as live, accept payment, collect confidential data or promise production service until the release gates in `PITCH_READINESS.md` are closed.
+**Current boundary:** Draft PR #73 is at `6c53223686943b068ac36c48fd5ae72c58edc226`; both exact-head CI runs #42381308464 and #42381303719 passed. PR remains Draft, unmerged and undeployed; production `main` is untouched. Only disclosed, non-sensitive concept feedback is appropriate. Do not accept payment, collect confidential data, promise production service/SLA or present the candidate as live. Remaining release gates are listed in `PITCH_READINESS.md`.
 
 
 ## Authoritative release-status checkpoint — 7 November 2026 (latest)
