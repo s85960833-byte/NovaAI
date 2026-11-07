@@ -31,13 +31,13 @@ const preflight = await fetch(endpoint, {
 });
 const allowOrigin = preflight.headers.get('access-control-allow-origin');
 const allowHeaders = (preflight.headers.get('access-control-allow-headers') || '').toLowerCase();
-const allowMethods = (preflight.headers.get('access-control-allow-methods') || '').toUpperCase().split(',').map(value => value.trim());
+const preflightMethods = (preflight.headers.get('access-control-allow-methods') || '').toUpperCase().split(',').map(value => value.trim());
 const requiredHeaders = ['authorization', 'apikey', 'content-type', 'x-client-info', 'idempotency-key'];
 const requiredMethods = ['GET', 'POST', 'DELETE', 'OPTIONS'];
 if (![200, 204].includes(preflight.status) || allowOrigin !== 'https://novaai-4auo.onrender.com' || allowOrigin === '*' ||
     requiredHeaders.some(header => !allowHeaders.split(',').map(value => value.trim()).includes(header)) ||
-    requiredMethods.some(method => !allowMethods.includes(method))) {
-  throw new Error('Edge Function CORS preflight must allow only the configured NOVA origin and required client methods/headers: status=' + preflight.status + ', allow-origin=' + allowOrigin + ', allow-headers=' + allowHeaders + ', allow-methods=' + allowMethods.join(','));
+    requiredMethods.some(method => !preflightMethods.includes(method))) {
+  throw new Error('Edge Function CORS preflight must allow only the configured NOVA origin and required client methods/headers: status=' + preflight.status + ', allow-origin=' + allowOrigin + ', allow-headers=' + allowHeaders + ', allow-methods=' + preflightMethods.join(','));
 }
 process.stdout.write('PASS Edge Function CORS preflight\n');
 const hostilePreflight = await fetch(endpoint, {
