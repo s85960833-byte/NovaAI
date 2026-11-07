@@ -1,4 +1,6 @@
 name: NovaAI verification
+permissions:
+  contents: read
 on:
   push:
     branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101, feature-indian-future-ui, feature-nova-next-ui-20261101, feature/nova-business-intelligence, feature/nova-bi-reconciled-20261106, feature/nova-integrated-release-20261106]
