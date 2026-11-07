@@ -67,7 +67,7 @@ async function extractFile(f){
  if(f.type.startsWith('image/')){if(f.size>(lowData()?1.5:4)*1024*1024)throw Error(lowData()?tr('In Low Data Mode, keep photos under 1.5 MB.','कम डेटा मोड में फोटो 1.5 MB से छोटी रखें।'):tr('Keep photos under 4 MB.','फोटो 4 MB से छोटी रखें।'));return {image:await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result));r.onerror=no;r.readAsDataURL(f)}),text:tr('Read and explain the content in this image in clear English.','इस फोटो में मौजूद सामग्री को सरल हिंदी में पढ़कर समझाएँ।')};}
  if(/\.pdf$/i.test(f.name)||f.type==='application/pdf'){
    if(!window.pdfjsLib){$('#nmStatus').textContent=tr('Loading PDF reader…','PDF रीडर लोड हो रहा है…');await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';s.onload=ok;s.onerror=()=>no(Error(tr('PDF reader is unavailable','PDF रीडर उपलब्ध नहीं है')));document.head.append(s)});window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';}
-   const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let out='';
+   const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer(),isEvalSupported:false}).promise;let out='';
    for(let p=1;p<=Math.min(pdf.numPages,lowData()?8:20);p++){const page=await pdf.getPage(p),tc=await page.getTextContent();out+=tc.items.map(x=>x.str).join(' ')+'\n';}
    if(!out.trim())throw Error(tr('No selectable text was found in the PDF. Upload a clear image of the page instead.','PDF में पढ़ने योग्य टेक्स्ट नहीं मिला। कृपया पेज की साफ़ फोटो अपलोड करें।'));return {text:out.slice(0,lowData()?8000:18000)};
  }
