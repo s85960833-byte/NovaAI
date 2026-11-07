@@ -13,6 +13,8 @@ for (const file of ['nova-app.js', 'mode-workspace.js']) {
     assert.ok(source.includes(moduleUrl), 'must use the pinned patched PDF.js module');
     assert.ok(source.includes(workerUrl), 'must use the matching pinned PDF.js module worker');
     assert.match(source, /pdfjsLib\.getDocument\(\{data:await f\.arrayBuffer\(\),isEvalSupported:false\}\)/);
+    const setup = source.slice(source.indexOf('if(!window.pdfjsLib'), source.indexOf('window.pdfjsLib.getDocument'));
+    assert.match(setup, /\}\s*window\.pdfjsLib\.GlobalWorkerOptions\.workerSrc=/, 'worker URL must be configured even when the PDF.js module was already loaded');
     assert.doesNotMatch(source, /pdf\.js\/2\.16\.105/);
   });
 }
