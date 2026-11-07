@@ -3,9 +3,9 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Unified candidate head:** `2054bedf6e193521ebf903d58e3d7d544893f271` (the documentation-only follow-up is tracked separately from the verified application snapshot).  
+**Unified candidate head:** `cd2d1d53c7fc186ce7a82ed062c54574e34e843a`.  
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
-**Latest candidate CI:** run [#1018](https://github.com/s85960833-byte/NovaAI/actions/runs/42327994039) passed on exact application-and-documentation head `2054bedf6e193521ebf903d58e3d7d544893f271`: 55/55 steps completed, 52 succeeded, 3 live-environment steps skipped by design, and 0 failures. Live Render/provider and live image-generation checks were skipped.  
+**Latest candidate CI:** run [#1022](https://github.com/s85960833-byte/NovaAI/actions/runs/42328252932) passed on exact candidate head `cd2d1d53c7fc186ce7a82ed062c54574e34e843a`: 55/55 steps completed, 52 succeeded, 3 live-environment steps skipped by design, and 0 failures. Live Render/provider and live image-generation checks were skipped.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -47,7 +47,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #73 combines the three-workspace interface, BI module and security-hardening work. PR #66 is the earlier UI-only predecessor.
 
-The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Combined CI run #1018 passed on the latest integrated head. Its checks cover:
+The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Combined CI run #1022 passed on the latest integrated head. Its checks cover:
 
 - Backend/frontend syntax and mode registry.
 - PostgreSQL migration application and tenant RLS integration.
@@ -58,7 +58,7 @@ The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are
 - Company Cloud browser workflows.
 - Chromium workspace navigation and five viewport widths, including drawer and Settings regression checks.
 
-CI #1018 passed on the exact candidate head. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped in this run.
+CI #1022 passed on the exact candidate head. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped in this run.
 ## 5. Exact demo plan
 
 Use this sequence only on the exact candidate build after opening that build on the presentation device. The candidate is not currently the Production deployment; do not silently substitute the existing Production URL and describe it as the new three-workspace build.
