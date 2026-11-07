@@ -3,7 +3,7 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Latest full candidate code/browser verification snapshot:** SHA `d5d2f9f603686c2259efc2526611e390113e253e` passed GitHub Actions run [#1422](https://github.com/s85960833-byte/NovaAI/actions/runs/42373035543). It covered syntax, Markdown link attribute-injection regression tests, exact-origin CORS unit tests, rate-limit tests, PostgreSQL 17 migration/RLS integration, Edge Function type-check and invitation/CORS tests, BI calculations/CSV validation, dependency audit, local runtime/PWA checks, graceful shutdown, Company Cloud browser workflows, CSP violation checks and five-viewport mobile/drawer regression tests. The deployed Edge Function CORS smoke and the live Render/provider/image checks were skipped on this feature branch; they remain live-release gates. CI evidence is not physical-device or production-release certification.
+**Latest full candidate code/browser verification snapshot:** SHA `57c104a6e43d992e06d347c9fe3a45c59a934a18` passed both push run [#42374212009](https://github.com/s85960833-byte/NovaAI/actions/runs/42374212009) and pull-request run [#42374218563](https://github.com/s85960833-byte/NovaAI/actions/runs/42374218563). It covered syntax, Markdown link attribute-injection regression tests, exact-origin CORS unit tests, rate-limit tests, PostgreSQL 17 migration/RLS integration, Edge Function type-check and invitation/CORS tests, BI calculations/CSV validation, dependency audit, local runtime/PWA checks, graceful shutdown, Company Cloud browser workflows, CSP violation checks and five-viewport mobile/drawer regression tests. The deployed Edge Function CORS smoke and the live Render/provider/image checks were skipped on this feature branch; they remain live-release gates. The PostgreSQL RLS suite now checks cross-tenant reads across all tenant data surfaces plus outsider insert/update/delete attempts. CI evidence is not physical-device or production-release certification.
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
@@ -249,3 +249,12 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - The next live release sequence still requires an approved Supabase Edge Function deployment followed by the exact-origin smoke test. No live function replacement was performed in this audit.
 - Current release status remains NO-GO until the live CORS mismatch and the other listed production gates are closed.
 
+
+
+## 19. Latest exact-head tenant-isolation verification — 7 November 2026
+
+- Candidate SHA `57c104a6e43d992e06d347c9fe3a45c59a934a18` passed both GitHub Actions runs [#42374212009](https://github.com/s85960833-byte/NovaAI/actions/runs/42374212009) (push) and [#42374218563](https://github.com/s85960833-byte/NovaAI/actions/runs/42374218563) (pull request), with all 36 job steps successful.
+- Expanded PostgreSQL 17 integration coverage now verifies that an outsider cannot read another tenant's datasets, analyses, workflow proposals, approvals, executions, branding or audit events; it also attempts cross-tenant dataset insert, update and delete, plus analysis deletion, workflow decision changes and branding changes.
+- This is isolated-database integration evidence, not a substitute for testing with two real Supabase Auth accounts against the deployed Edge Function and live database.
+- Live deployment remains unchanged: production Edge Function `nova-bi-api` v13 still has wildcard CORS, and candidate exact-origin CORS code has not been deployed. Candidate PR #73 remains Draft/unmerged; production `main` is untouched.
+- The CI success does not close external release gates: real email delivery, physical Android checks, live candidate preview/provider smoke, hosting/backups, region choice, privacy/deletion review, and strict CSP remain outstanding.
