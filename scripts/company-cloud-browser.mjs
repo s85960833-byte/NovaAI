@@ -3,6 +3,10 @@ import { chromium } from 'playwright';
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+page.setDefaultTimeout(12000);
+page.setDefaultNavigationTimeout(15000);
+const progress = label => console.log(`[Company Cloud browser] ${label}`);
+progress('browser initialized');
 const pageErrors = [];
 const calls = [];
 const authCalls = [];
@@ -136,6 +140,7 @@ assert.equal(localHealth.status, 200, 'local NOVA server must be healthy before 
 const homeResponse = await page.goto('http://127.0.0.1:8787', { waitUntil: 'commit', timeout: 15000 });
 assert.equal(homeResponse?.status(), 200, 'local NOVA homepage must return HTTP 200');
 await page.waitForTimeout(1000);
+progress('local homepage loaded');
 const bootstrap = await page.evaluate(() => ({ ready: document.readyState, hasHome: !!document.querySelector('#hi'), logHtml: document.querySelector('#log')?.innerHTML.slice(0,160) || '', registryGroups: window.NovaModeRegistry?.groups?.length || 0, workspaceApi: typeof window.NovaModeWorkspace }));
 console.log('NOVA bootstrap', JSON.stringify(bootstrap));
 await page.locator('#hi .nr-card[data-group="agents"]').waitFor({ state: 'visible', timeout: 15000 });
@@ -163,6 +168,7 @@ assert.equal(await page.locator('#nbAnalyze').isDisabled(), false, await page.lo
 await page.locator('#nbAnalyze').click();
 await page.locator('#nbBody').getByText('Verified calculation summary').waitFor();
 console.log('PASS BI CSV analysis flow');
+progress('CSV analysis passed');
 
 await page.locator('#nbNav [data-view="risk"]').click();
 await page.locator('#nbProjectName').fill('Test migration');
@@ -172,12 +178,14 @@ await page.locator('#nbBlockers').fill('2');
 await page.locator('#nbRiskRun').click();
 await page.locator('#nbBody').getByText('Project Risk Predictor').waitFor();
 console.log('PASS BI project risk flow');
+progress('risk flow passed');
 
 await page.locator('#nbNav [data-view="scenario"]').click();
 await page.locator('#nbBaseline').fill('100000');
 await page.locator('#nbScenarioRun').click();
 await page.locator('#nbBody').getByText('Scenario result').waitFor();
 console.log('PASS BI scenario flow');
+progress('scenario flow passed');
 
 await page.locator('#nbNav [data-view="workflow"]').click();
 await page.locator('#nbProcess').fill('Weekly project status report');
@@ -185,6 +193,7 @@ await page.locator('#nbApprover').fill('Project manager');
 await page.locator('#nbWorkflowRun').click();
 await page.locator('#nbBody pre').waitFor();
 console.log('PASS BI workflow proposal flow');
+progress('workflow proposal passed');
 
 await page.locator('#nbNav [data-view="proof"]').click();
 await page.locator('#nbProofExport').waitFor();
@@ -192,6 +201,7 @@ const proofDownloadPromise = page.waitForEvent('download', { timeout: 15000 });
 await page.locator('#nbProofExport').click();
 const proofDownload = await proofDownloadPromise;
 console.log('PASS BI Action Proof download');
+progress('Action Proof export passed');
 assert.match(proofDownload.suggestedFilename(), /nova-action-proof\.json$/);
 await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaBusiness').evaluate(el => el.classList.contains('show')), false);
@@ -200,6 +210,7 @@ assert.equal(await page.locator('#novaModes').evaluate(el => el.classList.contai
 await page.locator('#nmContent [data-quick="openCompanyCloud"]').waitFor({ state: 'visible', timeout: 10000 });
 await page.locator('#nmContent [data-quick="openCompanyCloud"]').click();
 await page.locator('#ncbAuth').waitFor();
+progress('Company Cloud auth view opened');
 await page.locator('#ncbEmail').fill('owner@example.test');
 await page.locator('#ncbPassword').fill('a-strong-test-password');
 await page.locator('#ncbAuth button[data-mode="signup"]').click();
@@ -207,6 +218,7 @@ await page.waitForFunction(() => window.__authCalls.some(x => x.method === 'sign
 const authAfterSignup = await page.evaluate(() => window.__authCalls.find(x => x.method === 'signUp'));
 assert.ok(authAfterSignup, 'Signup handler did not call Supabase signUp. UI message: ' + await page.locator('#ncbMessage').textContent());
 assert.match(await page.locator('#ncbMessage').textContent(), /Account created/, 'Signup completed but confirmation status was not shown.');
+progress('signup UI passed');
 await page.locator('#ncbResend').waitFor();
 assert.equal(authAfterSignup.options.emailRedirectTo, 'http://127.0.0.1:8787');
 await page.locator('#ncbResend').click();
@@ -219,6 +231,7 @@ const resetCall = await page.evaluate(() => window.__authCalls.find(x => x.metho
 assert.ok(resetCall, 'Forgot password did not call Supabase resetPasswordForEmail. UI message: ' + await page.locator('#ncbMessage').textContent());
 assert.equal(resetCall.options.redirectTo, 'http://127.0.0.1:8787');
 assert.match(await page.locator('#ncbMessage').textContent(), /password-reset email/i, 'Password reset request completed but confirmation message was not shown.');
+progress('password reset UI passed');
 await page.evaluate(() => window.__emitAuthEvent('PASSWORD_RECOVERY', { access_token: 'recovery-token', user: { id: '11111111-1111-4111-8111-111111111111', email: 'owner@example.test' } }));
 await page.locator('#ncbRecovery').waitFor();
 await page.locator('#ncbNewPassword').fill('new-strong-password');
@@ -229,11 +242,13 @@ await page.locator('#ncbConfirmPassword').fill('new-strong-password');
 await page.locator('#ncbRecovery button[type="submit"]').click();
 await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Password updated'), null, { timeout: 10000 });
 assert.ok((await page.evaluate(() => window.__authCalls)).some(x => x.method === 'updateUser'));
+progress('password recovery UI passed');
 await page.locator('#ncbAuth').waitFor();
 await page.locator('#ncbEmail').fill('owner@example.test');
 await page.locator('#ncbPassword').fill('a-strong-test-password');
 await page.locator('#ncbAuth button[data-mode="signin"]').click();
 await page.locator('#ncbBranding').waitFor({ timeout: 15000 });
+progress('signed-in workspace loaded');
 await page.locator('#ncbInviteForm').waitFor();
 await page.locator('[data-accept-invite]').waitFor();
 await page.locator('[data-decision="approved"]').waitFor();
@@ -253,6 +268,7 @@ await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textCont
 assert.ok(calls.some(call => call.path === 'branding' && call.method === 'POST'));
 assert.equal(await page.locator('#ncbBrandTitle').textContent(), 'Test Company International');
 assert.equal(await page.locator('#ncbBrandTagline').textContent(), 'Operations with proof');
+progress('branding update passed');
 
 await page.locator('#ncbInviteEmail').fill('analyst@example.test');
 await page.locator('#ncbInviteRole').selectOption('analyst');
@@ -266,6 +282,7 @@ await page.locator('#ncbInviteRole').selectOption('viewer');
 await page.locator('#ncbInviteForm button[type="submit"]').click();
 await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('no email was sent'), null, { timeout: 10000 });
 assert.ok(calls.some(call => call.path === 'members/invite' && call.method === 'POST' && call.body.email === 'existing@example.test'));
+progress('new and existing account invitation UI passed');
 
 await page.locator('[data-accept-invite]').click();
 await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Company invitation accepted.'), null, { timeout: 10000 });
@@ -295,5 +312,6 @@ assert.equal(await page.locator('#novaModes').evaluate(el => el.classList.contai
 await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaModes').evaluate(el => el.classList.contains('open')), false);
 assert.deepEqual(pageErrors, []);
+progress('all browser assertions passed');
 await browser.close();
 process.stdout.write('PASS Company Cloud mobile browser flow: sign-in, workspace, branding, invitations, approval, export and keyboard close\n');
