@@ -266,7 +266,7 @@ test('NOVA BI team invitations are owner/admin gated and accepted only by the in
  assert.ok(migration.includes('grant update(status) on public.nova_bi_memberships to authenticated'));
  assert.ok(edge.includes('auth.admin.inviteUserByEmail'));
  assert.ok(edge.includes('error: auditError'));
- assert.ok(edge.includes('audit record could not be saved'));
+ assert.ok(edge.includes('invitation audit event could not be saved'));
   assert.ok(edge.includes('auth.admin.deleteUser(invitedUserId)'));
   assert.ok(edge.includes('temporary Auth account was cleaned up'));
   assert.ok(edge.includes('automatic cleanup was incomplete'));
