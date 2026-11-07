@@ -195,13 +195,15 @@ progress('local homepage loaded');
 const pdfModuleCheck = await page.evaluate(async () => {
   try {
     const module = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.mjs');
-    return { ok: true, version: module.version };
+    window.pdfjsLib = module;
+    return { ok: true, version: module.version, workerConfiguredBeforeUpload: !!module.GlobalWorkerOptions.workerSrc };
   } catch (error) {
     return { ok: false, error: String(error?.message || error) };
   }
 });
 progress('PDF.js module import ' + JSON.stringify(pdfModuleCheck));
 assert.equal(pdfModuleCheck.ok, true, 'pinned PDF.js module must load under the production CSP');
+assert.equal(pdfModuleCheck.workerConfiguredBeforeUpload, false, 'test must preload PDF.js without a worker URL to verify the upload flow configures it');
 await page.locator('#file').setInputFiles({
   name: 'nova-security-test.pdf',
   mimeType: 'application/pdf',
