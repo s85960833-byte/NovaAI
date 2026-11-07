@@ -111,7 +111,7 @@ Initial target segment: small IT services companies and software agencies. Do no
 
 
 ## Security implementation checkpoint (2026-11-01)
-- The user approved Supabase project `qrfwsewppafhxibdboam`; nine migrations and nine RLS-protected NOVA BI tables are deployed. The separate Research-to-Code project remains untouched.
+- The user approved Supabase project `qrfwsewppafhxibdboam`; 12 migrations and 10 RLS-enabled NOVA BI tables are deployed. Candidate migration `20261106195900_nova_bi_rate_limit_search_path_hardening.sql` remains pending live application. The separate Research-to-Code project remains untouched.
 - Supabase Security Advisor reports zero findings. Edge Function `nova-bi-api` is ACTIVE at version 12 with JWT verification enabled.
 - Live transaction-scoped RLS checks passed for owner bootstrap, tenant isolation, viewer write/delete denial, analyst approval/branding denial, admin approval separation and owner-role escalation denial, invitation acceptance and audited deletion. All test rows/users were rolled back and follow-up counts confirmed zero leftovers.
 - `NOVA_BUSINESS_INTELLIGENCE_SECURITY.md` now documents implemented controls and remaining security/release gates; it is not a security certification.
