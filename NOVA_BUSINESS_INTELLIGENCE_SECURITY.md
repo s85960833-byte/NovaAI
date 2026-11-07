@@ -15,6 +15,9 @@
 - Edge Function request bodies and JSON payloads have explicit size limits; list endpoints are capped. Per-user throttling allows 120 authenticated API requests/minute and 5 invitations/hour. Rate-limit counters and the limiter function are inaccessible to anon/authenticated roles.
 - The last read-only Security Advisor check on the connected project returned zero findings. That result is not a certification of this entire candidate: pending candidate migrations and Edge Function changes have not all been applied to the live project.
 
+## Hosting and recovery are not production-ready
+The connected Render service and Supabase organization are both on Free plans. Render explicitly says Free web services should not be used for production applications; they spin down after 15 minutes idle and may take about a minute to wake. Supabase Free does not include automatic backups. Before customer data is accepted, choose an approved always-on hosting plan, implement off-site backups, and complete a restore drill. References: [Render Free limits](https://render.com/docs/free), [Supabase Free backup FAQ](https://supabase.com/kb/faqs/platform/free-plan-backups), [Supabase backups](https://supabase.com/docs/guides/platform/backups).
+
 ## Data classification and user notice
 Do not use this release candidate with regulated, highly sensitive, or production employee personal data until privacy, retention, backup and incident-response controls are reviewed. Productivity insights are team-level and must not be used as individual surveillance or automated employment decisions.
 
@@ -42,4 +45,4 @@ Cloud save sends the selected dataset metadata and calculated aggregates/evidenc
 - Data export and deletion must be scoped to the active organization and leave required audit evidence.
 
 ## Release decision
-This is a verified feature-branch release candidate, not a 100%-complete public product. Do not merge or deploy until remaining release controls and manual checks are completed and the owner explicitly approves.
+This is a verified feature-branch release candidate, not a public production product. Automated CI on exact candidate SHA `e2702c12c89749b4f623857c6ac924b5f1871739` passed run [#1288](https://github.com/s85960833-byte/NovaAI/actions/runs/42367968496), but real Auth/email, two-account tenant isolation, backup/restore, hosting-tier suitability, physical Android, privacy/retention and incident-response gates remain open. Do not merge or deploy until these controls are completed and the owner explicitly approves.
