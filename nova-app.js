@@ -162,7 +162,7 @@ function go(){if(busy){ctl&&ctl.abort();return}const v=$('in').value.trim();if(!
 if(c.title==='New chat')c.title=(v||'🖼 Image').slice(0,40);$('in').value='';S.draft='';$('in').style.height='auto';ask(c)}
 function regen(){const c=chat();if(!c||busy)return;while(c.m.length&&c.m[c.m.length-1].r!=='user')c.m.pop();popN=1;ask(c)}
 async function pdfText(f){if(!window.pdfjsLib){await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';s.onload=ok;s.onerror=no;document.head.append(s)});pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js'}
-const p=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let o='';for(let i=1;i<=p.numPages&&o.length<60000;i++){const c=await(await p.getPage(i)).getTextContent();o+='\n[Page '+i+']\n'+c.items.map(x=>x.str).join(' ')}
+const p=await pdfjsLib.getDocument({data:await f.arrayBuffer(),isEvalSupported:false}).promise;let o='';for(let i=1;i<=p.numPages&&o.length<60000;i++){const c=await(await p.getPage(i)).getTextContent();o+='\n[Page '+i+']\n'+c.items.map(x=>x.str).join(' ')}
 if(o.replace(/\[Page \d+\]|\s/g,'').length<20)throw new Error('scan');return o.slice(0,60000)}
 $('file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{
 if(f.type.startsWith('image/')){await takeImage(f,false);return}
