@@ -1,11 +1,11 @@
 # NOVA — Pitch Readiness Pack
 
-**Audit snapshot:** 6 November 2026  
+**Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
 **Unified candidate head:** see Draft PR #73 for the current exact commit and CI run.  
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
-**Latest candidate CI:** combined run #992/#994 is in progress; check PR #73 for the exact head status.  
+**Latest candidate CI:** run [#1014](https://github.com/s85960833-byte/NovaAI/actions/runs/42241434750) passed on exact head `8acec5e7eeb57cfefb12e2b77663de83f1470c17` with 32/32 job steps completed and 0 failures. Live Render/provider and live image-generation steps were skipped by design.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -58,7 +58,7 @@ The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are
 - Company Cloud browser workflows.
 - Chromium workspace navigation and five viewport widths, including drawer and Settings regression checks.
 
-The combined run must pass on the exact latest head before this candidate can be called CI-verified. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI.
+CI #1014 passed on the exact candidate head. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped in this run.
 ## 5. Exact demo plan
 
 Use this sequence only on the exact candidate build after opening that build on the presentation device. The candidate is not currently the Production deployment; do not silently substitute the existing Production URL and describe it as the new three-workspace build.
@@ -153,7 +153,7 @@ Pricing and usage limits are not being promised until provider costs, support, p
 
 ## 12. Final go / no-go
 
-6 November 2026 audit decision: **GO for an honest concept and early design-partner pitch. NO-GO for a guaranteed live-product demo, public onboarding, paid subscriptions, or a zero-error promise.**
+7 November 2026 audit decision: **GO for an honest concept and early design-partner pitch. NO-GO for a guaranteed live-product demo, public onboarding, paid subscriptions, or a zero-error promise.**
 
 Before the new three-workspace build can be presented as a live demo, the remaining gates are:
 
