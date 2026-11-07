@@ -143,6 +143,18 @@ await page.waitForTimeout(1000);
 progress('local homepage loaded');
 const bootstrap = await page.evaluate(() => ({ ready: document.readyState, hasHome: !!document.querySelector('#hi'), logHtml: document.querySelector('#log')?.innerHTML.slice(0,160) || '', registryGroups: window.NovaModeRegistry?.groups?.length || 0, workspaceApi: typeof window.NovaModeWorkspace }));
 console.log('NOVA bootstrap', JSON.stringify(bootstrap));
+const idleCloudMutations = await page.evaluate(async () => {
+  const overlay = document.querySelector('#novaBICloud');
+  if (!overlay) return -1;
+  let mutations = 0;
+  const observer = new MutationObserver(records => { mutations += records.length; });
+  observer.observe(overlay, { childList: true, subtree: true, characterData: true, attributes: true });
+  await new Promise(resolve => setTimeout(resolve, 250));
+  observer.disconnect();
+  return mutations;
+});
+assert.equal(idleCloudMutations, 0, 'idle Company Cloud bilingual observer must not rewrite unchanged text or attributes');
+progress('idle bilingual observer is stable');
 await page.locator('#hi .nr-card[data-group="agents"]').waitFor({ state: 'visible', timeout: 15000 });
 await page.waitForFunction(() => typeof window.supabase?.createClient === 'function', null, { timeout: 10000 });
 assert.equal(supabaseStubHit, true, 'Supabase CDN must be replaced by the deterministic browser auth stub');
