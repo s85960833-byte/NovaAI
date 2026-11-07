@@ -8,11 +8,11 @@ NOVA is an India-oriented, Hindi-and-English AI web application. The current pro
 
 ## Project status
 
-The unified NOVA candidate (three-workspace UI + Business Intelligence) is on `feature/nova-integrated-release-20261106` in Draft PR #73. It is not the Production release. The Production app is served from:
+The unified NOVA candidate (three-workspace UI + Business Intelligence) is on `feature/nova-integrated-release-20261106` in Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73). It is not the Production release.
 
-https://novaai-4auo.onrender.com
+Production URL: https://novaai-4auo.onrender.com
 
-The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab24`. No merge or deployment of the candidate was performed during the 6 November 2026 audit.
+The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab24`. Candidate head `8acec5e7eeb57cfefb12e2b77663de83f1470c17` has not been merged or deployed. Do not present the candidate as the live Production build.
 
 ## Architecture
 
@@ -20,35 +20,50 @@ The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab2
 - Backend: Express server in `nova-server.txt`.
 - Runtime: Node.js 22.
 - Start command: `node nova-server.txt`.
-- Existing chat/settings data uses browser-local storage. Do not describe it as cloud-synced.
+- Existing general chat/settings data uses browser-local storage. Do not describe it as cloud-synced.
 - Provider keys belong in server-side environment variables, never in browser code or commits.
 
-## Verification — integrated three-workspace candidate
+## Verification — integrated candidate
 
-The unified application, UI and BI documentation are maintained on Draft PR #73. Its combined CI is running; see the PR for the latest exact-head status. Checks included:
+The exact candidate head `8acec5e7eeb57cfefb12e2b77663de83f1470c17` passed GitHub Actions run [#1014](https://github.com/s85960833-byte/NovaAI/actions/runs/42241434750): **32/32 job steps completed, 0 failures**. The workflow included:
 
-- Backend/frontend syntax and isolated mode registry.
-- 60-case AI evaluation fixture structure (not a live model accuracy score).
+- Backend/frontend syntax and isolated mode registry checks.
+- PostgreSQL migration application and tenant RLS integration tests.
+- Deno Edge Function dependency installation, type-check, auth and CORS smoke checks.
+- BI calculations, CSV validation and 60-case evaluation fixture validation (not a live AI accuracy score).
 - Production dependency vulnerability audit.
-- Local server routes, PWA assets, and local security-header assertions.
-- Chromium workspace interaction tests.
-- Responsive layout, drawer, Settings, and sidebar checks at 360, 390, 412, 760, and 1280 CSS-pixel widths.
-- Devanagari font installation and browser screenshot artifact upload.
+- Local routes, response headers and PWA asset checks, including offline caching.
+- Company Cloud browser workflow tests.
+- Chromium workspace interactions and five-viewport mobile/drawer regression checks at 360, 390, 412, 760 and 1280 CSS-pixel widths.
+- Devanagari font setup and browser screenshot/report artifact upload.
 
-CI #894 **skipped** live provider and free-provider image-generation smoke tests by design. A separate read-only Render audit confirmed Production is live on commit `48e12a68af656b471853ac2a4509da0e3df7ab24`; the Draft candidate is not deployed. Physical Android testing was not performed. These checks do not prove that the candidate is error-free.
+The workflow **skipped** live Render/provider checks and live free-provider image generation by design. Those steps require an authorized preview/deployment. Physical Android testing was not performed. Passing CI does not prove the candidate is error-free or production-ready.
 
-## NOVA Business Intelligence in the unified candidate
+## Release gates still open
 
-NOVA BI is included in unified Draft PR #73. It remains unlaunched and must not be used with sensitive company data until real-account, privacy, retention and backup/restore gates are completed. BI-only PR #67 is a predecessor; PR #46 is an older divergent branch. The unified PR #73 CI is the authoritative verification for the combined candidate.
+- Approved preview/release path and deployment of the exact candidate.
+- Real signup, email confirmation/SMTP and Supabase Auth redirect allow-list verification.
+- Two-real-account tenant-isolation checks.
+- Physical Android verification of touch, keyboard, visual fit, saved chats/settings, low-network behavior and permissions.
+- Live non-paid chat, search, voice and image-provider smoke tests on the approved candidate preview.
+- Public HTTPS response-header/HSTS verification and post-deploy regression.
+- Backup/restore, retention, privacy and incident-response review.
+- Explicit approval before applying any live Supabase migration, changing Auth settings, merging or deploying.
 
-The NOVA BI Supabase project has 12 migrations, 10 RLS-enabled tables, and an ACTIVE JWT-protected Edge Function v13. The latest Security and Health Advisors reported zero findings. Performance Advisor reported 13 unused-index INFO notices. Auth user, organization, and membership counts are currently zero. These database checks are not an enterprise certification or a public-launch approval.
+No merge, Production deployment, live Supabase migration, Edge Function replacement, Auth configuration change or paid resource change is authorized by this candidate.
+
+## NOVA Business Intelligence
+
+NOVA BI is included in unified Draft PR #73 but is not launched or deployed. Do not use it with sensitive company data until real-account, privacy, retention and backup/restore gates are completed.
+
+The inspected Supabase project has 12 migrations, 10 RLS-enabled BI tables and an ACTIVE JWT-protected Edge Function v13. The latest Security and Health Advisors reported zero findings; Performance Advisor reported 13 unused-index INFO notices. Auth user, organization and membership counts were zero at the last inspection. These checks are not an enterprise certification or a public-launch approval.
 
 ## Honest product limitations
 
-- Provider availability, free-tier quotas, latency, and output quality can vary.
+- Provider availability, free-tier quotas, latency and output quality can vary.
 - Browser-local saved chats can be lost if site data is cleared.
-- General NOVA account login and cloud chat sync are not established by the current Production baseline.
+- General NOVA account login and cloud chat sync are not established on the current Production baseline.
 - Do not use NOVA BI with sensitive or regulated company data before its release gates are complete.
 - Automated checks are not a security certification or a guarantee of zero errors.
 
-See [PITCH_READINESS.md](PITCH_READINESS.md) for the current pitch scope, verified evidence, safe claims, and remaining release gates. See [PITCH_SCRIPT.md](PITCH_SCRIPT.md) for the short pitch and demo flow.
+See [PITCH_READINESS.md](PITCH_READINESS.md) for the current pitch scope, verified facts and release gates. See [PITCH_SCRIPT.md](PITCH_SCRIPT.md) for the short pitch and demo flow.
