@@ -5,7 +5,7 @@
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
 **Last verified candidate snapshot:** `a66478f05f05d8170a2b5ad9eb469025b50086d7` (GitHub Actions run [#1067](https://github.com/s85960833-byte/NovaAI/actions/runs/42332468760): 32/32 steps completed, 29 succeeded, 3 live-environment checks skipped by design, 0 failures).  
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
-**Application-code CI:** run [#1041](https://github.com/s85960833-byte/NovaAI/actions/runs/42329917724) passed on snapshot `07454287053c538472f25832fcc475b9c67ed520`: 55/55 steps completed, 52 succeeded, 3 live-environment steps skipped by design, and 0 failures. The candidate now uses a committed npm lockfile and `npm ci`. Later progress-document updates are undergoing CI re-verification. For the exact current branch head and latest run, see Draft PR #73. Live Render/provider and live image-generation checks were skipped.  
+**Application-code CI:** run [#1067](https://github.com/s85960833-byte/NovaAI/actions/runs/42332468760) passed on candidate snapshot `a66478f05f05d8170a2b5ad9eb469025b50086d7`: 32/32 steps completed, 29 succeeded, 3 live-environment steps skipped by design, and 0 failures. Subsequent edits on this branch refreshed documentation only; they did not change application code. Live Render/provider and live image-generation checks were skipped.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -47,7 +47,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #73 combines the three-workspace interface, BI module and security-hardening work. PR #66 is the earlier UI-only predecessor.
 
-The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Combined CI run #1041 passed on the latest fully verified application-code snapshot; later documentation-only updates are undergoing re-verification. The PR description tracks the latest exact branch head. Its checks cover:
+The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Application-code CI run #1067 passed on snapshot `a66478f05f05d8170a2b5ad9eb469025b50086d7`; subsequent branch edits refreshed documentation only. Its checks cover:
 
 - Backend/frontend syntax and mode registry.
 - PostgreSQL migration application and tenant RLS integration.
