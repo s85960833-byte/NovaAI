@@ -67,5 +67,5 @@ Deno.test("NOVA BI handles preflight before authentication and never reflects an
   }));
   if (response.status !== 200) throw new Error("Allowed request must reach the handler");
   if (response.headers.get("Access-Control-Allow-Origin") !== site) throw new Error("Authenticated responses must use the exact site origin");
-  if (handlerCalls !== 1) throw new Error("Allowed non-preflight request should invoke the handler once");
+  if (Number(handlerCalls) !== 1) throw new Error("Allowed non-preflight request should invoke the handler once");
 });
