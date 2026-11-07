@@ -3,13 +3,126 @@ const core=window.NovaBusinessCore;if(!core)return;
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const state={dataset:null,analysis:null,scenario:null,risk:null,workflow:null,proof:null,view:'overview'};let returnFocus=null;
 const labels={expenses:'Cost Leak Detector',clients:'Client Profitability Analyzer',tasks:'Team Productivity Insights'};
+const HINDI={
+  "▦ NOVA BUSINESS": "▦ NOVA बिज़नेस",
+  "Operations intelligence · local analysis": "ऑपरेशन्स इंटेलिजेंस · स्थानीय विश्लेषण",
+  "NOVA Business Intelligence": "NOVA बिज़नेस इंटेलिजेंस",
+  "Close": "बंद करें",
+  "Overview": "अवलोकन",
+  "Analyze CSV": "CSV विश्लेषण",
+  "Project Risk": "प्रोजेक्ट जोखिम",
+  "Digital Twin": "डिजिटल ट्विन",
+  "Workflow Planner": "वर्कफ़्लो प्लानर",
+  "Action Proof": "कार्रवाई प्रमाण",
+  "Business Intelligence Dashboard": "बिज़नेस इंटेलिजेंस डैशबोर्ड",
+  "A first working workspace for IT services and software agencies. Import your own CSVs to calculate results.": "IT सेवाओं और सॉफ़्टवेयर एजेंसियों के लिए प्रारंभिक कार्यक्षेत्र। परिणाम निकालने के लिए अपनी CSV आयात करें।",
+  "Imported dataset": "आयातित डेटासेट",
+  "Latest analysis": "नवीनतम विश्लेषण",
+  "Project risk": "प्रोजेक्ट जोखिम",
+  "What-if impact": "संभावित प्रभाव",
+  "Data quality": "डेटा गुणवत्ता",
+  "Privacy and data status": "गोपनीयता और डेटा स्थिति",
+  "Import a CSV file": "CSV फ़ाइल आयात करें",
+  "Import a CSV to see source-row coverage, parser warnings and invalid-field counts.": "स्रोत पंक्तियों का कवरेज, पार्सर चेतावनियाँ और अमान्य फ़ील्ड देखने के लिए CSV आयात करें।",
+  "Accepted source rows": "स्वीकृत स्रोत पंक्तियाँ",
+  "Calculation coverage": "गणना कवरेज",
+  "Invalid field records": "अमान्य फ़ील्ड रिकॉर्ड",
+  "CSV structure warnings": "CSV संरचना चेतावनियाँ",
+  "Review CSV warnings": "CSV चेतावनियाँ देखें",
+  "Coverage is based on accepted calculation rows divided by parsed source rows. Invalid dates are counted separately and may overlap with other invalid fields.": "कवरेज स्वीकृत गणना पंक्तियों को पार्स की गई स्रोत पंक्तियों से विभाजित करके निकाला जाता है। अमान्य तारीखें अलग गिनी जाती हैं और अन्य अमान्य फ़ील्ड से मिल सकती हैं।",
+  "Verified calculation summary": "सत्यापित गणना सारांश",
+  "Export JSON": "JSON निर्यात करें",
+  "Total valid spend": "कुल वैध खर्च",
+  "Valid / invalid rows": "वैध / अमान्य पंक्तियाँ",
+  "Monthly budget": "मासिक बजट",
+  "Months over budget": "बजट से अधिक वाले महीने",
+  "Spend by category": "श्रेणी के अनुसार खर्च",
+  "Monthly spend": "मासिक खर्च",
+  "Budget overruns to review": "समीक्षा के लिए बजट से अधिक खर्च",
+  "Spend increases to review": "समीक्षा के लिए खर्च में वृद्धि",
+  "Revenue": "राजस्व",
+  "Direct costs": "प्रत्यक्ष लागत",
+  "Contribution": "योगदान",
+  "Clients": "ग्राहक",
+  "Client contribution": "ग्राहक योगदान",
+  "Tasks": "कार्य",
+  "Completed": "पूर्ण",
+  "Open": "खुले",
+  "Overdue": "समय-सीमा पार",
+  "Completion": "पूर्णता",
+  "Average cycle": "औसत चक्र",
+  "Team-level workflow": "टीम-स्तरीय वर्कफ़्लो",
+  "Team": "टीम",
+  "Total": "कुल",
+  "Average cycle days": "औसत चक्र दिन",
+  "Project Risk Predictor": "प्रोजेक्ट जोखिम संकेतक",
+  "A transparent rule-based risk indicator. It is not trained on your company history and is not a probability of project failure.": "पारदर्शी नियम-आधारित जोखिम संकेतक। यह कंपनी इतिहास पर प्रशिक्षित नहीं है और प्रोजेक्ट विफलता की संभावना नहीं बताता।",
+  "Project name": "प्रोजेक्ट का नाम",
+  "Due date": "नियत तारीख",
+  "Progress completed (%)": "पूर्ण प्रगति (%)",
+  "Open blockers": "लंबित बाधाएँ",
+  "Calculate risk factors": "जोखिम कारक गणना करें",
+  "Contributing factors": "योगदान देने वाले कारक",
+  "No configured risk factors were triggered.": "कोई निर्धारित जोखिम कारक सक्रिय नहीं हुए।",
+  "Company Digital Twin · What-if": "कंपनी डिजिटल ट्विन · क्या-हो-अगर",
+  "Model an illustrative scenario using your baseline and assumptions. The result is not a forecast or guaranteed saving.": "अपने आधार और मान्यताओं से उदाहरणात्मक परिदृश्य बनाएँ। परिणाम पूर्वानुमान या गारंटीकृत बचत नहीं है।",
+  "Monthly baseline cost / spend": "मासिक आधार लागत / खर्च",
+  "Currency": "मुद्रा",
+  "Share of baseline potentially affected (%)": "प्रभावित हो सकने वाला आधार हिस्सा (%)",
+  "Realisation assumption (%)": "वास्तविकता मान्यता (%)",
+  "One-time implementation cost": "एकमुश्त कार्यान्वयन लागत",
+  "Scenario horizon (months)": "परिदृश्य अवधि (महीने)",
+  "Run what-if scenario": "संभावित परिदृश्य चलाएँ",
+  "Scenario result": "परिदृश्य परिणाम",
+  "Workflow Automation Planner": "वर्कफ़्लो ऑटोमेशन प्लानर",
+  "Create a controlled automation specification. This version does not execute external actions or connect to company accounts.": "नियंत्रित ऑटोमेशन योजना बनाएँ। यह संस्करण बाहरी कार्रवाई नहीं करता और कंपनी खातों से नहीं जुड़ता।",
+  "Repeated process to improve": "सुधारने योग्य दोहराई जाने वाली प्रक्रिया",
+  "How often does it happen?": "यह कितनी बार होता है?",
+  "Current tools or systems": "मौजूदा टूल या सिस्टम",
+  "Who must approve the action?": "कार्रवाई को किसकी मंज़ूरी चाहिए?",
+  "Generate workflow plan": "वर्कफ़्लो योजना बनाएँ",
+  "Proposed workflow": "प्रस्तावित वर्कफ़्लो",
+  "NOVA Action Proof": "NOVA कार्रवाई प्रमाण",
+  "Evidence of software checks performed in this workspace. It does not prove real-world savings, completed company actions or business outcomes.": "इस वर्कस्पेस में किए गए सॉफ़्टवेयर चेक का साक्ष्य। यह वास्तविक बचत, पूरी कंपनी कार्रवाई या व्यावसायिक परिणाम सिद्ध नहीं करता।",
+  "No proof report yet. Import and analyze a dataset first.": "अभी कोई प्रमाण रिपोर्ट नहीं है। पहले डेटासेट आयात करके विश्लेषण करें।",
+  "Export proof JSON": "प्रमाण JSON निर्यात करें",
+  "CSV file": "CSV फ़ाइल",
+  "Analysis type": "विश्लेषण प्रकार",
+  "Cost Leak Detector — expenses": "लागत रिसाव पहचानक — खर्च",
+  "Client Profitability — revenue and direct costs": "ग्राहक लाभप्रदता — राजस्व और प्रत्यक्ष लागत",
+  "Team Productivity — task workflow": "टीम उत्पादकता — कार्य वर्कफ़्लो",
+  "Run analysis": "विश्लेषण चलाएँ",
+  "Clear imported data": "आयातित डेटा साफ़ करें",
+  "No file imported yet": "अभी कोई फ़ाइल आयात नहीं हुई",
+  "Column preview": "कॉलम पूर्वावलोकन",
+  "Map your CSV columns": "अपने CSV कॉलम मैप करें",
+  "— Select column —": "— कॉलम चुनें —",
+  "Monthly budget (optional)": "मासिक बजट (वैकल्पिक)",
+  "Enter budget in the same currency as your expenses": "बजट वही मुद्रा में दर्ज करें जिसमें खर्च हैं",
+  "Required fields are marked *. No currency conversion is performed.": "अनिवार्य फ़ील्ड पर * है। मुद्रा रूपांतरण नहीं किया जाता।",
+  "Project A": "प्रोजेक्ट A",
+  "Project manager": "प्रोजेक्ट मैनेजर",
+  "Example: weekly project status reporting": "उदाहरण: साप्ताहिक प्रोजेक्ट स्थिति रिपोर्ट",
+  "Daily": "दैनिक",
+  "Weekly": "साप्ताहिक",
+  "Monthly": "मासिक",
+  "Not specified": "निर्दिष्ट नहीं",
+  "Owner to be assigned": "मालिक तय किया जाना है",
+  "Draft only": "केवल मसौदा",
+  "No external action": "कोई बाहरी कार्रवाई नहीं",
+  "Stop if validation fails": "जाँच विफल हो तो रोकें",
+  "Human approval required": "मानवीय मंज़ूरी आवश्यक",
+  "Not connected — this is a plan only. No external system was changed.": "कनेक्ट नहीं है — यह केवल योजना है। किसी बाहरी सिस्टम में बदलाव नहीं किया गया।"
+};
+const bilingualValue=value=>{const raw=String(value??''),key=raw.trim(),hi=HINDI[key];return hi&&!key.includes(' / ')?raw.replace(key,key+' / '+hi):raw};
+function bilingualize(root){if(!root)return;const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode()))node.nodeValue=bilingualValue(node.nodeValue);root.querySelectorAll('[placeholder],[aria-label],[title]').forEach(el=>['placeholder','aria-label','title'].forEach(attr=>{if(el.hasAttribute(attr))el.setAttribute(attr,bilingualValue(el.getAttribute(attr)))}))}
 const mappings={expenses:[['amount','Amount column',true],['category','Expense category',true],['date','Date column',false]],clients:[['client','Client column',true],['revenue','Revenue column',true],['directCost','Direct cost column',true]],tasks:[['status','Task status column',true],['team','Team column',false],['createdAt','Created date column',false],['completedAt','Completed date column',false],['dueDate','Due date column',false]]};
 const styles="#novaBusiness{position:fixed;inset:0;z-index:13000;display:none;align-items:stretch;justify-content:center;padding:12px;background:rgba(4,8,18,.88);color:var(--fg)}\n#novaBusiness.show{display:flex}\n#novaBusiness .nb-wrap{width:min(1200px,100%);max-height:100%;overflow:auto;border:1px solid var(--bd);border-radius:20px;background:var(--bg);display:grid;grid-template-columns:245px minmax(0,1fr);box-shadow:0 25px 90px #0009}\n#novaBusiness .nb-side{padding:16px;background:var(--panel);border-right:1px solid var(--bd)}\n#novaBusiness .nb-main{padding:clamp(14px,2.5vw,28px);min-width:0}\n#novaBusiness .nb-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}\n#novaBusiness .nb-nav{display:grid;gap:6px;margin-top:18px}\n#novaBusiness button,#novaBusiness input,#novaBusiness select,#novaBusiness textarea{font:inherit}\n#novaBusiness button{cursor:pointer}#novaBusiness button:focus-visible,#novaBusiness input:focus-visible,#novaBusiness select:focus-visible,#novaBusiness textarea:focus-visible{outline:3px solid var(--acc);outline-offset:2px}\n#novaBusiness .nb-nav button{text-align:left;padding:10px;border:1px solid transparent;border-radius:10px;background:transparent;color:inherit}\n#novaBusiness .nb-nav button.active{background:var(--card);border-color:var(--acc)}\n#novaBusiness .nb-card{padding:15px;margin:10px 0;border:1px solid var(--bd);border-radius:14px;background:var(--card);min-width:0}\n#novaBusiness .nb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}\n#novaBusiness .nb-kpi{font-size:24px;font-weight:850;overflow-wrap:anywhere}\n#novaBusiness .nb-muted{color:var(--mut);font-size:13px;line-height:1.55}\n#novaBusiness .nb-field{display:block;width:100%;box-sizing:border-box;margin:6px 0 12px;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--fg)}\n#novaBusiness label{display:block;font-size:14px;margin:8px 0}\n#novaBusiness .nb-primary{padding:10px 14px;border:1px solid var(--acc);border-radius:10px;background:var(--acc);color:var(--onacc);font-weight:800}\n#novaBusiness .nb-quiet{padding:9px 12px;border:1px solid var(--bd);border-radius:10px;background:transparent;color:inherit}\n#novaBusiness .nb-tablewrap{overflow:auto}\n#novaBusiness table{width:100%;border-collapse:collapse;font-size:13px}\n#novaBusiness th,#novaBusiness td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);white-space:nowrap}\n#novaBusiness pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.55 ui-monospace,monospace}\n#novaBusiness .nb-status{padding:9px 11px;border-radius:10px;background:var(--panel);border:1px solid var(--bd);margin:10px 0}\n#novaBusiness .nb-actions{display:flex;gap:8px;flex-wrap:wrap}\n@media(max-width:720px){#novaBusiness{padding:0}#novaBusiness .nb-wrap{border-radius:0;grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}#novaBusiness .nb-side{padding:10px;border-right:0;border-bottom:1px solid var(--bd)}#novaBusiness .nb-nav{display:flex;overflow-x:auto;gap:4px;margin-top:8px}#novaBusiness .nb-nav button{white-space:nowrap;font-size:12px;padding:8px}#novaBusiness .nb-main{padding:13px}#novaBusiness .nb-grid{grid-template-columns:1fr}}\n@media(prefers-reduced-motion:reduce){#novaBusiness *{transition:none!important;scroll-behavior:auto!important}}";
-function addShell(){if($('novaBusiness'))return;const st=document.createElement('style');st.textContent=styles;document.head.append(st);const root=document.createElement('section');root.id='novaBusiness';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','NOVA Business Intelligence');root.innerHTML='<div class="nb-wrap"><aside class="nb-side"><div class="nb-head"><b>▦ NOVA BUSINESS</b><button class="nb-quiet" id="nbClose" aria-label="Close">✕</button></div><div class="nb-muted">Operations intelligence · local analysis</div><nav class="nb-nav" id="nbNav"></nav></aside><main class="nb-main"><div id="nbBody"></div></main></div>';document.body.append(root);$('nbClose').onclick=close;root.addEventListener('click',e=>{if(e.target===root)close()});root.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();return}if(e.key==='Tab'){const items=[...root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}})}
+function addShell(){if($('novaBusiness'))return;const st=document.createElement('style');st.textContent=styles;document.head.append(st);const root=document.createElement('section');root.id='novaBusiness';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-label','NOVA Business Intelligence');root.innerHTML='<div class="nb-wrap"><aside class="nb-side"><div class="nb-head"><b>▦ NOVA BUSINESS</b><button class="nb-quiet" id="nbClose" aria-label="Close">✕</button></div><div class="nb-muted">Operations intelligence · local analysis</div><nav class="nb-nav" id="nbNav"></nav></aside><main class="nb-main"><div id="nbBody"></div></main></div>';document.body.append(root);bilingualize(root);$('nbClose').onclick=close;root.addEventListener('click',e=>{if(e.target===root)close()});root.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();return}if(e.key==='Tab'){const items=[...root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}})}
 const nav=[['overview','Overview'],['data','Analyze CSV'],['risk','Project Risk'],['scenario','Digital Twin'],['workflow','Workflow Planner'],['proof','Action Proof']];
 function open(){addShell();returnFocus=document.activeElement;$('novaBusiness').classList.add('show');renderNav();render();$('nbClose')?.focus()}
 function close(){const root=$('novaBusiness');if(!root?.classList.contains('show'))return;root.classList.remove('show');if(returnFocus&&typeof returnFocus.focus==='function')returnFocus.focus();returnFocus=null}
-function renderNav(){$('nbNav').innerHTML=nav.map(([id,name])=>'<button data-view="'+id+'" class="'+(state.view===id?'active':'')+'" aria-current="'+(state.view===id?'page':'false')+'">'+name+'</button>').join('');$('nbNav').querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{state.view=b.dataset.view;renderNav();render()})}
+function renderNav(){$('nbNav').innerHTML=nav.map(([id,name])=>'<button data-view="'+id+'" class="'+(state.view===id?'active':'')+'" aria-current="'+(state.view===id?'page':'false')+'">'+name+'</button>').join('');bilingualize($('nbNav'));$('nbNav').querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{state.view=b.dataset.view;renderNav();render()})}
 function title(t,sub){return '<h2>'+esc(t)+'</h2><p class="nb-muted">'+esc(sub)+'</p>'}
 function card(html){return '<section class="nb-card">'+html+'</section>'}
 function download(name,data){const blob=new Blob([data],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
@@ -48,7 +161,7 @@ function analysisView(a){
  html+='</section><p class="nb-muted">'+esc(a.note||'')+'</p>';return html;
 }
 function renderData(){const d=state.dataset;let html=title('Analyze company data','Upload a CSV export (up to 5 MB / 20,000 rows). Select the dataset type and map columns before calculating.');html+=card('<label>CSV file<input class="nb-field" type="file" id="nbFile" accept=".csv,text/csv"></label><label>Analysis type<select class="nb-field" id="nbType"><option value="expenses">Cost Leak Detector — expenses</option><option value="clients">Client Profitability — revenue and direct costs</option><option value="tasks">Team Productivity — task workflow</option></select></label><div id="nbMapping"></div><div class="nb-actions"><button class="nb-primary" id="nbAnalyze" disabled>Run analysis</button><button class="nb-quiet" id="nbClear">Clear imported data</button></div><div class="nb-status nb-muted" id="nbDataStatus" role="status" aria-live="polite">'+(d?esc(d.name)+' · '+d.rowCount+' valid rows parsed':'No file imported yet')+'</div>');if(d)html+=card('<b>Column preview</b><p class="nb-muted">'+d.headers.map(esc).join(' · ')+'</p><div class="nb-tablewrap"><table><thead><tr>'+d.headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+d.rows.slice(0,3).map(row=>'<tr>'+d.headers.map(h=>'<td>'+esc(row[h])+'</td>').join('')+'</tr>').join('')+'</tbody></table></div><p class="nb-muted">Showing up to 3 sample rows. '+d.rowCount+' accepted row(s) from '+(d.sourceRowCount??d.rowCount)+' source row(s); '+d.warnings.length+' structure warning(s).</p>'+qualitySummary());if(state.analysis)html+=analysisView(state.analysis);$('nbBody').innerHTML=html;$('nbType').value=d?.type||'expenses';if(d)drawMapping();$('nbFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{if(f.size>core.MAX_CSV_BYTES)throw new Error('CSV exceeds the 5 MB import limit.');const parsed=core.parseCSV(await f.text());state.dataset={...parsed,name:f.name,type:$('nbType').value,loadedAt:new Date().toISOString(),fingerprint:core.fingerprint(parsed.rows)};state.analysis=null;state.proof=null;$('nbDataStatus').textContent=f.name+' · '+parsed.rowCount+' valid rows · '+parsed.warnings.length+' warning(s)';drawMapping();$('nbAnalyze').disabled=!parsed.rowCount}catch(err){$('nbDataStatus').textContent='Import failed: '+String(err.message||err);$('nbAnalyze').disabled=true}};$('nbType').onchange=()=>{if(state.dataset){state.dataset.type=$('nbType').value;drawMapping()}};$('nbAnalyze').onclick=runAnalysis;$('nbClear').onclick=()=>{state.dataset=null;state.analysis=null;state.proof=null;render()};$('nbExportAnalysis')?.addEventListener('click',()=>download('nova-business-analysis.json',JSON.stringify(state.analysis,null,2)))}
-function drawMapping(){const d=state.dataset;if(!d)return;const type=$('nbType').value,mapping=d.mapping||{};d.mapping=mapping;$('nbMapping').innerHTML='<h3>Map your CSV columns</h3>'+(mappings[type]||[]).map(([key,label,required])=>'<label>'+esc(label)+(required?' *':'')+'<select class="nb-field" data-map="'+key+'"><option value="">— Select column —</option>'+d.headers.map(h=>'<option value="'+esc(h)+'" '+((mapping[key]||autoGuess(d.headers,key))===h?'selected':'')+'>'+esc(h)+'</option>').join('')+'</select></label>').join('')+(type==='expenses'?'<label>Monthly budget (optional)<input class="nb-field" id="nbMonthlyBudget" type="number" min="0" step="0.01" value="'+esc(mapping.monthlyBudget||'')+'" placeholder="Enter budget in the same currency as your expenses"></label>':'')+'<p class="nb-muted">Required fields are marked *. No currency conversion is performed.</p>';$('nbMapping').querySelectorAll('[data-map]').forEach(s=>s.onchange=()=>{mapping[s.dataset.map]=s.value});$('nbMonthlyBudget')?.addEventListener('input',e=>{mapping.monthlyBudget=e.target.value});$('nbAnalyze').disabled=!d.rowCount}
+function drawMapping(){const d=state.dataset;if(!d)return;const type=$('nbType').value,mapping=d.mapping||{};d.mapping=mapping;$('nbMapping').innerHTML='<h3>Map your CSV columns</h3>'+(mappings[type]||[]).map(([key,label,required])=>'<label>'+esc(label)+(required?' *':'')+'<select class="nb-field" data-map="'+key+'"><option value="">— Select column —</option>'+d.headers.map(h=>'<option value="'+esc(h)+'" '+((mapping[key]||autoGuess(d.headers,key))===h?'selected':'')+'>'+esc(h)+'</option>').join('')+'</select></label>').join('')+(type==='expenses'?'<label>Monthly budget (optional)<input class="nb-field" id="nbMonthlyBudget" type="number" min="0" step="0.01" value="'+esc(mapping.monthlyBudget||'')+'" placeholder="Enter budget in the same currency as your expenses"></label>':'')+'<p class="nb-muted">Required fields are marked *. No currency conversion is performed.</p>';bilingualize($('nbMapping'));$('nbMapping').querySelectorAll('[data-map]').forEach(s=>s.onchange=()=>{mapping[s.dataset.map]=s.value});$('nbMonthlyBudget')?.addEventListener('input',e=>{mapping.monthlyBudget=e.target.value});$('nbAnalyze').disabled=!d.rowCount}
 function runAnalysis(){const d=state.dataset;if(!d)return;const type=$('nbType').value,mapping={...d.mapping};$('nbMapping').querySelectorAll('[data-map]').forEach(s=>mapping[s.dataset.map]=s.value);if($('nbMonthlyBudget'))mapping.monthlyBudget=$('nbMonthlyBudget').value;try{if(type==='expenses')state.analysis=core.analyzeExpenses(d.rows,mapping);else if(type==='clients')state.analysis=core.analyzeClients(d.rows,mapping);else state.analysis=core.analyzeTasks(d.rows,mapping);state.analysis.datasetName=d.name;state.analysis.calculatedAt=new Date().toISOString();state.analysis.parseWarnings=d.warnings;const invalid=(state.analysis.invalidRows||0)+(state.analysis.invalidDateRows||0);state.proof=core.makeProof([{id:'csv-parse',label:'CSV parsed',passed:d.rowCount>0,evidence:d.rowCount+' valid rows loaded'},{id:'calculation',label:'Calculation completed',passed:true,evidence:type+' analysis returned a result'},{id:'data-quality',label:'Invalid values check',passed:invalid===0,evidence:invalid+' invalid value/date row(s)'}],{dataset:d.name,rows:d.rowCount,analysis:type,datasetFingerprint:d.fingerprint,calculationVersion:'nova-business-core-0.1.0',fingerprintNote:'FNV-1a 64-bit identifier; not a cryptographic integrity signature'});render()}catch(e){$('nbDataStatus').textContent='Analysis failed: '+String(e.message||e)}}
 function renderRisk(){return title('Project Risk Predictor','A transparent rule-based risk indicator. It is not trained on your company history and is not a probability of project failure.')+card('<label>Project name<input class="nb-field" id="nbProjectName" placeholder="Project A"></label><label>Due date<input class="nb-field" id="nbDue" type="date"></label><label>Progress completed (%)<input class="nb-field" id="nbProgress" type="number" min="0" max="100" value="50"></label><label>Open blockers<input class="nb-field" id="nbBlockers" type="number" min="0" step="1" value="0"></label><button class="nb-primary" id="nbRiskRun">Calculate risk factors</button>')+(state.risk?card('<b>'+esc(state.risk.projectName||'Project')+' · '+esc(state.risk.band)+' risk · '+state.risk.score+'/100</b><p class="nb-muted">'+esc(state.risk.confidence)+'</p><p>Days until due: '+fmt(state.risk.daysUntilDue)+' · Progress: '+fmt(state.risk.progressPct)+'% · Open blockers: '+fmt(state.risk.blockers)+'</p><h3>Contributing factors</h3>'+(state.risk.factors.length?'<ul>'+state.risk.factors.map(x=>'<li>'+esc(x.factor)+' · +'+x.points+' points</li>').join('')+'</ul>':'<p class="nb-muted">No configured risk factors were triggered.</p>')):'')}
 function bindRisk(){$('nbRiskRun').onclick=()=>{try{state.risk={...core.scoreProjectRisk({dueDate:$('nbDue').value,progressPct:$('nbProgress').value,blockers:$('nbBlockers').value}),projectName:$('nbProjectName').value.trim()};state.proof=core.makeProof([{id:'risk-inputs',label:'Risk inputs validated',passed:true,evidence:'Due date, progress and blocker count accepted'},{id:'risk-score',label:'Heuristic score calculated',passed:Number.isFinite(state.risk.score),evidence:'Score '+state.risk.score+'/100; heuristic only'}],{analysis:'project-risk',project:state.risk.projectName});render()}catch(e){alert(String(e.message||e))}}}
@@ -57,6 +170,6 @@ function bindScenario(){$('nbScenarioRun').onclick=()=>{try{state.scenario=core.
 function renderWorkflow(){return title('Workflow Automation Planner','Create a controlled automation specification. This version does not execute external actions or connect to company accounts.')+card('<label>Repeated process to improve<textarea class="nb-field" id="nbProcess" rows="3" placeholder="Example: weekly project status reporting"></textarea></label><label>How often does it happen?<select class="nb-field" id="nbFrequency"><option>Daily</option><option>Weekly</option><option>Monthly</option></select></label><label>Current tools or systems<input class="nb-field" id="nbTools" placeholder="Project tracker, spreadsheets, email"></label><label>Who must approve the action?<input class="nb-field" id="nbApprover" placeholder="Project manager"></label><button class="nb-primary" id="nbWorkflowRun">Generate workflow plan</button>')+(state.workflow?card('<b>Proposed workflow</b><pre>'+esc(JSON.stringify(state.workflow,null,2))+'</pre>'):'')}
 function bindWorkflow(){$('nbWorkflowRun').onclick=()=>{const process=$('nbProcess').value.trim();if(!process)return alert('Describe the repeated process first.');state.workflow={title:process,frequency:$('nbFrequency').value,systems:$('nbTools').value.trim()||'Not specified',approvalOwner:$('nbApprover').value.trim()||'Owner to be assigned',steps:[{step:1,action:'Capture required input data',approval:'No external action'},{step:2,action:'Validate completeness and required fields',approval:'Stop if validation fails'},{step:3,action:'Prepare the proposed output',approval:'Draft only'},{step:4,action:'Request review from the named approver',approval:'Human approval required'},{step:5,action:'Record outcome and evidence',approval:'Do not mark complete without evidence'}],execution:'Not connected — this is a plan only. No external system was changed.',createdAt:new Date().toISOString()};state.proof=core.makeProof([{id:'workflow-plan',label:'Workflow checklist generated',passed:state.workflow.steps.length===5,evidence:state.workflow.steps.length+' steps created'},{id:'approval-gate',label:'Human approval gate included',passed:!!state.workflow.approvalOwner,evidence:'Approver: '+state.workflow.approvalOwner}],{analysis:'workflow-plan',process});render()}}
 function renderProof(){const p=state.proof;return title('NOVA Action Proof','Evidence of software checks performed in this workspace. It does not prove real-world savings, completed company actions or business outcomes.')+(p?card('<div class="nb-kpi">'+esc(p.status)+'</div><p class="nb-muted">'+p.passed+' passed · '+p.failed+' failed · '+p.total+' total checks</p><pre>'+esc(JSON.stringify(p,null,2))+'</pre><button class="nb-primary" id="nbProofExport">Export proof JSON</button>'):card('<p>No proof report yet. Import and analyze a dataset first.</p>'))}
-function render(){addShell();const b=$('nbBody');if(!b)return;if(state.view==='overview')b.innerHTML=overview();else if(state.view==='data')renderData();else if(state.view==='risk'){b.innerHTML=renderRisk();bindRisk()}else if(state.view==='scenario'){b.innerHTML=renderScenario();bindScenario()}else if(state.view==='workflow'){b.innerHTML=renderWorkflow();bindWorkflow()}else if(state.view==='proof'){b.innerHTML=renderProof();$('nbProofExport')?.addEventListener('click',()=>download('nova-action-proof.json',JSON.stringify(state.proof,null,2)))}b.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>{state.view=x.dataset.go;renderNav();render()})}
+function render(){addShell();const b=$('nbBody');if(!b)return;if(state.view==='overview')b.innerHTML=overview();else if(state.view==='data')renderData();else if(state.view==='risk'){b.innerHTML=renderRisk();bindRisk()}else if(state.view==='scenario'){b.innerHTML=renderScenario();bindScenario()}else if(state.view==='workflow'){b.innerHTML=renderWorkflow();bindWorkflow()}else if(state.view==='proof'){b.innerHTML=renderProof();$('nbProofExport')?.addEventListener('click',()=>download('nova-action-proof.json',JSON.stringify(state.proof,null,2)))}bilingualize(b);b.querySelectorAll('[data-go]').forEach(x=>x.onclick=()=>{state.view=x.dataset.go;renderNav();render()})}
 addShell();window.NovaBusiness=Object.freeze({open,close,version:'0.1.0',snapshot:()=>({dataset:state.dataset,analysis:state.analysis,workflow:state.workflow,risk:state.risk,scenario:state.scenario,proof:state.proof})});
 })();
