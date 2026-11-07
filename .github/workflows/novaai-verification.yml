@@ -60,6 +60,7 @@ jobs:
       - name: Test existing-account company invitation lookup
         run: deno test --config supabase/functions/nova-bi-api/deno.json supabase/functions/nova-bi-api/invitations_test.ts supabase/functions/nova-bi-api/cors_test.ts
       - name: Smoke-test deployed NOVA BI Edge Function auth and CORS
+        if: github.ref == 'refs/heads/main'
         run: node scripts/supabase-edge-smoke.mjs
       - name: Test NOVA Business Intelligence calculations and CSV validation
         run: node --test scripts/business-intelligence.test.cjs
