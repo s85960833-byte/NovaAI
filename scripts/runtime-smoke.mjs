@@ -30,6 +30,7 @@ await expect('oversized JSON API body returns JSON 413','/api/search',{method:'P
 await expect('search validation','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
 await expect('image validation','/api/image',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
 await expect('image job status validation','/api/image/status/not-a-real-job',{},r=>r.status===404);
+await expect('provider fan-out self-test is disabled by default','/api/live/selftest',{},r=>r.status===404);
 await expect('transcription validation','/api/transcribe',{method:'POST',headers:{'content-type':'audio/webm'},body:new Uint8Array()},r=>r.status===400);
 await expect('previous home UI without new four-workspace redesign','/',{},(r,b)=>r.ok&&b.includes('nova-home')&&b.includes('nova-workspaces')&&!b.includes('CHAT & STUDY')&&!b.includes('VOICE CHAT'));
 // Verify throttling runs before JSON parsing: request 61 must be rejected
