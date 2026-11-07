@@ -56,6 +56,18 @@ insert into public.nova_bi_memberships(organization_id,user_id,role,status)
 values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','44444444-4444-4444-8444-444444444444','viewer','invited');
 insert into public.nova_bi_memberships(organization_id,user_id,role,status)
 values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','55555555-5555-4555-8555-555555555555','analyst','active');
+
+-- Seed cross-tenant-readable child resources so every tenant-scoped RLS surface is exercised.
+insert into public.nova_bi_workflow_proposals(id,organization_id,created_by,title,status,proposal_json,idempotency_key)
+values('acacacac-acac-4cac-8cac-acacacacacac','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+'11111111-1111-4111-8111-111111111111','Approved workflow fixture','approved',
+'{"steps":["approved"]}'::jsonb,'idempotency-acme-approved-001');
+insert into public.nova_bi_workflow_approvals(id,organization_id,proposal_id,actor_id,decision)
+values('adadadad-adad-4dad-8dad-adadadadadad','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+'acacacac-acac-4cac-8cac-acacacacacac','33333333-3333-4333-8333-333333333333','approved');
+insert into public.nova_bi_workflow_executions(id,organization_id,proposal_id,idempotency_key,status,result_summary)
+values('aeaeaeae-aeae-4eae-8eae-aeaeaeaeaeae','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+'acacacac-acac-4cac-8cac-acacacacacac','idempotency-acme-execution-001','succeeded','{"verified":true}'::jsonb);
 insert into public.nova_bi_workflow_proposals(id,organization_id,created_by,title,status,proposal_json,idempotency_key)
 values('abababab-abab-4bab-8bab-abababababab','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
 '11111111-1111-4111-8111-111111111111','Analyst role approval test','proposed',
@@ -70,6 +82,21 @@ begin
   end if;
   if exists(select 1 from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd') then
     raise exception 'Cross-tenant dataset leak detected';
+  end if;
+  if exists(select 1 from public.nova_bi_analyses where id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee') then
+    raise exception 'Cross-tenant analysis leak detected';
+  end if;
+  if exists(select 1 from public.nova_bi_workflow_proposals where id='acacacac-acac-4cac-8cac-acacacacacac') then
+    raise exception 'Cross-tenant workflow proposal leak detected';
+  end if;
+  if exists(select 1 from public.nova_bi_workflow_approvals where id='adadadad-adad-4dad-8dad-adadadadadad') then
+    raise exception 'Cross-tenant workflow approval leak detected';
+  end if;
+  if exists(select 1 from public.nova_bi_workflow_executions where id='aeaeaeae-aeae-4eae-8eae-aeaeaeaeaeae') then
+    raise exception 'Cross-tenant workflow execution leak detected';
+  end if;
+  if exists(select 1 from public.nova_bi_branding where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') then
+    raise exception 'Cross-tenant branding leak detected';
   end if;
   if exists(select 1 from public.nova_bi_audit_events where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') then
     raise exception 'Cross-tenant audit leak detected';
