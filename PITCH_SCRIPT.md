@@ -71,4 +71,6 @@ NOVA Business Intelligence is part of the unified Draft preview candidate, but i
 - [ ] Explain clearly if any screen is a preview rather than the live Production app.
 
 
-**Current boundary:** Candidate PR #73 is still Draft, unmerged and undeployed. Only concept discovery is allowed. Do not demonstrate the integrated candidate as live, accept payment, collect confidential data or promise production service until the release gates in `PITCH_READINESS.md` are closed.
+
+
+**Current boundary:** PR #73 head `3014e4bcd4600c09320045e8caacdab7c53ba53d` passed candidate push CI #42379943971 but remains Draft, unmerged and undeployed. Only concept discovery is allowed. Do not demonstrate the integrated candidate as live, accept payment, collect confidential data or promise production service until the release gates in `PITCH_READINESS.md` are closed.
