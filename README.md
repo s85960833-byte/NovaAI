@@ -67,4 +67,4 @@ The inspected Supabase project has 12 migrations, 10 RLS-enabled BI tables and a
 - Do not use NOVA BI with sensitive or regulated company data before its release gates are complete.
 - Automated checks are not a security certification or a guarantee of zero errors.
 
-See [PITCH_READINESS.md](PITCH_READINESS.md) for the current pitch scope, verified facts and release gates. See [PITCH_SCRIPT.md](PITCH_SCRIPT.md) for the short pitch and demo flow.
+Use [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md) as the copy-ready founder pitch pack. [PITCH_READINESS.md](PITCH_READINESS.md) is the technical evidence and release-gate record; [PITCH_SCRIPT.md](PITCH_SCRIPT.md) is the short demo script.
