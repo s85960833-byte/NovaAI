@@ -1,7 +1,7 @@
 # NOVA — Pitch Readiness Pack
 
 **Audit snapshot:** 7 November 2026  
-**Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
+**Pitch status:** HOLD — no external sales, customer, or design-partner pitch until all production gates are closed. This file is internal readiness tracking only.  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
 **Latest full candidate code/browser verification snapshot:** SHA `57c104a6e43d992e06d347c9fe3a45c59a934a18` passed both push run [#42374212009](https://github.com/s85960833-byte/NovaAI/actions/runs/42374212009) and pull-request run [#42374218563](https://github.com/s85960833-byte/NovaAI/actions/runs/42374218563). It covered syntax, Markdown link attribute-injection regression tests, exact-origin CORS unit tests, rate-limit tests, PostgreSQL 17 migration/RLS integration, Edge Function type-check and invitation/CORS tests, BI calculations/CSV validation, dependency audit, local runtime/PWA checks, graceful shutdown, Company Cloud browser workflows, CSP violation checks and five-viewport mobile/drawer regression tests. The deployed Edge Function CORS smoke and the live Render/provider/image checks were skipped on this feature branch; they remain live-release gates. The PostgreSQL RLS suite now checks cross-tenant reads across all tenant data surfaces plus outsider insert/update/delete attempts. CI evidence is not physical-device or production-release certification.
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
@@ -169,7 +169,7 @@ Pricing and usage limits are not being promised until provider costs, support, p
 
 ## 12. Final go / no-go
 
-7 November 2026 audit decision: **GO for an honest concept and early design-partner pitch. NO-GO for a guaranteed live-product demo, public onboarding, paid subscriptions, or a zero-error promise.**
+7 November 2026 audit decision: **NO-GO for any external sales, customer, or design-partner pitch until NOVA is production-ready. NO-GO also for live demo promises, public onboarding, paid subscriptions, or zero-error guarantees.**
 
 Before the new three-workspace build can be presented as a live demo, the remaining gates are:
 
@@ -188,7 +188,7 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - Added [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md) as the copy-ready founder pack: one-line, 30-second Hindi/English, two-minute pitch, product map, target-segment hypotheses, discovery ask, five-minute demo guardrails, FAQ, claims to avoid, evidence collection and separate NOVA BI treatment.
 - The pitch-pack, competitor review, README and index updates are documentation-only commits on the unified candidate branch. The last fully code-verified parent snapshot was `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d`, with successful CI runs [#1200](https://github.com/s85960833-byte/NovaAI/actions/runs/42345216545) and [#1201](https://github.com/s85960833-byte/NovaAI/actions/runs/42345221304). The documentation-only candidate head `51222883356029114e3d26b07f422e83bb1bbeb3` passed exact-head CI runs [#1213](https://github.com/s85960833-byte/NovaAI/actions/runs/42346013628) and [#1214](https://github.com/s85960833-byte/NovaAI/actions/runs/42346016036). Later docs-only commits may supersede that head; always check Draft PR #73 for the latest head and matching checks.
 - Production remains `main` at `48e12a68af656b471853ac2a4509da0e3df7ab24`; the three-workspace candidate is not live on the Production URL.
-- Pitch clearance remains: concept/discovery/design-partner conversation only. No live candidate demo, public onboarding, paid plan, SLA, BI deployment, confidential-data handling or zero-error claim.
+- External pitch clearance remains HOLD. No concept, discovery, design-partner, sales, or customer pitch until the production gates in this file are closed. No live candidate demo, public onboarding, paid plan, SLA, BI deployment, confidential-data handling or zero-error claim.
 - Earlier sections contain the full technical evidence and detailed gates. This addendum supersedes their older CI run/head references where those references are historical snapshots; always use PR #73 and its exact-head checks for the latest candidate status.
 
 ## Current exact-head status — 7 November 2026 (supersedes older checkpoint references)
@@ -209,7 +209,7 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - The candidate's `script-src` no longer permits `'unsafe-inline'`; the primary HTML/workspace surfaces contain no inline script blocks or inline event-handler markup. However, `style-src` still permits `'unsafe-inline'` for inline CSS/style attributes, and broad HTTPS `connect-src` remains. The server adds `frame-ancestors 'none'`, but this is not a fully strict nonce/hash-based policy. Do not claim complete CSP hardening.
 - The Render workspace ID previously surfaced as `tea-dbf2qb7avr4c73ck5p1g` has not been confirmed by the owner as NOVA's workspace. No workspace-scoped Render changes were made. The service health-check path remains unconfigured.
 - No production deploy, merge, live Supabase migration, Edge Function replacement, Auth configuration change, paid infrastructure change, or branch-protection change was made.
-- **Current decision remains NO-GO for production customer onboarding or paid-service promises.** The outstanding gates in sections 0, 6, 8 and 12 remain mandatory. Concept/discovery discussions may describe NOVA as a candidate/prototype only; do not describe it as production-ready.
+- **Current decision remains NO-GO for external sales pitches, production customer onboarding, and paid-service promises.** The outstanding gates in sections 0, 6, 8 and 12 remain mandatory. Keep all product and sales materials internal until production readiness is verified; do not describe NOVA as production-ready.
 
 ## 15. Latest candidate security and verification update — 7 November 2026
 
