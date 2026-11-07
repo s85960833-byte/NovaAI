@@ -32,7 +32,7 @@ values('ffffffff-ffff-4fff-8fff-ffffffffffff','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaa
 '11111111-1111-4111-8111-111111111111','Review supplier spend','proposed',
 '{"steps":["review"]}'::jsonb,'idempotency-acme-001');
 
-do $rls_outsider$
+do $rls_owner_seed$
 begin
   if (select count(*) from public.nova_bi_organizations) <> 1 then
     raise exception 'Tenant isolation failed: owner should see exactly one organization';
@@ -47,7 +47,7 @@ begin
   exception when insufficient_privilege then
     null;
   end;
-end $$;
+end $rls_owner_seed$;
 
 reset role;
 insert into public.nova_bi_memberships(organization_id,user_id,role,status)
