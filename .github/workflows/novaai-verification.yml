@@ -34,6 +34,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Check backend and frontend syntax
         run: node scripts/check.mjs
+      - name: Test Markdown link escaping against attribute injection
+        run: node --test scripts/security-markdown.test.cjs
       - name: Check isolated mode registry
         run: node scripts/modes-check.mjs
       - name: Test bounded per-IP rate window
