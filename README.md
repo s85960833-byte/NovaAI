@@ -25,7 +25,7 @@ The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab2
 
 ## Verification — integrated candidate
 
-The unified candidate is maintained in Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73). The latest verified candidate snapshot `2b4a681c7970d49816c9e32594cb9beaf7eb31b3` passed GitHub Actions run [#1108](https://github.com/s85960833-byte/NovaAI/actions/runs/42335931391), with 33 steps completed, 30 successful, 3 live-environment checks skipped by design and 0 failures. A reproducible `npm ci` lockfile is included. The workflow included:
+The unified candidate is maintained in Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73). The latest verified application-code snapshot `97551b5ce85787fd418f3f65d3d2da0711b77093` passed GitHub Actions run [#1118](https://github.com/s85960833-byte/NovaAI/actions/runs/42336743193), with 33 steps completed, 30 successful, 3 live-environment checks skipped by design and 0 failures. Runtime smoke tests also verify API throttling before JSON parsing and JSON 400/413 responses for malformed or oversized bodies. A reproducible `npm ci` lockfile is included. The workflow included:
 
 - Backend/frontend syntax and isolated mode registry checks.
 - PostgreSQL migration application and tenant RLS integration tests.
