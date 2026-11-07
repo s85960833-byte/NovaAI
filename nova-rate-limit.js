@@ -33,20 +33,9 @@ function rateWindow(store, key, now, windowMs, maxKeys = 10000) {
         store.delete(existingKey);
       }
     }
-    if (store.size >= cap) {
-      let oldestKey;
-      let oldestTimestamp = Infinity;
-      for (const [existingKey, existingHits] of store) {
-        const last = Array.isArray(existingHits) && existingHits.length
-          ? existingHits[existingHits.length - 1]
-          : -Infinity;
-        if (last < oldestTimestamp) {
-          oldestTimestamp = last;
-          oldestKey = existingKey;
-        }
-      }
-      if (oldestKey !== undefined) store.delete(oldestKey);
-    }
+    // Never evict a live client's counter to make room for a new key: doing so
+    // would let high-cardinality traffic repeatedly reset other clients' limits.
+    if (store.size >= cap) return null;
   }
 
   store.set(id, hits);
