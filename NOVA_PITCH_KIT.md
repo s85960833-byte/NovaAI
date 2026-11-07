@@ -1,0 +1,184 @@
+# NOVA — Pitch Kit (Founder Copy Pack)
+
+**Prepared:** 7 November 2026  
+**Purpose:** Safe, accurate early conversations with potential users, design partners and supporters.  
+**Product:** NOVA main app only. NOVA Business Intelligence is a separate, unreleased candidate and must not be sold or demonstrated as a live module.  
+**Release truth:** The current three-workspace candidate is Draft PR #73 and is not deployed to Production. Production `main` remains at `48e12a68af656b471853ac2a4509da0e3df7ab24`. The current candidate snapshot at preparation time is `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d`; CI runs #1200 and #1201 passed on that exact SHA. These are code/browser automation results, not a live-device or production release certification.
+
+---
+
+## 1. The one-sentence pitch
+
+**NOVA is an India-oriented Hindi-English AI workspace designed to organize learning, digital creation and everyday AI assistance into one mobile-first experience.**
+
+## 2. The 30-second pitch (Hindi)
+
+NOVA एक Hindi-English AI workspace है, जिसे भारत के users के लिए पढ़ाई, digital creation और रोज़मर्रा की AI सहायता को एक ही mobile-first अनुभव में व्यवस्थित करने के उद्देश्य से बनाया जा रहा है। इसमें तीन हिस्से हैं — NOVA Learn, NOVA Build और NOVA Agents। हमारा अगला लक्ष्य वास्तविक users के साथ इन workflows को validate करना और feedback के आधार पर product को बेहतर बनाना है। हम अभी शुरुआती design partners और feedback collaborators से बात कर रहे हैं।
+
+## 3. The 30-second pitch (English)
+
+NOVA is a Hindi-English AI workspace being built for India. It brings three types of work into one mobile-first experience: learning with NOVA Learn, digital creation with NOVA Build, and everyday assistance with NOVA Agents. We are now looking for early design partners to validate which workflows are genuinely useful and what needs to improve before a broader release.
+
+## 4. The 2-minute pitch
+
+Many people switch between different tools when they want help learning something, creating digital work, or getting everyday AI assistance. For users who prefer Hindi, English, or a mix of both, the experience can also feel fragmented.
+
+NOVA's product hypothesis is simple: make these jobs easier to discover through one bilingual workspace, with three clearly separated areas.
+
+- **NOVA Learn:** learning and study-oriented workflows.
+- **NOVA Build:** digital creation and builder-oriented workflows.
+- **NOVA Agents:** general assistant and agent-oriented workflows.
+
+The product is being developed as a mobile-first web experience for India. Our current focus is not to claim that every workflow is already production-ready. It is to learn which jobs users value most, test the experience with safe sample tasks, and prioritize reliability based on observed use.
+
+We are looking for a small group of early design partners who can review the concept, try a supervised preview when it is available, and give structured feedback. The immediate ask is a short discovery conversation—not a paid commitment.
+
+## 5. Product map — what each workspace means
+
+| Workspace | Intended job | Safe description |
+|---|---|---|
+| NOVA Learn | Study and learning workflows | A place for learning-oriented AI tasks |
+| NOVA Build | Digital creation | A place for builder and creative workflows |
+| NOVA Agents | Everyday assistant tasks | A place for general assistance and agent-style workflows |
+
+Do not imply that every card or tool has passed live production testing. The unified candidate is not the current Production deployment.
+
+## 6. Who to speak with first
+
+Treat these as **discovery hypotheses**, not proven customer segments:
+
+1. Students and independent learners who want a clearer Hindi-English learning workflow.
+2. Individual creators who want learning and digital creation tools organized in one place.
+3. People who regularly use AI assistants and want a simpler bilingual mobile experience.
+
+Ask each person about their current workflow before describing NOVA in detail. Do not claim market size, demand, willingness to pay or product-market fit without evidence.
+
+## 7. The exact ask
+
+Use this closing:
+
+“Would you be open to a 15-minute feedback conversation? I’d like to understand which of these workflows would genuinely save you time, what you currently use, and what you would need to see before trying NOVA. If there is a fit, I can invite you to a supervised preview when the candidate is ready.”
+
+For a potential institutional or business contact:
+
+“Would you nominate one person who could review the workflow and tell us what would need to be reliable, secure and useful before your team considered a pilot?”
+
+Do not ask anyone to upload confidential data, pay for an unreleased feature, or rely on an unverified service.
+
+## 8. Demo rules and 5-minute flow
+
+**Important:** Until the unified candidate has an approved preview deployment and a real-device check, this is a concept/discovery pitch. Do not open the current Production URL and claim it is the new three-workspace candidate.
+
+When an approved preview is available:
+
+1. **Home (45 sec):** Show the three workspaces and explain their intended jobs.
+2. **Language (30 sec):** Show bilingual navigation. Do not claim every AI-generated response is translated.
+3. **Learn (60 sec):** Use one harmless, pre-tested sample learning task.
+4. **Build (60 sec):** Show only a creation action that has just succeeded on that device. If it fails or queues, say so.
+5. **Agents (60 sec):** Ask one short general question. Show voice only after testing microphone permission, input and playback.
+6. **Close (45 sec):** Ask which task they would return for and what would prevent adoption.
+
+Before any demo:
+- Confirm the exact URL and label it as Preview or Production correctly.
+- Test the exact sequence on the presentation device and network.
+- Use synthetic, non-sensitive examples only.
+- Keep a short screen recording as a backup, labelled as a recording of the candidate.
+- Do not fake a result, conceal a failure, or describe a screenshot as a live demo.
+
+## 9. Evidence you can state accurately today
+
+- The unified candidate is maintained in Draft PR #73.
+- The exact candidate snapshot `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d` passed GitHub Actions verification runs [#1200](https://github.com/s85960833-byte/NovaAI/actions/runs/42345216545) and [#1201](https://github.com/s85960833-byte/NovaAI/actions/runs/42345221304).
+- Automated checks include code syntax, mode registry, rate-limit tests, PostgreSQL 17 migrations and RLS integration, Edge Function type-check and invitation tests, auth/CORS smoke, BI calculations and CSV validation, dependency audit, local server/PWA smoke, Company Cloud browser workflows and Chromium UI checks at five viewport widths (360, 390, 412, 760 and 1280 CSS pixels).
+- Candidate screenshots were reviewed at those viewport widths. This is Chromium emulation, not a physical Android test.
+- The current Production branch is still `main`; the unified candidate has not been merged or deployed.
+
+Do not turn these engineering facts into claims of “zero bugs”, “certified security”, “production readiness” or guaranteed uptime.
+
+## 10. Common questions — approved answers
+
+**Is NOVA live?**  
+An earlier Production version is hosted. The unified three-workspace candidate is still in Draft PR #73 and is not the Production build. We are seeking early feedback while release validation continues.
+
+**Can I use all three workspaces today?**  
+The three-workspace experience is in the candidate build. It is not yet deployed to the Production URL. We can discuss the concept now and arrange a supervised preview after its release gates are cleared.
+
+**Does NOVA work in Hindi and English?**  
+The product direction includes Hindi-English navigation and labels. Do not promise that every upstream AI response is translated or equally accurate in both languages.
+
+**Is chat history cloud-synced?**  
+The current general NOVA chat/settings history is browser-local. Do not describe it as account-backed or cross-device synced.
+
+**Will AI always respond?**  
+No such guarantee is made. Provider availability, latency, quotas and output quality can vary.
+
+**What does it cost?**  
+Commercial pricing and plan entitlements are not being quoted yet. They need cost, usage, support, billing, privacy and refund review first.
+
+**Who is already using NOVA?**  
+No customer traction, paid customers, retention or revenue is evidenced in this pitch pack. Do not invent numbers.
+
+**Is NOVA Business Intelligence included?**  
+NOVA BI is a separate development candidate in PR #73, not a launched or generally available service. It is not part of the current Production offer.
+
+**Can we upload company, student or personal data?**  
+Not for early discovery. Use synthetic or non-sensitive sample information only.
+
+## 11. NOVA Business Intelligence — separate future conversation only
+
+NOVA BI is a separate B2B product direction: an AI-assisted profit and operations workspace intended to help analyze company datasets and prepare evidence-backed decision support. Its candidate includes cost-leak review, client profitability analysis, team-level productivity indicators, heuristic project-risk review, assumption-based scenarios, approval-gated workflow proposals, Action Proof exports and workspace branding.
+
+Critical limitations:
+- It is not deployed or generally available.
+- Real signup, email delivery, two-account tenant isolation, preview deployment, manual Android, backup/restore, retention, privacy and incident-response gates remain open.
+- Project risk is a heuristic, not a trained or calibrated prediction.
+- Scenarios use user-entered assumptions; they are not guaranteed savings or forecasts.
+- Productivity output is team-level, not individual employee surveillance or ranking.
+- Workflow proposals do not execute external company actions.
+- Branding controls do not provide custom domains or complete removal of NOVA branding.
+- External accounting, HR, CRM, project-management and payment integrations are not implemented.
+
+If a contact asks about BI, say it is a separate prototype under validation and offer only a future discovery conversation. Do not sell it as deployed software or accept sensitive company datasets.
+
+## 12. Claims to avoid
+
+Never say:
+- “100% error-free”, “zero bugs”, “guaranteed uptime” or “every feature works”.
+- “The new UI is live on Production” while PR #73 remains unmerged.
+- “Thousands of users”, “paying customers”, “revenue”, “retention” or “market validated” without evidence.
+- “Unique in India” or “no competitor does this” without a current, documented market study.
+- “Unlimited free AI”, fixed response times or unverified subscription limits.
+- “Enterprise-grade”, “SOC 2 certified”, “compliant” or “fully secure”.
+- “Cloud-synced chats” or “automatic company workflow execution”.
+- “AI predicts project failure” as a calibrated claim.
+- “Guaranteed profit improvement” or “savings”.
+
+## 13. Discovery questions and evidence to collect
+
+After each conversation, record:
+- User type and context (with permission; avoid unnecessary personal data).
+- The exact job they are trying to complete.
+- Their current alternative and what is frustrating about it.
+- Which NOVA workspace they would try first.
+- Whether they would return weekly and why.
+- What would stop them from adopting it.
+- What evidence they need before a pilot.
+- Whether they would introduce another relevant user.
+
+Do not turn a positive comment into a paying-customer signal. Track interview count, repeated pain points, preview activation, task completion, repeat usage and willingness-to-pay separately.
+
+## 14. Commercial and legal guardrails
+
+No price, subscription, contract, SLA, refund promise or paid pilot is approved by this document. Before accepting money or signing any agreement, get appropriate parent/guardian and qualified legal/accounting support, and establish the actual service, support, data and refund obligations.
+
+## 15. Final pitch status
+
+<badge>GO — concept / discovery pitch only</badge>
+
+**Not cleared:** live demo of the unified candidate, public onboarding, paid subscriptions, BI customer deployment, confidential data, SLA or zero-error claims.
+
+The goal is a credible first conversation: explain the product direction, state what is actually verified, ask for feedback, and make no promises that the current release cannot support.
+
+---
+
+**Technical source of truth:** [PITCH_READINESS.md](PITCH_READINESS.md), [NOVA_BUSINESS_INTELLIGENCE_ARCHITECTURE.md](NOVA_BUSINESS_INTELLIGENCE_ARCHITECTURE.md), [NOVA_BUSINESS_INTELLIGENCE_SECURITY.md](NOVA_BUSINESS_INTELLIGENCE_SECURITY.md), and [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73).
