@@ -17,6 +17,33 @@ try{
  const csp=await desktop.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content');
  assert.ok(csp.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net"),'script CSP must allow only reviewed self/CDN script sources');
  assert.doesNotMatch(csp,/script-src[^;]*'unsafe-inline'/,'script CSP must not permit inline execution');
+ assert.match(csp,/worker-src[^;]*https:\/\/cdn\.jsdelivr\.net/,'worker CSP must allow the pinned PDF.js worker origin');
+ const pdfSmoke=await desktop.evaluate(async()=>{
+  const pdfjs=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.mjs');
+  pdfjs.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.worker.mjs';
+  const stream='BT /F1 12 Tf 20 100 Td (NOVA PDF smoke) Tj ET';
+  const objects=[
+   '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj',
+   '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj',
+   '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj',
+   '4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj',
+   '5 0 obj << /Length '+stream.length+' >> stream\n'+stream+'\nendstream endobj'
+  ];
+  let source='%PDF-1.4\n';const offsets=[0];
+  for(const object of objects){offsets.push(new TextEncoder().encode(source).length);source+=object+'\n'}
+  const xrefOffset=new TextEncoder().encode(source).length;
+  source+='xref\n0 '+(objects.length+1)+'\n0000000000 65535 f \n';
+  for(const offset of offsets.slice(1))source+=String(offset).padStart(10,'0')+' 00000 n \n';
+  source+='trailer\n<< /Size '+(objects.length+1)+' /Root 1 0 R >>\nstartxref\n'+xrefOffset+'\n%%EOF';
+  const pdf=await pdfjs.getDocument({data:new TextEncoder().encode(source),isEvalSupported:false}).promise;
+  const page=await pdf.getPage(1),content=await page.getTextContent();
+  const text=content.items.map(item=>item.str).join(' ');
+  await pdf.destroy();
+  return {version:pdfjs.version,text};
+ });
+ assert.equal(pdfSmoke.version,'6.5.438','PDF.js version must match the patched pinned release');
+ assert.match(pdfSmoke.text,/NOVA PDF smoke/,'patched PDF.js must extract text from a synthetic untrusted PDF');
+ console.log('PASS patched PDF.js module, worker, CSP and synthetic PDF text extraction');
  await desktop.locator('#hi .nr-card[data-group="learn"]').waitFor({state:'visible',timeout:15000});
  await desktop.waitForFunction(()=>document.body.classList.contains('nova-dashboard-home'));
  const desktopState=await desktop.evaluate(()=>({
