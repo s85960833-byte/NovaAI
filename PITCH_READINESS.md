@@ -3,7 +3,7 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Latest full candidate code/browser verification snapshot:** SHA `bed9e17576e13f1003c10c09fbde7d3f165c0b33` passed GitHub Actions run [#1407](https://github.com/s85960833-byte/NovaAI/actions/runs/42372386751). It covered syntax, Markdown link injection regression tests, exact-origin CORS tests, PostgreSQL migration/RLS integration, Edge Function type-check/tests, BI calculations/CSV validation, dependency audit, local runtime, graceful shutdown, Company Cloud browser workflows, Chromium workspace interactions, CSP violation checks and five-viewport mobile/drawer regression tests. The three main-branch live Render/provider/image smoke steps were skipped because no isolated candidate preview is deployed. CI evidence is not physical-device or production-release certification.
+**Latest full candidate code/browser verification snapshot:** SHA `d5d2f9f603686c2259efc2526611e390113e253e` passed GitHub Actions run [#1422](https://github.com/s85960833-byte/NovaAI/actions/runs/42373035543). It covered syntax, Markdown link attribute-injection regression tests, exact-origin CORS unit tests, rate-limit tests, PostgreSQL 17 migration/RLS integration, Edge Function type-check and invitation/CORS tests, BI calculations/CSV validation, dependency audit, local runtime/PWA checks, graceful shutdown, Company Cloud browser workflows, CSP violation checks and five-viewport mobile/drawer regression tests. The deployed Edge Function CORS smoke and the live Render/provider/image checks were skipped on this feature branch; they remain live-release gates. CI evidence is not physical-device or production-release certification.
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
@@ -221,6 +221,18 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - This was candidate-branch work only. Production `main` and the live Supabase deployment were not changed; PR #73 remains Draft/unmerged. The previous blockers remain: isolated preview/live smoke, real signup and email delivery, two-real-account tenant isolation, physical Android testing, hosting/backup/restore and region decision, confirmed Render workspace/health-check configuration, branch protection, and privacy/retention/incident-response review.
 - **Decision: still NO-GO for production onboarding, paid customer data, or service/SLA promises.** Candidate CI success is a necessary engineering gate, not a production release certificate.
 
+## 16. Security regression verification — 7 November 2026
+
+- Latest exact-head candidate CI after correcting the live CORS smoke test: SHA `d5d2f9f603686c2259efc2526611e390113e253e`, run [#42373035543](https://github.com/s85960833-byte/NovaAI/actions/runs/42373035543), passed all executed checks. The deployed Edge Function CORS smoke and live Render/provider/image checks were skipped because this is an unmerged feature branch.
+
+
+- Candidate code/browser snapshot `bed9e17576e13f1003c10c09fbde7d3f165c0b33` passed exact-head GitHub Actions run [#42372386751](https://github.com/s85960833-byte/NovaAI/actions/runs/42372386751).
+- Removed the unnecessary `'unsafe-inline'` token from the page's `script-src` after auditing the main HTML and workspace scripts: no inline script blocks or inline HTML event-handler markup remain in those surfaces. JavaScript DOM event-property handlers remain supported by the policy.
+- Added automated regression coverage proving Markdown link destinations cannot break out of their HTML attribute and raw HTML in model output remains escaped. The Chromium smoke test now asserts the tightened script policy and fails on browser CSP violations.
+- All executed CI checks passed, including the new Markdown tests, browser CSP checks, Company Cloud workflows, responsive Chromium checks and five-viewport mobile/drawer tests. The three live Render/provider/image checks were skipped because the candidate has no isolated preview.
+- Remaining CSP work: remove inline style allowances by migrating the remaining inline CSS/style attributes, and narrow the broad HTTPS `connect-src` while preserving configured BYOK provider support. This is a partial hardening improvement, not a strict CSP certification.
+- No production branch, Render service, Supabase migration, Auth configuration, paid plan or live customer data was changed. PR #73 remains Draft and unmerged.
+
 ## 17. Live NOVA BI CORS discrepancy found — 7 November 2026
 
 - A fresh read-only fetch of the deployed Supabase Edge Function `nova-bi-api` confirms production is still version 13 and its deployed `index.ts` returns `Access-Control-Allow-Origin: *` and answers every OPTIONS request without validating the request Origin.
@@ -229,11 +241,3 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - The next live release sequence still requires an approved Supabase Edge Function deployment followed by the exact-origin smoke test. No live function replacement was performed in this audit.
 - Current release status remains NO-GO until the live CORS mismatch and the other listed production gates are closed.
 
-## 16. Security regression verification — 7 November 2026
-
-- Candidate code/browser snapshot `bed9e17576e13f1003c10c09fbde7d3f165c0b33` passed exact-head GitHub Actions run [#42372386751](https://github.com/s85960833-byte/NovaAI/actions/runs/42372386751).
-- Removed the unnecessary `'unsafe-inline'` token from the page's `script-src` after auditing the main HTML and workspace scripts: no inline script blocks or inline HTML event-handler markup remain in those surfaces. JavaScript DOM event-property handlers remain supported by the policy.
-- Added automated regression coverage proving Markdown link destinations cannot break out of their HTML attribute and raw HTML in model output remains escaped. The Chromium smoke test now asserts the tightened script policy and fails on browser CSP violations.
-- All executed CI checks passed, including the new Markdown tests, browser CSP checks, Company Cloud workflows, responsive Chromium checks and five-viewport mobile/drawer tests. The three live Render/provider/image checks were skipped because the candidate has no isolated preview.
-- Remaining CSP work: remove inline style allowances by migrating the remaining inline CSS/style attributes, and narrow the broad HTTPS `connect-src` while preserving configured BYOK provider support. This is a partial hardening improvement, not a strict CSP certification.
-- No production branch, Render service, Supabase migration, Auth configuration, paid plan or live customer data was changed. PR #73 remains Draft and unmerged.
