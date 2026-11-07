@@ -3,7 +3,7 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Last full application-code verification:** exact candidate SHA `e2702c12c89749b4f623857c6ac924b5f1871739` passed GitHub Actions run [#1288](https://github.com/s85960833-byte/NovaAI/actions/runs/42367968496), including syntax, migration/RLS integration, Edge Function type-check, dependency audit, Company Cloud browser workflows and five-viewport Chromium regression tests. The browser screenshots are attached to the run artifacts. This is automated candidate evidence, not live-device or production-release certification.
+**Last exact-head CI verification:** candidate SHA `c055e3010bce4ff1f547733d4f03bf6f5816eba0` passed GitHub Actions run [#1304](https://github.com/s85960833-byte/NovaAI/actions/runs/42368519074), including syntax, migration/RLS integration, Edge Function type-check, dependency audit, graceful shutdown integration, Company Cloud browser workflows and five-viewport Chromium regression tests. Live-main-only Render/provider and free-image smoke steps were skipped because this is a feature branch. This is automated candidate evidence, not live-device or production-release certification.
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
