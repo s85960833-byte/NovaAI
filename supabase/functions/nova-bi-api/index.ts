@@ -1,11 +1,15 @@
 import { withSupabase } from "@supabase/server";
 import { findAuthUserByEmail } from "./invitations.ts";
 
+// BI API is browser-accessible only from the configured NOVA site origin.
+// Keep this exact-origin allowlist aligned with Supabase Auth redirect configuration.
+const siteOrigin = new URL(Deno.env.get("NOVA_BI_SITE_URL") || "https://novaai-4auo.onrender.com").origin;
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": siteOrigin,
   "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, idempotency-key",
   "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
   "Content-Type": "application/json",
+  "Vary": "Origin",
 };
 
 const json = (body: unknown, status = 200) =>
@@ -36,7 +40,14 @@ const rateLimited = (retryAfter: number) =>
   });
 
 Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  const origin = req.headers.get("Origin");
+  if (origin && origin !== siteOrigin) {
+    return new Response("Origin not allowed", { status: 403, headers: { "Vary": "Origin" } });
+  }
+  if (req.method === "OPTIONS") {
+    if (!origin) return new Response("Origin required", { status: 400 });
+    return new Response("ok", { headers: corsHeaders });
+  }
 
   const userId = String(ctx.jwtClaims?.sub || ctx.userClaims?.id || "");
   if (!uuid(userId)) return fail("Authenticated user context is missing", 401);
