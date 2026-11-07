@@ -89,7 +89,7 @@ if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"
 if (!['src="/nova-business-core.js"','src="/nova-business.js"','src="/nova-business-cloud.js"'].every(x=>html.includes(x)) || !html.includes('@supabase/supabase-js@2.119.0')) throw new Error('NOVA BI scripts and Supabase client are not connected in the homepage');
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>html.includes(x))) throw new Error('NOVA dashboard UI components missing');
 if (!appScript.includes('localStorage.getItem(\'nova\')') || !appScript.includes('const persistable=()=>') || !appScript.includes('JSON.stringify(persistable())') || !appScript.includes('One-time migration: keep any previously saved key available for this tab') || appScript.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Nova storage compatibility or BYOK secret-persistence protection changed');
-const shareHandler = html.slice(html.indexOf("$('share').onclick"), html.indexOf("$('mem').onclick"));
+const shareHandler = appScript.slice(appScript.indexOf("$('share').onclick"), appScript.indexOf("$('mem').onclick"));
 if (!shareHandler.includes('const exportedConfig={api:CFG.api,brand:CFG.brand,base:k.base,model:k.model}') || !shareHandler.includes('JSON.stringify(exportedConfig)') || shareHandler.includes("key:$('key').value") || shareHandler.includes('JSON.stringify(k)')) throw new Error('Shareable NOVA exports must include provider settings but never a personal API key');
 if (!appScript.includes('Your API key is never included') || !appScript.includes('आपकी API key शामिल नहीं होती')) throw new Error('BYOK export privacy disclosure must explain that recipients supply their own keys');
 
