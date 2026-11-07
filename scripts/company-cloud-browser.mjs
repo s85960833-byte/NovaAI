@@ -8,7 +8,7 @@ page.setDefaultNavigationTimeout(15000);
 const progress = label => console.log(`[Company Cloud browser] ${label}`);
 
 function makePdfFixture() {
-  const stream = 'BT /F1 12 Tf 72 72 Td (NOVA PDF SECURITY TEST) Tj ET';
+  const stream = 'BT /F1 12 Tf 72 72 Td (NOVA PDF SECURITY TEST DOCUMENT) Tj ET';
   const objects = [
     '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
     '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
