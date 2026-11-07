@@ -33,8 +33,7 @@ await page.route('https://fonts.gstatic.com/**', route => route.abort());
 let supabaseStubHit = false;
 await page.route(/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js/, route => {
   supabaseStubHit = true;
-  return route.fulfill
-  route.fulfill({ status: 200, contentType: 'application/javascript', body: `let testSession = null; let authListener = null;
+  return route.fulfill({ status: 200, contentType: 'application/javascript', body: `let testSession = null; let authListener = null;
 window.__authCalls = [];
 window.__emitAuthEvent = (event, session) => authListener && authListener(event, session);
 window.supabase = {
