@@ -46,7 +46,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #73 combines the three-workspace interface, BI module and security-hardening work. PR #66 is the earlier UI-only predecessor.
 
-The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Full verification run [#1184](https://github.com/s85960833-byte/NovaAI/actions/runs/42342475178) passed on exact candidate head `da8457df776dd1ec1026c4c9c36e8016bc5be4b1`. The verification job covers:
+The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Full verification run [#1187](https://github.com/s85960833-byte/NovaAI/actions/runs/42342592027) passed on exact candidate head `44189761b4927283fce4b8ecd55af274ce3270f6`. The verification job covers:
 
 - Backend/frontend syntax and mode registry.
 - PostgreSQL migration application and tenant RLS integration.
@@ -59,7 +59,7 @@ The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are
 - Chromium workspace navigation and five viewport widths, including drawer and Settings regression checks.
 - BYOK API keys remain active-tab-only, are excluded from normal browser persistence, and are never embedded in exported shareable HTML; each recipient must enter their own provider key. A static regression guard enforces this export boundary.
 
-CI #1184 passed on candidate head `da8457df776dd1ec1026c4c9c36e8016bc5be4b1`. Physical Android behavior, live signup/email, two-account tenant isolation, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped.
+CI #1187 passed on candidate head `44189761b4927283fce4b8ecd55af274ce3270f6`. Physical Android behavior, live signup/email, two-account tenant isolation, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped.
 ## 5. Exact demo plan
 
 Use this sequence only on the exact candidate build after opening that build on the presentation device. The candidate is not currently the Production deployment; do not silently substitute the existing Production URL and describe it as the new three-workspace build.
