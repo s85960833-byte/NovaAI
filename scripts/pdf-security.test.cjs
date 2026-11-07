@@ -17,9 +17,11 @@ for (const file of ['nova-app.js', 'mode-workspace.js']) {
   });
 }
 
-test('CSP permits only the pinned CDN origin for the PDF.js module worker', () => {
+test('CSP permits the pinned PDF.js module and only its required worker CDN', () => {
   const html = readFileSync('index.html', 'utf8');
+  const scriptPolicy = html.match(/script-src[^;]*/)?.[0] || '';
   const workerPolicy = html.match(/worker-src[^;]*/)?.[0] || '';
+  assert.match(scriptPolicy, /https:\/\/cdn\.jsdelivr\.net/);
   assert.match(workerPolicy, /https:\/\/cdn\.jsdelivr\.net/);
   assert.doesNotMatch(workerPolicy, /cdnjs\.cloudflare\.com/, 'worker policy must not trust an unused CDN');
 });
