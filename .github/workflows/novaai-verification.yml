@@ -72,6 +72,8 @@ jobs:
       - name: Exercise local routes and PWA assets
         run: |
           node scripts/runtime-smoke.mjs || { echo '--- NOVA server startup log ---'; cat /tmp/novaai-test.log; exit 1; }
+      - name: Verify graceful server shutdown
+        run: node scripts/shutdown-smoke.mjs
       - name: Install Devanagari fonts for visual regression screenshots
         run: |
           sudo apt-get update
