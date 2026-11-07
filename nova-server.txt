@@ -27,7 +27,7 @@ app.use((q, r, next) => {
   r.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=()');
   // Render terminates TLS before forwarding to this service; send HSTS on every response.
   r.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  r.setHeader('Content-Security-Policy', "frame-ancestors 'none'");
+  r.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
   next();
 });
 // Bounded per-IP request windows run before body parsing so abusive API traffic
