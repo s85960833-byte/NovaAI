@@ -12,7 +12,7 @@ The unified NOVA candidate (three-workspace UI + Business Intelligence) is on `f
 
 Production URL: https://novaai-4auo.onrender.com
 
-The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab24`. Candidate head `2054bedf6e193521ebf903d58e3d7d544893f271` has not been merged or deployed. Do not present the candidate as the live Production build.
+The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab24`. Current candidate head `cd2d1d53c7fc186ce7a82ed062c54574e34e843a` has not been merged or deployed. Do not present the candidate as the live Production build.
 
 ## Architecture
 
@@ -25,7 +25,7 @@ The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab2
 
 ## Verification — integrated candidate
 
-The exact candidate head `2054bedf6e193521ebf903d58e3d7d544893f271` passed GitHub Actions run [#1018](https://github.com/s85960833-byte/NovaAI/actions/runs/42327994039): **55/55 job steps completed; 52 succeeded and 3 live-environment steps were skipped by design; 0 failures**. The workflow included:
+The exact candidate head `cd2d1d53c7fc186ce7a82ed062c54574e34e843a` passed GitHub Actions run [#1022](https://github.com/s85960833-byte/NovaAI/actions/runs/42328252932): **55/55 job steps completed; 52 succeeded and 3 live-environment steps were skipped by design; 0 failures**. The workflow included:
 
 - Backend/frontend syntax and isolated mode registry checks.
 - PostgreSQL migration application and tenant RLS integration tests.
