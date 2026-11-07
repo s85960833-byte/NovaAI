@@ -33,7 +33,7 @@ const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g
 const appScript = readFileSync('nova-app.js', 'utf8');
 const configScript = readFileSync('nova-config.js', 'utf8');
 if (inlineScripts.length) throw new Error('Executable script blocks must be externalized; inline event-handler attributes are tracked separately');
-const inlineEventAttributes = [...html.matchAll(/\\son[a-z]+\\s*=/gi)];
+const inlineEventAttributes = [...html.matchAll(/\son[a-z]+\s*=/gi)];
 if (inlineEventAttributes.length) throw new Error('Inline HTML event-handler attributes are not permitted by the script CSP');
 if (!html.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net") || html.includes("script-src 'self' 'unsafe-inline'")) throw new Error('Script CSP must not allow inline script execution');
 if (!server.includes("app.get('/nova-config.js'") || !server.includes("app.get('/nova-app.js'")) throw new Error('Externalized NOVA scripts are not served by the backend');
