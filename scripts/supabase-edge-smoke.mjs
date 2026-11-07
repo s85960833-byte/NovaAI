@@ -48,7 +48,7 @@ const hostilePreflight = await fetch(endpoint, {
 if (hostilePreflight.status !== 403 || hostilePreflight.headers.has('access-control-allow-origin')) {
   throw new Error('Edge Function must reject untrusted Origin without CORS permission: status=' + hostilePreflight.status + ', allow-origin=' + hostilePreflight.headers.get('access-control-allow-origin'));
 }
-process.stdout.write('PASS Edge Function rejects untrusted CORS origins\\n');
+process.stdout.write('PASS Edge Function rejects untrusted CORS origins\n');
 const deleteEndpoint = endpoint.replace(/\/me$/, '/datasets/00000000-0000-4000-8000-000000000000');
 const deletePreflight = await fetch(deleteEndpoint, {
   method: 'OPTIONS',
