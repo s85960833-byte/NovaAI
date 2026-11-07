@@ -32,7 +32,7 @@ values('ffffffff-ffff-4fff-8fff-ffffffffffff','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaa
 '11111111-1111-4111-8111-111111111111','Review supplier spend','proposed',
 '{"steps":["review"]}'::jsonb,'idempotency-acme-001');
 
-do $$
+do $rls_outsider$
 begin
   if (select count(*) from public.nova_bi_organizations) <> 1 then
     raise exception 'Tenant isolation failed: owner should see exactly one organization';
@@ -84,16 +84,16 @@ begin
     raise exception 'Outsider unexpectedly inserted a dataset into another tenant';
   exception when insufficient_privilege then null;
   end;
-end $;
+end $rls_outsider$;
 update public.nova_bi_datasets set name='Hacked' where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 delete from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 reset role;
-do $
+do $rls_owner$
 begin
   if (select name from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd') <> 'Finance CSV' then
     raise exception 'Outsider unexpectedly modified or deleted another tenant dataset';
   end if;
-end $;
+end $rls_owner$;
 
 set role authenticated;
 select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
