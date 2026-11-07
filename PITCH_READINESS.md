@@ -14,6 +14,7 @@ The connected hosting accounts are currently on free tiers: Render service `Nova
 
 - Render says Free web services are not for production applications; they spin down after 15 minutes without inbound traffic and may take about one minute to restart. Free instances also lack persistent disks and can be restarted by the platform ([Render Free instance limits](https://render.com/docs/free)).
 - Supabase Free does not include automatic backups; its guidance is to create and retain manual off-site backups. Free projects can also pause after one week of inactivity ([Supabase Free-plan backup FAQ](https://supabase.com/kb/faqs/platform/free-plan-backups), [backup documentation](https://supabase.com/docs/guides/platform/backups), [pricing](https://supabase.com/pricing)).
+- The current Render service is in Singapore while the connected Supabase database is in Ireland (`eu-west-1`). Supabase recommends choosing a region close to users and offers Mumbai and Singapore regions. This cross-region setup should be benchmarked and a target region chosen before production; changing region requires a migration to a new project ([Supabase region guide](https://supabase.com/docs/guides/platform/regions)).
 
 Therefore NOVA cannot honestly be described as production-grade for customer onboarding, business-critical use, backup/recovery guarantees, or an SLA on the current plans. Clearing this gate requires an owner-approved hosting decision, paid always-on Render compute, an appropriate Supabase plan or independently tested off-site backup process, and a successful restore drill. No paid plan or live infrastructure setting has been changed.
 
@@ -86,7 +87,7 @@ Keep a screenshot or screen-recording backup of the candidate. Clearly label scr
 
 | Area | Verified evidence | Still not verified |
 |---|---|---|
-| Hosting and recovery | Render and Supabase account plans inspected | Paid always-on compute, automated/off-site backup schedule, restore drill and availability monitoring; current Free tiers are not production suitable |
+| Hosting and recovery | Render and Supabase plans inspected; current regions confirmed | Paid always-on compute, tested off-site backup and restore drill, monitoring, and region decision (Render Singapore vs Supabase Ireland; India-focused Mumbai/Singapore options need latency and residency review) |
 |---|---|---|
 | Candidate UI | CI Chromium interaction and five viewport widths passed | Physical Android touch, visual fit, keyboard, accessibility, reduced-motion and low-network behavior |
 | Backend and PWA | Local routes, PWA assets and syntax checks passed; Render service is LIVE on Production commit `48e12a68af656b471853ac2a4509da0e3df7ab24`; recent Render error logs and HTTP 500/502/503 request logs returned no entries | Direct public-route response, HTTPS headers/HSTS, and candidate deployment remain unverified |
