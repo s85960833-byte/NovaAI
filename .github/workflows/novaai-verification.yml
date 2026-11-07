@@ -42,6 +42,8 @@ jobs:
         run: node scripts/modes-check.mjs
       - name: Test bounded per-IP rate window
         run: node --test scripts/rate-limit.test.cjs
+      - name: Test HTTPS-only secret-bearing provider endpoints
+        run: node --test scripts/provider-url.test.cjs
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Apply NOVA BI migrations and verify tenant RLS in PostgreSQL
