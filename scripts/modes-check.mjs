@@ -36,7 +36,7 @@ assert.ok(html.includes('openBusinessIntelligence(){window.NovaBusiness?.open()}
 assert.ok(!business.includes("btn.id='novaBusinessLauncher'")&&!business.includes("side.insertBefore(btn,list||null)"),'Business Intelligence must not add a fourth global sidebar item');
 assert.ok(!cloud.includes("launcher.id='novaBICloudLauncher'")&&!cloud.includes("side.insertBefore(launcher"),'Company Cloud must not add a fourth global sidebar item');
 assert.ok(business.includes('window.NovaBusiness=Object.freeze({open,close,')&&cloud.includes('window.NovaBusinessCloud=Object.freeze({open,close,'),'Business workspace launch APIs must remain available');
-assert.ok(html.includes('window.NovaWorkspaceActions=Object.freeze({openPhoto,openArchive:openArch,startVoice:startLive,openAgentsSuite(){window.NovaSuite?.open()},openImageStudio()'),'legacy feature action bridge missing');
+for(const action of ['openPhoto,openArchive:openArch','startVoice:startLive','openAgentsSuite(){window.NovaSuite?.open()}','openBusinessIntelligence(){window.NovaBusiness?.open()}','openCompanyCloud(){window.NovaBusinessCloud?.open()}','openImageStudio()'])assert.ok(html.includes(action),'legacy feature action bridge missing: '+action);
 assert.ok(html.includes('id="nPhoto" data-i="nPhoto" hidden')&&html.includes('id="nArch" data-i="nArch" hidden'),'learning-only legacy shortcuts must not remain in global sidebar');
 
 assert.ok(workspace.includes("g.name+' / '+g.nameHi"),'workspace group labels must always show Hindi and English');
