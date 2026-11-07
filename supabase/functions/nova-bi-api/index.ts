@@ -1,16 +1,10 @@
 import { withSupabase } from "@supabase/server";
 import { findAuthUserByEmail } from "./invitations.ts";
+import { configuredSiteOrigin, createCorsHeaders, isAllowedOrigin } from "./cors.ts";
 
 // BI API is browser-accessible only from the configured NOVA site origin.
-// Keep this exact-origin allowlist aligned with Supabase Auth redirect configuration.
-const siteOrigin = new URL(Deno.env.get("NOVA_BI_SITE_URL") || "https://novaai-4auo.onrender.com").origin;
-const corsHeaders = {
-  "Access-Control-Allow-Origin": siteOrigin,
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, idempotency-key",
-  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-  "Content-Type": "application/json",
-  "Vary": "Origin",
-};
+const siteOrigin = configuredSiteOrigin(Deno.env.get("NOVA_BI_SITE_URL"));
+const corsHeaders = createCorsHeaders(siteOrigin);
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: corsHeaders });
@@ -41,7 +35,7 @@ const rateLimited = (retryAfter: number) =>
 
 Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
   const origin = req.headers.get("Origin");
-  if (origin && origin !== siteOrigin) {
+  if (!isAllowedOrigin(origin, siteOrigin)) {
     return new Response("Origin not allowed", { status: 403, headers: { "Vary": "Origin" } });
   }
   if (req.method === "OPTIONS") {
