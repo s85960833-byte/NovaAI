@@ -3,10 +3,19 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Last full application-code verification:** snapshot `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d`; GitHub Actions runs [#1200](https://github.com/s85960833-byte/NovaAI/actions/runs/42345216545) and [#1201](https://github.com/s85960833-byte/NovaAI/actions/runs/42345221304) passed on that exact SHA. The latest candidate head and any later documentation-only commits are tracked in Draft PR #73. Exact-head CI for docs head `51222883356029114e3d26b07f422e83bb1bbeb3` passed runs [#1213](https://github.com/s85960833-byte/NovaAI/actions/runs/42346013628) and [#1214](https://github.com/s85960833-byte/NovaAI/actions/runs/42346016036). These are code/browser automation results, not live-device or production-release certification.
+**Last full application-code verification:** exact candidate SHA `e2702c12c89749b4f623857c6ac924b5f1871739` passed GitHub Actions run [#1288](https://github.com/s85960833-byte/NovaAI/actions/runs/42367968496), including syntax, migration/RLS integration, Edge Function type-check, dependency audit, Company Cloud browser workflows and five-viewport Chromium regression tests. The browser screenshots are attached to the run artifacts. This is automated candidate evidence, not live-device or production-release certification.
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
+
+## 0. Hosting and recovery are production blockers
+
+The connected hosting accounts are currently on free tiers: Render service `NovaAI` is on the Free compute plan, and the Supabase organization is on the Free plan. This is not suitable for a production sales promise:
+
+- Render says Free web services are not for production applications; they spin down after 15 minutes without inbound traffic and may take about one minute to restart. Free instances also lack persistent disks and can be restarted by the platform ([Render Free instance limits](https://render.com/docs/free)).
+- Supabase Free does not include automatic backups; its guidance is to create and retain manual off-site backups. Free projects can also pause after one week of inactivity ([Supabase Free-plan backup FAQ](https://supabase.com/kb/faqs/platform/free-plan-backups), [backup documentation](https://supabase.com/docs/guides/platform/backups), [pricing](https://supabase.com/pricing)).
+
+Therefore NOVA cannot honestly be described as production-grade for customer onboarding, business-critical use, backup/recovery guarantees, or an SLA on the current plans. Clearing this gate requires an owner-approved hosting decision, paid always-on Render compute, an appropriate Supabase plan or independently tested off-site backup process, and a successful restore drill. No paid plan or live infrastructure setting has been changed.
 
 ## 1. What NOVA is
 
@@ -76,6 +85,8 @@ Keep a screenshot or screen-recording backup of the candidate. Clearly label scr
 ## 6. What is not yet cleared
 
 | Area | Verified evidence | Still not verified |
+|---|---|---|
+| Hosting and recovery | Render and Supabase account plans inspected | Paid always-on compute, automated/off-site backup schedule, restore drill and availability monitoring; current Free tiers are not production suitable |
 |---|---|---|
 | Candidate UI | CI Chromium interaction and five viewport widths passed | Physical Android touch, visual fit, keyboard, accessibility, reduced-motion and low-network behavior |
 | Backend and PWA | Local routes, PWA assets and syntax checks passed; Render service is LIVE on Production commit `48e12a68af656b471853ac2a4509da0e3df7ab24`; recent Render error logs and HTTP 500/502/503 request logs returned no entries | Direct public-route response, HTTPS headers/HSTS, and candidate deployment remain unverified |
@@ -181,7 +192,7 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 
 ## Current exact-head status — 7 November 2026 (supersedes older checkpoint references)
 
-- Draft PR #73 current head: `b51f0ff8c5234004455284aafcdc58b21a276823`; it remains open, Draft, unmerged and not deployed.
+- Draft PR #73 current code head at this audit: `e2702c12c89749b4f623857c6ac924b5f1871739`; it remains open, Draft, unmerged and not deployed.
 - Exact-head CI runs [#1222](https://github.com/s85960833-byte/NovaAI/actions/runs/42346535889) and [#1223](https://github.com/s85960833-byte/NovaAI/actions/runs/42346539792) both passed. PostgreSQL migration/RLS integration, Edge Function type-check and invitation tests, dependency audit, local/PWA smoke, Company Cloud browser workflows and five-viewport Chromium tests passed.
 - The current head differs from the last application-code-verified snapshot `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d` only in documentation (`NOVA_PITCH_KIT.md`, `PITCH_READINESS.md`, `PITCH_SCRIPT.md`, `README.md`). These CI results do not constitute live deployment or physical-device certification.
 - Live Render/provider and free image-generation checks were skipped because no isolated preview was authorized. Signup/email delivery, two-real-account tenant isolation, physical Android, preview runtime, backup/restore, privacy/retention and incident-response checks remain open.
