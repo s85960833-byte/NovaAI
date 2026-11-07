@@ -162,6 +162,7 @@ await page.waitForFunction(() => {
 assert.equal(await page.locator('#nbAnalyze').isDisabled(), false, await page.locator('#nbDataStatus').textContent());
 await page.locator('#nbAnalyze').click();
 await page.locator('#nbBody').getByText('Verified calculation summary').waitFor();
+console.log('PASS BI CSV analysis flow');
 
 await page.locator('#nbNav [data-view="risk"]').click();
 await page.locator('#nbProjectName').fill('Test migration');
@@ -170,23 +171,27 @@ await page.locator('#nbProgress').fill('30');
 await page.locator('#nbBlockers').fill('2');
 await page.locator('#nbRiskRun').click();
 await page.locator('#nbBody').getByText('Project Risk Predictor').waitFor();
+console.log('PASS BI project risk flow');
 
 await page.locator('#nbNav [data-view="scenario"]').click();
 await page.locator('#nbBaseline').fill('100000');
 await page.locator('#nbScenarioRun').click();
 await page.locator('#nbBody').getByText('Scenario result').waitFor();
+console.log('PASS BI scenario flow');
 
 await page.locator('#nbNav [data-view="workflow"]').click();
 await page.locator('#nbProcess').fill('Weekly project status report');
 await page.locator('#nbApprover').fill('Project manager');
 await page.locator('#nbWorkflowRun').click();
 await page.locator('#nbBody pre').waitFor();
+console.log('PASS BI workflow proposal flow');
 
 await page.locator('#nbNav [data-view="proof"]').click();
 await page.locator('#nbProofExport').waitFor();
-const proofDownloadPromise = page.waitForEvent('download');
+const proofDownloadPromise = page.waitForEvent('download', { timeout: 15000 });
 await page.locator('#nbProofExport').click();
 const proofDownload = await proofDownloadPromise;
+console.log('PASS BI Action Proof download');
 assert.match(proofDownload.suggestedFilename(), /nova-action-proof\.json$/);
 await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaBusiness').evaluate(el => el.classList.contains('show')), false);
@@ -277,9 +282,10 @@ await page.locator('[data-delete-dataset="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"]
 await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Dataset metadata deleted'), null, { timeout: 10000 });
 assert.ok(calls.some(call => call.path.startsWith('datasets/') && call.method === 'DELETE'));
 
-const downloadPromise = page.waitForEvent('download');
+const downloadPromise = page.waitForEvent('download', { timeout: 15000 });
 await page.locator('#ncbExport').click();
 const download = await downloadPromise;
+console.log('PASS Company Cloud data export download');
 assert.match(download.suggestedFilename(), /nova-bi-export\.json$/);
 
 await page.locator('#ncbClose').focus();
