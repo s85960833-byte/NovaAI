@@ -201,3 +201,10 @@ The goal is a credible first conversation: explain the product direction, state 
 ---
 
 **Technical source of truth:** [PITCH_READINESS.md](PITCH_READINESS.md), [NOVA_BUSINESS_INTELLIGENCE_ARCHITECTURE.md](NOVA_BUSINESS_INTELLIGENCE_ARCHITECTURE.md), [NOVA_BUSINESS_INTELLIGENCE_SECURITY.md](NOVA_BUSINESS_INTELLIGENCE_SECURITY.md), and [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73).
+
+## Latest verification addendum — 7 November 2026
+
+- Current unified candidate head: `b51f0ff8c5234004455284aafcdc58b21a276823` in Draft PR #73.
+- Exact-head GitHub Actions runs [#1222](https://github.com/s85960833-byte/NovaAI/actions/runs/42346535889) and [#1223](https://github.com/s85960833-byte/NovaAI/actions/runs/42346539792) both completed successfully. All candidate CI verification steps passed; the live Render/provider and free image-generation steps were skipped because no isolated preview was authorized.
+- The changes after the last application-code-verified snapshot `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d` are documentation-only. The current candidate remains unmerged and undeployed; physical Android, real signup/email and two-account tenant-isolation checks remain open.
+- This addendum supersedes earlier candidate-head and CI references in this file. Always consult Draft PR #73 for any newer head/checks.
