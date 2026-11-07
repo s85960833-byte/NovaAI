@@ -84,3 +84,10 @@ Updated: 2026-11-06
 - The run verified PostgreSQL migration/RLS integration, Edge Function type-check and auth/CORS smoke, BI calculations and CSV validation, the 60-case fixture, dependency audit, local routes/PWA, Company Cloud browser flow and responsive browser tests.
 - The run did not verify live SMTP delivery, real signup, two-real-account tenant isolation, live Render/provider behavior or physical Android behavior. These remain release gates.
 - The unified candidate is still Draft, unmerged and undeployed. Do not use real or regulated company data until privacy, retention, backup/restore and incident-response controls are completed. Do not describe this module as launched or production-ready.
+
+## Latest unified candidate verification — 7 November 2026
+
+- Current unified Draft PR #73 head is `b51f0ff8c5234004455284aafcdc58b21a276823`; exact-head CI runs [#1222](https://github.com/s85960833-byte/NovaAI/actions/runs/42346535889) and [#1223](https://github.com/s85960833-byte/NovaAI/actions/runs/42346539792) both passed.
+- The successful candidate CI includes PostgreSQL migration/RLS integration, Edge Function type-check and invitation lookup tests, BI calculations/CSV validation, dependency audit, local route/PWA checks and browser regression tests. Live Render/provider and free image-generation checks were skipped because no isolated preview was authorized.
+- Changes after the last full application-code verification snapshot `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d` are documentation-only. This does not change the outstanding release gates: isolated preview/runtime, real signup/email, two-account tenant isolation, physical Android, backup/restore, privacy/retention and incident response.
+- Production `main` and live Supabase remain unchanged; PR #73 remains Draft and unmerged. This addendum supersedes earlier statements that the combined exact-head CI was still running or that `0745428...` was the latest checkpoint. Check PR #73 for the latest state.
