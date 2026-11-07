@@ -31,10 +31,24 @@ const preflight = await fetch(endpoint, {
 });
 const allowOrigin = preflight.headers.get('access-control-allow-origin');
 const allowHeaders = (preflight.headers.get('access-control-allow-headers') || '').toLowerCase();
-if (![200, 204].includes(preflight.status) || allowOrigin !== '*' || !allowHeaders.includes('authorization') || !allowHeaders.includes('apikey')) {
-  throw new Error('Edge Function CORS preflight failed: status=' + preflight.status + ', allow-origin=' + allowOrigin + ', allow-headers=' + allowHeaders);
+if (![200, 204].includes(preflight.status) || allowOrigin !== 'https://novaai-4auo.onrender.com' || allowOrigin === '*' || !allowHeaders.includes('authorization') || !allowHeaders.includes('apikey')) {
+  throw new Error('Edge Function CORS preflight must allow only the configured NOVA origin: status=' + preflight.status + ', allow-origin=' + allowOrigin + ', allow-headers=' + allowHeaders);
 }
 process.stdout.write('PASS Edge Function CORS preflight\n');
+const hostilePreflight = await fetch(endpoint, {
+  method: 'OPTIONS',
+  headers: {
+    ...headers,
+    Origin: 'https://novaai-attacker.example',
+    'Access-Control-Request-Method': 'GET',
+    'Access-Control-Request-Headers': 'authorization,apikey,content-type',
+  },
+  signal: AbortSignal.timeout(15000),
+});
+if (hostilePreflight.status !== 403 || hostilePreflight.headers.has('access-control-allow-origin')) {
+  throw new Error('Edge Function must reject untrusted Origin without CORS permission: status=' + hostilePreflight.status + ', allow-origin=' + hostilePreflight.headers.get('access-control-allow-origin'));
+}
+process.stdout.write('PASS Edge Function rejects untrusted CORS origins\\n');
 const deleteEndpoint = endpoint.replace(/\/me$/, '/datasets/00000000-0000-4000-8000-000000000000');
 const deletePreflight = await fetch(deleteEndpoint, {
   method: 'OPTIONS',
