@@ -3,9 +3,9 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** Ready for an honest concept / early design-partner conversation. **Not cleared for a live production demo, customer onboarding, payment collection, or service guarantees.**  
 **Unified demo candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Verified application-code snapshot:** `cd2d1d53c7fc186ce7a82ed062c54574e34e843a`. The current PR branch head and latest CI result are maintained in Draft PR #73.  
+**Last fully verified application-code snapshot:** `07454287053c538472f25832fcc475b9c67ed520` (GitHub Actions run [#1041](https://github.com/s85960833-byte/NovaAI/actions/runs/42329917724), 55/55 steps completed, 52 succeeded, 3 live checks skipped by design, 0 failures). Later progress-document changes are undergoing CI re-verification; Draft PR #73 is the source of truth for the exact current head and latest check status.  
 **Documentation and pitch materials:** maintained on the unified Draft PR #73 branch.  
-**Application-code CI:** run [#1022](https://github.com/s85960833-byte/NovaAI/actions/runs/42328252932) passed on snapshot `cd2d1d53c7fc186ce7a82ed062c54574e34e843a`: 55/55 steps completed, 52 succeeded, 3 live-environment steps skipped by design, and 0 failures. Documentation-sync snapshot `30d5937aa12d678f05e95b302a9a7495734e2be0` was also reverified by run [#1028](https://github.com/s85960833-byte/NovaAI/actions/runs/42328773318). For the exact current branch head and latest run, see Draft PR #73. Live Render/provider and live image-generation checks were skipped.  
+**Application-code CI:** run [#1041](https://github.com/s85960833-byte/NovaAI/actions/runs/42329917724) passed on snapshot `07454287053c538472f25832fcc475b9c67ed520`: 55/55 steps completed, 52 succeeded, 3 live-environment steps skipped by design, and 0 failures. The candidate now uses a committed npm lockfile and `npm ci`. Later progress-document updates are undergoing CI re-verification. For the exact current branch head and latest run, see Draft PR #73. Live Render/provider and live image-generation checks were skipped.  
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
 **Production URL:** https://novaai-4auo.onrender.com
 
@@ -47,7 +47,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #73 combines the three-workspace interface, BI module and security-hardening work. PR #66 is the earlier UI-only predecessor.
 
-The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Combined CI run #1022 passed on the application-code snapshot; documentation sync was reverified by run #1028. The PR description tracks the latest exact branch head. Its checks cover:
+The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are predecessors; neither is the release branch. Combined CI run #1041 passed on the latest fully verified application-code snapshot; later documentation-only updates are undergoing re-verification. The PR description tracks the latest exact branch head. Its checks cover:
 
 - Backend/frontend syntax and mode registry.
 - PostgreSQL migration application and tenant RLS integration.
@@ -58,7 +58,7 @@ The unified candidate is Draft PR #73. The UI-only PR #66 and BI-only PR #67 are
 - Company Cloud browser workflows.
 - Chromium workspace navigation and five viewport widths, including drawer and Settings regression checks.
 
-CI #1022 passed on the application-code snapshot, and CI #1028 passed on the later documentation-sync snapshot. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped in both runs. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped in this run.
+CI #1041 passed on the application-code snapshot. Physical Android behavior, live signup/email, and production/provider behavior are not covered by branch CI; live Render/provider/image checks were skipped. Subsequent progress-document edits are pending CI confirmation.
 ## 5. Exact demo plan
 
 Use this sequence only on the exact candidate build after opening that build on the presentation device. The candidate is not currently the Production deployment; do not silently substitute the existing Production URL and describe it as the new three-workspace build.
