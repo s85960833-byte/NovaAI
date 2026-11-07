@@ -204,7 +204,10 @@ test('NOVA BI cloud save path stores dataset metadata and aggregate analysis, no
 });
 test('NOVA BI Edge Function bounds request and JSON payload sizes',()=>{
  const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
- assert.ok(edge.includes('> 70000'));
+ assert.ok(edge.includes('maxBytes = 70000'));
+ assert.ok(edge.includes('totalBytes > maxBytes'));
+ assert.ok(edge.includes('request.body.getReader()'));
+ assert.ok(edge.includes('readBoundedBody(req)'));
  assert.ok(edge.includes('maxBytes = 50000'));
  assert.ok(edge.includes('.limit(100)'));
 });
@@ -263,7 +266,10 @@ test('NOVA BI team invitations are owner/admin gated and accepted only by the in
  assert.ok(migration.includes('grant update(status) on public.nova_bi_memberships to authenticated'));
  assert.ok(edge.includes('auth.admin.inviteUserByEmail'));
  assert.ok(edge.includes('error: auditError'));
- assert.ok(edge.includes('invitation was issued, but its audit record could not be saved'));
+ assert.ok(edge.includes('audit record could not be saved'));
+  assert.ok(edge.includes('auth.admin.deleteUser(invitedUserId)'));
+  assert.ok(edge.includes('temporary Auth account was cleaned up'));
+  assert.ok(edge.includes('automatic cleanup was incomplete'));
  assert.ok(edge.includes(String.raw`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`));
  assert.ok(edge.includes(String.raw`/\s/.test(logoUrl)`));
  assert.ok(edge.includes('role === "admin" && actor.role !== "owner"'));
