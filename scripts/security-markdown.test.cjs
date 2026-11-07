@@ -1,5 +1,6 @@
 'use strict';
 const assert = require('node:assert/strict');
+const { test } = require('node:test');
 const { readFileSync } = require('node:fs');
 const vm = require('node:vm');
 
