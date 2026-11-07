@@ -36,10 +36,10 @@ assert.ok(html.includes('openBusinessIntelligence(){window.NovaBusiness?.open()}
 assert.ok(!business.includes("btn.id='novaBusinessLauncher'")&&!business.includes("side.insertBefore(btn,list||null)"),'Business Intelligence must not add a fourth global sidebar item');
 assert.ok(!cloud.includes("launcher.id='novaBICloudLauncher'")&&!cloud.includes("side.insertBefore(launcher"),'Company Cloud must not add a fourth global sidebar item');
 assert.ok(business.includes('window.NovaBusiness=Object.freeze({open,close,')&&cloud.includes('window.NovaBusinessCloud=Object.freeze({open,close,'),'Business workspace launch APIs must remain available');
-assert.ok(business.includes("'Business Intelligence Dashboard':'बिज़नेस इंटेलिजेंस डैशबोर्ड'")&&business.includes('bilingualize(b)'),'Business Intelligence labels must render in Hindi and English');
-assert.ok(cloud.includes("'Sign in to your company workspace':'अपने कंपनी वर्कस्पेस में साइन इन करें'")&&cloud.includes('bilingualize(overlay)')&&cloud.includes('bilingualValue(m)'),'Company Cloud labels and messages must render in Hindi and English');
-assert.ok(business.includes("'Business Intelligence Dashboard':'बिज़नेस इंटेलिजेंस डैशबोर्ड'")&&business.includes('bilingualize(b)'),'Business Intelligence screens must render bilingual labels');
-assert.ok(cloud.includes("'Sign in to your company workspace':'अपने कंपनी वर्कस्पेस में साइन इन करें'")&&cloud.includes('bilingualize(overlay)')&&cloud.includes('bilingualValue(m)'),'Company Cloud forms and status messages must render bilingual labels');
+assert.match(business, /["']Business Intelligence Dashboard["']\s*:\s*["']बिज़नेस इंटेलिजेंस डैशबोर्ड["']/, 'Business Intelligence Hindi dictionary entry is missing');
+assert.ok(business.includes('function bilingualize(root)')&&business.includes('bilingualize(b)'), 'Business Intelligence screens must apply bilingualization to rendered content');
+assert.match(cloud, /["']Sign in to your company workspace["']\s*:\s*["']अपने कंपनी वर्कस्पेस में साइन इन करें["']/, 'Company Cloud Hindi dictionary entry is missing');
+assert.ok(cloud.includes('function bilingualize(root)')&&cloud.includes('bilingualize(overlay)')&&cloud.includes('bilingualValue(m)'), 'Company Cloud forms and status messages must be bilingualized');
 for(const action of ['openPhoto,openArchive:openArch','startVoice:startLive','openAgentsSuite(){window.NovaSuite?.open()}','openBusinessIntelligence(){window.NovaBusiness?.open()}','openCompanyCloud(){window.NovaBusinessCloud?.open()}','openImageStudio(){'])assert.ok(html.includes(action),'legacy feature action bridge missing: '+action);
 assert.ok(html.includes('id="nPhoto" data-i="nPhoto" hidden')&&html.includes('id="nArch" data-i="nArch" hidden'),'learning-only legacy shortcuts must not remain in global sidebar');
 
