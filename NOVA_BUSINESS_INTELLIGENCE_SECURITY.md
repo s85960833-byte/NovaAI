@@ -84,8 +84,11 @@ The integrated candidate is on Draft PR [#73](https://github.com/s85960833-byte/
 No live service, production database, Auth setting, billing plan, branch protection or production deployment was changed by this candidate update. These external gates require owner access/approval and, where relevant, an authorized adult/account owner. Keep PR #73 Draft and unmerged until every applicable gate is evidenced.
 
 
-## Current verification addendum — 7 November 2026
 
-- Latest candidate head: `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`; exact-head push and PR CI runs #42379148497 and #42379153742 both passed.
-- Automated CI skipped the deployed Edge Function CORS smoke and live Render/provider/image checks because the candidate remains undeployed. It does not prove live Auth/email, physical Android, or real-account tenant isolation.
-- PR #73 remains Draft and unmerged. Production `main` remains unchanged. No live service, database, Auth setting, billing plan or deployment was changed.
+
+## Latest candidate verification — 7 November 2026
+
+- Current Draft PR #73 head: `3014e4bcd4600c09320045e8caacdab7c53ba53d`; PR push workflow [#42379943971](https://github.com/s85960833-byte/NovaAI/actions/runs/42379943971) completed successfully. A duplicate push run #42379938717 remains pending without a job and is not counted as a pass.
+- The successful run passed syntax/security, PostgreSQL migration and tenant-RLS integration, Deno Edge Function type-check/CORS tests, BI calculations/CSV, dependency audit, local runtime/PWA, Chromium workspace/PDF, Company Cloud mobile-browser workflows and five-viewport responsive/drawer tests.
+- Live deployed Edge Function, Render/provider/image checks were skipped because this candidate is not deployed. No physical Android device, real SMTP/Auth email, or two-real-account live tenant test has been completed.
+- PR #73 remains Draft, open, unmerged and undeployed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. No live service, database, Auth setting, billing plan or deployment was changed.
