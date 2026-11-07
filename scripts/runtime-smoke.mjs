@@ -29,6 +29,17 @@ await expect('image validation','/api/image',{method:'POST',headers:{'content-ty
 await expect('image job status validation','/api/image/status/not-a-real-job',{},r=>r.status===404);
 await expect('transcription validation','/api/transcribe',{method:'POST',headers:{'content-type':'audio/webm'},body:new Uint8Array()},r=>r.status===400);
 await expect('previous home UI without new four-workspace redesign','/',{},(r,b)=>r.ok&&b.includes('nova-home')&&b.includes('nova-workspaces')&&!b.includes('CHAT & STUDY')&&!b.includes('VOICE CHAT'));
+// Verify throttling runs before JSON parsing: request 61 must be rejected
+// even when its body is malformed, rather than spending parser work first.
+const parseOrderIp='198.51.100.241';
+for(let i=0;i<60;i++){
+ const response=await req('/api/config',{headers:{'x-forwarded-for':parseOrderIp}});
+ if(response.status!==200) throw new Error('API rate limit blocked pre-parser setup request '+(i+1)+': HTTP '+response.status);
+}
+const malformedAfterLimit=await req('/api/search',{method:'POST',headers:{'x-forwarded-for':parseOrderIp,'content-type':'application/json'},body:'{'});
+if(malformedAfterLimit.status!==429) throw new Error('API request was parsed before rate limiting: HTTP '+malformedAfterLimit.status);
+console.log('PASS API throttling occurs before JSON body parsing');
+
 // Exercise the real Express middleware with an isolated test client IP.
 const rateLimitIp='198.51.100.240';
 for(let i=0;i<60;i++){
