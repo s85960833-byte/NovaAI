@@ -1,6 +1,6 @@
 'use strict';
 
-function secureProviderBase(name, raw, fallback, allowLocal = process.env.NODE_ENV !== 'production') {
+function secureProviderBase(name, raw, fallback, allowLocal = process.env.NODE_ENV === 'development') {
   const value = String(raw || fallback || '').trim();
   let parsed;
   try {
