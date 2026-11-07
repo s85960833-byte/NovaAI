@@ -1,18 +1,18 @@
 # NOVA — Early Demo Pitch Script (Internal Draft)
 
-> **INTERNAL ONLY — HOLD. Do not deliver this script or conduct sales/design-partner pitches until `PITCH_READINESS.md` explicitly clears external pitching after production readiness is verified.**
+> **LIMITED CONCEPT DISCOVERY ONLY. Use this script only to explain the product direction and ask for feedback. Do not offer a paid product, promise a live demo, or imply production availability.**
 
 **Copy-ready pitch pack:** see [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md). **Technical release truth:** see [PITCH_READINESS.md](PITCH_READINESS.md).
 
-**Internal draft only. Do not use externally while the production-readiness hold remains active.** The unified three-workspace + Business Intelligence build is a Draft release candidate, not the current Production release. Do not promise availability, uptime, response quality, integrations, or paid-plan entitlements that have not been verified live.
+**Use only for carefully qualified concept/discovery conversations while production-readiness gates remain open.**
 
 ## 30-second Hindi pitch
 
-NOVA एक Hindi-English AI workspace है, जिसका लक्ष्य पढ़ाई, digital creation और रोज़मर्रा की AI सहायता को एक ही mobile-first अनुभव में व्यवस्थित करना है। इसमें तीन स्पष्ट हिस्से हैं — NOVA Learn, NOVA Build और NOVA Agents। हम इसे भारत के users के लिए सरल, bilingual और mobile-friendly बनाने पर काम कर रहे हैं। अभी हम शुरुआती demo partners से feedback लेना चाहते हैं, ताकि public launch से पहले वास्तविक जरूरतों और कमियों को ठीक कर सकें।
+NOVA एक Hindi-English AI workspace है, जिसका लक्ष्य पढ़ाई, digital creation और रोज़मर्रा की AI सहायता को एक ही mobile-first अनुभव में व्यवस्थित करना है। इसमें तीन स्पष्ट हिस्से हैं — NOVA Learn, NOVA Build और NOVA Agents। हम इसे भारत के users के लिए सरल, bilingual और mobile-friendly बनाने पर काम कर रहे हैं। अभी हम शुरुआती feedback conversations करना चाहते हैं, ताकि public launch से पहले वास्तविक जरूरतों और कमियों को ठीक कर सकें।
 
 ## 30-second English pitch
 
-NOVA is a Hindi-English AI workspace designed to bring learning, digital creation, and everyday AI assistance into one mobile-first experience. Its product direction is organized into three clear areas: NOVA Learn, NOVA Build, and NOVA Agents. We are preparing an India-focused experience that is easier to navigate in both languages. We are currently looking for early demo partners and feedback before a public launch.
+NOVA is a Hindi-English AI workspace designed to bring learning, digital creation, and everyday AI assistance into one mobile-first experience. Its product direction is organized into three clear areas: NOVA Learn, NOVA Build, and NOVA Agents. We are preparing an India-focused experience that is easier to navigate in both languages. We are currently looking for early feedback conversations to understand user needs before any public launch.
 
 ## Five-minute demo flow
 
@@ -69,3 +69,6 @@ NOVA Business Intelligence is part of the unified Draft preview candidate, but i
 - [ ] Use non-sensitive sample prompts and files.
 - [ ] Keep a short screen recording or static screenshots as a backup.
 - [ ] Explain clearly if any screen is a preview rather than the live Production app.
+
+
+**Current boundary:** Candidate PR #73 is still Draft, unmerged and undeployed. Only concept discovery is allowed. Do not demonstrate the integrated candidate as live, accept payment, collect confidential data or promise production service until the release gates in `PITCH_READINESS.md` are closed.
