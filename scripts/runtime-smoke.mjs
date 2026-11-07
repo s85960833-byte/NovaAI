@@ -24,6 +24,9 @@ await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.length>100&&b.inclu
 await expect('PWA icon 192','/icons/icon-192.png',{},r=>r.ok);
 await expect('PWA icon 512','/icons/icon-512.png',{},r=>r.ok);
 await expect('chat validation','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
+await expect('malformed JSON API body returns JSON 400','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{'},(r,b)=>r.status===400&&JSON.parse(b).error==='Request body must be valid JSON');
+const oversizedJson='{"q":"'+'x'.repeat(6*1024*1024)+'"}';
+await expect('oversized JSON API body returns JSON 413','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:oversizedJson},(r,b)=>r.status===413&&JSON.parse(b).error==='Request body is too large');
 await expect('search validation','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
 await expect('image validation','/api/image',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
 await expect('image job status validation','/api/image/status/not-a-real-job',{},r=>r.status===404);
