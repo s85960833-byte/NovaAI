@@ -22,6 +22,19 @@ test('secure provider URLs allow HTTP only for explicit local development hosts'
   assert.throws(() => secureProviderBase('LLM_BASE', 'http://127.0.0.2:8080/v1', 'https://fallback.test', true), /must use HTTPS/);
 });
 
+test('default policy permits local HTTP only in explicit development mode', () => {
+  const original = process.env.NODE_ENV;
+  try {
+    process.env.NODE_ENV = 'production';
+    assert.throws(() => secureProviderBase('LLM_BASE', 'http://localhost:8080/v1', 'https://fallback.test'), /must use HTTPS/);
+    process.env.NODE_ENV = 'development';
+    assert.equal(secureProviderBase('LLM_BASE', 'http://localhost:8080/v1', 'https://fallback.test'), 'http://localhost:8080/v1');
+  } finally {
+    if (original === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = original;
+  }
+});
+
 test('secure provider URLs reject embedded credentials, query strings and fragments', () => {
   assert.throws(() => secureProviderBase('LLM_BASE', 'https://user:pass@api.example.test/v1', 'https://fallback.test', false), /must not contain URL credentials/);
   assert.throws(() => secureProviderBase('LLM_BASE', 'https://api.example.test/v1?token=secret', 'https://fallback.test', false), /must not contain a query string/);
