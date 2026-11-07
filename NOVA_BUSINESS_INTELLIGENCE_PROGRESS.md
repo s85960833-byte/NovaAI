@@ -74,3 +74,13 @@ Updated: 2026-11-06
 - Company workspace switching clears the previous tenant's cached display data and discards any late response belonging to the previously selected organization; static CI assertion added.
 - Temporary CI-only PRs #68, #70 and #71 were closed without merging. The authoritative BI PR remains Draft #67; the separate UI candidate remains Draft #66. Neither has been merged or deployed.
 - This is automated candidate verification, not production certification. Signup/SMTP, two real-user tenant isolation, production/preview redirect allow-list, Preview and physical Android checks, backup/restore and privacy/retention review remain release gates.
+
+
+## Unified candidate status (2026-11-07) — supersedes the earlier separate-PR snapshot
+
+- NOVA Business Intelligence is now carried inside the unified Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`. The earlier PR #67 entry above is historical and is not the authoritative combined release candidate.
+- Exact unified candidate head: `cd2d1d53c7fc186ce7a82ed062c54574e34e843a`.
+- GitHub Actions [run #1022](https://github.com/s85960833-byte/NovaAI/actions/runs/42328252932) passed on that exact head: 55/55 steps completed, 52 succeeded, 3 live-environment steps skipped by design, 0 failures.
+- The run verified PostgreSQL migration/RLS integration, Edge Function type-check and auth/CORS smoke, BI calculations and CSV validation, the 60-case fixture, dependency audit, local routes/PWA, Company Cloud browser flow and responsive browser tests.
+- The run did not verify live SMTP delivery, real signup, two-real-account tenant isolation, live Render/provider behavior or physical Android behavior. These remain release gates.
+- The unified candidate is still Draft, unmerged and undeployed. Do not use real or regulated company data until privacy, retention, backup/restore and incident-response controls are completed. Do not describe this module as launched or production-ready.
