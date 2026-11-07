@@ -19,6 +19,6 @@ Deno.test("NOVA BI CORS rejects insecure public site URLs", () => {
 Deno.test("NOVA BI CORS headers never use wildcard origins", () => {
   const headers = createCorsHeaders("https://nova.example.com");
   if (headers["Access-Control-Allow-Origin"] !== "https://nova.example.com") throw new Error("Exact origin header missing");
-  if (headers["Access-Control-Allow-Origin"] === "*") throw new Error("Wildcard CORS is forbidden");
+  if (String(headers["Access-Control-Allow-Origin"]) === "*") throw new Error("Wildcard CORS is forbidden");
   if (headers["Vary"] !== "Origin") throw new Error("Vary: Origin header missing");
 });
