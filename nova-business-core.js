@@ -90,7 +90,7 @@
       categoryRows.get(category).push({rowNumber,amount:round(amount)});
       const stamp=dateKey?date(row[dateKey]):null;
       if(dateKey&&stamp===null)invalidDates++;
-      if(stamp!==null){const d=new Date(stamp),key=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');months.set(key,(months.get(key)||0)+amount);if(!monthRows.has(key))monthRows.set(key,[]);monthRows.get(key).push({rowNumber,amount:round(amount),date:text(row[dateKey])})}
+      if(stamp!==null){const key=text(row[dateKey]).slice(0,7);months.set(key,(months.get(key)||0)+amount);if(!monthRows.has(key))monthRows.set(key,[]);monthRows.get(key).push({rowNumber,amount:round(amount),date:text(row[dateKey])})}
     }
     const monthlyBudget=mapping&&mapping.monthlyBudget!==''&&mapping.monthlyBudget!=null?number(mapping.monthlyBudget):null;
     if(mapping&&mapping.monthlyBudget!==''&&mapping.monthlyBudget!=null&&monthlyBudget===null)fail('Monthly budget must be a valid number.');
