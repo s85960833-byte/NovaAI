@@ -15,6 +15,8 @@ function syntaxCheck(name, source) {
 const server = readFileSync('nova-server.txt', 'utf8');
 const html = readFileSync('index.html', 'utf8');
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+const verificationWorkflow = readFileSync('.github/workflows/novaai-verification.yml', 'utf8');
+if (!/^permissions:\n  contents: read$/m.test(verificationWorkflow)) throw new Error('Verification workflow must use least-privilege read-only repository permissions');
 const supabaseDeno = JSON.parse(readFileSync('supabase/functions/nova-bi-api/deno.json', 'utf8'));
 if (supabaseDeno.imports?.['@supabase/server'] !== 'npm:@supabase/server@1.9.2') throw new Error('Supabase server SDK must be pinned to a reviewed stable version');
 const biEdge = readFileSync('supabase/functions/nova-bi-api/index.ts', 'utf8');
