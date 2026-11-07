@@ -5,7 +5,7 @@
 **Prepared:** 7 November 2026  
 **Purpose:** Controlled concept discovery only. No paid sales, customer onboarding, production demo, or customer-data use until the release gates are closed.
 **Product:** NOVA main app only. NOVA Business Intelligence is a separate, unreleased candidate and must not be sold or demonstrated as a live module.  
-**Release truth (latest audit):** Draft PR #73 remains open, Draft, unmerged and undeployed at candidate head `6c53223686943b068ac36c48fd5ae72c58edc226`; both exact-head CI runs #42381308464 and #42381303719 passed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. Live-only checks were skipped. The live NOVA BI Edge Function still has wildcard CORS; candidate exact-origin fix is not deployed. Real Auth/SMTP, two-account isolation, physical Android, hosting/health, backup/restore, CSP, privacy/retention/incident response and branch-protection checks remain open. This is not paid-sales ready.
+**Release truth (latest audit):** Draft PR #73 remains open, Draft, unmerged and undeployed at `2fb0b95ce1158a1b2435ece00061902f01db39d5`; exact-head CI runs #42383252855 and #42383257827 passed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. Live Supabase still has wildcard CORS and rate-limit function `search_path=public, pg_temp`; candidate fixes are not live. Real Auth/SMTP, two-account isolation, physical Android, hosting, backup/restore, privacy, branch protection, billing and full CSP checks remain open. Not paid-sales ready.
 
 ---
 
@@ -233,3 +233,18 @@ The goal is a credible first conversation: explain the product direction, state 
 - **Sales boundary:** this is not paid-sales or customer-onboarding ready. At most, conduct clearly disclosed, non-sensitive concept-feedback conversations; do not accept payment, promise a live demo/SLA/availability, or collect confidential company/student data. NOVA BI remains unreleased. Any commercial, billing or infrastructure decision must be handled by the authorized adult project owner.
 
 This checkpoint supersedes older candidate-head, CI-run and release-status statements elsewhere in this document. Historical checkpoints are retained as history, not current status.
+
+
+## Current authoritative release checkpoint — 7 November 2026
+
+- Current candidate head: `2fb0b95ce1158a1b2435ece00061902f01db39d5`; Draft PR #73 remains open, unmerged and undeployed. Exact-head push CI [#42383252855](https://github.com/s85960833-byte/NovaAI/actions/runs/42383252855) and PR CI [#42383257827](https://github.com/s85960833-byte/NovaAI/actions/runs/42383257827) both passed. These include the full HTTP CSP-header regression, isolated PostgreSQL migration/RLS integration, Deno Edge Function type-check/CORS/invitation tests, dependency audit, local runtime/PWA smoke, Chromium workspace/PDF and Company Cloud browser flows, and five-viewport/drawer tests.
+- Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; no merge, Render deploy, live database migration or Auth/SMTP change was made.
+- Live Supabase project `qrfwsewppafhxibdboam` is healthy (PostgreSQL 17.11, eu-west-1). All 10 NOVA BI tables have RLS enabled. Security Advisor: 0 findings; Health Advisor: 0; Performance Advisor: 13 INFO-only unused-index notices.
+- Live migration history has 12 migrations. Candidate migration `20261106195900_nova_bi_rate_limit_search_path_hardening.sql` is not applied live. The live rate-limit SECURITY DEFINER function still has `search_path=public, pg_temp`; execute ACL is restricted to `postgres` and `service_role`. Candidate migration pins an empty search_path and passes the isolated PostgreSQL regression, but this live hardening is still pending.
+- Live `nova-bi-api` v13 still uses wildcard CORS. Candidate exact-origin CORS code is not deployed.
+- Candidate HTTP CSP now includes resource directives and frame isolation; runtime CI verifies them. Inline styles are still allowed and HTTPS `connect-src` remains broad, so CSP is not fully strict.
+- General NOVA chat/settings/history remain browser-local; general consumer cloud accounts/history sync have not been verified. No subscription billing/entitlement flow was found in the audited candidate. Do not promise cloud sync or sell subscriptions.
+- Remaining gates: authorized release decision; apply pending DB hardening migration; deploy and verify exact-origin Edge Function; real signup/confirmation/reset/invitation delivery with custom SMTP and exact redirect allow-list; two-real-account tenant isolation and membership lifecycle tests; physical Android test; Render health/production hosting decision; off-site backup and restore drill; privacy/retention/deletion and incident-response review; branch protection (unverified due GitHub API 403); and complete CSP style/connect-src hardening.
+- **Decision: NO-GO for paid sales, paid onboarding or production promises.** Only disclosed, non-sensitive concept feedback; no payments, confidential customer data, SLA or live-availability claims. Commercial, billing and infrastructure decisions require the authorized adult project owner.
+
+This checkpoint supersedes older candidate-head, migration-count, CSP and release-status statements above. Older entries are historical audit notes only.
