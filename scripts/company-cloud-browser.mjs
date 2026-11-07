@@ -6,6 +6,28 @@ const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 page.setDefaultTimeout(12000);
 page.setDefaultNavigationTimeout(15000);
 const progress = label => console.log(`[Company Cloud browser] ${label}`);
+
+function makePdfFixture() {
+  const stream = 'BT /F1 12 Tf 72 72 Td (NOVA PDF SECURITY TEST) Tj ET';
+  const objects = [
+    '1 0 obj\\n<< /Type /Catalog /Pages 2 0 R >>\\nendobj\\n',
+    '2 0 obj\\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\\nendobj\\n',
+    '3 0 obj\\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 144] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>\\nendobj\\n',
+    '4 0 obj\\n<< /Length ' + Buffer.byteLength(stream) + ' >>\\nstream\\n' + stream + '\\nendstream\\nendobj\\n',
+    '5 0 obj\\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\\nendobj\\n'
+  ];
+  let pdf = '%PDF-1.4\\n';
+  const offsets = [0];
+  for (const object of objects) {
+    offsets.push(Buffer.byteLength(pdf, 'binary'));
+    pdf += object;
+  }
+  const xrefOffset = Buffer.byteLength(pdf, 'binary');
+  pdf += 'xref\\n0 ' + (objects.length + 1) + '\\n0000000000 65535 f \\n';
+  for (const offset of offsets.slice(1)) pdf += String(offset).padStart(10, '0') + ' 00000 n \\n';
+  pdf += 'trailer\\n<< /Size ' + (objects.length + 1) + ' /Root 1 0 R >>\\nstartxref\\n' + xrefOffset + '\\n%%EOF';
+  return Buffer.from(pdf, 'binary');
+}
 progress('browser initialized');
 const pageErrors = [];
 const calls = [];
@@ -170,6 +192,18 @@ const homeResponse = await page.goto('http://127.0.0.1:8787', { waitUntil: 'comm
 assert.equal(homeResponse?.status(), 200, 'local NOVA homepage must return HTTP 200');
 await page.waitForTimeout(1000);
 progress('local homepage loaded');
+await page.locator('#file').setInputFiles({
+  name: 'nova-security-test.pdf',
+  mimeType: 'application/pdf',
+  buffer: makePdfFixture()
+});
+await page.waitForFunction(() => {
+  try {
+    const state = JSON.parse(localStorage.getItem('nova') || '{}');
+    return (state.chats || []).some(chat => chat.doc?.t?.includes('NOVA PDF SECURITY TEST'));
+  } catch { return false; }
+}, null, { timeout: 30000 });
+progress('patched PDF.js module and worker extracted sample text');
 progress('before bootstrap inspection');
 const bootstrap = await inspectPage('NOVA bootstrap inspection', () => ({ ready: document.readyState, hasHome: !!document.querySelector('#hi'), logHtml: document.querySelector('#log')?.innerHTML.slice(0,160) || '', registryGroups: window.NovaModeRegistry?.groups?.length || 0, workspaceApi: typeof window.NovaModeWorkspace }));
 progress('bootstrap inspection returned');
