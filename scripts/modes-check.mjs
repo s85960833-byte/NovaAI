@@ -28,7 +28,14 @@ assert.ok(tier.includes('DESIGNED IN INDIA / भारत में निर्
 assert.ok(workspace.includes('openGroup(group)'));
 assert.ok(workspace.includes("learn:[['openPhoto','▧','Photo Questions / फोटो वाले सवाल']]")&&!workspace.includes("learn:[['openPhoto','▧','Photo Questions / फोटो वाले सवाल'],['openArchive'")&&workspace.includes("build:[['openImageStudio'")&&workspace.includes("agents:[['startVoice'")&&workspace.includes("['openArchive','◷','History Archive / इतिहास संग्रह']"),'photo must stay in Learn, image creation in Build, and voice/history tools in Agents');
 assert.ok(workspace.includes("querySelectorAll('[data-quick]')")&&workspace.includes('NovaWorkspaceActions?.[b.dataset.quick]'),'workspace quick actions must invoke real legacy handlers');
-assert.ok(workspace.includes("if(typeof fn==='function'){hide(false);fn()}"),'workspace overlay must close before opening legacy tool panels without stealing focus from the newly opened legacy tool');
+assert.ok(workspace.includes("if(typeof fn==='function'){if(!['openBusinessIntelligence','openCompanyCloud'].includes(b.dataset.quick))hide(false);fn()}"),'nested business dialogs must retain the Agents workspace for focus restoration');
+const business=readFileSync('nova-business.js','utf8');
+const cloud=readFileSync('nova-business-cloud.js','utf8');
+assert.ok(workspace.includes("['openBusinessIntelligence','▦','Business Intelligence / बिज़नेस इंटेलिजेंस']")&&workspace.includes("['openCompanyCloud','◈','Company Account Cloud / कंपनी अकाउंट क्लाउड']"),'Business Intelligence and Company Cloud must be reachable only inside NOVA Agents');
+assert.ok(html.includes('openBusinessIntelligence(){window.NovaBusiness?.open()}')&&html.includes('openCompanyCloud(){window.NovaBusinessCloud?.open()}'),'Agents workspace business action bridge is missing');
+assert.ok(!business.includes("btn.id='novaBusinessLauncher'")&&!business.includes("side.insertBefore(btn,list||null)"),'Business Intelligence must not add a fourth global sidebar item');
+assert.ok(!cloud.includes("launcher.id='novaBICloudLauncher'")&&!cloud.includes("side.insertBefore(launcher"),'Company Cloud must not add a fourth global sidebar item');
+assert.ok(business.includes('window.NovaBusiness=Object.freeze({open,close,')&&cloud.includes('window.NovaBusinessCloud=Object.freeze({open,close,'),'Business workspace launch APIs must remain available');
 assert.ok(html.includes('window.NovaWorkspaceActions=Object.freeze({openPhoto,openArchive:openArch,startVoice:startLive,openAgentsSuite(){window.NovaSuite?.open()},openImageStudio()'),'legacy feature action bridge missing');
 assert.ok(html.includes('id="nPhoto" data-i="nPhoto" hidden')&&html.includes('id="nArch" data-i="nArch" hidden'),'learning-only legacy shortcuts must not remain in global sidebar');
 
