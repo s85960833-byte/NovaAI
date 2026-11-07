@@ -50,7 +50,7 @@ const save=()=>{if(!STORE)return;try{localStorage.setItem('nova',JSON.stringify(
 // One-time migration: keep any previously saved key available for this tab, but remove it from durable browser storage.
 if(STORE&&S.cfg&&S.cfg.key){try{localStorage.setItem('nova',JSON.stringify(persistable()))}catch(e){}}
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const inl=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+const inl=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(_,label,url)=>'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+label+'</a>');
 const SEP=/^\s*\|[\s:|-]+\|\s*$/,LI=/^\s*([-*]|\d+\.)\s+(.*)/;
 const blk=t=>{const L=t.split('\n'),o=[];let i=0,m;while(i<L.length){const l=L[i];
 if(/^\s*\|.*\|\s*$/.test(l)&&i+1<L.length&&SEP.test(L[i+1])){const rows=[];while(i<L.length&&/^\s*\|/.test(L[i])){if(!SEP.test(L[i]))rows.push(L[i].trim().replace(/^\||\|$/g,'').split('|'));i++}o.push('<table>'+rows.map((r,k)=>'<tr>'+r.map(c=>(k?'<td>':'<th>')+inl(c.trim())).join('')+'</tr>').join('')+'</table>');continue}
