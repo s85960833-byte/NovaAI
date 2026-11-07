@@ -253,7 +253,7 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 
 ## 19. Latest exact-head tenant-isolation verification — 7 November 2026
 
-- Candidate SHA `57c104a6e43d992e06d347c9fe3a45c59a934a18` passed both GitHub Actions runs [#42374212009](https://github.com/s85960833-byte/NovaAI/actions/runs/42374212009) (push) and [#42374218563](https://github.com/s85960833-byte/NovaAI/actions/runs/42374218563) (pull request), with all 36 job steps successful.
+- Candidate SHA `57c104a6e43d992e06d347c9fe3a45c59a934a18` passed both GitHub Actions runs [#42374212009](https://github.com/s85960833-byte/NovaAI/actions/runs/42374212009) (push) and [#42374218563](https://github.com/s85960833-byte/NovaAI/actions/runs/42374218563) (pull request). All executable checks passed; four live-only checks were skipped on the unmerged feature branch (deployed Edge Function CORS smoke, wait for merged Render deploy, live website/provider smoke, and live free-image smoke).
 - Expanded PostgreSQL 17 integration coverage now verifies that an outsider cannot read another tenant's datasets, analyses, workflow proposals, approvals, executions, branding or audit events; it also attempts cross-tenant dataset insert, update and delete, plus analysis deletion, workflow decision changes and branding changes.
 - This is isolated-database integration evidence, not a substitute for testing with two real Supabase Auth accounts against the deployed Edge Function and live database.
 - Live deployment remains unchanged: production Edge Function `nova-bi-api` v13 still has wildcard CORS, and candidate exact-origin CORS code has not been deployed. Candidate PR #73 remains Draft/unmerged; production `main` is untouched.
