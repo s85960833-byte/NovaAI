@@ -30,12 +30,12 @@ if (!server.includes('app.disable(\'x-powered-by\')') || !server.includes('nova-
 if (!server.includes('Content-Security-Policy') || !server.includes('frame-ancestors \'none\'') || !server.includes('camera=(self), microphone=(self), geolocation=()')) throw new Error('Combined browser security policy is incomplete');
 const requiredCspFragments = ['http-equiv="Content-Security-Policy"', "default-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'self'"];
 const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(match => !/\bsrc\s*=/.test(match[1]));
+const appScript = readFileSync('nova-app.js', 'utf8');
+const configScript = readFileSync('nova-config.js', 'utf8');
 if (inlineScripts.length) throw new Error('Inline scripts must be externalized before removing unsafe-inline from script-src');
 if (!html.includes("script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net")) throw new Error('Script CSP must preserve compatibility with remaining legacy inline event handlers until they are migrated');
 if (!appScript.includes('onclick=') || !appScript.includes('onchange=')) throw new Error('Legacy inline event-handler inventory changed; re-audit CSP before tightening');
 if (!server.includes("app.get('/nova-config.js'") || !server.includes("app.get('/nova-app.js'")) throw new Error('Externalized NOVA scripts are not served by the backend');
-const appScript = readFileSync('nova-app.js', 'utf8');
-const configScript = readFileSync('nova-config.js', 'utf8');
 syntaxCheck('NOVA app external script', appScript);
 syntaxCheck('NOVA config external script', configScript);
 if (!server.includes("'/nova-config.js','/nova-app.js'")) throw new Error('Externalized scripts are missing from the offline shell cache');
