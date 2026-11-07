@@ -66,4 +66,6 @@ The inspected Supabase project has 12 migrations, 10 RLS-enabled BI tables and a
 Use [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md) as the copy-ready founder pitch pack. [PITCH_READINESS.md](PITCH_READINESS.md) is the technical evidence and release-gate record; [PITCH_SCRIPT.md](PITCH_SCRIPT.md) is the short demo script.
 
 
-**Current candidate verification:** `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e` passed both exact-head CI runs #42379148497 and #42379153742. Live Edge Function and Render/provider/image checks were skipped; physical Android, real Auth/email and two-real-account live tenant tests remain open. Limited concept discovery only; no paid sales or production promises.
+
+
+**Current candidate verification:** PR #73 head `3014e4bcd4600c09320045e8caacdab7c53ba53d` passed push CI run #42379943971. Live Edge Function and Render/provider/image checks were skipped; physical Android, real Auth/email and two-real-account live tenant tests remain open. The candidate is not production-ready.
