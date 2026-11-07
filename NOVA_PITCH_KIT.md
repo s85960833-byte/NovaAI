@@ -212,8 +212,11 @@ The goal is a credible first conversation: explain the product direction, state 
 - This addendum supersedes earlier candidate-head and CI references in this file. Always consult Draft PR #73 for any newer head/checks.
 
 
-## Current verification addendum — 7 November 2026
 
-- Exact-head GitHub Actions push run [#42379148497](https://github.com/s85960833-byte/NovaAI/actions/runs/42379148497) and pull-request run [#42379153742](https://github.com/s85960833-byte/NovaAI/actions/runs/42379153742) both completed successfully on `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`. All executable syntax, security, PostgreSQL migration/RLS, Deno Edge Function, BI calculation/CSV, dependency audit, local runtime/PWA, Chromium workspace/PDF, Company Cloud mobile-browser and five-viewport regression steps passed. The deployed Edge Function smoke and live Render/provider/image smoke steps were skipped because this branch is not deployed. These results are not physical Android, real SMTP/Auth, or two-real-account live tests.
-- The release remains **not production-ready**. Real signup/email delivery, two-account live tenant isolation, physical Android testing, approved preview/live smoke, CSP hardening, production hosting/backup/restore, region decision, privacy/retention review, health-check configuration and branch protection remain open.
-- This addendum supersedes all earlier candidate-head and CI references in this file. See `PITCH_READINESS.md` for the current release gates.
+
+## Latest candidate verification — 7 November 2026
+
+- Current Draft PR #73 head: `3014e4bcd4600c09320045e8caacdab7c53ba53d`; PR push workflow [#42379943971](https://github.com/s85960833-byte/NovaAI/actions/runs/42379943971) completed successfully. A duplicate push run #42379938717 remains pending without a job and is not counted as a pass.
+- The successful run passed syntax/security, PostgreSQL migration and tenant-RLS integration, Deno Edge Function type-check/CORS tests, BI calculations/CSV, dependency audit, local runtime/PWA, Chromium workspace/PDF, Company Cloud mobile-browser workflows and five-viewport responsive/drawer tests.
+- Live deployed Edge Function, Render/provider/image checks were skipped because this candidate is not deployed. No physical Android device, real SMTP/Auth email, or two-real-account live tenant test has been completed.
+- PR #73 remains Draft, open, unmerged and undeployed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. No live service, database, Auth setting, billing plan or deployment was changed.
