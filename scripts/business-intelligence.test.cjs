@@ -322,3 +322,14 @@ test('NOVA BI API rate limits are atomic, server-only and stricter for invitatio
  assert.ok(edge.includes('return rateLimited(60)'));
  assert.ok(edge.includes('return rateLimited(3600)'));
 });
+
+
+test('NOVA BI API enforces request byte limits while streaming instead of buffering unbounded bodies',()=>{
+ const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
+ assert.ok(edge.includes('async function readBoundedBody(request: Request, maxBytes = 70000)'));
+ assert.ok(edge.includes('request.body.getReader()'));
+ assert.ok(edge.includes('totalBytes > maxBytes'));
+ assert.ok(edge.includes('await reader.cancel()'));
+ assert.ok(edge.includes('readBoundedBody(req)'));
+ assert.ok(!edge.includes('const raw = await req.text()'));
+});
