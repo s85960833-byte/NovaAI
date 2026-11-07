@@ -189,7 +189,7 @@ test('NOVA BI company cloud uses authenticated Edge Function routes and exact-or
  assert.ok(cloud.includes('sb_publishable_'));
  assert.ok(!/service_role|sb_secret_|SUPABASE_SERVICE_ROLE_KEY/.test(cloud));
  assert.ok(cloud.includes('storage:window.sessionStorage'));
- assert.ok(cloud.includes("/functions/v1/'+CFG.fn+'/"));
+ assert.ok(cloud.includes("CFG.url+'/functions/v1/'+CFG.fn+'/'+path"));
  assert.ok(edge.includes('withSupabase({ auth: "user", cors: "disabled" }'));
  assert.ok(edge.includes('Deno.serve(withSiteOrigin(authenticatedHandler, siteOrigin))'));
  assert.ok(cors.includes('"Access-Control-Allow-Origin": siteOrigin'));
