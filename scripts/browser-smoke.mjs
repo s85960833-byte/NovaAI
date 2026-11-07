@@ -41,11 +41,11 @@ try{
  await desktop.reload({waitUntil:'domcontentloaded'});
  await desktop.evaluate(()=>document.querySelector('#cfg').onclick());
  assert.equal(await desktop.locator('#key').inputValue(),'','BYOK key must not survive a page reload');
+ await desktop.locator('#dcfg').evaluate(el=>el.close());
  console.log('PASS BYOK legacy-key migration, active-tab use and non-persistent key storage');
 
  const learn=desktop.locator('#hi .nr-card[data-group="learn"]');
- await learn.focus();
- await desktop.keyboard.press('Enter');
+ await learn.click();
  await desktop.locator('#novaModes.open').waitFor();
  assert.equal(await desktop.locator('#novaModes').getAttribute('role'),'dialog');
  assert.equal(await desktop.locator('#novaModes').getAttribute('aria-modal'),'true');
