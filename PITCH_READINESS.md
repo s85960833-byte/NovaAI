@@ -105,6 +105,9 @@ Latest checks on the approved Supabase project `qrfwsewppafhxibdboam` found:
 - 12 migrations recorded.
 - 10 NOVA BI tables; RLS enabled on all 10.
 - `nova-bi-api` Edge Function is ACTIVE at version 13 with JWT verification enabled.
+- Live v13 still reads request bodies fully before checking their size, lacks the candidate's explicit 400/413 input handling, does not use the candidate's NOVA site redirect override, and lacks compensating cleanup if invitation membership/audit writes fail. These are candidate-only fixes pending an approved deployment.
+- The live Edge Function's `deno.json` does not pin `@supabase/server`; the candidate pins version `1.9.2`.
+- Read-only database inspection confirms the live rate-limit function still has `search_path=public, pg_temp`; its execute ACL is limited to `postgres` and `service_role`. The candidate's forward-only migration to an empty search_path remains unapplied.
 - Supabase Security Advisor: 0 findings; Health Advisor: 0 findings.
 - Performance Advisor: 13 unused-index INFO notices. These are observations, not security findings; indexes were not removed without workload evidence.
 - Current live counts: 0 Auth users, 0 organizations, 0 memberships.
