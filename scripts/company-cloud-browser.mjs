@@ -236,7 +236,7 @@ assert.equal(await page.locator('#ncbBrandTagline').textContent(), 'Operations w
 await page.locator('#ncbInviteEmail').fill('analyst@example.test');
 await page.locator('#ncbInviteRole').selectOption('analyst');
 await page.locator('#ncbInviteForm button[type="submit"]').click();
-await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Invitation sent'), null, { timeout: 10000 });
+await page.waitForFunction(() => document.querySelector('#ncbMessage')?.textContent.includes('Invitation email sent'), null, { timeout: 10000 });
 assert.ok(calls.some(call => call.path === 'members/invite' && call.method === 'POST' && call.body.role === 'analyst'));
 
 nextInviteIsExistingAccount = true;
