@@ -25,7 +25,7 @@ The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab2
 
 ## Verification — integrated candidate
 
-The unified candidate is maintained in Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73). The latest verified application-code snapshot `97551b5ce85787fd418f3f65d3d2da0711b77093` passed GitHub Actions run [#1118](https://github.com/s85960833-byte/NovaAI/actions/runs/42336743193), with 33 steps completed, 30 successful, 3 live-environment checks skipped by design and 0 failures. Runtime smoke tests also verify API throttling before JSON parsing and JSON 400/413 responses for malformed or oversized bodies. A reproducible `npm ci` lockfile is included. The workflow included:
+The unified candidate is maintained in Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73). The latest candidate head `3ad3dabfece583869812c104de2b61f0d51b5216` passed GitHub Actions run [#1138](https://github.com/s85960833-byte/NovaAI/actions/runs/42337948242). Its verification job passed syntax, mode registry, rate-window unit tests, PostgreSQL migration/RLS integration, BI Edge Function checks, BI calculations/CSV validation, 60-case fixture validation, dependency audit, local routes/PWA smoke tests, Company Cloud browser workflows, Chromium workspace interactions, five-viewport mobile/drawer regression tests and artifact upload. Three live Render/provider/image steps were skipped by design. Runtime smoke tests also verify API throttling before JSON parsing and JSON 400/413 responses for malformed or oversized bodies. A reproducible `npm ci` lockfile is included. The workflow included:
 
 - Backend/frontend syntax and isolated mode registry checks.
 - PostgreSQL migration application and tenant RLS integration tests.
