@@ -169,3 +169,12 @@ Before the new three-workspace build can be presented as a live demo, the remain
 6. Keep general NOVA authentication and NOVA BI outside the offer unless their separate release requirements are completed.
 
 No tool can honestly guarantee that a future pitch/demo will encounter zero errors. The goal is to make the demonstrated scope small, tested, clearly labelled, and backed by a fallback recording.
+
+
+## 13. Latest pitch-pack reconciliation — 7 November 2026
+
+- Added [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md) as the copy-ready founder pack: one-line, 30-second Hindi/English, two-minute pitch, product map, target-segment hypotheses, discovery ask, five-minute demo guardrails, FAQ, claims to avoid, evidence collection and separate NOVA BI treatment.
+- Current unified candidate head at this reconciliation: `462b3cf3fa190743c502c56376bb08b8461ffb5a` (pitch documentation commit). The fully code-verified parent snapshot was `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d`, with successful CI runs [#1200](https://github.com/s85960833-byte/NovaAI/actions/runs/42345216545) and [#1201](https://github.com/s85960833-byte/NovaAI/actions/runs/42345221304). The new pitch documents themselves are documentation-only and require the new head's CI run to pass before this document is treated as the latest checked revision.
+- Production remains `main` at `48e12a68af656b471853ac2a4509da0e3df7ab24`; the three-workspace candidate is not live on the Production URL.
+- Pitch clearance remains: concept/discovery/design-partner conversation only. No live candidate demo, public onboarding, paid plan, SLA, BI deployment, confidential-data handling or zero-error claim.
+- Earlier sections contain the full technical evidence and detailed gates. This addendum supersedes their older CI run/head references where those references are historical snapshots; always use PR #73 and its exact-head checks for the latest candidate status.
