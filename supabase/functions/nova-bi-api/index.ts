@@ -71,10 +71,17 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
     if (inviteLimit.data !== true) return rateLimited(3600);
   }
 
+  class RequestInputError extends Error {
+    constructor(message: string, readonly status: number) {
+      super(message);
+      this.name = "RequestInputError";
+    }
+  }
+
   async function readBoundedBody(request: Request, maxBytes = 70000): Promise<string> {
     const declaredLength = Number(request.headers.get("content-length") || "0");
     if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
-      throw new Error("Request body is too large");
+      throw new RequestInputError("Request body is too large", 413);
     }
     if (!request.body) return "";
     const reader = request.body.getReader();
@@ -87,7 +94,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
         totalBytes += value.byteLength;
         if (totalBytes > maxBytes) {
           try { await reader.cancel(); } catch { /* preserve the size-limit error */ }
-          throw new Error("Request body is too large");
+          throw new RequestInputError("Request body is too large", 413);
         }
         chunks.push(value);
       }
@@ -100,13 +107,17 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       merged.set(chunk, offset);
       offset += chunk.byteLength;
     }
-    return new TextDecoder("utf-8", { fatal: true }).decode(merged);
+    try {
+      return new TextDecoder("utf-8", { fatal: true }).decode(merged);
+    } catch {
+      throw new RequestInputError("Request body must be valid UTF-8", 400);
+    }
   }
 
   async function body() {
     const raw = await readBoundedBody(req);
     try { return JSON.parse(raw || "{}"); }
-    catch { throw new Error("Request body must be valid JSON"); }
+    catch { throw new RequestInputError("Request body must be valid JSON", 400); }
   }
 
   try {
@@ -379,6 +390,7 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
   } catch (error) {
     console.error("nova-bi-api request failed", String((error as { code?: string })?.code || "unknown"));
     const message = String((error as Error)?.message || "");
+    if (error instanceof RequestInputError) return fail(message, error.status);
     if (message.includes("Authentication required")) return fail("Authentication required", 401);
     if (message.includes("Active organization owner or admin")) return fail("Owner or admin role required", 403);
     if (message.includes("Proposal creator cannot approve")) return fail("A proposal creator cannot approve their own proposal", 403);
