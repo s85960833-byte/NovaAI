@@ -29,6 +29,15 @@ if (!rlsIntegration.includes('Every public SECURITY DEFINER function must pin an
 if (!server.includes('app.disable(\'x-powered-by\')') || !server.includes('nova-business-core.js') || !server.includes('nova-business-cloud.js') || !server.includes("'/nova-reference.js','/nova-business-core.js'")) throw new Error('BI server routes or offline dashboard cache are missing');
 if (!server.includes('Content-Security-Policy') || !server.includes('frame-ancestors \'none\'') || !server.includes('camera=(self), microphone=(self), geolocation=()')) throw new Error('Combined browser security policy is incomplete');
 const requiredCspFragments = ['http-equiv="Content-Security-Policy"', "default-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'self'"];
+const inlineScripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)].filter(match => !/\\bsrc\\s*=/.test(match[1]));
+if (inlineScripts.length) throw new Error('Inline scripts must be externalized before removing unsafe-inline from script-src');
+if (!html.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net") || html.includes("script-src 'self' 'unsafe-inline'")) throw new Error('Script CSP must disallow unsafe-inline');
+if (!server.includes("app.get('/nova-config.js'") || !server.includes("app.get('/nova-app.js'")) throw new Error('Externalized NOVA scripts are not served by the backend');
+const appScript = readFileSync('nova-app.js', 'utf8');
+const configScript = readFileSync('nova-config.js', 'utf8');
+syntaxCheck('NOVA app external script', appScript);
+syntaxCheck('NOVA config external script', configScript);
+if (!server.includes("'/nova-config.js','/nova-app.js'")) throw new Error('Externalized scripts are missing from the offline shell cache');
 if (!requiredCspFragments.every(fragment => html.includes(fragment))) throw new Error('Document resource Content Security Policy is incomplete');
 const cloudClient = readFileSync('nova-business-cloud.js', 'utf8');
 if (!cloudClient.includes('const orgId=state.orgId') || !cloudClient.includes('if(state.orgId!==orgId)return')) throw new Error('Company switch must discard stale tenant responses');
