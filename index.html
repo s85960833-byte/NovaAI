@@ -1000,7 +1000,7 @@ $('psolve').onclick=()=>{if(!pimg)return;if(busy){toast(t('wait'));return}const 
 document.querySelectorAll('.pbig,#att').forEach(l=>l.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();l.click()}}));
 const attachFile=f=>$('file').onchange({target:{files:[f],value:''}});
 window.addEventListener('error',e=>{if(e.message)toast(t('oops')+' ('+String(e.message).slice(0,70)+')')});
-window.NovaWorkspaceActions=Object.freeze({openPhoto,openArchive:openArch,startVoice:startLive,openAgentsSuite(){window.NovaSuite?.open()},openImageStudio(){S.cur=null;stick=true;$('side').classList.remove('open');setIM({name:t('imMode')})}});
+window.NovaWorkspaceActions=Object.freeze({openPhoto,openArchive:openArch,startVoice:startLive,openAgentsSuite(){window.NovaSuite?.open()},openBusinessIntelligence(){window.NovaBusiness?.open()},openCompanyCloud(){window.NovaBusinessCloud?.open()},openImageStudio(){S.cur=null;stick=true;$('side').classList.remove('open');setIM({name:t('imMode')})}});
 window.addEventListener('unhandledrejection',e=>{const r=e.reason||{};if(r.name==='AbortError'||r.code==='aborted'||r.code==='not_granted')return;toast(t('oops')+(r.message?' ('+String(r.message).slice(0,70)+')':''))});
 document.addEventListener('paste',e=>{const f=[...((e.clipboardData&&e.clipboardData.files)||[])].find(x=>x.type.startsWith('image/'));if(f){e.preventDefault();takeImage(f,false)}});
 document.addEventListener('dragover',e=>e.preventDefault());
