@@ -60,6 +60,7 @@ The inspected Supabase project has 12 migrations, 10 RLS-enabled BI tables and a
 
 ## Honest product limitations
 
+- The provider fan-out diagnostic endpoint `/api/live/selftest` is disabled by default to prevent public callers from triggering many upstream requests; enable `LIVE_SELFTEST_ENABLED=1` only for an operator-authorized check, then turn it off.
 - Provider availability, free-tier quotas, latency and output quality can vary.
 - Browser-local saved chats can be lost if site data is cleared.
 - General NOVA account login and cloud chat sync are not established on the current Production baseline.
