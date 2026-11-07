@@ -1,4 +1,5 @@
 import { withSupabase } from "@supabase/server";
+import { findAuthUserByEmail } from "./invitations.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -164,45 +165,79 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       if (!actor || !["owner", "admin"].includes(actor.role)) return fail("Owner or admin role required", 403);
       if (role === "admin" && actor.role !== "owner") return fail("Only the organization owner can invite another admin", 403);
 
-      const { data: invitation, error: inviteError } = await ctx.supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: inviteRedirectTo });
-      if (inviteError || !invitation?.user?.id) {
-        console.error("NOVA BI invitation email could not be issued");
-        return fail("Invitation could not be sent. The address may already have an account or email delivery may not be configured.", 409);
+      // Existing confirmed accounts cannot be invited again through Supabase's invite endpoint.
+      // Resolve them using the server-only Admin API and create an in-app pending invitation.
+      const existingUser = await findAuthUserByEmail(ctx.supabaseAdmin, email);
+      let invitedUserId: string;
+      let authUserCreated = false;
+      let notificationSent = false;
+      if (existingUser) {
+        invitedUserId = existingUser.id;
+      } else {
+        const { data: invitation, error: inviteError } = await ctx.supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: inviteRedirectTo });
+        if (inviteError || !invitation?.user?.id) {
+          console.error("NOVA BI invitation email could not be issued");
+          return fail("Invitation email could not be sent. Check Supabase Auth email delivery and redirect settings, then retry.", 502);
+        }
+        invitedUserId = invitation.user.id;
+        authUserCreated = true;
+        notificationSent = true;
       }
-      const invitedUserId = invitation.user.id;
+
+      const { data: priorMembership, error: priorMembershipError } = await ctx.supabaseAdmin.from("nova_bi_memberships")
+        .select("id,status").eq("organization_id", orgId).eq("user_id", invitedUserId).maybeSingle();
+      if (priorMembershipError) {
+        if (authUserCreated) {
+          const cleanup = await ctx.supabaseAdmin.auth.admin.deleteUser(invitedUserId);
+          if (cleanup.error) console.error("NOVA BI failed to clean up the temporary Auth user after membership lookup failure");
+        }
+        return fail("Invitation could not be checked safely. Please retry later.", 503);
+      }
+      if (priorMembership) {
+        if (authUserCreated) {
+          const cleanup = await ctx.supabaseAdmin.auth.admin.deleteUser(invitedUserId);
+          if (cleanup.error) console.error("NOVA BI failed to clean up the duplicate temporary Auth user");
+        }
+        return fail(priorMembership.status === "invited"
+          ? "This user already has a pending invitation for this company."
+          : "This user is already a member of this company.", 409);
+      }
+
       const { data: member, error: memberError } = await ctx.supabaseAdmin.from("nova_bi_memberships")
         .insert({ organization_id: orgId, user_id: invitedUserId, role, status: "invited" })
         .select("id,organization_id,user_id,role,status,created_at").single();
       if (memberError) {
         console.error("NOVA BI invitation membership could not be saved");
-        const cleanup = await ctx.supabaseAdmin.auth.admin.deleteUser(invitedUserId);
-        if (cleanup.error) console.error("NOVA BI failed to clean up the invited Auth user after membership failure");
-        return fail(
-          cleanup.error
-            ? "Invitation setup failed and the temporary Auth account could not be cleaned up. Contact the workspace owner before retrying."
-            : "Invitation setup failed; the temporary Auth account was cleaned up. The email link is no longer valid. Please retry.",
-          500,
-        );
+        if (authUserCreated) {
+          const cleanup = await ctx.supabaseAdmin.auth.admin.deleteUser(invitedUserId);
+          if (cleanup.error) console.error("NOVA BI failed to clean up the temporary Auth user after membership failure");
+        }
+        return fail("Invitation setup failed. No company membership was created; please retry or contact the workspace owner.", 500);
       }
       const { error: auditError } = await ctx.supabaseAdmin.from("nova_bi_audit_events").insert({
-        organization_id: orgId, actor_id: userId, event_type: "membership.invitation.sent",
-        resource_type: "membership", resource_id: member.id, metadata_json: { role, invited_email: email },
+        organization_id: orgId, actor_id: userId,
+        event_type: notificationSent ? "membership.invitation.sent" : "membership.invitation.added",
+        resource_type: "membership", resource_id: member.id,
+        metadata_json: { role, invited_email: email, notification_sent: notificationSent },
       });
       if (auditError) {
         console.error("NOVA BI invitation audit event could not be saved");
-        const membershipCleanup = await ctx.supabaseAdmin.from("nova_bi_memberships")
-          .delete().eq("id", member.id);
+        const membershipCleanup = await ctx.supabaseAdmin.from("nova_bi_memberships").delete().eq("id", member.id);
         if (membershipCleanup.error) console.error("NOVA BI failed to clean up the incomplete invitation membership");
-        const authCleanup = await ctx.supabaseAdmin.auth.admin.deleteUser(invitedUserId);
-        if (authCleanup.error) console.error("NOVA BI failed to clean up the invited Auth user after audit failure");
+        let authCleanupFailed = false;
+        if (authUserCreated) {
+          const authCleanup = await ctx.supabaseAdmin.auth.admin.deleteUser(invitedUserId);
+          authCleanupFailed = !!authCleanup.error;
+          if (authCleanupFailed) console.error("NOVA BI failed to clean up the temporary Auth user after audit failure");
+        }
         return fail(
-          membershipCleanup.error || authCleanup.error
+          membershipCleanup.error || authCleanupFailed
             ? "Invitation audit failed and automatic cleanup was incomplete. Contact the workspace owner before retrying."
-            : "Invitation audit failed; the temporary account and membership were cleaned up. The email link is no longer valid. Please retry.",
+            : "Invitation audit failed; the incomplete membership was removed. Please retry.",
           500,
         );
       }
-      return json({ invitation: member }, 201);
+      return json({ invitation: member, notification_sent: notificationSent }, 201);
     }
 
     const acceptParts = path.split("/");
