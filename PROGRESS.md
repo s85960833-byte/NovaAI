@@ -379,7 +379,7 @@ This section supersedes the earlier BI entries above where they state that authe
 
 - BI implementation remains isolated on `feature/nova-business-intelligence`, Draft PR #46. Production `main` and Render remain untouched.
 - The user approved Supabase project `qrfwsewppafhxibdboam`; the separate Research-to-Code project remains untouched.
-- Eleven NOVA BI migrations are deployed: nine tenant tables plus one server-only rate-limit table (10 tables total), all RLS-protected. Supabase Security Advisor reports zero findings.
+- Twelve NOVA BI migrations are deployed: nine tenant tables plus one server-only rate-limit table (10 tables total), all RLS-protected. Supabase Security Advisor reports zero findings.
 - Edge Function `nova-bi-api` is ACTIVE at version 13 with JWT verification enabled. It provides authenticated organization, membership/invitation, dataset/analysis, workflow approval, branding, audit and deletion routes.
 - Live transaction-scoped PostgreSQL checks passed for tenant isolation, owner bootstrap, viewer write/delete denial, analyst approval/branding denial, admin approval separation and owner-role escalation denial, invite activation, audited deletion and rate-limit threshold/window reset. Test rows/users were rolled back; follow-up counts were zero.
 - Latest fully verified code checkpoint before this documentation update: `bea974e15e50f9bda4b657d1bd2a7564fba28ef0`; GitHub Actions run [41327443120](https://github.com/s85960833-byte/NovaAI/actions/runs/41327443120) passed 37/37 BI tests, fresh PostgreSQL 17 migration/RLS and rate-limit integration, Deno type-check, deployed Edge Function 401/CORS checks, local server/PWA checks and Playwright mobile Company Cloud flow.
