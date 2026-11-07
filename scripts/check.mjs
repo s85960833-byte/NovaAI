@@ -28,7 +28,8 @@ const rlsIntegration = readFileSync('scripts/supabase-rls-integration.sql', 'utf
 if (!rlsIntegration.includes('Every public SECURITY DEFINER function must pin an empty search_path')) throw new Error('Database integration test must guard SECURITY DEFINER search_path');
 if (!server.includes('app.disable(\'x-powered-by\')') || !server.includes('nova-business-core.js') || !server.includes('nova-business-cloud.js') || !server.includes("'/nova-reference.js','/nova-business-core.js'")) throw new Error('BI server routes or offline dashboard cache are missing');
 if (!server.includes('Content-Security-Policy') || !server.includes('frame-ancestors \'none\'') || !server.includes('camera=(self), microphone=(self), geolocation=()')) throw new Error('Combined browser security policy is incomplete');
-if (!html.includes('http-equiv=\"Content-Security-Policy\"') || !html.includes(\"default-src 'self'\") || !html.includes(\"object-src 'none'\") || !html.includes(\"base-uri 'none'\") || !html.includes(\"form-action 'self'\")) throw new Error('Document resource Content Security Policy is incomplete');
+const requiredCspFragments = ['http-equiv="Content-Security-Policy"', "default-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'self'"];
+if (!requiredCspFragments.every(fragment => html.includes(fragment))) throw new Error('Document resource Content Security Policy is incomplete');
 const cloudClient = readFileSync('nova-business-cloud.js', 'utf8');
 if (!cloudClient.includes('const orgId=state.orgId') || !cloudClient.includes('if(state.orgId!==orgId)return')) throw new Error('Company switch must discard stale tenant responses');
 if (!cloudClient.includes('if(value!==raw)node.nodeValue=value') || !cloudClient.includes('if(value!==raw)el.setAttribute(attr,value)')) throw new Error('Company Cloud bilingual MutationObserver must skip unchanged DOM values to avoid a self-triggering mutation loop');
