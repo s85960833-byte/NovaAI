@@ -14,7 +14,7 @@ The unified NOVA candidate (three-workspace UI + Business Intelligence) is on `f
 
 Production URL: https://novaai-4auo.onrender.com
 
-Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. Unified candidate PR #73 is open, Draft, unmerged and undeployed at `7b58d7b6ceac4a15ef6c93c72e6639f240a13fef`; exact-head push CI #42383854278 and PR CI #42383859510 passed. GitHub comparison reports 464 commits ahead, 0 behind and 63 changed files; inspect the full history/diff before any merge. Live Supabase still has wildcard CORS and the rate-limit SECURITY DEFINER function uses `search_path=public, pg_temp`; candidate fixes are not live. See `PITCH_READINESS.md` for current release gates.
+Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. Unified candidate PR #73 is open, Draft, unmerged and undeployed at `7b58d7b6ceac4a15ef6c93c72e6639f240a13fef`; exact-head push CI #42383854278 and PR CI #42383859510 passed. GitHub comparison reports 469 commits ahead, 0 behind and 63 changed files; inspect the full history/diff before any merge. Live Supabase still has wildcard CORS and the rate-limit SECURITY DEFINER function uses `search_path=public, pg_temp`; candidate fixes are not live. See `PITCH_READINESS.md` for current release gates.
 
 ## Architecture
 
@@ -86,7 +86,7 @@ This checkpoint supersedes older candidate-head, CI-run and release-status state
 
 ## Current authoritative release checkpoint — 7 November 2026
 
-- Latest exact-head verified candidate snapshot: `7b58d7b6ceac4a15ef6c93c72e6639f240a13fef`; Draft PR #73 remains open, unmerged and undeployed. Exact-head push CI [#42383854278](https://github.com/s85960833-byte/NovaAI/actions/runs/42383854278) and PR CI [#42383859510](https://github.com/s85960833-byte/NovaAI/actions/runs/42383859510) both passed. These final changes only synchronized documentation references; the latest application-code verification snapshot remains `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf`. These include the full HTTP CSP-header regression, isolated PostgreSQL migration/RLS integration, Deno Edge Function type-check/CORS/invitation tests, dependency audit, local runtime/PWA smoke, Chromium workspace/PDF and Company Cloud browser flows, and five-viewport/drawer tests.
+- Latest application-code verification snapshot: `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf`; exact-head push/PR CI #42382919198 and #42382923272 passed. Subsequent changes in this release audit are documentation-only; use Draft PR #73 for the current branch head and its exact CI status.
 - Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; no merge, Render deploy, live database migration or Auth/SMTP change was made.
 - Live Supabase project `qrfwsewppafhxibdboam` is healthy (PostgreSQL 17.11, eu-west-1). All 10 NOVA BI tables have RLS enabled. Security Advisor: 0 findings; Health Advisor: 0; Performance Advisor: 13 INFO-only unused-index notices.
 - Live migration history has 12 migrations. Candidate migration `20261106195900_nova_bi_rate_limit_search_path_hardening.sql` is not applied live. The live rate-limit SECURITY DEFINER function still has `search_path=public, pg_temp`; execute ACL is restricted to `postgres` and `service_role`. Candidate migration pins an empty search_path and passes the isolated PostgreSQL regression, but this live hardening is still pending.
