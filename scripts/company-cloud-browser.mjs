@@ -131,7 +131,7 @@ await page.route('**/functions/v1/nova-bi-api/**', async route => {
 
 const localHealth = await fetch('http://127.0.0.1:8787/health', { signal: AbortSignal.timeout(5000) });
 assert.equal(localHealth.status, 200, 'local NOVA server must be healthy before Company Cloud browser tests');
-const homeResponse = await page.goto('http://127.0.0.1:8787', { waitUntil: 'commit', timeout: 15000 });
+const homeResponse = await page.goto('http://127.0.0.1:8787', { waitUntil: 'domcontentloaded', timeout: 20000 });
 assert.equal(homeResponse?.status(), 200, 'local NOVA homepage must return HTTP 200');
 await page.locator('#hi .nr-card[data-group="agents"]').waitFor({ state: 'visible', timeout: 15000 });
 await page.waitForFunction(() => typeof window.supabase?.createClient === 'function', null, { timeout: 10000 });
