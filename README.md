@@ -31,6 +31,8 @@ The candidate now uses exact-origin NOVA BI CORS with tests for exact-origin, lo
 
 The workflow skipped live Render/provider and free-provider image-generation steps because no isolated candidate preview is deployed. Physical Android testing, real signup/password-reset email delivery and two-real-account tenant isolation were not performed. The 60-case evaluation fixture validates fixture structure only; it is not a live AI accuracy score. CSP is improved but not strict: `script-src` no longer permits `'unsafe-inline'`; automated Markdown attribute-injection and Chromium CSP checks passed. Inline styles and broad HTTPS `connect-src` still require hardening. The three live Render/provider/image checks were skipped because there is no isolated candidate preview. Passing CI does not prove the candidate is error-free or production-ready.
 
+**Live security discrepancy:** a fresh read-only inspection found the currently deployed `nova-bi-api` v13 still sends wildcard CORS (`Access-Control-Allow-Origin: *`). The candidate implements exact-origin checks, and its deployed-function smoke test now verifies both the approved NOVA origin and rejection of an untrusted origin. The live Edge Function has not been replaced; do not claim the deployed endpoint is hardened yet.
+
 ## Release gates still open
 
 - Approved preview/release path and deployment of the exact candidate.
