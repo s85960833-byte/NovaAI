@@ -262,21 +262,19 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 
 
 
-## 20. Latest exact-head verification — 7 November 2026
-
-- Current unified candidate: Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), exact head `136ef1b30f4d273af359958dcad56c37ae3a14be`; open, Draft, unmerged and not deployed.
-- Exact-head GitHub Actions push run [#42378924871](https://github.com/s85960833-byte/NovaAI/actions/runs/42378924871) and pull-request run [#42378928787](https://github.com/s85960833-byte/NovaAI/actions/runs/42378928787) completed successfully. The verification job passed. The feature-branch workflow intentionally skips deployed Edge Function CORS smoke and live Render/provider/image smoke; those are not passed.
-- The application-code changes immediately preceding the documentation-only update are at `cda51b75cd2722252ab1a4f546c8b107745ce3a5`; both push run [#42377209743](https://github.com/s85960833-byte/NovaAI/actions/runs/42377209743) and PR run [#42377214654](https://github.com/s85960833-byte/NovaAI/actions/runs/42377214654) passed. These include the corrected BI test assertion and candidate exact-origin CORS tests.
-- This exact-head CI evidence does not close any live-only, physical Android, real Auth email, real-account tenant-isolation, hosting/recovery, privacy, or legal gate. The live Edge Function v13 wildcard CORS discrepancy remains open until an approved deployment and post-deploy hostile-origin smoke test.
-- Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; the current candidate is not on the Production URL. No merge, deploy, migration, Auth change, paid resource change, or Render workspace change was made.
-- **Decision remains NO-GO for production customer onboarding, paid-service promises, confidential data, SLA claims, and any pitch representing NOVA as a live production product.** Limited concept discovery is permitted with explicit prototype disclosure.
 
 
-## 21. Current exact-head verification and sales boundary — 7 November 2026
 
-- Candidate PR #73 remains open, Draft, unmerged and undeployed. Current candidate head: `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`.
-- Exact-head GitHub Actions push run [#42379148497](https://github.com/s85960833-byte/NovaAI/actions/runs/42379148497) and pull-request run [#42379153742](https://github.com/s85960833-byte/NovaAI/actions/runs/42379153742) both completed successfully on `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`. All executable syntax, security, PostgreSQL migration/RLS, Deno Edge Function, BI calculation/CSV, dependency audit, local runtime/PWA, Chromium workspace/PDF, Company Cloud mobile-browser and five-viewport regression steps passed. The deployed Edge Function smoke and live Render/provider/image smoke steps were skipped because this branch is not deployed. These results are not physical Android, real SMTP/Auth, or two-real-account live tests.
-- A green CI run does not close the live release gates listed above. No physical Android device, real signup/confirmation/password-reset email, or two-real-account tenant-isolation test has been completed against the live service.
-- **Allowed now:** explain the concept, interview potential users, gather non-sensitive feedback and test willingness-to-use without implying the candidate is live.
-- **Not allowed yet:** paid sale, production onboarding, customer-data upload, live feature guarantees, subscription/SLA promises, or presenting the integrated candidate as the deployed product.
-- All remaining live configuration, deployment, migration, paid hosting, backup and account changes require the authorized project owner’s explicit approval. This addendum supersedes earlier pitch-status and candidate-head statements in this file.
+
+
+## Latest candidate verification — 7 November 2026
+
+- Current Draft PR #73 head: `3014e4bcd4600c09320045e8caacdab7c53ba53d`; PR push workflow [#42379943971](https://github.com/s85960833-byte/NovaAI/actions/runs/42379943971) completed successfully. A duplicate push run #42379938717 remains pending without a job and is not counted as a pass.
+- The successful run passed syntax/security, PostgreSQL migration and tenant-RLS integration, Deno Edge Function type-check/CORS tests, BI calculations/CSV, dependency audit, local runtime/PWA, Chromium workspace/PDF, Company Cloud mobile-browser workflows and five-viewport responsive/drawer tests.
+- Live deployed Edge Function, Render/provider/image checks were skipped because this candidate is not deployed. No physical Android device, real SMTP/Auth email, or two-real-account live tenant test has been completed.
+- PR #73 remains Draft, open, unmerged and undeployed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. No live service, database, Auth setting, billing plan or deployment was changed.
+
+### Sales boundary
+
+- **Allowed:** concept/discovery conversations and non-sensitive feedback with explicit disclosure that the integrated build is an undeployed release candidate.
+- **Not allowed:** paid sale, production onboarding, customer data, live demo guarantees, SLA, zero-error or production-ready claims until the release gates above are evidenced and approved.
