@@ -16,8 +16,8 @@ app.disable('x-powered-by');
 app.set('trust proxy', 1); // Render sits behind one trusted proxy; use the real client IP for rate limits
 
 // Baseline browser security headers. The HTTP CSP header enforces frame isolation;
-// index.html carries the resource policy. Script execution is self/CDN-only with no inline scripts.
-// Inline styles and broad connect-src remain documented hardening debt pending CSS/provider migration.
+// index.html carries the resource policy. Inline script blocks were externalized, but legacy inline
+// event-handler attributes still require 'unsafe-inline'; inline styles and broad connect-src also remain.
 app.use((q, r, next) => {
   r.setHeader('X-Content-Type-Options', 'nosniff');
   r.setHeader('X-Frame-Options', 'DENY');
