@@ -133,6 +133,9 @@ const localHealth = await fetch('http://127.0.0.1:8787/health', { signal: AbortS
 assert.equal(localHealth.status, 200, 'local NOVA server must be healthy before Company Cloud browser tests');
 const homeResponse = await page.goto('http://127.0.0.1:8787', { waitUntil: 'domcontentloaded', timeout: 20000 });
 assert.equal(homeResponse?.status(), 200, 'local NOVA homepage must return HTTP 200');
+await page.waitForTimeout(1000);
+const bootstrap = await page.evaluate(() => ({ ready: document.readyState, hasHome: !!document.querySelector('#hi'), logHtml: document.querySelector('#log')?.innerHTML.slice(0,160) || '', registryGroups: window.NovaModeRegistry?.groups?.length || 0, workspaceApi: typeof window.NovaModeWorkspace }));
+console.log('NOVA bootstrap', JSON.stringify(bootstrap));
 await page.locator('#hi .nr-card[data-group="agents"]').waitFor({ state: 'visible', timeout: 15000 });
 await page.waitForFunction(() => typeof window.supabase?.createClient === 'function', null, { timeout: 10000 });
 
