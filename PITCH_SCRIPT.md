@@ -1,5 +1,7 @@
 # NOVA — Early Demo Pitch Script
 
+**Copy-ready pitch pack:** see [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md). **Technical release truth:** see [PITCH_READINESS.md](PITCH_READINESS.md).
+
 **Use this script for an honest product-preview / design-partner conversation.** The unified three-workspace + Business Intelligence build is a Draft release candidate, not the current Production release. Do not promise availability, uptime, response quality, integrations, or paid-plan entitlements that have not been verified live.
 
 ## 30-second Hindi pitch
