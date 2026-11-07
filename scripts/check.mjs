@@ -17,6 +17,16 @@ const providerUrl = readFileSync('nova-provider-url.js', 'utf8');
 const html = readFileSync('index.html', 'utf8');
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 const gitignore = readFileSync('.gitignore', 'utf8');
+const readme = readFileSync('README.md', 'utf8');
+const pitchReadiness = readFileSync('PITCH_READINESS.md', 'utf8');
+const pitchKit = readFileSync('NOVA_PITCH_KIT.md', 'utf8');
+const pitchScript = readFileSync('PITCH_SCRIPT.md', 'utf8');
+if (!readme.includes('External sales and customer pitching are on hold') ||
+    !pitchReadiness.includes('Pitch status:** HOLD') ||
+    !pitchKit.includes('INTERNAL ONLY — HOLD') ||
+    !pitchScript.includes('INTERNAL ONLY — HOLD')) {
+  throw new Error('External sales and customer pitches must remain on hold until production readiness is explicitly cleared');
+}
 for (const pattern of ['.env', '.env.*', '*.pem', '*.key', '*.p12', '*.pfx', 'service-account*.json', 'credentials*.json', 'node_modules/']) {
   if (!gitignore.split(/\r?\n/).includes(pattern)) throw new Error('Local secrets and generated files must be ignored: ' + pattern);
 }
