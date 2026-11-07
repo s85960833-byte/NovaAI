@@ -3,7 +3,7 @@
 **Audit snapshot:** 7 November 2026  
 **Pitch status:** LIMITED CONCEPT DISCOVERY ONLY — explain the product direction and request non-sensitive feedback while clearly stating that the unified candidate is not deployed. No paid sales, customer onboarding, confidential-data use, live demo guarantees, SLA or production-readiness claims until the release gates close.
 **Unified candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Latest exact-head verified candidate snapshot:** `30ce226dc62f28c5546b57e546a6921eb9017f91`; exact-head push CI #42383632884 and PR CI #42383635166 passed. See PR #73 for the current documentation-only branch head.
+**Latest exact-head verified candidate snapshot:** `7b58d7b6ceac4a15ef6c93c72e6639f240a13fef`; exact-head push CI #42383854278 and PR CI #42383859510 passed. These final commits only synchronize documentation references; the latest application-code verification snapshot remains `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf` (exact-head push/PR CI #42382919198 and #42382923272). GitHub comparison reports 464 commits ahead, 0 behind and 63 changed files; review the full history/diff before any merge.
 **Latest full application-code verification snapshot:** `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf`; exact-head CI #42382919198 and #42382923272 passed. The later `2fb0...` change only corrected comments and also passed exact-head CI.
 **Live and physical checks not covered:** deployed Edge Function CORS, live Render/provider/image smoke, real SMTP/Auth email delivery, two-real-account live tenant isolation, and physical Android testing. CI success does not close these gates.
 **Production branch:** `main`, last inspected head `48e12a68af656b471853ac2a4509da0e3df7ab24`  
@@ -58,7 +58,7 @@ This is a hypothesis to validate. Do not claim market demand, willingness to pay
 
 Draft PR #73 combines the three-workspace interface, NOVA Business Intelligence and candidate security-hardening work. PR #66 (UI-only) and PR #67 (BI-only) are predecessors, not the release branch.
 
-The latest application-code snapshot `3014e4bcd4600c09320045e8caacdab7c53ba53d` passed exact-head CI run [#42379943971](https://github.com/s85960833-byte/NovaAI/actions/runs/42379943971). The later documentation-only candidate head `5129f0cbac94064b39b89fce2761f128dd452ebe` passed exact-head CI run [#42380234279](https://github.com/s85960833-byte/NovaAI/actions/runs/42380234279). The executed application-code checks cover:
+Historical checkpoint: application-code snapshot `3014e4bcd4600c09320045e8caacdab7c53ba53d` passed CI [#42379943971](https://github.com/s85960833-byte/NovaAI/actions/runs/42379943971); subsequent code changes were verified on `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf` by exact-head push/PR CI #42382919198 and #42382923272. The executed application-code checks cover:
 
 - Backend/frontend syntax, security regression checks and mode registry.
 - PostgreSQL migration application and tenant RLS integration tests.
@@ -319,3 +319,13 @@ This checkpoint supersedes older candidate-head, CI-run and release-status state
 - **Decision: NO-GO for paid sales, paid onboarding or production promises.** Only disclosed, non-sensitive concept feedback; no payments, confidential customer data, SLA or live-availability claims. Commercial, billing and infrastructure decisions require the authorized adult project owner.
 
 This checkpoint supersedes older candidate-head, migration-count, CSP and release-status statements above. Older entries are historical audit notes only.
+
+
+## 20. Re-audit update — 7 November 2026
+
+- Current candidate head is `7b58d7b6ceac4a15ef6c93c72e6639f240a13fef`; exact-head push CI #42383854278 and PR CI #42383859510 both passed. The CI `verify` job completed successfully; live production smoke steps were skipped by design because this candidate is not deployed.
+- Live Supabase recheck: project `qrfwsewppafhxibdboam` is `ACTIVE_HEALTHY`, PostgreSQL 17.11, region `eu-west-1`; all 10 `nova_bi_*` tables have RLS enabled; Security Advisor and Health Advisor returned zero findings; Performance Advisor returned 13 INFO-only unused-index notices. Do not drop indexes without workload evidence.
+- Live migration history remains 12 entries. Candidate migration `20261106195900_nova_bi_rate_limit_search_path_hardening.sql` is still unapplied. Live `nova_bi_consume_rate_limit` remains `SECURITY DEFINER` with `search_path=public, pg_temp`; execute permission is restricted to `service_role` (plus postgres owner). The candidate migration changes the search path to empty and pins grants, but it has not been applied to production.
+- Deployed `nova-bi-api` remains version 13 with JWT verification enabled; deployed source still has wildcard CORS. Candidate exact-origin CORS is covered by unit tests but is not deployed.
+- GitHub branch-protection read returned HTTP 403 `Resource not accessible by integration`; protection/required-check enforcement remains unknown, not “disabled” or “enabled”.
+- No live Auth/SMTP delivery, two-real-account isolation, physical Android, off-site backup/restore drill, or production-hosting health-check change was performed. Paid sales remain NO-GO.
