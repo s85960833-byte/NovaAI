@@ -25,3 +25,50 @@ export function createCorsHeaders(siteOrigin: string): Record<string, string> {
     "Vary": "Origin",
   };
 }
+
+
+/**
+ * Apply the site-origin policy before authentication so browser preflights do
+ * not fall through to the auth wrapper. The wrapped handler must use
+ * withSupabase({ cors: "disabled" }) so its default wildcard CORS cannot
+ * override this exact-origin policy.
+ */
+export function withSiteOrigin(
+  handler: (request: Request) => Promise<Response>,
+  siteOrigin: string,
+): (request: Request) => Promise<Response> {
+  return async (request: Request): Promise<Response> => {
+    const origin = request.headers.get("Origin");
+    if (!isAllowedOrigin(origin, siteOrigin)) {
+      return new Response("Origin not allowed", {
+        status: 403,
+        headers: { "Vary": "Origin" },
+      });
+    }
+
+    if (request.method === "OPTIONS") {
+      if (!origin) {
+        return new Response("Origin required", {
+          status: 400,
+          headers: { "Vary": "Origin" },
+        });
+      }
+      return new Response("ok", { headers: createCorsHeaders(siteOrigin) });
+    }
+
+    const response = await handler(request);
+    const headers = new Headers(response.headers);
+    const vary = headers.get("Vary");
+    headers.set("Vary", vary ? vary.split(/,\s*/).includes("Origin") ? vary : vary + ", Origin" : "Origin");
+    if (origin) {
+      for (const [name, value] of Object.entries(createCorsHeaders(siteOrigin))) {
+        headers.set(name, value);
+      }
+    }
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  };
+}
