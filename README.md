@@ -14,7 +14,7 @@ The unified NOVA candidate (three-workspace UI + Business Intelligence) is on `f
 
 Production URL: https://novaai-4auo.onrender.com
 
-The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab24`. The unified candidate has not been merged or deployed. At the 7 November 2026 audit, exact head `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e` passed push run [#42379148497](https://github.com/s85960833-byte/NovaAI/actions/runs/42379148497) and PR run [#42379153742](https://github.com/s85960833-byte/NovaAI/actions/runs/42379153742). Live-only checks are intentionally skipped on the feature branch. For release gates, see [PITCH_READINESS.md](PITCH_READINESS.md). Do not present the candidate as the live Production build.
+The inspected Production branch head is `48e12a68af656b471853ac2a4509da0e3df7ab24`. Unified candidate PR #73 is open, Draft, unmerged and undeployed at head `6c53223686943b068ac36c48fd5ae72c58edc226`; exact-head CI runs #42381308464 and #42381303719 both passed. Live-only checks were skipped because this candidate is not on `main`. The deployed NOVA BI Edge Function still uses wildcard CORS; the candidate exact-origin fix is not live. See [PITCH_READINESS.md](PITCH_READINESS.md) for current release gates.
 
 ## Architecture
 
