@@ -90,7 +90,7 @@ delete from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddd
 reset role;
 do $rls_owner$
 begin
-  if (select name from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd') <> 'Finance CSV' then
+  if (select name from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd') is distinct from 'Finance CSV' then
     raise exception 'Outsider unexpectedly modified or deleted another tenant dataset';
   end if;
 end $rls_owner$;
