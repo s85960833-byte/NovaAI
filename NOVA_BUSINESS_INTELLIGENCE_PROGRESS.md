@@ -6,7 +6,7 @@ Updated: 2026-11-06
 - Unified feature branch: `feature/nova-integrated-release-20261106`.
 - Review: [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73), which combines the three-workspace UI and NOVA BI.
 - BI-only PR #67 is a predecessor; PR #46 is an older divergent branch. Do not merge either as a substitute for PR #73.
-- Latest candidate head `2fb0b95ce1158a1b2435ece00061902f01db39d5` passed exact-head push CI #42383252855 and PR CI #42383257827. See PR #73 for newer documentation-only commits and their checks.
+- Latest documentation head `7b58d7b6ceac4a15ef6c93c72e6639f240a13fef` passed exact-head push CI #42383854278 and PR CI #42383859510. Latest application-code verification snapshot is `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf` (exact-head push/PR CI #42382919198 and #42382923272). PR #73 remains Draft, unmerged and undeployed; live CORS and migration are not fixed yet.
 - Production `main`, Render and the live Supabase schema/function remain unchanged. No merge, production deployment, live migration, Auth config change or SMTP change has been performed.
 - Production `main` and Render service `srv-dbidhpc9v7es73d6ia80` remain untouched. No merge or production deployment has been performed.
 - Approved NOVA BI Supabase project: `qrfwsewppafhxibdboam`. The separate Research-to-Code project has not been used.
