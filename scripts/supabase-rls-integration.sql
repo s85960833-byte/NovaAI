@@ -77,13 +77,15 @@ begin
   if has_table_privilege('authenticated','public.nova_bi_memberships','insert') then
     raise exception 'Authenticated clients must not insert membership rows directly';
   end if;
+  <<cross_tenant_insert>>
   begin
     insert into public.nova_bi_datasets(organization_id,created_by,name,source_type,fingerprint,row_count,column_names)
     values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','22222222-2222-4222-8222-222222222222',
       'Outsider cross-tenant write','csv','outsider-write-denied-001',1,'["amount"]'::jsonb);
     raise exception 'Outsider unexpectedly inserted a dataset into another tenant';
-  exception when insufficient_privilege then null;
-  end;
+  exception when insufficient_privilege then
+    null;
+  end cross_tenant_insert;
 end $rls_outsider$;
 update public.nova_bi_datasets set name='Hacked' where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 delete from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
