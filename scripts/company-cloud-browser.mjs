@@ -26,6 +26,10 @@ let branding = {
 page.on('pageerror', error => pageErrors.push(error.message));
 page.on('dialog', dialog => dialog.accept());
 
+// Keep the browser test independent of external Google Fonts availability; CI installs the Devanagari fallback locally.
+await page.route('https://fonts.googleapis.com/**', route => route.fulfill({ status: 200, contentType: 'text/css; charset=utf-8', body: '' }));
+await page.route('https://fonts.gstatic.com/**', route => route.abort());
+
 await page.route('**/supabase-js@2.119.0/dist/umd/supabase.min.js*', route =>
   route.fulfill({ status: 200, contentType: 'application/javascript', body: `let testSession = null; let authListener = null;
 window.__authCalls = [];
@@ -125,7 +129,10 @@ await page.route('**/functions/v1/nova-bi-api/**', async route => {
   });
 });
 
-await page.goto('http://127.0.0.1:8787', { waitUntil: 'domcontentloaded' });
+const localHealth = await fetch('http://127.0.0.1:8787/health', { signal: AbortSignal.timeout(5000) });
+assert.equal(localHealth.status, 200, 'local NOVA server must be healthy before Company Cloud browser tests');
+const homeResponse = await page.goto('http://127.0.0.1:8787', { waitUntil: 'domcontentloaded', timeout: 20000 });
+assert.equal(homeResponse?.status(), 200, 'local NOVA homepage must return HTTP 200');
 
 // Exercise the local analysis workspace from the only allowed entry point: NOVA Agents.
 await page.locator('#hi .nr-card[data-group="agents"]').waitFor({ state: 'visible', timeout: 15000 });
