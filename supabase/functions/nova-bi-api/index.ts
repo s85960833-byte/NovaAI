@@ -188,20 +188,34 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
       const { data: priorMembership, error: priorMembershipError } = await ctx.supabaseAdmin.from("nova_bi_memberships")
         .select("id,status").eq("organization_id", orgId).eq("user_id", invitedUserId).maybeSingle();
       if (priorMembershipError) {
+        let cleanupFailed = false;
         if (authUserCreated) {
           const cleanup = await ctx.supabaseAdmin.auth.admin.deleteUser(invitedUserId);
-          if (cleanup.error) console.error("NOVA BI failed to clean up the temporary Auth user after membership lookup failure");
+          cleanupFailed = !!cleanup.error;
+          if (cleanupFailed) console.error("NOVA BI failed to clean up the temporary Auth user after membership lookup failure");
         }
-        return fail("Invitation could not be checked safely. Please retry later.", 503);
+        return fail(
+          cleanupFailed
+            ? "Invitation lookup failed and the temporary Auth account could not be cleaned up. Contact the workspace owner before retrying."
+            : "Invitation could not be checked safely. Any temporary Auth account was cleaned up; please retry later.",
+          503,
+        );
       }
       if (priorMembership) {
+        let cleanupFailed = false;
         if (authUserCreated) {
           const cleanup = await ctx.supabaseAdmin.auth.admin.deleteUser(invitedUserId);
-          if (cleanup.error) console.error("NOVA BI failed to clean up the duplicate temporary Auth user");
+          cleanupFailed = !!cleanup.error;
+          if (cleanupFailed) console.error("NOVA BI failed to clean up the duplicate temporary Auth user");
         }
-        return fail(priorMembership.status === "invited"
-          ? "This user already has a pending invitation for this company."
-          : "This user is already a member of this company.", 409);
+        return fail(
+          cleanupFailed
+            ? "This user already has company access, but the duplicate temporary Auth account could not be cleaned up. Contact the workspace owner."
+            : priorMembership.status === "invited"
+              ? "This user already has a pending invitation for this company."
+              : "This user is already a member of this company.",
+          409,
+        );
       }
 
       const { data: member, error: memberError } = await ctx.supabaseAdmin.from("nova_bi_memberships")
@@ -209,11 +223,20 @@ Deno.serve(withSupabase({ auth: "user" }, async (req, ctx) => {
         .select("id,organization_id,user_id,role,status,created_at").single();
       if (memberError) {
         console.error("NOVA BI invitation membership could not be saved");
+        let cleanupFailed = false;
         if (authUserCreated) {
           const cleanup = await ctx.supabaseAdmin.auth.admin.deleteUser(invitedUserId);
-          if (cleanup.error) console.error("NOVA BI failed to clean up the temporary Auth user after membership failure");
+          cleanupFailed = !!cleanup.error;
+          if (cleanupFailed) console.error("NOVA BI failed to clean up the temporary Auth user after membership failure");
         }
-        return fail("Invitation setup failed. No company membership was created; please retry or contact the workspace owner.", 500);
+        return fail(
+          cleanupFailed
+            ? "Invitation setup failed and the temporary Auth account could not be cleaned up. Contact the workspace owner before retrying."
+            : authUserCreated
+              ? "Invitation setup failed; the temporary Auth account was cleaned up and its email link is no longer valid. Please retry."
+              : "Invitation setup failed. No company membership was created and the existing account was left unchanged. Please retry.",
+          500,
+        );
       }
       const { error: auditError } = await ctx.supabaseAdmin.from("nova_bi_audit_events").insert({
         organization_id: orgId, actor_id: userId,
