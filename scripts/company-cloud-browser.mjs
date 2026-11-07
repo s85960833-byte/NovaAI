@@ -127,11 +127,12 @@ await page.route('**/functions/v1/nova-bi-api/**', async route => {
 
 await page.goto('http://127.0.0.1:8787', { waitUntil: 'domcontentloaded' });
 
-// Exercise the local analysis workspace at a phone-sized viewport.
-await page.locator('#novaBusinessLauncher').waitFor({ state: 'visible', timeout: 15000 });
-await page.locator('#menu').click();
-await page.locator('#side.open').waitFor();
-await page.locator('#novaBusinessLauncher').click();
+// Exercise the local analysis workspace from the only allowed entry point: NOVA Agents.
+await page.locator('#hi .nr-card[data-group="agents"]').waitFor({ state: 'visible', timeout: 15000 });
+await page.locator('#hi .nr-card[data-group="agents"]').click();
+await page.locator('#novaModes.open').waitFor();
+await page.locator('#nmContent [data-quick="openBusinessIntelligence"]').waitFor({ state: 'visible', timeout: 10000 });
+await page.locator('#nmContent [data-quick="openBusinessIntelligence"]').click();
 await page.locator('#nbNav [data-view="data"]').click();
 await page.locator('#nbFile').setInputFiles({
   name: 'expenses.csv',
@@ -174,10 +175,10 @@ const proofDownload = await proofDownloadPromise;
 assert.match(proofDownload.suggestedFilename(), /nova-action-proof\.json$/);
 await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaBusiness').evaluate(el => el.classList.contains('show')), false);
-await page.locator('#side.open').waitFor({ timeout: 5000 });
+assert.equal(await page.locator('#novaModes').evaluate(el => el.classList.contains('open')), true, 'Agents workspace must remain open underneath Business Intelligence');
 
-await page.locator('#novaBICloudLauncher').waitFor({ state: 'visible', timeout: 15000 });
-await page.locator('#novaBICloudLauncher').click();
+await page.locator('#nmContent [data-quick="openCompanyCloud"]').waitFor({ state: 'visible', timeout: 10000 });
+await page.locator('#nmContent [data-quick="openCompanyCloud"]').click();
 await page.locator('#ncbAuth').waitFor();
 await page.locator('#ncbEmail').fill('owner@example.test');
 await page.locator('#ncbPassword').fill('a-strong-test-password');
@@ -269,6 +270,9 @@ assert.match(download.suggestedFilename(), /nova-bi-export\.json$/);
 await page.locator('#ncbClose').focus();
 await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaBICloud').evaluate(el => el.classList.contains('show')), false);
+assert.equal(await page.locator('#novaModes').evaluate(el => el.classList.contains('open')), true, 'Agents workspace must remain open underneath Company Cloud');
+await page.keyboard.press('Escape');
+assert.equal(await page.locator('#novaModes').evaluate(el => el.classList.contains('open')), false);
 assert.deepEqual(pageErrors, []);
 await browser.close();
 process.stdout.write('PASS Company Cloud mobile browser flow: sign-in, workspace, branding, invitations, approval, export and keyboard close\n');
