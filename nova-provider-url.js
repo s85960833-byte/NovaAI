@@ -22,7 +22,7 @@ function secureProviderBase(name, raw, fallback, allowLocal = process.env.NODE_E
   }
   if (!parsed.hostname) throw new TypeError(name + ' must include a hostname');
 
-  return parsed.href.replace(/\\/+$/, '');
+  return parsed.href.replace(/\/+$/, '');
 }
 
 module.exports = { secureProviderBase };
