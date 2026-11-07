@@ -8,6 +8,8 @@ NOVA is an India-oriented, Hindi-and-English AI web application. The current pro
 
 ## Project status
 
+**External sales and customer pitching are on hold until production readiness is explicitly cleared in `PITCH_READINESS.md`.**
+
 The unified NOVA candidate (three-workspace UI + Business Intelligence) is on `feature/nova-integrated-release-20261106` in Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73). It is not the Production release.
 
 Production URL: https://novaai-4auo.onrender.com
