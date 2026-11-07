@@ -260,3 +260,13 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 - Live deployment remains unchanged: production Edge Function `nova-bi-api` v13 still has wildcard CORS, and candidate exact-origin CORS code has not been deployed. Candidate PR #73 remains Draft/unmerged; production `main` is untouched.
 - External release gates remain: real email delivery, physical Android checks, live candidate preview/provider smoke, hosting/backups, region choice, privacy/deletion review, full CSP hardening, and branch protection.
 
+
+
+## 20. Latest exact-head verification — 7 November 2026
+
+- Current unified candidate: Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), exact head `136ef1b30f4d273af359958dcad56c37ae3a14be`; open, Draft, unmerged and not deployed.
+- Exact-head GitHub Actions push run [#42378924871](https://github.com/s85960833-byte/NovaAI/actions/runs/42378924871) and pull-request run [#42378928787](https://github.com/s85960833-byte/NovaAI/actions/runs/42378928787) completed successfully. The verification job passed. The feature-branch workflow intentionally skips deployed Edge Function CORS smoke and live Render/provider/image smoke; those are not passed.
+- The application-code changes immediately preceding the documentation-only update are at `cda51b75cd2722252ab1a4f546c8b107745ce3a5`; both push run [#42377209743](https://github.com/s85960833-byte/NovaAI/actions/runs/42377209743) and PR run [#42377214654](https://github.com/s85960833-byte/NovaAI/actions/runs/42377214654) passed. These include the corrected BI test assertion and candidate exact-origin CORS tests.
+- This exact-head CI evidence does not close any live-only, physical Android, real Auth email, real-account tenant-isolation, hosting/recovery, privacy, or legal gate. The live Edge Function v13 wildcard CORS discrepancy remains open until an approved deployment and post-deploy hostile-origin smoke test.
+- Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; the current candidate is not on the Production URL. No merge, deploy, migration, Auth change, paid resource change, or Render workspace change was made.
+- **Decision remains NO-GO for production customer onboarding, paid-service promises, confidential data, SLA claims, and external sales pitches represented as a live product.** Keep the pitch materials internal until all applicable release gates are evidenced and an authorized owner approves release.
