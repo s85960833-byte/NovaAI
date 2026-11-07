@@ -19,5 +19,7 @@ for (const file of ['nova-app.js', 'mode-workspace.js']) {
 
 test('CSP permits only the pinned CDN origin for the PDF.js module worker', () => {
   const html = readFileSync('index.html', 'utf8');
-  assert.match(html, /worker-src[^;]*https:\/\/cdn\.jsdelivr\.net/);
+  const workerPolicy = html.match(/worker-src[^;]*/)?.[0] || '';
+  assert.match(workerPolicy, /https:\/\/cdn\.jsdelivr\.net/);
+  assert.doesNotMatch(workerPolicy, /cdnjs\.cloudflare\.com/, 'worker policy must not trust an unused CDN');
 });
