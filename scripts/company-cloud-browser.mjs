@@ -258,7 +258,10 @@ assert.equal(await page.locator('#novaModes').evaluate(el => el.classList.contai
 await page.locator('#nmContent [data-quick="openCompanyCloud"]').waitFor({ state: 'visible', timeout: 10000 });
 await page.locator('#nmContent [data-quick="openCompanyCloud"]').click();
 await page.locator('#ncbAuth').waitFor();
-progress('Company Cloud auth view opened');
+const preSignupNotice = await page.locator('#ncbContent').innerText();
+assert.match(preSignupNotice, /Raw CSV rows stay in this browser/i, 'signup must disclose where raw CSV rows are processed');
+assert.match(preSignupNotice, /account-deletion processes are not yet published/i, 'signup must disclose the current account-deletion limitation');
+progress('Company Cloud auth view and pre-signup data notice opened');
 await page.locator('#ncbEmail').fill('owner@example.test');
 await page.locator('#ncbPassword').fill('a-strong-test-password');
 await page.locator('#ncbAuth button[data-mode="signup"]').click();
