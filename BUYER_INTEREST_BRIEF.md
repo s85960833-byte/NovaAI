@@ -63,3 +63,15 @@ The core application is hosted at https://novaai-4auo.onrender.com.
 - Account UI/cloud-sync code is included in the deployed main commit, but real email delivery, Auth redirects, two-account isolation and account deletion remain unverified. Do not promise those capabilities.
 
 **Document status:** Discovery-only draft. Refresh evidence and limitations after each verified deployment and test cycle.
+
+
+## Superseding deployment correction — 8 November 2026, 11:23 UTC
+
+This section supersedes the earlier statement above that the latest successful deployment was still commit `f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8` or that commit `7a9530ae32cb674b8724e1aedd30e30a456e9d92` was the newest deployment.
+
+- Render deployment `dep-dbo5m83m8hqs73fkhvtg` completed successfully for commit `7a9530ae32cb674b8724e1aedd30e30a456e9d92`.
+- The subsequent documentation-only main commit `cf29ca10205f929ff836167669de65115c3c37f8` was also deployed successfully as Render deployment `dep-dbo5mv3l550s738pq8qg` at 11:23 UTC; Render reports build and deployment succeeded and status `live`.
+- The Render service is configured for branch `main`, auto-deploy enabled, URL https://novaai-4auo.onrender.com, Free plan, Singapore region.
+- These Render records confirm successful builds/deployments. They do **not** establish that the external HTTP endpoints, browser flows, real email delivery, authentication redirects, live two-account isolation, or physical Android experience have passed.
+- External HTTP smoke verification has not yet been independently completed in this session. Until it passes, describe the hosted app as deployed, not fully runtime-verified or buyer-ready.
+- Keep all previously stated limitations and supervised, non-paid discovery boundaries in force.
