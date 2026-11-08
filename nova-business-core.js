@@ -4,7 +4,7 @@
   if(root)root.NovaBusinessCore=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
-  const MAX_CSV_BYTES=5*1024*1024,MAX_ROWS=20000;
+  const MAX_CSV_BYTES=5*1024*1024,MAX_ROWS=20000,MAX_COLUMNS=100;
   const fail=(message)=>{throw new Error(message)};
   const text=(v)=>String(v==null?'':v).trim();
   const number=(v)=>{
@@ -26,7 +26,7 @@
   };
   const deadlineDate=(v)=>{const value=text(v);if(/^\d{4}-\d{2}-\d{2}$/.test(value)){const stamp=date(value);return stamp===null?null:stamp+86400000-1;}return date(value);};
   function parseCSV(input,options){
-    const opts=options||{},maxBytes=opts.maxBytes||MAX_CSV_BYTES,maxRows=opts.maxRows||MAX_ROWS;
+    const opts=options||{},maxBytes=opts.maxBytes||MAX_CSV_BYTES,maxRows=opts.maxRows||MAX_ROWS,maxColumns=opts.maxColumns||MAX_COLUMNS;
     if(typeof input!=='string')fail('CSV input must be text.');
     if(new TextEncoder().encode(input).length>maxBytes)fail('CSV exceeds the 5 MB import limit.');
     const src=input.replace(/^\uFEFF/,'');if(!src.trim())fail('CSV is empty.');
@@ -42,6 +42,7 @@
           else if(ch==='\n'||ch==='\r')physicalLine++;
         }
       }else if(ch===','){
+        if(row.length>=maxColumns)fail('CSV contains too many columns; the limit is '+maxColumns+'.');
         row.push(cell);cell='';closed=false;
       }else if(ch==='\n'||ch==='\r'){
         if(ch==='\r'&&next==='\n')i++;
@@ -61,6 +62,7 @@
     row.push(cell);if(row.some(v=>text(v)))matrix.push({cells:row,line:rowStartLine});
     if(!matrix.length)fail('CSV has no header row.');
     const header=matrix.shift().cells,headers=header.map(h=>text(h));
+    if(headers.length>maxColumns)fail('CSV contains too many columns; the limit is '+maxColumns+'.');
     if(headers.some(h=>!h))fail('CSV headers cannot be blank.');
     const norm=headers.map(h=>h.toLowerCase());
     if(new Set(norm).size!==norm.length)fail('CSV has duplicate column names.');
@@ -167,5 +169,5 @@
   }
   function sortedMap(map){return [...map.entries()].map(([name,value])=>({name,value:round(value)})).sort((a,b)=>b.value-a.value)}
   function round(n,places){if(!Number.isFinite(n))fail('Calculation exceeded the supported numeric range.');const p=10**(places==null?2:places),result=Math.round((n+Number.EPSILON)*p)/p;if(!Number.isFinite(result))fail('Calculation exceeded the supported numeric range.');return result}
-  return Object.freeze({parseCSV,analyzeExpenses,analyzeClients,analyzeTasks,scoreProjectRisk,simulateScenario,makeProof,fingerprint,number,date,MAX_CSV_BYTES,MAX_ROWS});
+  return Object.freeze({parseCSV,analyzeExpenses,analyzeClients,analyzeTasks,scoreProjectRisk,simulateScenario,makeProof,fingerprint,number,date,MAX_CSV_BYTES,MAX_ROWS,MAX_COLUMNS});
 });

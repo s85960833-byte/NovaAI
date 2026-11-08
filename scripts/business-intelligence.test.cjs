@@ -59,6 +59,11 @@ test('CSV import enforces configurable byte and row limits',()=>{
  assert.throws(()=>core.parseCSV(['a','1'].join(LF),{maxBytes:1}),/import limit/);
  assert.throws(()=>core.parseCSV(['a','1','2'].join(LF),{maxRows:1}),/too many rows/);
 });
+test('CSV import rejects excessive column counts before analysis',()=>{
+ const columns=Array.from({length:101},(_,i)=>'c'+i).join(',');
+ assert.throws(()=>core.parseCSV(columns+'\\n'+Array.from({length:101},()=>1).join(',')),/too many columns/);
+ assert.equal(core.MAX_COLUMNS,100);
+});
 test('business workspace does not upload or persist raw company CSV data',()=>{
  const ui=readFileSync(path.join(__dirname,'..','nova-business.js'),'utf8');
  assert.equal(ui.includes('fetch('),false);assert.equal(ui.includes('XMLHttpRequest'),false);assert.equal(ui.includes('localStorage'),false);
