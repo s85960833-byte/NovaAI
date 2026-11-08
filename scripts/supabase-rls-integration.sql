@@ -40,6 +40,9 @@ begin
   if (select count(*) from public.nova_bi_datasets where id='dddddddd-dddd-4ddd-8ddd-dddddddddddd') <> 1 then
     raise exception 'Owner cannot read own dataset';
   end if;
+  if not exists(select 1 from public.nova_bi_audit_events where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') then
+    raise exception 'Owner cannot read the company audit log';
+  end if;
   begin
     update public.nova_bi_workflow_proposals set status='approved'
     where id='ffffffff-ffff-4fff-8fff-ffffffffffff';
