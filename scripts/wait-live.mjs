@@ -1,32 +1,117 @@
-const BASE=process.env.NOVAAI_URL||'https://novaai-4auo.onrender.com';
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-let last='No response';
-for(let i=0;i<36;i++){
-  try{
-    const [m,h,health,icon,appResponse,accountResponse]=await Promise.all([
-      fetch(BASE+'/manifest.webmanifest',{signal:AbortSignal.timeout(12000)}),
-      fetch(BASE+'/',{signal:AbortSignal.timeout(12000)}),
-      fetch(BASE+'/health',{signal:AbortSignal.timeout(12000)}),
-      fetch(BASE+'/icons/nova-emblem.svg',{signal:AbortSignal.timeout(12000)}),
-      fetch(BASE+'/nova-app.js',{signal:AbortSignal.timeout(12000)}),
-    fetch(BASE+'/nova-account.js',{signal:AbortSignal.timeout(12000)})
+const BASE = process.env.NOVAAI_URL || 'https://novaai-4auo.onrender.com';
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+let last = 'No response';
+
+for (let i = 0; i < 36; i++) {
+  try {
+    const [
+      manifestResponse,
+      homepageResponse,
+      healthResponse,
+      iconResponse,
+      appResponse,
+      accountResponse,
+      referenceResponse
+    ] = await Promise.all([
+      fetch(BASE + '/manifest.webmanifest', { signal: AbortSignal.timeout(12000) }),
+      fetch(BASE + '/', { signal: AbortSignal.timeout(12000) }),
+      fetch(BASE + '/health', { signal: AbortSignal.timeout(12000) }),
+      fetch(BASE + '/icons/nova-emblem.svg', { signal: AbortSignal.timeout(12000) }),
+      fetch(BASE + '/nova-app.js', { signal: AbortSignal.timeout(12000) }),
+      fetch(BASE + '/nova-account.js', { signal: AbortSignal.timeout(12000) }),
+      fetch(BASE + '/nova-reference.js', { signal: AbortSignal.timeout(12000) })
     ]);
-    const manifest=await m.json().catch(()=>({}));
-    const html=await h.text();
-    const healthData=await health.json().catch(()=>({}));
-    const svg=await icon.text();
-    const app=await appResponse.text();
-    const account=await accountResponse.text();
-    const referenceResponse=await fetch(BASE+'/nova-reference.js',{signal:AbortSignal.timeout(12000)});
-    const reference=await referenceResponse.text();
-    last='manifest HTTP '+m.status+', homepage HTTP '+h.status+', health HTTP '+health.status+', icon HTTP '+icon.status+', app HTTP '+appResponse.status+', account HTTP '+accountResponse.status;
-    if(m.ok&&h.ok&&health.ok&&icon.ok&&appResponse.ok&&accountResponse.ok&&referenceResponse.ok&&['NOVA Build / नोवा बिल्ड','NOVA Learn / नोवा लर्न','NOVA Agents / नोवा एजेंट्स','body.nova-dashboard-home:not(.nova-image-mode) #box'].every(x=>reference.includes(x))&&!reference.includes('id=\"nrAsk\"')&&!reference.includes('data-nr=')&&manifest.short_name==='NOVA'&&healthData.status==='ok'&&html.includes('<html lang="en">')&&html.includes('id="msgs"')&&html.includes('id="dset"')&&html.includes('id="photo"')&&html.includes('id="novaAccountDialog"')&&html.includes('src="/nova-account.js"')&&['novaSignUp','novaSignIn','novaCloudSync','novaDeleteCloud','nova_user_workspaces'].every(x=>account.includes(x))&&app.includes("localStorage.getItem('nova')")&&app.includes('const persistable=()=>')&&app.includes('JSON.stringify(persistable())')&&!app.includes("localStorage.setItem('nova',JSON.stringify(S))")&&['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>html.includes(x))&&['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"','src="/nova-reference.js"'].every(x=>html.includes(x))&&!html.includes('id="novaSplash"')&&!html.includes('id="novaLivingCore"')&&app.includes('hi:{')&&!html.includes('id="nova-future-style"')&&!html.includes('id="nova-future-script"')&&!html.includes('nova-living-core')&&!html.includes('INDIAN SOUL • FUTURE INTELLIGENCE')&&svg.includes('<svg')){
-      const reference=await fetch(BASE+'/nova-reference.js',{signal:AbortSignal.timeout(12000)});const refText=await reference.text();if(!reference.ok||!refText.includes('nr-hero')||!refText.includes('nr-cards')||!refText.includes('nr-journey'))throw new Error('Reference dashboard asset is not live or is incomplete');
-      console.log('PASS Render serves the latest required NOVA reference dashboard, three workspaces, account/auth/cloud-sync asset, photo/voice bridges, legacy chat storage, Settings/image panels, health endpoint and PWA identity');
+
+    const manifest = await manifestResponse.json().catch(() => ({}));
+    const homepage = await homepageResponse.text();
+    const health = await healthResponse.json().catch(() => ({}));
+    const icon = await iconResponse.text();
+    const app = await appResponse.text();
+    const account = await accountResponse.text();
+    const reference = await referenceResponse.text();
+
+    last = [
+      'manifest HTTP ' + manifestResponse.status,
+      'homepage HTTP ' + homepageResponse.status,
+      'health HTTP ' + healthResponse.status,
+      'icon HTTP ' + iconResponse.status,
+      'app HTTP ' + appResponse.status,
+      'account HTTP ' + accountResponse.status,
+      'reference HTTP ' + referenceResponse.status
+    ].join(', ');
+
+    const requiredReferenceMarkers = [
+      'NOVA Build / नोवा बिल्ड',
+      'NOVA Learn / नोवा लर्न',
+      'NOVA Agents / नोवा एजेंट्स',
+      'body.nova-dashboard-home:not(.nova-image-mode) #box',
+      'nr-hero',
+      'nr-cards',
+      'nr-journey'
+    ];
+    const requiredAccountMarkers = [
+      'novaSignUp',
+      'novaSignIn',
+      'novaCloudSync',
+      'novaDeleteCloud',
+      'nova_user_workspaces'
+    ];
+    const requiredHomepageMarkers = [
+      '<html lang="en">',
+      'id="msgs"',
+      'id="dset"',
+      'id="photo"',
+      'id="novaAccountDialog"',
+      'src="/nova-account.js"',
+      'nova-home',
+      'nova-hero',
+      'nova-workspaces',
+      'nova-tool-grid',
+      'src="/mode-registry.js"',
+      'src="/mode-workspace.js"',
+      'src="/nova-suite.js"',
+      'src="/s-tier.js"',
+      'src="/nova-reference.js"'
+    ];
+
+    const passed =
+      manifestResponse.ok &&
+      homepageResponse.ok &&
+      healthResponse.ok &&
+      iconResponse.ok &&
+      appResponse.ok &&
+      accountResponse.ok &&
+      referenceResponse.ok &&
+      manifest.short_name === 'NOVA' &&
+      health.status === 'ok' &&
+      requiredHomepageMarkers.every(marker => homepage.includes(marker)) &&
+      requiredReferenceMarkers.every(marker => reference.includes(marker)) &&
+      !reference.includes('id="nrAsk"') &&
+      !reference.includes('data-nr=') &&
+      requiredAccountMarkers.every(marker => account.includes(marker)) &&
+      app.includes("localStorage.getItem('nova')") &&
+      app.includes('const persistable=()=>') &&
+      app.includes('JSON.stringify(persistable())') &&
+      !app.includes("localStorage.setItem('nova',JSON.stringify(S))") &&
+      app.includes('hi:{') &&
+      !homepage.includes('id="novaSplash"') &&
+      !homepage.includes('id="novaLivingCore"') &&
+      !homepage.includes('id="nova-future-style"') &&
+      !homepage.includes('id="nova-future-script"') &&
+      !homepage.includes('nova-living-core') &&
+      !homepage.includes('INDIAN SOUL • FUTURE INTELLIGENCE') &&
+      icon.includes('<svg');
+
+    if (passed) {
+      console.log('PASS Render serves the required NOVA dashboard, three workspaces, account/auth/cloud-sync asset, photo/voice bridges, legacy chat storage, Settings/image panels, health endpoint and PWA identity');
       process.exit(0);
     }
-  }catch(e){last=String(e.message||e)}
-  console.log('Waiting for Render deployment ('+(i+1)+'/36): '+last);
+  } catch (error) {
+    last = String(error.message || error);
+  }
+
+  console.log('Waiting for Render deployment (' + (i + 1) + '/36): ' + last);
   await sleep(10000);
 }
-throw new Error('Render did not serve the restored standard NOVA UI within six minutes: '+last);
+
+throw new Error('Render did not serve the required NOVA release assets within six minutes: ' + last);
