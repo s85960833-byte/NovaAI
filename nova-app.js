@@ -598,7 +598,7 @@ function phSync(){const has=!!pimg,cam=!!camStream;$('pprev').hidden=!has||cam;i
 async function openPhoto(){camOff();$('phelp').hidden=true;IM=null;PH.sub=null;PH.st=null;$('side').classList.remove('open');phChips();$('perr').textContent='';$('pnote').value='';$('photo').hidden=false;render();phSync();if(SMP){let cap=null;try{cap=(await SMP.limits()).images}catch(e){}if(!cap)$('perr').textContent=t('eVis')}}
 function closePhoto(){camOff();$('photo').hidden=true}
 function goHome(){dashEnter=true;S.cur=null;stick=true;save();render();$('side').classList.remove('open')}
-function setIM(o){IM=o;render();if(o)$('in').focus()}
+function setIM(o){IM=o;if(o)document.body.classList.remove('nova-dashboard-home');render();if(o)$('in').focus()}
 function dash(){
 const l=$('log');l.innerHTML='';
 const h=document.createElement('div');h.id='hi';h.className='nova-home';
