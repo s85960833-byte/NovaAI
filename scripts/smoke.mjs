@@ -28,13 +28,15 @@ const requiredSecurityHeaders = [
   ['x-frame-options', 'DENY'],
   ['referrer-policy', 'strict-origin-when-cross-origin'],
   ['permissions-policy', 'camera=(self), microphone=(self), geolocation=()'],
-  ['content-security-policy', "frame-ancestors 'none'"],
   ['strict-transport-security', 'max-age=31536000; includeSubDomains'],
 ];
 for (const [name, expected] of requiredSecurityHeaders) {
   if (health.headers.get(name) !== expected) throw new Error('Live security header ' + name + ' expected "' + expected + '", got "' + health.headers.get(name) + '"');
 }
-console.log('PASS live HTTP security headers and HSTS');
+const healthCsp = health.headers.get('content-security-policy') || '';
+const healthCspDirectives = healthCsp.split(';').map(directive => directive.trim());
+if (!healthCspDirectives.includes("frame-ancestors 'none'")) throw new Error('Live security header content-security-policy is missing frame-ancestors none');
+console.log('PASS live HTTP security headers, CSP frame-ancestors and HSTS');
 const home = await request('/');
 const homeHtml = await home.text();
 const appResponse = await request('/nova-app.js');
