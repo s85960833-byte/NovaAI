@@ -44,14 +44,15 @@ Updated: 2026-11-08
 - External accounting, HR, CRM, payment and project-management integrations are not implemented.
 
 ## Automated verification
-- CI applies the committed migrations to a fresh PostgreSQL 17 instance and exercises tenant-isolation, membership, invitation, approval-separation, branding, audited deletion and server-only rate-limit enforcement/window reset.
-- CI type-checks the Edge Function and checks the deployed endpoint for unauthenticated 401 behavior and CORS preflight, including DELETE.
-- GitHub Actions run [41327443120](https://github.com/s85960833-byte/NovaAI/actions/runs/41327443120) passed on the latest verified commit: 37/37 BI tests, fresh PostgreSQL 17 migrations/RLS integration, Deno type-check, deployed Edge Function unauthenticated 401/CORS checks, local server/PWA smoke tests, and the Playwright 390×844 mobile browser flow.
-- The Playwright flow exercises CSV analysis, project risk, scenario calculation, workflow planning, Action Proof export, cloud save without raw CSV rows, branding, invitations, invite acceptance UI, approval, audited deletion controls, JSON export and Escape-key dialog close.
-- Live Supabase SQL checks were also run inside transactions and rolled back. They verified tenant isolation, owner bootstrap, viewer write/delete denial, analyst approval/branding denial, admin approval of another member's proposal, admin owner-role escalation denial, invite acceptance and deletion audit evidence. A follow-up count confirmed zero test organizations/users remained.
-- Live rate-limit function tests passed threshold denial and window reset; authenticated/anon roles cannot read counters or execute the limiter. Latest Edge Function logs show unauthenticated `GET /me` returns 401 and CORS preflight returns 204 on deployed function version 13.
-- Security Advisor reports zero findings, including after adding the explicit deny-all client policy on the server-only rate-limit table. Performance Advisor currently reports 13 unused-index INFO notices on the newly created low-traffic schema; these are observations, not security findings or runtime failures.
-- Live Render smoke tests are skipped on the feature branch; no production deployment has been performed.
+
+- Latest fully verified application-code snapshot: `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a`; exact-head CI [#42434333838](https://github.com/s85960833-byte/NovaAI/actions/runs/42434333838) passed. All later candidate commits have been documentation-only.
+- Latest documentation-only checkpoint before this progress-note correction: head `36e0460ea905116e1c198e45ad3e6ff6754001f3`; exact-head CI [#42442558669](https://github.com/s85960833-byte/NovaAI/actions/runs/42442558669) passed. Its browser artifact contains 360×800, 390×844, 412×915, 760×1024 and 1280×800 Chromium screenshots. These are browser simulations, not physical Android-device evidence.
+- Candidate CI applies the committed migrations to a fresh PostgreSQL 17 database and exercises tenant isolation, membership, invitation, approval separation, branding, audited deletion and server-only rate-limit behavior.
+- Candidate CI type-checks the Edge Function and runs invitation/CORS unit tests, BI calculation/CSV tests, syntax/security checks, dependency audit, local runtime/PWA smoke, Chromium workspace/PDF tests, Company Cloud browser workflows and five-viewport responsive/drawer tests.
+- The deployed Edge Function unauthenticated/CORS smoke is conditional on `main`; it is skipped for this unmerged feature branch. Live Render/provider/image smoke is also skipped. Do not treat skipped live checks as passed.
+- The latest browser run reported six mobile-layout tests passed, Company Cloud flows passed, and no browser page errors or CSP violations. The screenshots show a full-width layout in the tested Chromium viewports; they do not replace physical Android testing.
+- Live Supabase Security and Health Advisors currently return zero findings. Performance Advisor reports 13 INFO-level unused-index notices on the low-traffic schema; these are not security findings or runtime failures.
+- Live production remains distinct from the candidate: Edge Function v13 still has wildcard CORS, the audit-read policy still allows active members, and the candidate rate-limit/audit hardening migrations are pending.
 
 ## Release blockers that still require real-world verification
 1. Perform real signup, email confirmation, sign-in, sign-out and session-refresh tests in a browser.
