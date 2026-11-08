@@ -164,6 +164,9 @@ begin
   if (select brand_name from public.nova_bi_branding where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') = 'Analyst Must Not Rebrand' then
     raise exception 'Analyst unexpectedly changed company branding';
   end if;
+  if exists(select 1 from public.nova_bi_audit_events where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') then
+    raise exception 'Analyst unexpectedly read the company audit log';
+  end if;
 end $$;
 reset role;
 
