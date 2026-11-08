@@ -162,3 +162,8 @@ References: https://supabase.com/docs/reference/cli/supabase-migration-repair an
 - Git source provenance for all 12 live logical migrations is mapped in `SUPABASE_MIGRATION_RECONCILIATION.md`. The remote migration ledger stores versions/names, not SQL bodies, so this source mapping does not independently prove the exact deployed payload. Do not run production migration repair or push until an authorized DBA completes the dry-run/reconciliation procedure.
 - Candidate code and migrations have not been deployed. Live CORS is still wildcard, audit SELECT is still active-member-wide, and the rate-limit function still has `search_path=public, pg_temp`.
 - **Release remains NO-GO** for paid sales, customer onboarding or sensitive company data. Real SMTP/Auth, two-account isolation, physical Android, backup/restore, privacy/deletion, hosting, CSP and branch protection remain open.
+
+
+## Migration alignment update — 8 November 2026
+
+The candidate's 11 historical migration files are now named with the exact timestamps and logical names in the remote migration ledger; the twelfth already matched. The old branding and rate-limit migration bodies were restored, and their improvements are separate forward migrations. Three forward migrations remain pending: rate-limit search_path hardening, owner/admin-only audit reads and branding backfill. The required remote dry-run has not been executed, and no production SQL or Edge Function deployment has been performed. Live wildcard CORS and broad audit-read policy remain unchanged. See `SUPABASE_MIGRATION_RECONCILIATION.md` for the exact mapping and safe verification procedure. Keep PR #74 Draft and release NO-GO.

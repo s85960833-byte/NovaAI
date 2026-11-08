@@ -138,9 +138,9 @@ test('business dialog supports keyboard focus management and visible focus style
 });
 
 test('tenant schema draft enables RLS on every business table and scopes access by active membership',()=>{
- const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000000_nova_bi_tenant_schema.sql'),'utf8');
- const followup=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000001_nova_bi_workflow_execution_hardening.sql'),'utf8');
- const corrections=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000002_nova_bi_rls_policy_corrections.sql'),'utf8');
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101153420_nova_bi_tenant_schema.sql'),'utf8');
+ const followup=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101153427_nova_bi_workflow_execution_hardening.sql'),'utf8');
+ const corrections=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101153432_nova_bi_rls_policy_corrections.sql'),'utf8');
  for(const table of ['nova_bi_organizations','nova_bi_memberships','nova_bi_datasets','nova_bi_analyses','nova_bi_workflow_proposals','nova_bi_workflow_approvals','nova_bi_audit_events']){
    assert.ok(migration.includes('alter table public.'+table+' enable row level security'),'RLS missing for '+table);
  }
@@ -226,8 +226,8 @@ test('NOVA BI Edge Function bounds request and JSON payload sizes',()=>{
  assert.ok(edge.includes('.limit(100)'));
 });
 test('NOVA BI organization bootstrap and approval routines enforce authenticated ownership rules',()=>{
- const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000003_nova_bi_authenticated_workflows.sql'),'utf8');
- const recursion=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000004_nova_bi_membership_rls_recursion_fix.sql'),'utf8');
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101153602_nova_bi_authenticated_workflows.sql'),'utf8');
+ const recursion=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101153622_nova_bi_membership_rls_recursion_fix.sql'),'utf8');
  assert.ok(migration.includes('security definer'));
  assert.ok(migration.includes('set search_path = \'\''));
  assert.ok(migration.includes('v_creator = v_actor'));
@@ -239,7 +239,7 @@ test('NOVA BI organization bootstrap and approval routines enforce authenticated
 });
 
 test('NOVA BI organization and workflow writes are protected by RLS and trigger guards',()=>{
- const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000006_nova_bi_trigger_guarded_mutations.sql'),'utf8');
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101154237_nova_bi_trigger_guarded_mutations.sql'),'utf8');
  assert.ok(migration.includes('revoke all on function public.nova_bi_create_organization(text) from public, anon, authenticated'));
  assert.ok(migration.includes('revoke all on function public.nova_bi_decide_workflow(uuid, text, text) from public, anon, authenticated'));
  assert.ok(migration.includes('nova_bi_org_insert_self'));
@@ -254,7 +254,7 @@ test('NOVA BI organization and workflow writes are protected by RLS and trigger 
 });
 
 test('NOVA BI white-label settings are tenant-scoped and owner/admin writable only',()=>{
- const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000007_nova_bi_white_label_branding.sql'),'utf8');
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101154631_nova_bi_white_label_branding.sql'),'utf8');
  const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
  const cloud=readFileSync(path.join(__dirname,'..','nova-business-cloud.js'),'utf8');
  assert.ok(migration.includes('create table if not exists public.nova_bi_branding'));
@@ -275,7 +275,7 @@ test('NOVA BI white-label settings are tenant-scoped and owner/admin writable on
 });
 
 test('NOVA BI team invitations are owner/admin gated and accepted only by the invited user',()=>{
- const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000008_nova_bi_team_invitations.sql'),'utf8');
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101154913_nova_bi_team_invitations.sql'),'utf8');
  const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
  const cloud=readFileSync(path.join(__dirname,'..','nova-business-cloud.js'),'utf8');
  assert.ok(migration.includes('status = \'invited\''));
@@ -300,7 +300,7 @@ test('NOVA BI team invitations are owner/admin gated and accepted only by the in
 
 test('NOVA BI supports explicit company JSON export and audited admin data deletion',()=>{
  const cloud=readFileSync(path.join(__dirname,'..','nova-business-cloud.js'),'utf8');
- const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000009_nova_bi_data_lifecycle.sql'),'utf8');
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101155313_nova_bi_data_lifecycle.sql'),'utf8');
  assert.ok(cloud.includes('Export company data (JSON)'));
  assert.ok(cloud.includes('workflow_proposals:state.data.workflows'));
  assert.ok(cloud.includes('audit_events:state.data.events'));
@@ -323,9 +323,9 @@ test('NOVA BI supports explicit company JSON export and audited admin data delet
 
 
 test('NOVA BI API rate limits are atomic, server-only and stricter for invitations',()=>{
- const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000010_nova_bi_api_rate_limits.sql'),'utf8');
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101163655_nova_bi_api_rate_limits.sql'),'utf8');
  const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
- const denyPolicy=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101000011_nova_bi_rate_limit_deny_policy.sql'),'utf8');
+ const denyPolicy=readFileSync(path.join(__dirname,'..','supabase','migrations','20261101163845_nova_bi_rate_limit_deny_policy.sql'),'utf8');
  assert.ok(denyPolicy.includes('to anon, authenticated'));
  assert.ok(denyPolicy.includes('using (false)'));
  assert.ok(denyPolicy.includes('with check (false)'));

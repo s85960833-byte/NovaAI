@@ -397,3 +397,14 @@ References: https://supabase.com/docs/reference/cli/supabase-migration-repair an
 - Chromium screenshots from CI cover 360×800, 390×844, 412×915, 760×1024 and 1280×800. These verify browser-emulated responsive layout only, not physical Android hardware.
 - Live `nova-bi-api` v13 still has wildcard CORS; live audit SELECT remains broad; live rate-limit function retains `search_path=public, pg_temp`. No live migration, Edge Function deployment, Auth/SMTP change, Render deployment or production setting was changed.
 - **Decision remains NO-GO** for paid sales, production onboarding, confidential company data or SLA/availability promises until all gates are verified and owner-approved.
+
+
+## 24. Migration filename alignment and latest code audit — 8 November 2026
+
+- The 11 historical NOVA BI migration files have been renamed to the exact version timestamps and logical names recorded in the connected Supabase migration history. The twelfth historical migration already matched. This removes the known local filename/version mismatch; it does not itself execute or alter any remote migration.
+- Three forward-only migrations remain pending: `20261106195900_nova_bi_rate_limit_search_path_hardening.sql`, `20261108120000_nova_bi_audit_admin_read_only.sql`, and `20261108120100_nova_bi_branding_backfill.sql`. An authorized DBA must run `supabase migration list --remote` and `supabase db push --dry-run --remote`, verify that only these three are proposed, review backup/recovery and obtain explicit owner approval before any production push.
+- The historical branding and rate-limit migration bodies were restored; their enhancements are separate forward migrations. A regression test now checks that the historical files remain immutable and that the forward repairs are separate.
+- Existing-account invitation handling now rejects unconfirmed email accounts with HTTP 409 rather than creating an in-app invitation the user cannot yet accept.
+- The last completed application-code CI run [#42452638922](https://github.com/s85960833-byte/NovaAI/actions/runs/42452638922) passed on its exact SHA. Later migration and regression-test changes require the current exact-head CI in PR #74; do not infer success from the older run.
+- Live production remains unchanged: Edge Function v13 has wildcard CORS; audit SELECT remains active-member-wide; rate-limit function search_path remains `public, pg_temp`. No production migration, deployment, Auth/SMTP or Render setting was changed.
+- **Release remains NO-GO** for paid sales, customer onboarding, sensitive data or SLA promises. Real Auth/SMTP, two-account isolation, physical Android, backup/restore, privacy/deletion, hosting, CSP and branch protection remain open.

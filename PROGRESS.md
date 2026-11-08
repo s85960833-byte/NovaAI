@@ -471,3 +471,8 @@ References: https://supabase.com/docs/reference/cli/supabase-migration-repair an
 - No live migration, Edge Function deployment, Auth/SMTP change, Render deployment or branch protection setting was changed. Live wildcard CORS, broad audit-read policy and rate-limit search_path remain unresolved.
 - Candidate Chromium screenshots cover five viewport sizes but do not replace physical Android testing. Real Auth/SMTP, two-account isolation, backup/restore, privacy/deletion, hosting/health, CSP and branch-protection gates remain open.
 - **NO-GO** for paid sales, customer onboarding, confidential data or production/SLA claims until all gates are verified and approved.
+
+
+## Migration filename reconciliation — 8 November 2026
+
+The 11 historical candidate migration filenames have been aligned to the exact version timestamps and logical names recorded by the live Supabase migration ledger; the twelfth already matched. Historical branding and rate-limit SQL files have been restored, with the branding backfill and rate-limit hardening separated into forward migrations. Three forward migrations remain pending. This is a repository-only change: no live migration repair, SQL, Edge Function deployment, Auth/SMTP setting, Render deployment or branch-protection change was performed. An authorized DBA must confirm `supabase migration list --remote` and `supabase db push --dry-run --remote` show only the three forward migrations before obtaining owner approval. Release remains NO-GO until all operational gates pass.
