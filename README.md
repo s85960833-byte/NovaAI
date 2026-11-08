@@ -1,15 +1,14 @@
-## Current production status — 8 November 2026
+## Current production and sales status — 8 November 2026
 
-NOVA core app is live at https://novaai-4auo.onrender.com. Render serves app commit f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8 (deployment dep-dbo3i7m417fc73f6bdbg). Main CI [#42465380068](https://github.com/s85960833-byte/NovaAI/actions/runs/42465380068), retry 2, passed 38 steps with zero failures, including live website/provider smoke, CSP/HSTS, five-viewport mobile browser tests, Company Cloud browser tests and live free image generation.
+NOVA core app is live at https://novaai-4auo.onrender.com on app commit f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8 (deployment dep-dbo3i7m417fc73f6bdbg). The account/cloud-sync implementation merged to main in PR #83 (commit c8ad3c646d68bde2836810995f2e91d87691cfe7), but Render has not yet deployed that commit; do not describe the new account UI as live.
 
-Supabase is ACTIVE_HEALTHY with 15 migrations; nova-bi-api is ACTIVE v14 with JWT verification. Security and Health Advisors currently report zero findings.
+Main CI [#42468478954](https://github.com/s85960833-byte/NovaAI/actions/runs/42468478954) passed 38 steps with zero failures, including live website/provider smoke, CSP/HSTS, five-viewport mobile browser tests, Company Cloud browser tests and live free image generation. Account feature CI [#42468340703](https://github.com/s85960833-byte/NovaAI/actions/runs/42468340703) and targeted account/browser verification [#42468340606](https://github.com/s85960833-byte/NovaAI/actions/runs/42468340606) also passed.
 
-**Sales boundary:** Only limited concept/discovery conversations are permitted. Paid sales, customer onboarding and confidential-data use remain blocked. Supervised non-paid previews only, using synthetic/non-sensitive data. Paid checkout, server-side entitlements, general NOVA account login/cloud chat sync, verified email delivery, real-account tenant isolation, privacy/retention/deletion, support/incident response, backup/restore, always-on hosting, physical Android testing and full AI-provider quality/cost evaluation are not yet complete. NOVA BI remains a limited preview, not a production business-data service. Do not promise SLA, enterprise readiness, confidentiality guarantees or perfect AI answers.
+Supabase is ACTIVE_HEALTHY with 16 migrations; nova-bi-api is ACTIVE v14 with JWT verification. The new `nova_user_workspaces` table has RLS enabled, four `auth.uid()` ownership policies and no anonymous SELECT access. Security and Health Advisors currently report zero findings.
 
-See [PITCH_READINESS.md](PITCH_READINESS.md) for the release gates and [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md) for approved discovery messaging. Older status entries below are historical only.
+**Sales boundary:** non-paid discovery and supervised previews with synthetic/non-sensitive data only. Paid sales, payments, production onboarding and confidential-data use remain NO-GO. General account UI/cloud sync is merged but not deployed; real email delivery, two-account isolation, account deletion, payment enforcement, final privacy/terms, support/incident response, backups/restore, always-on hosting, physical Android testing and full AI quality/cost evaluation remain incomplete. NOVA BI is a limited preview, not a production business-data service. Do not promise SLA, enterprise readiness, confidentiality guarantees or perfect AI answers.
 
----
-
+See [PITCH_READINESS.md](PITCH_READINESS.md), [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md), [PRIVACY_NOTICE_DRAFT.md](PRIVACY_NOTICE_DRAFT.md), [TERMS_OF_USE_DRAFT.md](TERMS_OF_USE_DRAFT.md) and [SUPPORT_AND_INCIDENT_RUNBOOK.md](SUPPORT_AND_INCIDENT_RUNBOOK.md). Older status entries below are historical only.
 # NOVA AI
 
 NOVA is an India-oriented, Hindi-and-English AI web application. The current product direction organizes work into three workspaces:
