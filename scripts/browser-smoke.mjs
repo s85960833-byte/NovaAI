@@ -139,7 +139,7 @@ try{
  assert.ok(persistedModeHistory.some(m=>m.role==='user'&&m.text==='Please verify the NOVA chat round trip.'),'Agents chat must persist the user message in its own mode history');
  assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK'),'Agents chat must persist the assistant reply in its own mode history');
  console.log('PASS Agents chat round trip, backend request, assistant response and per-mode history persistence');
- await desktop.keyboard.press('Escape');
+ await desktop.locator('#nmClose').click();
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
 
 
