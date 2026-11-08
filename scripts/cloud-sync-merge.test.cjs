@@ -1,0 +1,10 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const {mergeMessages}=require('../nova-sync-merge.js');
+const m=(r,c)=>({r,c});
+test('appends local messages after the shared remote history',()=>{assert.deepEqual(mergeMessages([m('user','a'),m('assistant','b')],[m('user','a'),m('assistant','b'),m('user','c')]),[m('user','a'),m('assistant','b'),m('user','c')])});
+test('preserves legitimate repeated identical messages',()=>{assert.deepEqual(mergeMessages([m('user','same'),m('assistant','ok')],[m('user','same'),m('assistant','ok'),m('user','same')]),[m('user','same'),m('assistant','ok'),m('user','same')])});
+test('keeps divergent histories rather than globally deduplicating',()=>{assert.deepEqual(mergeMessages([m('user','a'),m('assistant','remote')],[m('user','a'),m('assistant','local')]),[m('user','a'),m('assistant','remote'),m('assistant','local')])});
+test('handles missing and malformed inputs',()=>{assert.deepEqual(mergeMessages(null,[m('user','local')]),[m('user','local')]);assert.deepEqual(mergeMessages([null,{},m('user','ok')],null),[m('assistant',''),m('user','ok')])});
+test('caps merged history at 150 messages',()=>{const remote=Array.from({length:100},(_,i)=>m(i%2?'assistant':'user',String(i)));const local=[...remote,...Array.from({length:80},(_,i)=>m(i%2?'assistant':'user','new'+i))];assert.equal(mergeMessages(remote,local).length,150)});
