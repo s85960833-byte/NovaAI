@@ -61,7 +61,7 @@ test('CSV import enforces configurable byte and row limits',()=>{
 });
 test('CSV import rejects excessive column counts before analysis',()=>{
  const columns=Array.from({length:101},(_,i)=>'c'+i).join(',');
- assert.throws(()=>core.parseCSV(columns+'\\n'+Array.from({length:101},()=>1).join(',')),/too many columns/);
+ assert.throws(()=>core.parseCSV(columns+'\n'+Array.from({length:101},()=>1).join(',')),/too many columns/);
  assert.equal(core.MAX_COLUMNS,100);
 });
 test('business workspace does not upload or persist raw company CSV data',()=>{
