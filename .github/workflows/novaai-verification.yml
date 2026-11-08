@@ -64,7 +64,7 @@ jobs:
       - name: Type-check authenticated NOVA BI Edge Function
         run: deno check --config supabase/functions/nova-bi-api/deno.json --no-lock supabase/functions/nova-bi-api/index.ts
       - name: Test existing-account company invitation lookup
-        run: deno test --config supabase/functions/nova-bi-api/deno.json supabase/functions/nova-bi-api/invitations_test.ts supabase/functions/nova-bi-api/cors_test.ts
+        run: deno test --config supabase/functions/nova-bi-api/deno.json supabase/functions/nova-bi-api/invitations_test.ts supabase/functions/nova-bi-api/cors_test.ts supabase/functions/nova-bi-api/request-input_test.ts
       - name: Smoke-test deployed NOVA BI Edge Function auth and CORS
         if: github.ref == 'refs/heads/main'
         run: node scripts/supabase-edge-smoke.mjs
