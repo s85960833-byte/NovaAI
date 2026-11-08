@@ -5,7 +5,7 @@ Updated: 2026-11-08
 ## Authoritative current release checkpoint
 
 - Unified candidate: [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`; open, Draft, unmerged and undeployed. Use the PR's live comparison for commit/file counts; this document intentionally does not hard-code them.
-- Current candidate documentation head at this checkpoint: `97399e0132edb0c0bd35aa10f253d20d71a8a15e`. Its exact-head GitHub Actions run [#42442142471](https://github.com/s85960833-byte/NovaAI/actions/runs/42442142471) completed successfully: 34 successful steps, 0 failed, 4 live/deployment checks skipped. This is not evidence that skipped live checks passed.
+- Application-code snapshot: `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a`; subsequent candidate commits have been documentation-only. Check Draft PR #73 and its linked Actions runs for the current documentation head and exact-head CI result. Never infer that skipped live checks passed.
 - Latest application-code verification snapshot: `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a`; exact-head CI [#42434333838](https://github.com/s85960833-byte/NovaAI/actions/runs/42434333838) passed. Commits after that application-code snapshot are documentation-only.
 - Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; Render production remains configured to deploy `main`. No candidate merge or deployment occurred.
 - Live Supabase findings remain unchanged: candidate audit-read and rate-limit search_path migrations are pending; deployed `nova-bi-api` v13 still has wildcard CORS; live audit SELECT still permits active members. Do not describe candidate hardening as live.
