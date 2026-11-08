@@ -1,6 +1,6 @@
 # NOVA — Current Founder Pitch Kit
 
-**Status:** Core NOVA app is live. This pack is approved for product discovery and supervised preview conversations only. Do not take payment or onboard customers into production until the release gates in [PITCH_READINESS.md](PITCH_READINESS.md) are closed.
+**Status: LIMITED CONCEPT DISCOVERY ONLY.** Core NOVA app is live. No paid sales, customer onboarding or confidential-data use. This pack is approved for non-paid product discovery and supervised previews only. Do not take payment or onboard customers into production until the release gates in [PITCH_READINESS.md](PITCH_READINESS.md) are closed.
 
 ## One-line pitch
 
