@@ -351,3 +351,32 @@ This checkpoint supersedes older candidate-head, migration-count, CSP and releas
 - Production `main` remains unchanged. No merge, deployment, live migration, Auth/SMTP setting change or paid resource purchase was performed.
 - Existing live release blockers remain: candidate CORS/migrations are not deployed; live signup/email/invitation and two-account tenant isolation are untested; physical Android validation is outstanding; hosting health, off-site backup/restore, privacy/deletion lifecycle and CSP hardening remain open.
 - **Release decision: NO-GO** for production, paid sales, customer onboarding or sensitive data until each gate is completed and approved by the authorized project owner.
+
+
+## Supabase migration-history reconciliation blocker — 8 November 2026
+
+The live Supabase migration history is not timestamp-aligned with the repository's first eleven NOVA BI migration filenames. Supabase CLI compares migration timestamps, not names or SQL contents. Live history currently records these logical migrations at later timestamps, while the branch has earlier local filenames:
+
+| Live recorded version | Live migration name | Candidate file timestamp |
+|---|---|---|
+| 20261101153420 | nova_bi_tenant_schema | 20261101000000 |
+| 20261101153427 | nova_bi_workflow_execution_hardening | 20261101000001 |
+| 20261101153432 | nova_bi_rls_policy_corrections | 20261101000002 |
+| 20261101153602 | nova_bi_authenticated_workflows | 20261101000003 |
+| 20261101153622 | nova_bi_membership_rls_recursion_fix | 20261101000004 |
+| 20261101154237 | nova_bi_trigger_guarded_mutations | 20261101000006 |
+| 20261101154631 | nova_bi_white_label_branding | 20261101000007 |
+| 20261101154913 | nova_bi_team_invitations | 20261101000008 |
+| 20261101155313 | nova_bi_data_lifecycle | 20261101000009 |
+| 20261101163655 | nova_bi_api_rate_limits | 20261101000010 |
+| 20261101163845 | nova_bi_rate_limit_deny_policy | 20261101000011 |
+
+The 20261106130204_nova_bi_membership_accept_status_grant.sql filename exactly matches its live history version. The two later candidate migrations 20261106195900 (rate-limit search_path hardening) and 20261108120000 (owner/admin-only audit reads) are not present in live migration history and are genuinely pending changes.
+
+**Do not run supabase db push against the live project yet.** With timestamp-only matching, the eleven earlier local filenames can be reported as missing even though the live history contains same-named logical migrations under different timestamps. Replaying them may conflict with existing objects or alter live policy/function state. A green fresh-PostgreSQL CI run does not prove remote migration-history alignment.
+
+Safe reconciliation is deliberately not performed by this audit because the connector exposes the live version/name history and current schema, but not the original SQL payloads associated with the eleven live migration records. An authorized database administrator must first compare each local SQL file against the actual deployed migration/source and current live schema, then run supabase migration list --remote and supabase db push --dry-run --remote. Only after equivalence is proven should the administrator choose a reviewed timestamp-alignment strategy (renaming local files to the exact live versions, or repairing history for the exact local versions). supabase migration repair --status applied changes only migration history; it does not execute or validate SQL, so it must never be used as a substitute for that comparison. After alignment, dry-run again and confirm only the two intended hardening migrations are pending before applying either one with explicit owner approval.
+
+References: https://supabase.com/docs/reference/cli/supabase-migration-repair and https://supabase.com/docs/guides/deployment/database-migrations.
+
+**Status:** release-blocking migration-history reconciliation is documented but not executed. No live SQL, migration history, Edge Function, Auth configuration or hosting setting was changed.
