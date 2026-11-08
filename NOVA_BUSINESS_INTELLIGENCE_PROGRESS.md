@@ -104,3 +104,12 @@ Updated: 2026-11-08
 - The successful candidate CI includes PostgreSQL migration/RLS integration, Edge Function type-check and invitation lookup tests, BI calculations/CSV validation, dependency audit, local route/PWA checks and browser regression tests. Live Render/provider and free image-generation checks were skipped because no isolated preview was authorized.
 - Changes after the last full application-code verification snapshot `cbe3c4d165921cee77d2faa347ec7d4b2fbc862d` are documentation-only. This does not change the outstanding release gates: isolated preview/runtime, real signup/email, two-account tenant isolation, physical Android, backup/restore, privacy/retention and incident response.
 - Production `main` and live Supabase remain unchanged; PR #73 remains Draft and unmerged. This addendum supersedes earlier statements that the combined exact-head CI was still running or that `0745428...` was the latest checkpoint. Check PR #73 for the latest state.
+
+
+## Authoritative unified release status — 8 November 2026
+
+- Unified candidate: [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`; open, unmerged and undeployed.
+- Latest application-code snapshot: `7f7d6bc475359c19975dbb8702205af5ad86cb30`; exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) succeeded. It includes PostgreSQL 17 migration/RLS integration, Deno checks, BI tests and Chromium browser tests. Four live-only checks remain skipped.
+- Current documentation-only candidate head: `a8385e98463f28fcf0e13547ee5bb5db2f1fe0ec`; exact-head documentation CI [#42443325980](https://github.com/s85960833-byte/NovaAI/actions/runs/42443325980) succeeded. This is not a new application-code verification.
+- Live release blockers remain: deployed Edge Function wildcard CORS, unapplied candidate audit-read and rate-limit search_path migrations, real Auth/SMTP and two-account testing, physical Android verification, backup/restore, privacy/retention/deletion, hosting/region/health checks, CSP hardening and branch-protection verification.
+- Keep PR #73 Draft. No merge, deployment, live migration, Auth/SMTP change or paid resource change was performed. Release decision remains **NO-GO** for paid sales, customer onboarding, sensitive company data or production promises.
