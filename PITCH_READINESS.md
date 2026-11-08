@@ -346,7 +346,7 @@ This checkpoint supersedes older candidate-head, migration-count, CSP and releas
 ## 22. Current candidate checkpoint — 8 November 2026 (live GitHub recheck)
 
 - Candidate branch head: `548918d62e8a2715853c4d15ad64fe3cf64cb164`; PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73) is Open, Draft, Unmerged and targets production `main` at `48e12a68af656b471853ac2a4509da0e3df7ab24`.
-- The latest push CI [#42446042499](https://github.com/s85960833-byte/NovaAI/actions/runs/42446042499) and PR CI [#42446048247](https://github.com/s85960833-byte/NovaAI/actions/runs/42446048247) were still in progress at the time of this checkpoint; no pass/fail conclusion is claimed for this SHA.
+- The exact-head push CI [#42446220312](https://github.com/s85960833-byte/NovaAI/actions/runs/42446220312) and PR CI [#42446224447](https://github.com/s85960833-byte/NovaAI/actions/runs/42446224447) both completed successfully with 34 successful steps, 0 failed and 4 live-only checks skipped.
 - GitHub branch metadata reports `main.protected: false`; the repository rulesets API returns an empty list. The detailed protection endpoint returns 403 to this integration. No active protection is evidenced; an authorized repository administrator must configure protection and required checks.
 - Production `main` remains unchanged. No merge, deployment, live migration, Auth/SMTP setting change or paid resource purchase was performed.
 - Existing live release blockers remain: candidate CORS/migrations are not deployed; live signup/email/invitation and two-account tenant isolation are untested; physical Android validation is outstanding; hosting health, off-site backup/restore, privacy/deletion lifecycle and CSP hardening remain open.

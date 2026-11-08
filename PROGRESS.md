@@ -428,7 +428,7 @@ This checkpoint supersedes older progress entries above wherever they describe N
 
 ## Latest live candidate checkpoint — 8 November 2026
 
-- Candidate branch head: `fd89963bb261da0f2c234b8980dd5a3aeba35990`; PR #73 is Open, Draft, Unmerged and Undeployed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`.
-- Exact-head push run [#42446133265](https://github.com/s85960833-byte/NovaAI/actions/runs/42446133265) and PR run [#42446136563](https://github.com/s85960833-byte/NovaAI/actions/runs/42446136563) were in progress at this checkpoint. Older successful CI runs are not exact-head evidence for this commit.
+- Candidate branch head: `5115384a6862bc006b6fb742386e6990b7143619`; PR #73 is Open, Draft, Unmerged and Undeployed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`.
+- Exact-head push run [#42446220312](https://github.com/s85960833-byte/NovaAI/actions/runs/42446220312) and PR run [#42446224447](https://github.com/s85960833-byte/NovaAI/actions/runs/42446224447) completed successfully: 34 successful steps, 0 failed, 4 live-only checks skipped.
 - GitHub reports `main.protected: false`; repository rulesets are empty. An authorized repository administrator must enable protection and required checks.
 - Live Supabase still has wildcard CORS; candidate migrations remain unapplied. Real Auth/SMTP, two-account isolation, physical Android, hosting/health, backup/restore, privacy/deletion and CSP gates remain open. Release remains NO-GO.

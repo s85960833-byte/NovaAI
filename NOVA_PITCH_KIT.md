@@ -255,4 +255,4 @@ This checkpoint supersedes older candidate-head, migration-count, CSP and releas
 
 ## Current release-status pointer — 8 November 2026
 
-See [PITCH_READINESS.md §22](PITCH_READINESS.md) for the current re-audit. Candidate head `fd89963bb261da0f2c234b8980dd5a3aeba35990`; PR #73 remains Draft, unmerged and undeployed. Exact-head CI #42446133265 and #42446136563 were still running at the checkpoint. GitHub reports `main.protected: false` and no repository rulesets. Live CORS/migrations, Auth/SMTP, two-account isolation, physical Android, backups/restore, privacy/deletion, hosting and CSP remain open. Not a paid-sales offer.
+See [PITCH_READINESS.md §22](PITCH_READINESS.md) for the current re-audit. Candidate head `5115384a6862bc006b6fb742386e6990b7143619`; PR #73 remains Draft, unmerged and undeployed. Exact-head CI #42446220312 and #42446224447 completed successfully with 34 successful steps, 0 failed and 4 live-only checks skipped. GitHub reports `main.protected: false` and no repository rulesets. Live CORS/migrations, Auth/SMTP, two-account isolation, physical Android, backups/restore, privacy/deletion, hosting and CSP remain open. Not a paid-sales offer.
