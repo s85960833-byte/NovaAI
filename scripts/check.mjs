@@ -21,15 +21,16 @@ const readme = readFileSync('README.md', 'utf8');
 const pitchReadiness = readFileSync('PITCH_READINESS.md', 'utf8');
 const pitchKit = readFileSync('NOVA_PITCH_KIT.md', 'utf8');
 const pitchScript = readFileSync('PITCH_SCRIPT.md', 'utf8');
-if (!readme.includes('Only limited concept/discovery conversations are permitted') ||
-    !readme.includes('Paid sales, customer onboarding') ||
-    !pitchReadiness.includes('Pitch status:** LIMITED CONCEPT DISCOVERY ONLY') ||
-    !pitchReadiness.includes('NO-GO for paid sales') ||
-    !pitchKit.includes('LIMITED CONCEPT DISCOVERY ONLY') ||
-    !pitchKit.includes('No paid sales') ||
-    !pitchScript.includes('LIMITED CONCEPT DISCOVERY ONLY') ||
-    !pitchScript.includes('Do not offer a paid product')) {
-  throw new Error('Pitch materials must allow concept discovery only and keep paid sales and production promises blocked');
+if (!readme.includes('Only non-paid, adult-supervised buyer-interest conversations') ||
+    !readme.includes('Do not accept payments, deposits') ||
+    !pitchReadiness.includes('Decision: LIMITED DISCOVERY ONLY') ||
+    !pitchReadiness.includes('NOT READY FOR PAID SALE OR PRODUCTION CUSTOMER ONBOARDING') ||
+    !pitchKit.includes('Non-paid, adult-supervised discovery only') ||
+    !pitchKit.includes('No payment, deposit') ||
+    !pitchScript.includes('For supervised, non-paid discovery only') ||
+    !pitchScript.includes('Do not offer a paid product') ||
+    !pitchScript.includes('Do not request payment')) {
+  throw new Error('Pitch materials must consistently allow supervised non-paid discovery only and block paid sales, deposits and customer-data onboarding');
 }
 for (const pattern of ['.env', '.env.*', '*.pem', '*.key', '*.p12', '*.pfx', 'service-account*.json', 'credentials*.json', 'node_modules/']) {
   if (!gitignore.split(/\r?\n/).includes(pattern)) throw new Error('Local secrets and generated files must be ignored: ' + pattern);
