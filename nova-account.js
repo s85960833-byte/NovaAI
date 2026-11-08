@@ -14,7 +14,7 @@ function getClient(){
  client=window.NovaBusinessCloud.getClient();
  return client;
 }
-function showDialog(){dialog.showModal();$('novaAccountEmailInput').focus()}
+function showDialog(){dialog.showModal();if(user)$('novaSyncNow').focus();else $('novaAccountEmailInput').focus()}
 function render(){
  const signed=!!user;
  $('novaSignedOut').hidden=signed||recovery;
@@ -78,6 +78,7 @@ $('novaAccountClose').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
 const email=()=>$('novaAccountEmailInput').value.trim().toLowerCase();
 const password=()=>$('novaAccountPasswordInput').value;
+$('novaAuthForm').addEventListener('submit',e=>{e.preventDefault();$('novaSignIn').click()});
 $('novaSignIn').addEventListener('click',async()=>{
  if(!$('novaAuthForm').reportValidity())return;
  try{say('Signing in…');const {error}=await getClient().auth.signInWithPassword({email:email(),password:password()});if(error)throw error;say('Signed in successfully.');}catch(e){say(e.message,true)}
