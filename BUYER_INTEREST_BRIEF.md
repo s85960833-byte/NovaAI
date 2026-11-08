@@ -55,4 +55,11 @@ The core application is hosted at https://novaai-4auo.onrender.com.
 - The previous Render attempt for commit `e743034977ce38aa24a8a892d4ba87f020b3f52a` failed at startup because `toidentifier` was missing. The subsequent successful deployment of `f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8` includes the dependency fix; confirm the new main-branch deployment independently.
 - Supabase Security and Health Advisors reported zero findings at the latest check. This is not a security certification or a substitute for live end-to-end tenant-isolation testing.
 
+## Latest deployment checkpoint — 8 November 2026, 11:21 UTC
+
+- Render deployment `dep-dbo5m83m8hqs73fkhvtg` completed with status `live` for main commit `7a9530ae32cb674b8724e1aedd30e30a456e9d92`.
+- Render build completed successfully; runtime logs show `node nova-server.txt` started and reported port 10000.
+- This confirms deployment completion and process startup only. The post-deploy HTTP smoke gate (`/health`, homepage/assets, response security headers, and live feature checks) has not yet been independently confirmed in this checkpoint. Do not claim all runtime checks passed until the main-branch verification workflow finishes successfully.
+- Account UI/cloud-sync code is included in the deployed main commit, but real email delivery, Auth redirects, two-account isolation and account deletion remain unverified. Do not promise those capabilities.
+
 **Document status:** Discovery-only draft. Refresh evidence and limitations after each verified deployment and test cycle.
