@@ -37,7 +37,7 @@ The browser parses CSV files locally. Cloud save persists dataset metadata, aggr
 ## Authorization model
 | Capability | Owner | Admin | Analyst | Viewer |
 |---|---:|---:|---:|---:|
-| Read tenant datasets, analyses, workflows and audit | Yes | Yes | Yes | Yes |
+| Read tenant datasets, analyses and workflows | Yes | Yes | Yes | Yes |\n| Read company audit log (may contain member/invitee details) | Yes | Yes | No | No |
 | Create dataset metadata and analyses | Yes | Yes | Yes | No |
 | Delete datasets and analyses | Yes | Yes | No | No |
 | Propose workflows | Yes | Yes | Yes | No |
@@ -51,7 +51,7 @@ Authenticated clients have no general membership write access. Invitation accept
 ## Deletion and audit
 - Owners/admins can permanently delete saved analysis records and dataset metadata.
 - Dataset deletion is blocked by the relational foreign key while analyses still reference it; the UI asks the user to remove linked analyses first.
-- Database triggers append audit events for analysis/dataset deletion, invitation acceptance and workflow decisions.
+- Database triggers append audit events for analysis/dataset deletion, invitation acceptance and workflow decisions.\n- Audit-log SELECT is restricted by RLS to active owners/admins; analysts and viewers do not receive invitee/member metadata.
 - Original CSV files are browser-local and are not stored by NOVA; deleting cloud metadata cannot delete a local file.
 
 ## Truthful feature boundaries
