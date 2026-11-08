@@ -80,3 +80,8 @@ This checkpoint supersedes older candidate-head and release-status notes above; 
 ## Current re-audit pointer — 8 November 2026
 
 Clean [PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) is the live source of truth for the consolidated candidate head, PR state and exact-head Checks/Actions. It remains Open, Draft, Unmerged and Undeployed. The underlying application-code checkpoint and test-only PostgreSQL RLS assertion both passed their earlier exact-head CI runs; the new clean branch must pass its own checks. Subsequent clean-branch commits are documentation-only; always verify the live PR Checks tab for the current head rather than relying on a copied SHA. GitHub reports `main.protected: false` and no repository rulesets. Production `main` remains unchanged. Live CORS/migrations, real Auth/SMTP, two-account isolation, physical Android, backups/restore, privacy/deletion, hosting and CSP remain release gates. NO-GO for production, paid sales or customer-data onboarding.
+
+
+## Migration alignment update — 8 November 2026
+
+The candidate's 12 historical NOVA BI migration filenames now match the exact versions/names in the connected Supabase ledger. Three forward migrations remain pending; an authorized DBA must verify `supabase migration list --remote` and `supabase db push --dry-run --remote` show only those three before any approved production push. No production migration or deployment has been performed. Live wildcard CORS, broad audit-log SELECT and the older rate-limit search_path remain release blockers.
