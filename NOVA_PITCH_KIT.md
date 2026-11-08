@@ -2,10 +2,10 @@
 
 > **LIMITED CONCEPT DISCOVERY ONLY. This pack may explain the product direction and invite feedback; it is not a live-product sales offer. Do not promise a demo, subscription, deployment, SLA, or production availability.**
 
-**Prepared:** 7 November 2026  
+**Prepared:** 8 November 2026  
 **Purpose:** Controlled concept discovery only. No paid sales, customer onboarding, production demo, or customer-data use until the release gates are closed.
 **Product:** NOVA main app only. NOVA Business Intelligence is a separate, unreleased candidate and must not be sold or demonstrated as a live module.  
-**Release truth (latest audit, 7 Nov 2026):** Draft PR #73 remains open, Draft, unmerged and undeployed. The latest application-code verification snapshot is `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf` (exact-head push/PR CI #42382919198 and #42382923272 passed); subsequent audit commits are documentation-only. Use PR #73 for the current branch head and exact CI status. The full PR history and 63-file diff require owner review before any merge. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. Live Supabase still has wildcard CORS and rate-limit function `search_path=public, pg_temp`; candidate fixes are not live. Real Auth/SMTP, two-account isolation, physical Android, hosting, backup/restore, privacy, branch protection, billing and full CSP checks remain open. Not paid-sales ready.
+**Release truth (latest audit, 8 Nov 2026):** Draft PR #73 remains open, Draft, unmerged and undeployed. Current candidate head is `18f9c6567d83e0c73add7e41f7e0050d4391a98f` (496 commits ahead, 0 behind, 64 changed files). The latest application-code CI passed on `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a` with 34 successful steps, 0 failed and 4 live-production steps skipped; subsequent commits are documentation-only. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. Live Supabase still has wildcard CORS, a broad active-member audit-read policy and the old rate-limit search_path. Real Auth/SMTP, two-account isolation, physical Android, hosting, backup/restore, privacy, account deletion, branch protection, billing and full CSP checks remain open. This pack is for limited concept discovery only; it is not a paid-sales offer.
 
 ---
 
