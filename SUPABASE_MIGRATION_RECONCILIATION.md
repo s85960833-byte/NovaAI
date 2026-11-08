@@ -56,4 +56,4 @@ A fresh PostgreSQL CI reset tests that the candidate migration set works on a cl
 
 ## Explicitly not done
 
-No migration repair, db push, SQL execution, Edge Function deployment, Auth setting change or production resource modification was performed. Keep PR #73 Draft and the release decision NO-GO until reconciliation and the other live release gates are completed.
+No migration repair, db push, SQL execution, Edge Function deployment, Auth setting change or production resource modification was performed. Keep clean PR #74 Draft and the release decision NO-GO until reconciliation and the other live release gates are completed.

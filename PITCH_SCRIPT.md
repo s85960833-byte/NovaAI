@@ -104,9 +104,9 @@ This checkpoint supersedes older candidate-head, CI-run and release-status state
 This checkpoint supersedes older candidate-head, migration-count, CSP and release-status statements above. Older entries are historical audit notes only.
 
 
-**Latest release-status pointer (8 Nov 2026):** The authoritative re-audit is recorded in `PITCH_READINESS.md` §21. It reconfirms that PR #73 is unmerged/undeployed, candidate CI skipped live Render/Edge Function/provider/image checks, the deployed Edge Function still has wildcard CORS, and paid sales remain NO-GO. Treat older dated checkpoints in this file as historical.
+**Latest release-status pointer (8 Nov 2026):** The authoritative re-audit is recorded in `PITCH_READINESS.md` §21. It reconfirms that clean PR #74 is unmerged/undeployed, candidate CI skips live Render/Edge Function/provider/image checks, the deployed Edge Function still has wildcard CORS, and paid sales remain NO-GO. Treat older dated checkpoints in this file as historical.
 
 
 ## Current release boundary — 8 November 2026
 
-Use [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73) and its Checks tab for the current candidate head and exact-head CI. PR #73 remains Draft, unmerged and undeployed. Production `main` is unchanged. GitHub reports `main.protected: false` and no repository rulesets. No payment, confidential data, production/SLA or live-product promise until all release gates are evidenced and approved.
+Use clean [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) and its Checks tab for the current candidate head and exact-head CI. PR #74 remains Draft, unmerged and undeployed. Production `main` is unchanged. GitHub reports `main.protected: false` and no repository rulesets. No payment, confidential data, production/SLA or live-product promise until all release gates are evidenced and approved.

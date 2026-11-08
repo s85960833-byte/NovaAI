@@ -4,7 +4,7 @@
 
 ## Deployment boundaries
 - Application repository: `s85960833-byte/NovaAI`.
-- Unified implementation candidate: `feature/nova-integrated-release-20261106` (Draft PR #73; the BI-only branch is a historical predecessor).
+- Unified implementation candidate: clean `feature/nova-integrated-release-clean-20261108` (Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74); PR #73 is a superseded historical candidate).
 - Production branch: `main` (unchanged).
 - Supabase project: `qrfwsewppafhxibdboam` (approved NOVA BI project; separate from Research-to-Code).
 - Supabase Edge Function: `nova-bi-api`, JWT verification enabled.
