@@ -414,7 +414,7 @@ This checkpoint supersedes older progress entries above wherever they describe N
 
 ## Documentation-head verification — 8 November 2026
 
-- Current unified candidate head: `a8385e98463f28fcf0e13547ee5bb5db2f1fe0ec`; exact-head documentation-only CI [#42443325980](https://github.com/s85960833-byte/NovaAI/actions/runs/42443325980) completed successfully.
+- At this checkpoint, the unified candidate head was `a8385e98463f28fcf0e13547ee5bb5db2f1fe0ec`; exact-head documentation-only CI [#42443325980](https://github.com/s85960833-byte/NovaAI/actions/runs/42443325980) completed successfully. Later documentation commits have advanced the branch; use PR #73 for the live head.
 - Latest application-code verification remains exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) on `7f7d6bc475359c19975dbb8702205af5ad86cb30`. The intervening candidate commits are documentation-only.
 - The documentation-only workflow does not replace the application-code run or the four live checks skipped on the unmerged feature branch.
 - PR #73 remains open, Draft, unmerged and undeployed. Production `main` remains unchanged.
