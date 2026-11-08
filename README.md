@@ -1,117 +1,58 @@
-# Current release status — 8 November 2026, 11:30 UTC
-
-NOVA is deployed at https://novaai-4auo.onrender.com. Render confirms successful deployment of main commit `cf29ca10205f929ff836167669de65115c3c37f8` (deployment `dep-dbo5mv3l550s738pq8qg`). The app process started and bound to port 10000. This is deployment evidence, not proof that every hosted route or user flow works.
-
-- Buyer-interest document: [BUYER_INTEREST_BRIEF.md](BUYER_INTEREST_BRIEF.md). It is for supervised, non-paid feedback only.
-- The next main-branch verification run for the buyer-brief correction is in progress: [GitHub Actions run #42475838373](https://github.com/s85960833-byte/NovaAI/actions/runs/42475838373). Syntax, Markdown-injection, mode registry, rate-window, provider-URL and PDF security checks have passed so far; the remaining PostgreSQL, Deno, browser/mobile and live-release checks have not yet completed.
-- External HTTP smoke verification is currently blocked in the verification environment; do not claim `/health`, homepage/assets, response headers or live workflows passed until the workflow's live smoke steps pass.
-- Real email confirmation/reset delivery, Auth redirect allow-list, two-real-account cloud-sync isolation, full account deletion and physical Android verification remain unverified.
-- Payments, subscription enforcement, refunds, tax invoices, final legal policies, support/incident process, backup/restore, and always-on hosting/SLA are not ready.
-- NOVA BI is an early interface preview only; use synthetic data, never confidential or personal data.
-- No paying customers, revenue, traction, valuation, security certification or SLA are represented.
-
-**Decision:** non-paid, adult-supervised buyer-interest conversations only. No paid sale, deposits, customer onboarding or confidential-data use. Any ownership, IP, payment or contract discussion must be handled by a responsible adult with qualified legal review. This status block supersedes older contradictory deployment/sales-status paragraphs below; older entries are retained as historical notes.
-
-## Current production and sales status — 8 November 2026
-
-NOVA core app is live at https://novaai-4auo.onrender.com on app commit f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8 (deployment dep-dbo3i7m417fc73f6bdbg). The account/cloud-sync implementation merged to main in PR #83 (commit c8ad3c646d68bde2836810995f2e91d87691cfe7), but Render has not yet deployed that commit; do not describe the new account UI as live.
-
-Main CI [#42468478954](https://github.com/s85960833-byte/NovaAI/actions/runs/42468478954) passed 38 steps with zero failures, including live website/provider smoke, CSP/HSTS, five-viewport mobile browser tests, Company Cloud browser tests and live free image generation. Account feature CI [#42468340703](https://github.com/s85960833-byte/NovaAI/actions/runs/42468340703) and targeted account/browser verification [#42468340606](https://github.com/s85960833-byte/NovaAI/actions/runs/42468340606) also passed.
-
-Supabase is ACTIVE_HEALTHY with 16 migrations; nova-bi-api is ACTIVE v14 with JWT verification. The new `nova_user_workspaces` table has RLS enabled, four `auth.uid()` ownership policies and no anonymous SELECT access. Security and Health Advisors currently report zero findings.
-
-**Only limited concept/discovery conversations are permitted. Paid sales, customer onboarding and confidential-data use remain blocked.** Supervised non-paid previews only, using synthetic/non-sensitive data. Paid sales, payments, production onboarding and confidential-data use remain NO-GO. General account UI/cloud sync is merged but not deployed; real email delivery, two-account isolation, account deletion, payment enforcement, final privacy/terms, support/incident response, backups/restore, always-on hosting, physical Android testing and full AI quality/cost evaluation remain incomplete. NOVA BI is a limited preview, not a production business-data service. Do not promise SLA, enterprise readiness, confidentiality guarantees or perfect AI answers.
-
-See [PITCH_READINESS.md](PITCH_READINESS.md), [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md), [PRIVACY_NOTICE_DRAFT.md](PRIVACY_NOTICE_DRAFT.md), [TERMS_OF_USE_DRAFT.md](TERMS_OF_USE_DRAFT.md) and [SUPPORT_AND_INCIDENT_RUNBOOK.md](SUPPORT_AND_INCIDENT_RUNBOOK.md). Older status entries below are historical only.
 # NOVA AI
 
-NOVA is an India-oriented, Hindi-and-English AI web application. The current product direction organizes work into three workspaces:
+NOVA is an India-oriented Hindi-English AI web workspace organized into three areas:
 
-- **NOVA Learn** — study and learning workflows.
+- **NOVA Learn** — learning and study workflows.
 - **NOVA Build** — digital creation workflows.
-- **NOVA Agents** — everyday assistant and agent workflows.
+- **NOVA Agents** — assistant and agent workflows.
 
-## Project status
+Production preview: https://novaai-4auo.onrender.com
 
-**Limited non-paid discovery only.** The core app is live at https://novaai-4auo.onrender.com. General NOVA account and opt-in cloud-sync code merged in PR [#83](https://github.com/s85960833-byte/NovaAI/pull/83), but Render has not yet deployed the merge commit. Do not represent account/cloud sync as live until a new Render deployment and live Auth checks pass.
+## Release status — 8 November 2026
 
-Supabase now has 16 migrations, including the per-user workspace table with RLS. Real email delivery, two-account sync isolation, self-service account deletion, payments and final legal/support controls remain incomplete. See [PITCH_READINESS.md](PITCH_READINESS.md).
+<badge>Limited discovery only</badge>
 
-Production URL: https://novaai-4auo.onrender.com
+- Current main commit: `94be54b3e94f2dbccb039425b51d936565ab9eed`.
+- Current Render deployment: `dep-dbo5sdbm8hqs73fkvnrg`, status `live`, serving commit `94be54b3e94f2dbccb039425b51d936565ab9eed`.
+- Render build succeeded, `node nova-server.txt` started and reported port 10000. The prior main verification run [#42476098568](https://github.com/s85960833-byte/NovaAI/actions/runs/42476098568) passed all CI steps, including source/security checks, PostgreSQL RLS integration, Deno and Edge Function checks, local runtime/PWA, dependency audit, Chromium browser tests, mobile layout checks and live smoke against the then-current production release.
+- A new post-deployment verification run is still required to prove the latest deployment's live HTTP behaviour. Direct HTTP verification from the current review environment was unavailable.
+- Physical Android testing, real Auth email delivery, redirect allow-list, two-real-account cloud-sync isolation, complete account deletion, backup/restore and full live AI accuracy/latency/cost evaluation are not yet verified.
 
-The older PR #74/PR #75 release notes and pre-deployment findings below are historical records only; they are superseded by the current status block at the top of this README.
+## Data and privacy notes
+
+- Chat history remains browser-local by default.
+- Optional account cloud sync is OFF by default and requires explicit opt-in.
+- If enabled, the current snapshot stores up to 40 recent chats (up to 150 messages per chat), message text, extracted text from attached documents, saved memory and custom instructions. Image attachments themselves are excluded. Users should avoid syncing sensitive information.
+- Disabling sync stops future uploads but does not delete an existing cloud backup. The user must use the separate delete-cloud-backup control.
+- Real signup/confirmation/reset email delivery, Auth redirects and two-account isolation have not been verified end to end.
+- A complete self-service account deletion and a published retention schedule are not available yet.
+
+## Commercial and operational limits
+
+- No paying customers, revenue, traction, valuation or certification are represented.
+- Paid checkout, server-side subscription entitlements, cancellation/refunds, tax invoices and customer support operations are not ready.
+- Render uses a Free plan in Singapore with one instance and no always-on guarantee or SLA.
+- NOVA BI / Company Cloud is an early preview only. Use synthetic data; do not submit confidential, personal, employee, student, regulated or customer data.
+- AI outputs and third-party provider availability can be inaccurate, delayed, rate-limited or unavailable.
+- Privacy and Terms documents are drafts, not approved legal policies.
+
+## Discovery boundary
+
+Only non-paid, adult-supervised buyer-interest conversations and synthetic-data previews are appropriate. Do not accept payments, deposits, customer data or confidential information. Any ownership, IP transfer, payment, contract or sale discussion must be handled by a responsible adult with qualified legal review.
+
+## Key documents
+
+- [Buyer interest brief](BUYER_INTEREST_BRIEF.md)
+- [Pitch readiness checklist](PITCH_READINESS.md)
+- [Privacy notice draft](PRIVACY_NOTICE_DRAFT.md)
+- [Terms of use draft](TERMS_OF_USE_DRAFT.md)
+- [Support and incident runbook](SUPPORT_AND_INCIDENT_RUNBOOK.md)
 
 ## Architecture
 
-- Frontend: `index.html` plus modular browser JavaScript.
+- Frontend: `index.html` and modular browser JavaScript.
 - Backend: Express server in `nova-server.txt`.
 - Runtime: Node.js 22.
 - Start command: `node nova-server.txt`.
-- Existing general chat/settings data uses browser-local storage. Do not describe it as cloud-synced.
-- Provider keys belong in server-side environment variables, never in browser code or commits.
-
-## Historical verification notes (superseded by current status above)
-
-The unified candidate is maintained in Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74). The latest exact-head candidate CI is [#42456085762](https://github.com/s85960833-byte/NovaAI/actions/runs/42456085762) on `d7b72cd113126aa2580c942bae1d7c404ad2e32a`: 34 successful steps, 0 failures and 4 live-only checks skipped. The current PR head and Checks tab remain authoritative. It passed syntax, Markdown link injection regression tests, mode registry, rate-limit and provider-URL tests, PDF.js 6.5.438 security checks plus Chromium module/worker and actual PDF-upload tests, PostgreSQL migration/RLS integration, Deno Edge Function type-check and tests, BI calculations/CSV validation, evaluation-fixture validation, production dependency audit, local routes/PWA runtime smoke, graceful shutdown, Company Cloud browser workflows, Chromium workspace interactions, CSP violation checks and five-viewport mobile/drawer regression tests. Four live-only checks remain skipped on the unmerged feature branch.
-
-The candidate Edge Function now rejects non-object JSON request bodies (including `null`, arrays and scalar values) with HTTP 400; dedicated Deno tests cover object, empty, malformed and non-object bodies. The candidate now uses exact-origin NOVA BI CORS with tests for exact-origin, lookalike-origin, opaque-origin and insecure-URL rejection. Its two inline frontend script blocks have been moved into `nova-config.js` and `nova-app.js`; the backend serves them and the PWA offline shell caches them. Static and runtime tests cover those changes and the secret-safe `persistable()` storage contract.
-
-The workflow skipped the deployed Edge Function CORS smoke and live Render/provider/free-provider image-generation steps on this feature branch; these remain live-release gates. Physical Android testing, real signup/password-reset email delivery and two-real-account tenant isolation were not performed. The PostgreSQL 17 integration test now covers cross-tenant read denial for datasets, analyses, workflow proposals, approvals, executions, branding and audit events, plus attempted outsider insert/update/delete operations; this remains isolated-database evidence rather than a real-account live test. The 60-case evaluation fixture validates fixture structure only; it is not a live AI accuracy score. CSP is improved but not strict: `script-src` no longer permits `'unsafe-inline'`; automated Markdown attribute-injection and Chromium CSP checks passed. Inline styles and broad HTTPS `connect-src` still require hardening. The three live Render/provider/image checks were skipped because there is no isolated candidate preview. Passing CI does not prove the candidate is error-free or production-ready.
-
-**Live security discrepancy:** a fresh read-only inspection found the currently deployed `nova-bi-api` v13 still sends wildcard CORS (`Access-Control-Allow-Origin: *`). The candidate implements exact-origin checks, and its deployed-function smoke test now verifies both the approved NOVA origin and rejection of an untrusted origin. The live Edge Function has not been replaced; do not claim the deployed endpoint is hardened yet.
-
-## Release gates still open
-
-- Approved preview/release path and deployment of the exact candidate.
-- Real signup, email confirmation/SMTP and Supabase Auth redirect allow-list verification.
-- Two-real-account tenant-isolation checks.
-- Physical Android verification of touch, keyboard, visual fit, saved chats/settings, low-network behavior and permissions.
-- Live non-paid chat, search, voice and image-provider smoke tests on the approved candidate preview.
-- Public HTTPS response-header/HSTS verification and post-deploy regression.
-- Backup/restore, retention, privacy and incident-response review.
-- Explicit approval before applying any live Supabase migration, changing Auth settings, merging or deploying.
-
-No merge, Production deployment, live Supabase migration, Edge Function replacement, Auth configuration change or paid resource change is authorized by this candidate.
-
-## NOVA Business Intelligence
-
-NOVA BI is included in clean unified Draft PR #74 but is not launched or deployed. Do not use it with sensitive company data until real-account, privacy, retention and backup/restore gates are completed.
-
-The inspected Supabase project has 12 migrations, 10 RLS-enabled BI tables and an ACTIVE JWT-protected Edge Function v13. The latest Security and Health Advisors reported zero findings; Performance Advisor reported 13 unused-index INFO notices. Auth user, organization and membership counts were zero at the last inspection. These checks are not an enterprise certification or a public-launch approval.
-
-## Honest product limitations
-
-- The provider fan-out diagnostic endpoint `/api/live/selftest` is disabled by default to prevent public callers from triggering many upstream requests; enable `LIVE_SELFTEST_ENABLED=1` only for an operator-authorized check, then turn it off.
-- Provider availability, free-tier quotas, latency and output quality can vary.
-- Browser-local saved chats can be lost if site data is cleared.
-- General NOVA account login and cloud chat sync are not established on the current Production baseline.
-- Do not use NOVA BI with sensitive or regulated company data before its release gates are complete.
-- Automated checks are not a security certification or a guarantee of zero errors.
-
-Use [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md) as the copy-ready founder pitch pack. [PITCH_READINESS.md](PITCH_READINESS.md) is the technical evidence and release-gate record; [PITCH_SCRIPT.md](PITCH_SCRIPT.md) is the short demo script.
-
-## Current authoritative release checkpoint — 8 November 2026
-
-- Unified candidate PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74) is open, Draft, unmerged and undeployed. The current branch head and comparison are shown live in the PR; no fixed ahead-count is recorded here.
-- Latest application-code verification snapshot: `7f7d6bc475359c19975dbb8702205af5ad86cb30`; [CI run #42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) passed with 44 BI unit tests, 12 Deno tests and 6 Playwright browser tests passed; live-only checks remain skipped. Later changes include documentation corrections and the PostgreSQL RLS integration-test update. The latest test-only candidate commit `e90f3f91525191b78149d8a02aa63133bdc0f029` passed exact-head CI [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943); four live-only checks remain skipped.
-- Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; Render is configured to deploy `main`. No production merge, deploy, migration or Auth/SMTP change was made.
-- Live Supabase findings remain as described above: candidate owner/admin-only audit-read and rate-limit search-path migrations are not applied; deployed CORS remains wildcard and live audit reads still include active members.
-- Browser-based viewport tests are Chromium simulations, not a physical Android test. Real signup/password-reset email delivery, two-account tenant isolation, backup/restore, privacy/retention/deletion, hosting/health checks, region review, CSP hardening and branch-protection verification remain release gates.
-- **Decision: NO-GO for paid sales, onboarding or production promises.** Only clearly disclosed non-sensitive concept feedback is appropriate until release gates are completed and explicitly approved.
-
-This checkpoint supersedes older candidate-head and release-status notes above; historical checkpoints are retained as audit history.
-
-
-## Current re-audit pointer — 8 November 2026
-
-Clean [PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) is the live source of truth for the consolidated candidate head, PR state and exact-head Checks/Actions. It remains Open, Draft, Unmerged and Undeployed. The current exact-head CI [#42456085762](https://github.com/s85960833-byte/NovaAI/actions/runs/42456085762) passed with 34 successful steps, 0 failures and 4 live-only checks skipped. The live PR Checks tab remains authoritative for future commits. GitHub reports `main.protected: false` and no repository rulesets. Production `main` remains unchanged. Live CORS/migrations, real Auth/SMTP, two-account isolation, physical Android, backups/restore, privacy/deletion, hosting and CSP remain release gates. NO-GO for production, paid sales or customer-data onboarding.
-
-
-## Migration alignment update — 8 November 2026
-
-The candidate's 12 historical NOVA BI migration filenames now match the exact versions/names in the connected Supabase ledger. Three forward migrations remain pending; an authorized DBA must verify `supabase migration list --remote` and `supabase db push --dry-run --remote` show only those three before any approved production push. No production migration or deployment has been performed. Live wildcard CORS, broad audit-log SELECT and the older rate-limit search_path remain release blockers.
-
-
-## Exact-head verification — 8 November 2026
-
-Candidate head `d7b72cd113126aa2580c942bae1d7c404ad2e32a` passed [CI #42456085762](https://github.com/s85960833-byte/NovaAI/actions/runs/42456085762) with 34 successful steps, 0 failures and 4 live-only checks skipped. The 12 historical migration filenames now align with the remote ledger; three forward migrations remain pending a remote dry-run and owner approval. Live CORS, audit-read policy and rate-limit search_path remain unchanged. The candidate is not deployed.
+- Supabase provides authentication and the optional per-user workspace-sync table, protected by row-level security.
+- Provider secrets must remain server-side; never commit keys or expose them in browser code.
