@@ -20,6 +20,11 @@ for (const size of sizes) {
     await expect(page.locator('#main')).toBeVisible();
     await expect(page.locator('#hi .nr-cards')).toBeVisible();
     await expect(page.locator('#hi .nr-card[data-group="learn"]')).toBeVisible();
+    const cardTitles = (await page.locator('#hi .nr-card h2').allTextContents()).map(x => x.trim());
+    expect(cardTitles).toEqual(['NOVA Learn / नोवा लर्न', 'NOVA Build / नोवा बिल्ड', 'NOVA Agents / नोवा एजेंट्स']);
+    const sidebarLabels = await page.locator('#nrSidebarLinks button').allTextContents();
+    expect(sidebarLabels[0]).toContain('NOVA Learn / नोवा लर्न');
+    expect(sidebarLabels[1]).toContain('NOVA Build / नोवा बिल्ड');
     await expect(page.locator('#new')).toBeHidden();
     await expect(page.locator('#nImg')).toBeHidden();
     await expect(page.locator('#nLive')).toBeHidden();
@@ -28,7 +33,7 @@ for (const size of sizes) {
     await expect(page.locator('#novaBICloudLauncher')).toHaveCount(0);
     await expect(page.locator('#nrSidebarLinks')).not.toContainText('Explore');
     const layout = await page.evaluate(() => {
-      const rect = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { x:r.x, right:r.right, width:r.width, bottom:r.bottom }; };
+      const rect = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { x:r.x, right:r.right, width:r.width, top:r.top, bottom:r.bottom }; };
       return { documentWidth:document.documentElement.scrollWidth, bodyWidth:document.body.scrollWidth,
         main:rect('#main'), home:rect('#hi'), cards:rect('#hi .nr-cards'), card:rect('#hi .nr-card'),
         columns:getComputedStyle(document.querySelector('#hi .nr-cards')).gridTemplateColumns.split(' ').length,
@@ -48,6 +53,7 @@ for (const size of sizes) {
     expect(layout.titleFont).toContain('Noto Sans Devanagari');
     if(size.width<=760){ expect(layout.side).toBe('fixed'); expect(Math.abs(layout.main.width-size.width)).toBeLessThanOrEqual(1); expect(layout.columns).toBe(1); }
     else { expect(layout.main.x).toBeGreaterThan(0); expect(layout.columns).toBe(3); }
+    if(size.width<=430) expect(layout.card.top).toBeLessThan(size.height);
     await page.screenshot({path:'artifacts/'+browserName+'-workspace-'+size.width+'x'+size.height+'.png',fullPage:true});
     expect(pageErrors).toEqual([]);
   });
