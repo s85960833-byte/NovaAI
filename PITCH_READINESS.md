@@ -343,10 +343,10 @@ This checkpoint supersedes older candidate-head, migration-count, CSP and releas
 - **Decision remains NO-GO for paid sales, paid onboarding, customer-data collection, or production promises.** Candidate CI, static inspection and RLS policy inspection do not close live CORS, Auth/SMTP, two-account, physical Android, backup/restore, privacy/retention/deletion, hosting, CSP or release-approval gates.
 
 
-## 22. Current candidate checkpoint — 8 November 2026 (live GitHub recheck)
+## 22. Current candidate checkpoint — 8 November 2026
 
-- Candidate branch head: `548918d62e8a2715853c4d15ad64fe3cf64cb164`; PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73) is Open, Draft, Unmerged and targets production `main` at `48e12a68af656b471853ac2a4509da0e3df7ab24`.
-- The exact-head push CI [#42446220312](https://github.com/s85960833-byte/NovaAI/actions/runs/42446220312) and PR CI [#42446224447](https://github.com/s85960833-byte/NovaAI/actions/runs/42446224447) both completed successfully with 34 successful steps, 0 failed and 4 live-only checks skipped.
+- [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73) is the authoritative live record for the candidate branch head, PR state and exact-head CI. It remains Open, Draft, Unmerged and Undeployed; use its Checks tab rather than relying on copied commit hashes or old workflow runs.
+- The latest fully verified application-code checkpoint remains `7f7d6bc475359c19975dbb8702205af5ad86cb30`; exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) passed. The PostgreSQL RLS test-only commit `e90f3f91525191b78149d8a02aa63133bdc0f029` also passed [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943). Later changes are documentation-only; check the live PR for the newest documentation-head CI result.
 - GitHub branch metadata reports `main.protected: false`; the repository rulesets API returns an empty list. The detailed protection endpoint returns 403 to this integration. No active protection is evidenced; an authorized repository administrator must configure protection and required checks.
 - Production `main` remains unchanged. No merge, deployment, live migration, Auth/SMTP setting change or paid resource purchase was performed.
 - Existing live release blockers remain: candidate CORS/migrations are not deployed; live signup/email/invitation and two-account tenant isolation are untested; physical Android validation is outstanding; hosting health, off-site backup/restore, privacy/deletion lifecycle and CSP hardening remain open.
