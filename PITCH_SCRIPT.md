@@ -114,4 +114,4 @@ Use clean [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) and i
 
 ## Current verification update — 8 November 2026
 
-Latest exact-head CI [#42454154190](https://github.com/s85960833-byte/NovaAI/actions/runs/42454154190) passed on the current candidate head with 34 successful steps, 0 failures and 4 live-only checks skipped. Use clean [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) for future checks. Three forward migrations remain pending; live CORS, audit policy and rate-limit search_path have not been changed. Concept feedback only; no paid offer or production promise.
+Latest exact-head CI [#42456085762](https://github.com/s85960833-byte/NovaAI/actions/runs/42456085762) passed on the current candidate head with 34 successful steps, 0 failures and 4 live-only checks skipped. Use clean [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) for future checks. Three forward migrations remain pending; live CORS, audit policy and rate-limit search_path have not been changed. Concept feedback only; no paid offer or production promise.
