@@ -361,12 +361,16 @@ test('NOVA BI invitation failures compensate temporary Auth and membership recor
 });
 
 
-test('NOVA BI API distinguishes malformed and oversized request input from server errors',()=>{
+test('NOVA BI API rejects malformed, oversized and non-object JSON request input with 400/413 errors',()=>{
  const edge=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','index.ts'),'utf8');
- assert.ok(edge.includes('class RequestInputError extends Error'));
+ const parser=readFileSync(path.join(__dirname,'..','supabase','functions','nova-bi-api','request-input.ts'),'utf8');
+ assert.ok(edge.includes('import { parseJsonObject, RequestInputError } from "./request-input.ts"'));
+ assert.ok(edge.includes('return parseJsonObject(raw);'));
  assert.ok(edge.includes('new RequestInputError("Request body is too large", 413)'));
- assert.ok(edge.includes('new RequestInputError("Request body must be valid JSON", 400)'));
  assert.ok(edge.includes('new RequestInputError("Request body must be valid UTF-8", 400)'));
+ assert.ok(parser.includes('new RequestInputError("Request body must be valid JSON", 400)'));
+ assert.ok(parser.includes('if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))'));
+ assert.ok(parser.includes('Request body must be a JSON object'));
  assert.ok(edge.includes('if (error instanceof RequestInputError) return fail(message, error.status)'));
 });
 
