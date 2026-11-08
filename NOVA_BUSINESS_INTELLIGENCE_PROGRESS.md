@@ -119,3 +119,8 @@ Updated: 2026-11-08
 
 - Latest exact-head candidate CI: commit `e90f3f91525191b78149d8a02aa63133bdc0f029`; [run #42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943) completed successfully. This test-only change adds an active-admin audit-read assertion to the PostgreSQL 17 RLS integration suite; it does not change runtime application code. Four live-only release checks remain skipped.
 - Runtime application source remains at the previously verified application-code snapshot; the latest change only strengthens the isolated PostgreSQL integration test. Live Supabase policy was not changed.
+
+
+## Current candidate and release checkpoint — 8 November 2026
+
+Candidate head `fd89963bb261da0f2c234b8980dd5a3aeba35990` is in Draft PR #73, Open/Unmerged/Undeployed. Exact-head CI push #42446133265 and PR #42446136563 were still running at the latest check; previous green runs apply only to their own SHAs. Production `main` remains unchanged. GitHub reports `main.protected: false` with no repository rulesets. Live wildcard CORS and unapplied candidate migrations, Auth/SMTP, two-account isolation, physical Android, backup/restore, privacy/deletion, hosting and CSP remain release gates. Keep this module unreleased and NO-GO for paid onboarding or sensitive company data.

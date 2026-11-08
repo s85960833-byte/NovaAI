@@ -105,3 +105,8 @@ This checkpoint supersedes older candidate-head, migration-count, CSP and releas
 
 
 **Latest release-status pointer (8 Nov 2026):** The authoritative re-audit is recorded in `PITCH_READINESS.md` §21. It reconfirms that PR #73 is unmerged/undeployed, candidate CI skipped live Render/Edge Function/provider/image checks, the deployed Edge Function still has wildcard CORS, and paid sales remain NO-GO. Treat older dated checkpoints in this file as historical.
+
+
+## Current release boundary — 8 November 2026
+
+Use [PITCH_READINESS.md §22](PITCH_READINESS.md) for the live release status. Candidate head `fd89963bb261da0f2c234b8980dd5a3aeba35990`; PR #73 is Draft, unmerged and undeployed. Exact-head CI #42446133265 and #42446136563 were still running at the latest check. Production `main` is unchanged. No payment, confidential data, production/SLA or live-product promise until all release gates are evidenced and approved.

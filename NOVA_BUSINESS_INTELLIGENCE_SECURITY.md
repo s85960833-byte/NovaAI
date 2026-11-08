@@ -118,3 +118,8 @@ This section supersedes earlier dated candidate-head and CI snapshots above. His
 Outstanding gates remain: authorized owner review of the complete PR history/diff; owner-approved deployment and candidate migrations; live exact-origin CORS/auth tests; controlled signup/confirmation/reset/invitation tests with verified custom SMTP and redirect allow-list; two-account cross-tenant and role tests; physical Android accessibility/performance checks; approved hosting, health checks, backups and restore drill; region/data-residency decision; CSP tightening; complete account deletion/retention/owner-transfer/privacy/incident-response/secret-rotation procedures; and verified branch protection. Do not collect confidential company or employee data, promise SLA/availability, or accept payment on the basis of candidate CI.
 
 No live production resources or customer data were changed. Keep PR #73 Draft and unmerged until every applicable gate is evidenced and the authorized project owner approves the release.
+
+
+## Current candidate security checkpoint — 8 November 2026
+
+The current candidate head is `fd89963bb261da0f2c234b8980dd5a3aeba35990` in Draft PR #73; exact-head push/PR CI runs #42446133265 and #42446136563 were still running at the last check. Earlier CI success is not a pass for this newer SHA. Production `main` remains unchanged. GitHub reports `main.protected: false` and no repository rulesets. Live Edge Function v13 still has wildcard CORS; candidate exact-origin CORS and database hardening migrations are not deployed. Keep NO-GO until live auth/CORS, real-account isolation, physical Android, recovery/privacy lifecycle, hosting and CSP are verified and owner-approved.

@@ -75,3 +75,8 @@ Use [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md) as the copy-ready founder pitch pack.
 - **Decision: NO-GO for paid sales, onboarding or production promises.** Only clearly disclosed non-sensitive concept feedback is appropriate until release gates are completed and explicitly approved.
 
 This checkpoint supersedes older candidate-head and release-status notes above; historical checkpoints are retained as audit history.
+
+
+## Current re-audit pointer — 8 November 2026
+
+The latest live candidate checkpoint is recorded in [PITCH_READINESS.md §22](PITCH_READINESS.md). Candidate head at that checkpoint: `fd89963bb261da0f2c234b8980dd5a3aeba35990`; PR #73 remains Open, Draft, Unmerged and Undeployed. Exact-head push and PR CI runs #42446133265 and #42446136563 were still running at the checkpoint; do not treat earlier green runs as verification of this head. GitHub reports `main.protected: false` and no repository rulesets. Production `main` remains unchanged. Live CORS/migrations, real Auth/SMTP, two-account isolation, physical Android, backups/restore, privacy/deletion, hosting and CSP remain release gates. NO-GO for production, paid sales or customer-data onboarding.
