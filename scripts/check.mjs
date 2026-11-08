@@ -22,14 +22,15 @@ const pitchReadiness = readFileSync('PITCH_READINESS.md', 'utf8');
 const pitchKit = readFileSync('NOVA_PITCH_KIT.md', 'utf8');
 const pitchScript = readFileSync('PITCH_SCRIPT.md', 'utf8');
 if (!readme.includes('Only non-paid, adult-supervised buyer-interest conversations') ||
-    !readme.includes('Do not accept payments, deposits') ||
+    !readme.includes('Do not accept payments, deposits, customer data or confidential information') ||
     !pitchReadiness.includes('Decision: LIMITED DISCOVERY ONLY') ||
     !pitchReadiness.includes('NOT READY FOR PAID SALE OR PRODUCTION CUSTOMER ONBOARDING') ||
+    !pitchReadiness.includes('No payments, deposits, paid onboarding or confidential-data processing') ||
     !pitchKit.includes('Non-paid, adult-supervised discovery only') ||
-    !pitchKit.includes('No payment, deposit') ||
+    !pitchKit.includes('No payment, deposit, paid trial, customer onboarding or confidential-data processing') ||
     !pitchScript.includes('For supervised, non-paid discovery only') ||
-    !pitchScript.includes('Do not offer a paid product') ||
-    !pitchScript.includes('Do not request payment')) {
+    !pitchScript.includes('Do not offer a paid product or customer-data onboarding') ||
+    !pitchScript.includes('Do not request payment, confidential data, passwords or API keys')) {
   throw new Error('Pitch materials must consistently allow supervised non-paid discovery only and block paid sales, deposits and customer-data onboarding');
 }
 for (const pattern of ['.env', '.env.*', '*.pem', '*.key', '*.p12', '*.pfx', 'service-account*.json', 'credentials*.json', 'node_modules/']) {
