@@ -65,18 +65,13 @@ The inspected Supabase project has 12 migrations, 10 RLS-enabled BI tables and a
 
 Use [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md) as the copy-ready founder pitch pack. [PITCH_READINESS.md](PITCH_READINESS.md) is the technical evidence and release-gate record; [PITCH_SCRIPT.md](PITCH_SCRIPT.md) is the short demo script.
 
-
-
-
 ## Current authoritative release checkpoint — 8 November 2026
 
-- Unified candidate PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73) is open, Draft, unmerged and undeployed. See the PR for the exact current head. The branch is 502 commits ahead of production `main`, 0 behind, with 64 changed files.
-- Latest application-code verification snapshot: `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a`; [CI run #42434333838](https://github.com/s85960833-byte/NovaAI/actions/runs/42434333838) passed with 34 successful steps, 0 failed and 4 live-production checks skipped. Current documentation-only head `585bac4028c8e36ee156fa25049f63787e5cb1ab` also passed [CI run #42435302169](https://github.com/s85960833-byte/NovaAI/actions/runs/42435302169); that docs run does not replace app-code or live-environment testing.
-- Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; Render is configured to deploy `main`, and the latest live deployment remains on that commit. No production merge, deploy, migration or Auth/SMTP change was made.
-- Live Supabase has 12 migrations and 10 RLS-enabled BI tables. Security and Health Advisors returned zero findings. Candidate migrations for owner/admin-only audit reads and rate-limit `search_path` hardening are not applied; live CORS is still wildcard and live audit reads still include active members.
-- A read-only 24-hour Edge Function log sample contained 340 OPTIONS/204 and 169 GET `/me`/401 requests; no successful authenticated API request appeared in that sample. This does not identify callers or prove malicious activity.
-- Candidate Chromium screenshots and responsive tests cover 360, 390, 412, 760 and 1280 CSS-pixel viewports. These are browser simulations, not a physical Android test.
-- General NOVA chat/settings/history remain browser-local. No subscription billing/entitlement flow or verified general cloud history sync is available.
-- **Decision: NO-GO for paid sales, onboarding or production promises.** Remaining gates include owner-approved release, live migration and Edge Function deployment, real Auth/SMTP and two-account isolation tests, physical Android, hosting/health checks, backup/restore, region/privacy/retention/deletion review, CSP tightening and branch-protection verification. Only clearly disclosed non-sensitive concept feedback is appropriate.
+- Unified candidate PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73) is open, Draft, unmerged and undeployed. The current branch head and comparison are shown live in the PR; no fixed ahead-count is recorded here.
+- Latest application-code verification snapshot: `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a`; [CI run #42434333838](https://github.com/s85960833-byte/NovaAI/actions/runs/42434333838) passed with 34 successful steps, 0 failed and 4 live-production checks skipped. The current documentation-only head is `c2408d42479f2874ea8acf5ae11a64061f3441ac`; its PR workflow [#42442020614](https://github.com/s85960833-byte/NovaAI/actions/runs/42442020614) is still in progress at this checkpoint. Do not treat it as passed until GitHub reports completion.
+- Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; Render is configured to deploy `main`. No production merge, deploy, migration or Auth/SMTP change was made.
+- Live Supabase findings remain as described above: candidate owner/admin-only audit-read and rate-limit search-path migrations are not applied; deployed CORS remains wildcard and live audit reads still include active members.
+- Browser-based viewport tests are Chromium simulations, not a physical Android test. Real signup/password-reset email delivery, two-account tenant isolation, backup/restore, privacy/retention/deletion, hosting/health checks, region review, CSP hardening and branch-protection verification remain release gates.
+- **Decision: NO-GO for paid sales, onboarding or production promises.** Only clearly disclosed non-sensitive concept feedback is appropriate until release gates are completed and explicitly approved.
 
 This checkpoint supersedes older candidate-head and release-status notes above; historical checkpoints are retained as audit history.
