@@ -35,6 +35,9 @@ Ten NOVA BI tables are deployed with RLS enabled (nine tenant tables plus one se
 The browser parses CSV files locally. Cloud save persists dataset metadata, aggregate analysis outputs, source-row evidence, assumptions and calculation version; raw CSV contents are not uploaded. Workflow proposals are plans only; no external workflow action is executed.
 
 ## Authorization model
+
+The table below describes the intended candidate authorization model. **Live-state exception:** the last direct inspection found that the deployed audit-read policy still allows all active organization members to read audit events. The candidate migration `20261108120000_nova_bi_audit_admin_read_only.sql` narrows this to active owners/admins, but it has not been applied to production. Do not assume the narrower audit rule is live until an owner-approved migration and post-migration verification are complete.
+
 | Capability | Owner | Admin | Analyst | Viewer |
 |---|---:|---:|---:|---:|
 | Read tenant datasets, analyses and workflows | Yes | Yes | Yes | Yes |
@@ -53,7 +56,7 @@ Authenticated clients have no general membership write access. Invitation accept
 - Owners/admins can permanently delete saved analysis records and dataset metadata.
 - Dataset deletion is blocked by the relational foreign key while analyses still reference it; the UI asks the user to remove linked analyses first.
 - Database triggers append audit events for analysis/dataset deletion, invitation acceptance and workflow decisions.
-- Audit-log SELECT is restricted by RLS to active owners/admins; analysts and viewers do not receive invitee/member metadata.
+- Candidate audit-log SELECT is restricted by RLS to active owners/admins. Live production still has the broader active-member policy until the pending owner/admin-only migration is approved, applied and verified.
 - Original CSV files are browser-local and are not stored by NOVA; deleting cloud metadata cannot delete a local file.
 
 ## Truthful feature boundaries
