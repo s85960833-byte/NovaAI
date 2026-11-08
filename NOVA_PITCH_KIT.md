@@ -256,3 +256,8 @@ This checkpoint supersedes older candidate-head, migration-count, CSP and releas
 ## Current release-status pointer — 8 November 2026
 
 Use clean [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) and its Checks tab for the current candidate head and exact-head CI status; this pointer intentionally avoids stale copied SHAs. PR #74 remains Draft, unmerged and undeployed. GitHub reports `main.protected: false` and no repository rulesets. Live CORS/migrations, Auth/SMTP, two-account isolation, physical Android, backups/restore, privacy/deletion, hosting and CSP remain open. Not a paid-sales offer.
+
+
+## Current verification update — 8 November 2026
+
+The last completed application-code run [#42452638922](https://github.com/s85960833-byte/NovaAI/actions/runs/42452638922) passed on `91bd7ca6f5234013b0369cc86c8810817b14d0ce`. It includes an email-confirmation guard for existing-account invitations. Later candidate changes restored already-applied migration files and moved branding backfill into a forward-only migration; those changes need their own exact-head CI. Use clean [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) for current checks. Three forward migrations remain pending; live wildcard CORS, broad audit access and rate-limit search_path remain unchanged. Paid sales and production promises remain NO-GO.

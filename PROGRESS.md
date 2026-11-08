@@ -461,3 +461,13 @@ Safe reconciliation is deliberately not performed by this audit because the conn
 References: https://supabase.com/docs/reference/cli/supabase-migration-repair and https://supabase.com/docs/guides/deployment/database-migrations.
 
 **Status:** release-blocking migration-history reconciliation is documented but not executed. No live SQL, migration history, Edge Function, Auth configuration or hosting setting was changed.
+
+
+## Current candidate re-audit — 8 November 2026
+
+- Draft PR #74 is the sole integrated candidate; production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`.
+- Last completed application-code run [#42452638922](https://github.com/s85960833-byte/NovaAI/actions/runs/42452638922) passed on `91bd7ca6f5234013b0369cc86c8810817b14d0ce`, including the confirmed-email guard for existing account invitations. The later migration-immutability changes and current documentation updates require exact-head CI.
+- Historical migrations were restored; branding backfill is now a separate forward-only migration. Three forward migrations remain pending. The source mapping and safety steps are in `SUPABASE_MIGRATION_RECONCILIATION.md`.
+- No live migration, Edge Function deployment, Auth/SMTP change, Render deployment or branch protection setting was changed. Live wildcard CORS, broad audit-read policy and rate-limit search_path remain unresolved.
+- Candidate Chromium screenshots cover five viewport sizes but do not replace physical Android testing. Real Auth/SMTP, two-account isolation, backup/restore, privacy/deletion, hosting/health, CSP and branch-protection gates remain open.
+- **NO-GO** for paid sales, customer onboarding, confidential data or production/SLA claims until all gates are verified and approved.

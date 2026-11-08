@@ -110,3 +110,8 @@ This checkpoint supersedes older candidate-head, migration-count, CSP and releas
 ## Current release boundary — 8 November 2026
 
 Use clean [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) and its Checks tab for the current candidate head and exact-head CI. PR #74 remains Draft, unmerged and undeployed. Production `main` is unchanged. GitHub reports `main.protected: false` and no repository rulesets. No payment, confidential data, production/SLA or live-product promise until all release gates are evidenced and approved.
+
+
+## Current verification update — 8 November 2026
+
+The last completed application-code run [#42452638922](https://github.com/s85960833-byte/NovaAI/actions/runs/42452638922) passed on `91bd7ca6f5234013b0369cc86c8810817b14d0ce`. Subsequent migration-immutability and documentation updates require exact-head CI. Use clean [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) for current checks. Three forward migrations remain pending; live CORS, audit policy and rate-limit search_path have not been changed. Concept feedback only; no paid offer or production promise.

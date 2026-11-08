@@ -152,3 +152,13 @@ Safe reconciliation is deliberately not performed by this audit because the conn
 References: https://supabase.com/docs/reference/cli/supabase-migration-repair and https://supabase.com/docs/guides/deployment/database-migrations.
 
 **Status:** release-blocking migration-history reconciliation is documented but not executed. No live SQL, migration history, Edge Function, Auth configuration or hosting setting was changed.
+
+
+## Re-audit addendum — 8 November 2026
+
+- Clean Draft PR #74 remains the only integrated candidate; production `main` and deployed `nova-bi-api` v13 are unchanged.
+- Existing-account invitation handling now checks `email_confirmed_at` and refuses to create an in-app invitation for an unconfirmed account. This avoids a pending membership that the recipient cannot yet accept.
+- Historical migration files have been restored to their original SQL source. Branding backfill is isolated in forward migration `20261108120100`; rate-limit search_path hardening remains in `20261106195900`; owner/admin-only audit reads remain in `20261108120000`. All three are pending, not live.
+- Git source provenance for all 12 live logical migrations is mapped in `SUPABASE_MIGRATION_RECONCILIATION.md`. The remote migration ledger stores versions/names, not SQL bodies, so this source mapping does not independently prove the exact deployed payload. Do not run production migration repair or push until an authorized DBA completes the dry-run/reconciliation procedure.
+- Candidate code and migrations have not been deployed. Live CORS is still wildcard, audit SELECT is still active-member-wide, and the rate-limit function still has `search_path=public, pg_temp`.
+- **Release remains NO-GO** for paid sales, customer onboarding or sensitive company data. Real SMTP/Auth, two-account isolation, physical Android, backup/restore, privacy/deletion, hosting, CSP and branch protection remain open.

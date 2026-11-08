@@ -387,3 +387,13 @@ References: https://supabase.com/docs/reference/cli/supabase-migration-repair an
 - Additional candidate fixes: default branding is backfilled for organizations created before the branding migration; branding GET tolerates a missing legacy row; PostgreSQL RLS integration now asserts default branding bootstrap; CSV import rejects more than 100 columns.
 - Production `main`, Render and Supabase were not modified. Live wildcard CORS, broad audit-read policy, rate-limit search_path, migration timestamp reconciliation, SMTP/Auth, real two-account isolation, physical Android, backups/restore, privacy/deletion, hosting/branch protection and CSP remain release gates.
 - **Decision remains NO-GO** for paid sales, customer onboarding with real company data, or production/SLA promises until all gates are verified and approved by the authorized project owner.
+
+
+## 23. Re-audit addendum — 8 November 2026
+
+- Draft PR #74 remains the only authoritative integrated candidate. Production `main` is unchanged; the candidate remains unmerged and undeployed.
+- The last completed exact-head application-code run [#42452638922](https://github.com/s85960833-byte/NovaAI/actions/runs/42452638922) passed on `91bd7ca6f5234013b0369cc86c8810817b14d0ce`, including a new guard that refuses in-app invitations to existing accounts whose email is not confirmed. A later migration-immutability update and subsequent documentation commits require their own exact-head CI; consult PR #74 Checks before treating them as verified.
+- Migration lineage was traced to the original Git commits. Historical migration files were restored: branding backfill moved to forward migration `20261108120100`; the base rate-limit migration was restored and hardening remains in `20261106195900`. Three forward migrations are now pending: rate-limit search_path hardening, owner/admin-only audit reads and branding backfill. See `SUPABASE_MIGRATION_RECONCILIATION.md` for the source map and caveats.
+- Chromium screenshots from CI cover 360×800, 390×844, 412×915, 760×1024 and 1280×800. These verify browser-emulated responsive layout only, not physical Android hardware.
+- Live `nova-bi-api` v13 still has wildcard CORS; live audit SELECT remains broad; live rate-limit function retains `search_path=public, pg_temp`. No live migration, Edge Function deployment, Auth/SMTP change, Render deployment or production setting was changed.
+- **Decision remains NO-GO** for paid sales, production onboarding, confidential company data or SLA/availability promises until all gates are verified and owner-approved.
