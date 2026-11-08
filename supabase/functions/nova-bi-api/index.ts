@@ -1,5 +1,6 @@
 import { withSupabase } from "@supabase/server";
 import { findAuthUserByEmail } from "./invitations.ts";
+import { parseJsonObject, RequestInputError } from "./request-input.ts";
 import { configuredSiteOrigin, createCorsHeaders, withSiteOrigin } from "./cors.ts";
 
 // BI API is browser-accessible only from the configured NOVA site origin.
@@ -69,13 +70,6 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
     if (inviteLimit.data !== true) return rateLimited(3600);
   }
 
-  class RequestInputError extends Error {
-    constructor(message: string, readonly status: number) {
-      super(message);
-      this.name = "RequestInputError";
-    }
-  }
-
   async function readBoundedBody(request: Request, maxBytes = 70000): Promise<string> {
     const declaredLength = Number(request.headers.get("content-length") || "0");
     if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
@@ -112,10 +106,9 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
     }
   }
 
-  async function body() {
+  async function body(): Promise<Record<string, unknown>> {
     const raw = await readBoundedBody(req);
-    try { return JSON.parse(raw || "{}"); }
-    catch { throw new RequestInputError("Request body must be valid JSON", 400); }
+    return parseJsonObject(raw);
   }
 
   try {
