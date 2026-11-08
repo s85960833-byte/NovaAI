@@ -1,6 +1,6 @@
 # NOVA — Current Early Discovery Script
 
-**Use:** supervised product preview and non-paid discovery only. No paid offer or customer-data onboarding.
+**Status: LIMITED CONCEPT DISCOVERY ONLY.** Use this script for supervised product preview and non-paid discovery only. Do not offer a paid product or customer-data onboarding.
 
 ## 30-second Hindi intro
 
