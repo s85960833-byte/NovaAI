@@ -3,7 +3,7 @@
 **Audit snapshot:** 8 November 2026  
 **Pitch status:** LIMITED CONCEPT DISCOVERY ONLY — explain the product direction and request non-sensitive feedback while clearly stating that the unified candidate is not deployed. No paid sales, customer onboarding, confidential-data use, live demo guarantees, SLA or production-readiness claims until the release gates close.
 **Unified candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
-**Current candidate head:** `18f9c6567d83e0c73add7e41f7e0050d4391a98f`; PR #73 remains open, Draft, unmerged and undeployed. Current comparison: 501 commits ahead of `main`, 0 behind, 64 changed files; owner review of the complete history/diff is still required.
+**Current candidate head:** see Draft PR #73; PR #73 remains open, Draft, unmerged and undeployed. Current comparison: 501 commits ahead of `main`, 0 behind, 64 changed files; owner review of the complete history/diff is still required.
 **Latest application-code CI:** tested head `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a`; [run #42434333838](https://github.com/s85960833-byte/NovaAI/actions/runs/42434333838) completed with 34 successful steps, 0 failed and 4 live-production steps skipped. Subsequent candidate commits are documentation-only.
 **Live checks still open:** deployed Edge Function CORS/auth, Render/provider/image smoke, real SMTP/Auth email delivery, two-real-account tenant isolation, physical Android testing, backup/restore, CSP tightening and privacy/account-deletion processes.
 **Live Supabase log sample:** preceding 24-hour window had 509 Edge Function requests: 340 OPTIONS responses (204) and 169 GET `/me` responses (401), from `node` user-agent; no successful authenticated API request appeared in that sample. This does not identify callers or establish malicious activity.
@@ -309,7 +309,7 @@ This checkpoint supersedes older candidate-head, CI-run and release-status state
 
 ## Current authoritative release checkpoint — 7 November 2026
 
-- Latest application-code verification snapshot: `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf`; exact-head push/PR CI #42382919198 and #42382923272 passed. Subsequent changes in this release audit are documentation-only; use Draft PR #73 for the current branch head and its exact CI status.
+- Latest application-code verification snapshot: `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a`; exact-head CI #42434333838 passed with 34 successful steps, 0 failed and 4 live-production checks skipped. Later changes are documentation-only; see Draft PR #73 for current head.
 - Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; no merge, Render deploy, live database migration or Auth/SMTP change was made.
 - Live Supabase project `qrfwsewppafhxibdboam` is healthy (PostgreSQL 17.11, eu-west-1). All 10 NOVA BI tables have RLS enabled. Security Advisor: 0 findings; Health Advisor: 0; Performance Advisor: 13 INFO-only unused-index notices.
 - Live migration history has 12 migrations. Candidate migration `20261106195900_nova_bi_rate_limit_search_path_hardening.sql` is not applied live. The live rate-limit SECURITY DEFINER function still has `search_path=public, pg_temp`; execute ACL is restricted to `postgres` and `service_role`. Candidate migration pins an empty search_path and passes the isolated PostgreSQL regression, but this live hardening is still pending.
