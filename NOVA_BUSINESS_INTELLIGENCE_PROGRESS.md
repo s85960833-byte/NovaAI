@@ -3,13 +3,16 @@
 Updated: 2026-11-08
 
 ## Authoritative current release checkpoint
-- Current unified candidate is Draft PR #73 on `feature/nova-integrated-release-20261106`; current head shown in PR #73, 501 commits ahead of production `main`, 0 behind, 64 changed files. Open, Draft, unmerged and undeployed.
-- Latest application-code verification snapshot: `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a`; exact-head CI #42434333838 passed with 34 successful steps, 0 failed and 4 live-production checks skipped. Later commits only update documentation.
-- Live Supabase: 12 migrations; candidate audit-read and rate-limit search_path migrations remain pending. Live `nova-bi-api` v13 still has wildcard CORS. The live audit SELECT policy still allows active members, while candidate restricts it to owners/admins.
-- All 10 BI tables have RLS enabled; Security and Health Advisors currently return zero findings. Performance Advisor has 13 INFO-only unused-index notices.
-- Read-only 24-hour Edge Function log sample: 509 requests (340 OPTIONS/204, 169 GET `/me`/401), no successful authenticated API request in that sample. Real Auth/SMTP delivery and two-account tenant isolation remain unverified.
-- Render production remains on `main` in Singapore; Supabase remains in Ireland. Physical Android, backup/restore, privacy, account deletion, hosting and branch-protection checks remain open.
-- **Paid-sales status: NO-GO.** See `PITCH_READINESS.md` and Draft PR #73 for current release gates.
+
+- Unified candidate: [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`; open, Draft, unmerged and undeployed. Use the PR's live comparison for commit/file counts; this document intentionally does not hard-code them.
+- Current candidate documentation head at this checkpoint: `97399e0132edb0c0bd35aa10f253d20d71a8a15e`. Its exact-head GitHub Actions run [#42442142471](https://github.com/s85960833-byte/NovaAI/actions/runs/42442142471) completed successfully: 34 successful steps, 0 failed, 4 live/deployment checks skipped. This is not evidence that skipped live checks passed.
+- Latest application-code verification snapshot: `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a`; exact-head CI [#42434333838](https://github.com/s85960833-byte/NovaAI/actions/runs/42434333838) passed. Commits after that application-code snapshot are documentation-only.
+- Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; Render production remains configured to deploy `main`. No candidate merge or deployment occurred.
+- Live Supabase findings remain unchanged: candidate audit-read and rate-limit search_path migrations are pending; deployed `nova-bi-api` v13 still has wildcard CORS; live audit SELECT still permits active members. Do not describe candidate hardening as live.
+- Candidate CI covers PostgreSQL 17 migration/RLS integration, Deno Edge Function type-check and invitation/CORS tests, BI calculation/CSV validation, dependency audit, local runtime/PWA smoke, Chromium Company Cloud workflows and responsive viewport tests.
+- Four live checks were skipped on the feature branch: deployed Edge Function auth/CORS, Render live deployment/provider smoke, live website/provider smoke and free image-generation smoke. Chromium viewport tests are not a physical Android test.
+- Other unclosed release gates: real signup/confirmation/reset/invitation email delivery, two-real-account tenant isolation, physical Android/accessibility/performance, backup/restore, privacy/retention and complete account/organization deletion, hosting/region/health-check review, CSP tightening and branch-protection verification.
+- **Release decision: NO-GO for paid sales, customer onboarding, sensitive company data or production promises.** Only clearly disclosed, non-sensitive concept feedback is appropriate until all gates are verified and approved.
 
 ## Current release state
 - Unified feature branch: `feature/nova-integrated-release-20261106`.
