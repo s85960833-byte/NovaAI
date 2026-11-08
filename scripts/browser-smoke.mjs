@@ -14,6 +14,12 @@ try{
  track(desktop);
  await desktop.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{onAuthStateChange(){},getSession:async()=>({data:{session:null}})}})};'}));
  await desktop.goto(BASE,{waitUntil:'domcontentloaded'});
+ const syncAsset=await desktop.evaluate(async()=>{const response=await fetch('/nova-sync-merge.js');return {status:response.status,type:response.headers.get('content-type')||'',body:await response.text(),loaded:typeof window.NovaSyncMerge?.mergeMessages==='function'}});
+ assert.equal(syncAsset.status,200,'cloud-sync merge helper route must be served');
+ assert.match(syncAsset.type,/javascript/i,'cloud-sync merge helper must have a JavaScript MIME type');
+ assert.match(syncAsset.body,/mergeMessages/,'cloud-sync merge helper must expose its tested merge implementation');
+ assert.equal(syncAsset.loaded,true,'cloud-sync merge helper must execute before app initialization');
+ console.log('PASS cloud-sync merge helper route, MIME type and browser global');
  const csp=await desktop.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content');
  assert.ok(csp.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net"),'script CSP must allow only reviewed self/CDN script sources');
  assert.doesNotMatch(csp,/script-src[^;]*'unsafe-inline'/,'script CSP must not permit inline execution');
