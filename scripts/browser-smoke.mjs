@@ -164,6 +164,14 @@ try{
  await desktop.locator('#nmClose').click();
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
 
+ // The Build workspace Image Studio action must reveal the existing image composer from the dashboard.
+ await desktop.locator('#hi .nr-card[data-group="build"]').click();
+ await desktop.locator('#novaModes.open').waitFor();
+ await desktop.locator('#nmContent [data-quick="openImageStudio"]').click();
+ await desktop.locator('#imbar').waitFor({state:'visible',timeout:5000});
+ assert.equal(await desktop.locator('#box').isVisible(),true,'Image Studio must reveal the composer while the workspace dashboard is mounted');
+ assert.equal(await desktop.locator('#in').isVisible(),true,'Image Studio prompt must be reachable from NOVA Build');
+ console.log('PASS NOVA Build Image Studio launcher opens the image prompt composer');
 
  const mobileContext=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2,isMobile:true,hasTouch:true});
  const mobile=await mobileContext.newPage();
