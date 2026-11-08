@@ -68,7 +68,6 @@ const workspaceMigration = readFileSync('supabase/migrations/20261108093219_nova
 syntaxCheck('nova-account.js', accountClient);
 if (!html.includes('id="novaAccountDialog"') || !html.includes('id="novaAccountMount"') || !html.includes('/nova-account.js')) throw new Error('NOVA account UI is not mounted in settings');
 if (!server.includes("app.get('/nova-account.js'")) throw new Error('NOVA account script route is missing');
-if (!cloudClientExportAvailable()) {}
 function cloudClientExportAvailable(){return readFileSync('nova-business-cloud.js','utf8').includes('getClient:ensureClient')}
 if (!cloudClientExportAvailable()) throw new Error('NOVA account must reuse the shared Supabase client');
 if (!accountClient.includes('signInWithPassword') || !accountClient.includes('.auth.signUp') || !accountClient.includes('resetPasswordForEmail') || !accountClient.includes('.auth.resend')) throw new Error('NOVA account auth flows are incomplete');
