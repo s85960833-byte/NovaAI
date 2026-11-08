@@ -1,16 +1,52 @@
-## Authoritative production re-audit — 8 November 2026
+## Current verified release status — 8 November 2026
 
-This status block supersedes older release checkpoints below. Historical entries are retained as audit history only.
+- **Production URL:** https://novaai-4auo.onrender.com
+- **Live application commit:** f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8 — Render deployment dep-dbo3i7m417fc73f6bdbg, status LIVE.
+- **Main branch:** f6b86e92b1727103dbbe50dcab5d04c240e2e779. The difference from the live app commit is the test-only CSP smoke assertion correction; no app code changed in that follow-up.
+- **Latest main CI:** run #42465380068, retry attempt 2, 38 successful steps, 0 failed. It passed five-viewport Chromium/mobile regression, Company Cloud browser workflows, production live wait/smoke, security headers (CSP frame-ancestors 'none' and HSTS), PWA/assets/config validation, and live free image generation (community-free, WebP). Full paid/provider AI evaluation, live search and paid image paths were intentionally skipped to avoid unapproved quota/cost use; the 60-case fixture is structure validation, not model-quality scoring.
+- **Supabase:** project qrfwsewppafhxibdboam is ACTIVE_HEALTHY, PostgreSQL 17.11, eu-west-1; 15 migrations are present; nova-bi-api is ACTIVE v14 with JWT verification; Security and Health Advisors currently return zero findings.
+- **Render operating limits:** Free plan, Singapore region, one instance, no configured health-check path. Supabase is on its Free plan. Do not promise always-on service, automatic backup, restore guarantees or SLA.
+- **Verified product scope:** bilingual three-workspace UI, existing standard chat UI/storage compatibility, Settings/image panel, Learn/Build/Agents placement, PWA assets, responsive Chromium tests and the live free image-generation route.
+- **Not established:** general NOVA account sign-up/login or cloud chat sync; subscription checkout, paid plan enforcement or refunds; customer support operations; published privacy/retention/account-deletion process; real Auth email/SMTP delivery; two-real-customer tenant-isolation test; off-site backup/restore drill; physical Android verification; incident-response process; live full-model accuracy/cost evaluation.
+- **NOVA BI boundary:** treat as an early feature preview only. CSV source rows are browser-local; workflow items are proposals, not executed external actions; project-risk scores are heuristic; exports are capped at the latest 100 records. Do not accept confidential company data.
+- **Pitch status:** LIMITED CONCEPT DISCOVERY ONLY — only non-paid discovery conversations and supervised preview demonstrations using synthetic/non-sensitive sample data are permitted. NO-GO for paid sales. NO-GO for taking payment, paid onboarding, production customer-data processing, enterprise/security/compliance claims, availability/SLA promises or guaranteed AI performance.
+- Earlier checkpoints below are retained as history only; they are superseded by this status block.
 
-- Integrated NOVA UI + Business Intelligence candidate PR #74 and the live-smoke-check correction PR #75 are **merged**. Production `main` is `25de14c7b9c5e44b7a716eaa9ea22ffe63f40c1a`.
-- Supabase project `qrfwsewppafhxibdboam` is `ACTIVE_HEALTHY`, PostgreSQL 17.11, region `eu-west-1`. All 15 migration versions are present, including the three forward migrations: rate-limit search_path hardening, owner/admin-only audit reads and branding backfill.
-- Deployed `nova-bi-api` is **ACTIVE v14**, with JWT verification enabled. Direct SQL confirms `nova_bi_consume_rate_limit` has an empty search_path; EXECUTE is denied to `anon` and `authenticated`, and allowed to `service_role`. All 10 NOVA BI tables have RLS enabled; audit SELECT is restricted to active owners/admins.
-- Supabase Security and Health Advisors report zero findings. Performance Advisor reports 13 INFO-level unused-index notices; do not drop indexes without workload evidence.
-- **Render has not deployed the merged main commit.** Service `srv-dbidhpc9v7es73d6ia80` is configured for branch `main` with auto-deploy enabled, but its newest deployment remains the old production baseline `48e12a68af656b471853ac2a4509da0e3df7ab24`. The main CI run [#42457722518](https://github.com/s85960833-byte/NovaAI/actions/runs/42457722518) failed only at its live-deployment wait: the current site returned HTTP 404 for `/nova-app.js`. Do not claim the merged frontend is live until a new Render deploy is confirmed and the live smoke passes.
-- Render remains on the Free plan in Singapore with no configured health-check path. No plan, region, environment-variable or health-check change is authorized by this status update.
-- Still unverified: real signup/confirmation/reset and invitation email delivery, Auth Site URL/redirect allow-list and custom SMTP, two-real-account tenant isolation on live Auth, physical Android touch/accessibility/performance, backup/restore drill, privacy/retention/account deletion and incident response, full membership/invitation revocation, CSP tightening, and GitHub branch protection (`main.protected=false`, no rulesets).
-- The app's general chat/settings/history remain browser-local; general NOVA account-backed chat sync and paid billing/entitlement enforcement are not established. BI CSV raw rows remain browser-local; workflow items are proposals, not external action execution; risk scores are heuristics; exports are capped at 100 latest records.
-- **Release decision: NO-GO for paid customer onboarding, confidential company data, SLA/availability promises or production-readiness claims.** Automated browser tests are not a physical Android test. Do not describe the new UI as live until Render deploy and production smoke pass.
+# NOVA — Sales and Production Readiness
+
+## Current approved positioning
+
+NOVA is an India-oriented Hindi-English AI workspace that organizes learning, digital creation and everyday AI assistance into NOVA Learn, NOVA Build and NOVA Agents. The core app is live and has passed the automated/live smoke checks listed above. This does not mean every provider, account, billing or business workflow is production-ready.
+
+## What may be demonstrated now
+
+- Home/workspace navigation and bilingual labels.
+- Learn / Build / Agents placement and supported UI flows.
+- Standard chat UI and browser-local saved history, clearly described as device/browser-local.
+- Settings and image panel.
+- Live free image generation, while making clear that community/free providers may be rate-limited or unavailable.
+- BI interface only as a labelled preview, using synthetic data and explaining its current limitations.
+
+## Release gates before paid customer onboarding
+
+1. **Accounts:** implement and verify general NOVA sign-up, sign-in, password recovery, session handling and account deletion. Configure Auth Site URL/redirect allow-list and verified email delivery/custom SMTP.
+2. **Data:** move chat/history and customer data to authenticated, tenant-scoped storage with RLS; verify isolation using at least two real test accounts; document retention, export and deletion.
+3. **Payments:** select a payment provider, configure merchant account/webhooks, server-side plan entitlements, usage metering, failed-payment handling, cancellation, refunds and tax/invoice workflow. No billing provider or merchant credentials are configured.
+4. **Privacy/legal/support:** approve privacy notice, terms, data-processing/retention policy, support contact and incident-response process before collecting customer data or money.
+5. **Hosting/recovery:** owner-approved always-on hosting decision, /health health-check configuration, monitoring/alerts, region/latency review, off-site backups and a successful restore drill.
+6. **Security:** enable GitHub main-branch protection/required checks; complete tenant-isolation and access-revocation tests; review CSP and dependency updates; perform an incident-response rehearsal.
+7. **Real-device verification:** test on the actual target Android phone for touch, keyboard, drawer, portrait/full-width layout, accessibility, reduced motion, low-network behavior and saved-chat compatibility.
+8. **AI operations:** measure real model answer quality, latency, provider failure rates, search citations, voice and image behavior using approved quotas; publish clear limits and cost-based pricing.
+9. **NOVA BI:** finish secure tenant-backed data ingestion, retention/deletion and audit workflows; distinguish heuristic insights from verified facts; do not claim automated external execution until implemented and tested.
+
+## Owner-controlled items that cannot be completed from repository code alone
+
+Paid hosting or merchant accounts, provider/API quota approval, SMTP/domain configuration, privacy/legal approval, customer support ownership, live Auth settings, backup destination/restore access, and hands-on physical Android testing require the account owner or device. No paid plan, external account or cost-bearing setting was changed during this audit.
+
+## Safe next stage
+
+Run free, supervised discovery sessions with synthetic data. Capture feedback without collecting confidential files or promising paid service. Revisit paid launch only after every gate above has evidence and owner approval.
+
 
 ---
 
