@@ -167,3 +167,8 @@ References: https://supabase.com/docs/reference/cli/supabase-migration-repair an
 ## Migration alignment update — 8 November 2026
 
 The candidate's 11 historical migration files are now named with the exact timestamps and logical names in the remote migration ledger; the twelfth already matched. The old branding and rate-limit migration bodies were restored, and their improvements are separate forward migrations. Three forward migrations remain pending: rate-limit search_path hardening, owner/admin-only audit reads and branding backfill. The required remote dry-run has not been executed, and no production SQL or Edge Function deployment has been performed. Live wildcard CORS and broad audit-read policy remain unchanged. See `SUPABASE_MIGRATION_RECONCILIATION.md` for the exact mapping and safe verification procedure. Keep PR #74 Draft and release NO-GO.
+
+
+## Exact-head CI update — 8 November 2026
+
+Current candidate head `c858103f8dc65ddbd36af3447ad700dd40f22665` passed exact-head CI [#42454154190](https://github.com/s85960833-byte/NovaAI/actions/runs/42454154190): 34 successful steps, 0 failures and 4 live-only checks skipped. This is automated candidate evidence only; deployed CORS, audit policy, rate-limit function, Auth/SMTP and tenant isolation remain unverified in production.

@@ -5,7 +5,7 @@ Updated: 8 November 2026
 ## Current authoritative candidate
 
 - Unified candidate: [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74), branch `feature/nova-integrated-release-clean-20261108`.
-- Current candidate head `b0bbc6d76cfe418f7dd39f1a89b5615198a13669` passed exact-head CI [#42453911925](https://github.com/s85960833-byte/NovaAI/actions/runs/42453911925): 34 successful steps, 0 failures, 4 live-only checks skipped. PR #74 remains Draft and undeployed.
+- Current candidate head `c858103f8dc65ddbd36af3447ad700dd40f22665` passed exact-head CI [#42454154190](https://github.com/s85960833-byte/NovaAI/actions/runs/42454154190): 34 successful steps, 0 failures, 4 live-only checks skipped. PR #74 remains Draft and undeployed.
 - PR #74 remains Open, Draft, unmerged and undeployed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`.
 - Superseded PR #73 remains historical only. PR #46 and BI-only PR #67 are predecessors, not release targets.
 
@@ -58,5 +58,5 @@ The most recent completed exact-head run before the current migration-immutabili
 
 - The 11 historical NOVA BI migrations now use the exact timestamps and names recorded by the live Supabase ledger. The 12th already matched. The candidate contains 15 migration files: 12 historical plus three forward-only migrations.
 - Three forward migrations are pending: `20261106195900_nova_bi_rate_limit_search_path_hardening.sql`, `20261108120000_nova_bi_audit_admin_read_only.sql`, and `20261108120100_nova_bi_branding_backfill.sql`.
-- Candidate CI on the prior commit passed PostgreSQL 17 migrations/RLS and regression checks; the renamed-file candidate's exact-head CI must complete successfully before treating the rename as verified. The remote dry-run is still required and has not been executed.
+- Renamed-file candidate exact-head CI [#42454154190](https://github.com/s85960833-byte/NovaAI/actions/runs/42454154190) passed: 34 successful steps, 0 failures and 4 live-only checks skipped. The remote dry-run is still required and has not been executed.
 - No production migration, SQL, Edge Function, Auth/SMTP setting, Render deployment or branch-protection change was made. Live wildcard CORS, broad audit-read policy and rate-limit search_path remain unchanged.
