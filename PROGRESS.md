@@ -2,8 +2,8 @@
 
 - Production core app: LIVE at https://novaai-4auo.onrender.com.
 - Live code commit: f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8; deployment dep-dbo3i7m417fc73f6bdbg.
-- Main HEAD: f6b86e92b1727103dbbe50dcab5d04c240e2e779.
-- Main CI [#42465380068](https://github.com/s85960833-byte/NovaAI/actions/runs/42465380068), retry 2: 38 successful steps, 0 failures. Live route smoke, CSP/HSTS, PWA/assets, five-viewport mobile, Company Cloud browser flows and free image generation passed.
+- Main contains later documentation-only sales-readiness updates; the deployed application code remains the verified live commit listed above.
+- Core release CI [#42465380068](https://github.com/s85960833-byte/NovaAI/actions/runs/42465380068) and post-docs main CI [#42466432792](https://github.com/s85960833-byte/NovaAI/actions/runs/42466432792): both passed 38 steps, 0 failures. Live route smoke, CSP/HSTS, PWA/assets, five-viewport mobile, Company Cloud browser flows and free image generation passed.
 - Supabase: ACTIVE_HEALTHY, PostgreSQL 17.11, 15 migrations, Edge Function nova-bi-api ACTIVE v14 with JWT verification; Security and Health Advisors zero findings.
 - Sales boundary: non-paid discovery and supervised previews with synthetic data only. Paid sales/onboarding remains NO-GO.
 - Remaining gates: general NOVA auth/cloud sync, live Auth email/SMTP and two-account tenant isolation, subscription checkout/entitlements/refunds, privacy/retention/deletion/support/incident process, paid always-on hosting and restore drill, health-check path, main branch protection, physical Android testing, live full-model/search/voice accuracy and cost evaluation, and NOVA BI's remaining tenant-backed data/action limitations.
