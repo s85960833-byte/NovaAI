@@ -56,9 +56,10 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: nova_bi_test
         run: bash scripts/test-supabase-migrations.sh
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
+      - name: Install pinned Deno runtime from npm
+        run: |
+          npm install --global deno@2.9.6
+          deno --version | grep -F 'deno 2.9.6'
       - name: Install authenticated NOVA BI Edge Function dependencies
         run: deno install --config supabase/functions/nova-bi-api/deno.json
       - name: Type-check authenticated NOVA BI Edge Function
