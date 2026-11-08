@@ -11,7 +11,8 @@ for (let i = 0; i < 36; i++) {
       iconResponse,
       appResponse,
       accountResponse,
-      referenceResponse
+      referenceResponse,
+      syncMergeResponse
     ] = await Promise.all([
       fetch(BASE + '/manifest.webmanifest', { signal: AbortSignal.timeout(12000) }),
       fetch(BASE + '/', { signal: AbortSignal.timeout(12000) }),
@@ -19,7 +20,8 @@ for (let i = 0; i < 36; i++) {
       fetch(BASE + '/icons/nova-emblem.svg', { signal: AbortSignal.timeout(12000) }),
       fetch(BASE + '/nova-app.js', { signal: AbortSignal.timeout(12000) }),
       fetch(BASE + '/nova-account.js', { signal: AbortSignal.timeout(12000) }),
-      fetch(BASE + '/nova-reference.js', { signal: AbortSignal.timeout(12000) })
+      fetch(BASE + '/nova-reference.js', { signal: AbortSignal.timeout(12000) }),
+      fetch(BASE + '/nova-sync-merge.js', { signal: AbortSignal.timeout(12000) })
     ]);
 
     const manifest = await manifestResponse.json().catch(() => ({}));
@@ -29,6 +31,7 @@ for (let i = 0; i < 36; i++) {
     const app = await appResponse.text();
     const account = await accountResponse.text();
     const reference = await referenceResponse.text();
+    const syncMerge = await syncMergeResponse.text();
 
     last = [
       'manifest HTTP ' + manifestResponse.status,
@@ -37,7 +40,8 @@ for (let i = 0; i < 36; i++) {
       'icon HTTP ' + iconResponse.status,
       'app HTTP ' + appResponse.status,
       'account HTTP ' + accountResponse.status,
-      'reference HTTP ' + referenceResponse.status
+      'reference HTTP ' + referenceResponse.status,
+      'sync merge HTTP ' + syncMergeResponse.status
     ].join(', ');
 
     const requiredReferenceMarkers = [
@@ -82,6 +86,9 @@ for (let i = 0; i < 36; i++) {
       appResponse.ok &&
       accountResponse.ok &&
       referenceResponse.ok &&
+      syncMergeResponse.ok &&
+      /application\/(?:javascript|x-javascript)/i.test(syncMergeResponse.headers.get('content-type') || '') &&
+      syncMerge.includes('mergeMessages') &&
       manifest.short_name === 'NOVA' &&
       health.status === 'ok' &&
       requiredHomepageMarkers.every(marker => homepage.includes(marker)) &&
