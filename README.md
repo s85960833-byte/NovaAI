@@ -1,16 +1,12 @@
-## Authoritative production re-audit — 8 November 2026
+## Current production status — 8 November 2026
 
-This status block supersedes older release checkpoints below. Historical entries are retained as audit history only.
+NOVA core app is live at https://novaai-4auo.onrender.com. Render serves app commit f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8 (deployment dep-dbo3i7m417fc73f6bdbg). Main CI [#42465380068](https://github.com/s85960833-byte/NovaAI/actions/runs/42465380068), retry 2, passed 38 steps with zero failures, including live website/provider smoke, CSP/HSTS, five-viewport mobile browser tests, Company Cloud browser tests and live free image generation.
 
-- Integrated NOVA UI + Business Intelligence candidate PR #74 and the live-smoke-check correction PR #75 are **merged**. Production `main` is `25de14c7b9c5e44b7a716eaa9ea22ffe63f40c1a`.
-- Supabase project `qrfwsewppafhxibdboam` is `ACTIVE_HEALTHY`, PostgreSQL 17.11, region `eu-west-1`. All 15 migration versions are present, including the three forward migrations: rate-limit search_path hardening, owner/admin-only audit reads and branding backfill.
-- Deployed `nova-bi-api` is **ACTIVE v14**, with JWT verification enabled. Direct SQL confirms `nova_bi_consume_rate_limit` has an empty search_path; EXECUTE is denied to `anon` and `authenticated`, and allowed to `service_role`. All 10 NOVA BI tables have RLS enabled; audit SELECT is restricted to active owners/admins.
-- Supabase Security and Health Advisors report zero findings. Performance Advisor reports 13 INFO-level unused-index notices; do not drop indexes without workload evidence.
-- **Render has not deployed the merged main commit.** Service `srv-dbidhpc9v7es73d6ia80` is configured for branch `main` with auto-deploy enabled, but its newest deployment remains the old production baseline `48e12a68af656b471853ac2a4509da0e3df7ab24`. The main CI run [#42457722518](https://github.com/s85960833-byte/NovaAI/actions/runs/42457722518) failed only at its live-deployment wait: the current site returned HTTP 404 for `/nova-app.js`. Do not claim the merged frontend is live until a new Render deploy is confirmed and the live smoke passes.
-- Render remains on the Free plan in Singapore with no configured health-check path. No plan, region, environment-variable or health-check change is authorized by this status update.
-- Still unverified: real signup/confirmation/reset and invitation email delivery, Auth Site URL/redirect allow-list and custom SMTP, two-real-account tenant isolation on live Auth, physical Android touch/accessibility/performance, backup/restore drill, privacy/retention/account deletion and incident response, full membership/invitation revocation, CSP tightening, and GitHub branch protection (`main.protected=false`, no rulesets).
-- The app's general chat/settings/history remain browser-local; general NOVA account-backed chat sync and paid billing/entitlement enforcement are not established. BI CSV raw rows remain browser-local; workflow items are proposals, not external action execution; risk scores are heuristics; exports are capped at 100 latest records.
-- **Release decision: NO-GO for paid customer onboarding, confidential company data, SLA/availability promises or production-readiness claims.** Automated browser tests are not a physical Android test. Do not describe the new UI as live until Render deploy and production smoke pass.
+Supabase is ACTIVE_HEALTHY with 15 migrations; nova-bi-api is ACTIVE v14 with JWT verification. Security and Health Advisors currently report zero findings.
+
+**Sales boundary:** supervised non-paid discovery and preview only, using synthetic/non-sensitive data. Paid checkout, server-side entitlements, general NOVA account login/cloud chat sync, verified email delivery, real-account tenant isolation, privacy/retention/deletion, support/incident response, backup/restore, always-on hosting, physical Android testing and full AI-provider quality/cost evaluation are not yet complete. NOVA BI remains a limited preview, not a production business-data service. Do not promise SLA, enterprise readiness, confidentiality guarantees or perfect AI answers.
+
+See [PITCH_READINESS.md](PITCH_READINESS.md) for the release gates and [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md) for approved discovery messaging. Older status entries below are historical only.
 
 ---
 
