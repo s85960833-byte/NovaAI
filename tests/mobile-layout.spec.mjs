@@ -52,8 +52,8 @@ for (const size of sizes) {
     expect(layout.bodyFont).toContain('Noto Sans Devanagari');
     expect(layout.titleFont).toContain('Noto Sans Devanagari');
     if(size.width<=760){ expect(layout.side).toBe('fixed'); expect(Math.abs(layout.main.width-size.width)).toBeLessThanOrEqual(1); expect(layout.columns).toBe(1); }
-    if(size.width<=430) expect(layout.card.top).toBeLessThan(size.height);
     else { expect(layout.main.x).toBeGreaterThan(0); expect(layout.columns).toBe(3); }
+    if(size.width<=430) expect(layout.card.top).toBeLessThan(size.height);
     await page.screenshot({path:'artifacts/'+browserName+'-workspace-'+size.width+'x'+size.height+'.png',fullPage:true});
     expect(pageErrors).toEqual([]);
   });
