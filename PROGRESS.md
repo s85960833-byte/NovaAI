@@ -393,7 +393,7 @@ This section supersedes the earlier BI entries above where they state that authe
 
 This checkpoint supersedes older progress entries above wherever they describe NOVA UI and NOVA Business Intelligence as separate release candidates.
 
-- Authoritative unified candidate: Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`.
+- Authoritative unified candidate: Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74), branch `feature/nova-integrated-release-clean-20261108`.
 - Verified candidate snapshot at this documentation checkpoint: `07454287053c538472f25832fcc475b9c67ed520`; Production `main` remains at `48e12a68af656b471853ac2a4509da0e3df7ab24`. The candidate is 139 commits ahead and 0 behind that base.
 - GitHub Actions [run #1041](https://github.com/s85960833-byte/NovaAI/actions/runs/42329917724) and paired push [run #1040](https://github.com/s85960833-byte/NovaAI/actions/runs/42329912529) passed on the exact candidate snapshot: 55/55 steps completed, 52 succeeded, 3 live-environment checks skipped by design, 0 failures. Dependencies are installed reproducibly with `npm ci` from the committed lockfile.
 - Verified in CI: frontend/backend syntax, mode registry, PostgreSQL 17 migration and tenant-RLS integration, Deno Edge Function type-check and auth/CORS smoke, BI calculations/CSV validation, 60-case fixture validation (not live AI accuracy), production dependency audit, local route/PWA checks, Company Cloud browser flows, Chromium workspace interactions and five responsive viewport/drawer tests.
@@ -404,7 +404,7 @@ This checkpoint supersedes older progress entries above wherever they describe N
 
 ## Current release status correction — 8 November 2026
 
-- The authoritative candidate is Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73). Its current head and main-branch comparison are shown directly in GitHub; avoid copying a fixed ahead-count into long-lived documentation because every documentation commit changes it.
+- The authoritative candidate is Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74). Its current head and main-branch comparison are shown directly in GitHub; avoid copying a fixed ahead-count into long-lived documentation because every documentation commit changes it.
 - Latest application-code verification is exact-head CI [run #42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) on `7f7d6bc475359c19975dbb8702205af5ad86cb30`; it passed 44 BI unit tests, 12 Deno tests and 6 Playwright browser tests, plus PostgreSQL 17 migration/RLS integration and the other candidate checks. Four live-only checks remain skipped.
 - Re-audit found the Edge Function body parser accepted valid JSON scalars/arrays/null until route code accessed object properties, causing avoidable server errors. Added `request-input.ts`, made malformed/non-object JSON return HTTP 400, added four Deno regression tests and corrected the row-count type guard after CI type-check caught it.
 - PR/README/pitch/security/progress records were reconciled with the latest code and live-state findings. Production `main` remains unchanged; no merge, deploy, live migration, or Auth/SMTP change was made.
@@ -428,7 +428,7 @@ This checkpoint supersedes older progress entries above wherever they describe N
 
 ## Latest live candidate checkpoint — 8 November 2026
 
-- Candidate branch and exact current head are displayed live in [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73); consult its Checks tab for exact-head CI. Do not treat a prior SHA's green run as verification of a newer commit.
+- Candidate branch and exact current head are displayed live in [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/74); consult its Checks tab for exact-head CI. Do not treat a prior SHA's green run as verification of a newer commit.
 - PR #73 remains Open, Draft, Unmerged and Undeployed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`.
 - GitHub reports `main.protected: false`; repository rulesets are empty. An authorized repository administrator must enable protection and required checks.
 - Live Supabase still has wildcard CORS; candidate migrations remain unapplied. Real Auth/SMTP, two-account isolation, physical Android, hosting/health, backup/restore, privacy/deletion and CSP gates remain open. Release remains NO-GO.

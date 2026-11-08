@@ -63,7 +63,7 @@ Cloud save sends the selected dataset metadata and calculated aggregates/evidenc
 
 **Status: NOT production-ready; do not merge or deploy yet.**
 
-The integrated candidate is on Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`, latest candidate head `8cb4ce3461f43554c2fa712f3c2d1d0891bc098e`. Exact-head CI push run [#42379148497](https://github.com/s85960833-byte/NovaAI/actions/runs/42379148497) and PR run [#42379153742](https://github.com/s85960833-byte/NovaAI/actions/runs/42379153742) both passed.
+The integrated candidate is now on clean Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74), branch `feature/nova-integrated-release-clean-20261108`, based directly on production main. Its consolidated exact-head CI is pending; earlier CI results apply to the same source tree but do not replace these checks.
 
 **Important scope:** CI's deployed-function smoke test and all live Render website/provider/image smoke tests were skipped because the candidate has not been merged/deployed. Chromium mobile viewport tests are not a physical Android device test. A green candidate CI run is not proof of production readiness.
 

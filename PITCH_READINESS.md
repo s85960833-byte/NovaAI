@@ -2,7 +2,7 @@
 
 **Audit snapshot:** 8 November 2026  
 **Pitch status:** LIMITED CONCEPT DISCOVERY ONLY — explain the product direction and request non-sensitive feedback while clearly stating that the unified candidate is not deployed. No paid sales, customer onboarding, confidential-data use, live demo guarantees, SLA or production-readiness claims until the release gates close.
-**Unified candidate:** `feature/nova-integrated-release-20261106` — Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73)  
+**Unified candidate:** `feature/nova-integrated-release-clean-20261108` — Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74)  
 **Current candidate head:** see Draft PR #73; PR #73 remains open, Draft, unmerged and undeployed. Use the live PR comparison for current commit/file counts; owner review of the complete history/diff is still required.
 **Latest application-code CI:** tested head `7f7d6bc475359c19975dbb8702205af5ad86cb30`; [run #42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) completed successfully; 44 BI unit tests, 12 Deno tests and 6 Playwright browser tests passed, while live-only checks remain skipped. Subsequent changes include documentation corrections and a PostgreSQL RLS integration-test assertion; test-only commit `e90f3f91525191b78149d8a02aa63133bdc0f029` passed exact-head CI [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943). Four live-only checks remain skipped. The verified application-code update adds strict JSON-object request validation and returns HTTP 400 for non-object JSON bodies.
 **Live checks still open:** deployed Edge Function CORS/auth, Render/provider/image smoke, real SMTP/Auth email delivery, two-real-account tenant isolation, physical Android testing, backup/restore, CSP tightening and privacy/account-deletion processes.
@@ -111,7 +111,7 @@ Keep a screenshot or screen-recording backup of the candidate. Clearly label scr
 
 ## 8. NOVA Business Intelligence — included in the unified candidate, not production
 
-NOVA Business Intelligence is included in unified Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), alongside the three-workspace UI. It remains a feature candidate, not a launched service, and is not part of Production.
+NOVA Business Intelligence is included in unified Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74), alongside the three-workspace UI. It remains a feature candidate, not a launched service, and is not part of Production.
 
 Latest checks on the approved Supabase project `qrfwsewppafhxibdboam` found:
 
@@ -296,7 +296,7 @@ No tool can honestly guarantee that a future pitch/demo will encounter zero erro
 
 ## Historical release-status checkpoint — 7 November 2026 (superseded by the 8 November re-audit below)
 
-- Unified candidate branch: `feature/nova-integrated-release-20261106`; Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73) is open, Draft, unmerged and undeployed.
+- Unified candidate branch: `feature/nova-integrated-release-clean-20261108`; Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74) is open, Draft, unmerged and undeployed.
 - Exact candidate head: `6c53223686943b068ac36c48fd5ae72c58edc226`.
 - Both exact-head CI runs [#42381308464](https://github.com/s85960833-byte/NovaAI/actions/runs/42381308464) and [#42381303719](https://github.com/s85960833-byte/NovaAI/actions/runs/42381303719) completed successfully on that SHA. Automated candidate checks passed, including PostgreSQL migration/RLS integration, Edge Function type-check and CORS/invitation tests, dependency audit, runtime/PWA, browser workflows and five-viewport mobile regression. Live-production checks were skipped because this candidate is not on `main`.
 - Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. No merge, Render deployment, live database migration, Auth configuration change or paid infrastructure change was performed.
@@ -335,7 +335,7 @@ This checkpoint supersedes older candidate-head, migration-count, CSP and releas
 
 ## 21. Re-audit update — 8 November 2026
 
-- Current integrated candidate remains Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), unmerged and undeployed. Exact-head push run [#42384830092](https://github.com/s85960833-byte/NovaAI/actions/runs/42384830092) and PR run [#42384834255](https://github.com/s85960833-byte/NovaAI/actions/runs/42384834255) completed successfully. Both runs explicitly skipped the deployed Edge Function auth/CORS smoke, live Render/provider smoke, and live image-generation smoke; green CI is candidate-only evidence.
+- Current integrated candidate remains Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74), unmerged and undeployed. Exact-head push run [#42384830092](https://github.com/s85960833-byte/NovaAI/actions/runs/42384830092) and PR run [#42384834255](https://github.com/s85960833-byte/NovaAI/actions/runs/42384834255) completed successfully. Both runs explicitly skipped the deployed Edge Function auth/CORS smoke, live Render/provider smoke, and live image-generation smoke; green CI is candidate-only evidence.
 - Fresh read-only database inspection reconfirmed all 10 `nova_bi_*` tables have RLS enabled. Current live Auth users, organizations and memberships are each 0. The live rate-limit SECURITY DEFINER function still has `search_path=public, pg_temp`, with execute ACL restricted to postgres/service_role. The candidate's empty-search-path hardening migration remains unapplied.
 - Fresh deployed Edge Function inspection reconfirmed `nova-bi-api` is ACTIVE v13 with JWT verification enabled, but its deployed source still sends wildcard CORS. Candidate exact-origin CORS is not live.
 - Live RLS policy inspection reconfirmed owner/admin-only deletes for datasets and analyses, active-member scoped reads, analyst/owner/admin write restrictions, and a deny-all client policy on rate-limit counters. These are database-policy inspection results, not a substitute for two real accounts testing the complete application flow.
@@ -345,7 +345,7 @@ This checkpoint supersedes older candidate-head, migration-count, CSP and releas
 
 ## 22. Current candidate checkpoint — 8 November 2026
 
-- [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73) is the authoritative live record for the candidate branch head, PR state and exact-head CI. It remains Open, Draft, Unmerged and Undeployed; use its Checks tab rather than relying on copied commit hashes or old workflow runs.
+- [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/74) is the authoritative live record for the candidate branch head, PR state and exact-head CI. It remains Open, Draft, Unmerged and Undeployed; use its Checks tab rather than relying on copied commit hashes or old workflow runs.
 - The latest fully verified application-code checkpoint remains `7f7d6bc475359c19975dbb8702205af5ad86cb30`; exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) passed. The PostgreSQL RLS test-only commit `e90f3f91525191b78149d8a02aa63133bdc0f029` also passed [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943). Later changes are documentation-only; check the live PR for the newest documentation-head CI result.
 - GitHub branch metadata reports `main.protected: false`; the repository rulesets API returns an empty list. The detailed protection endpoint returns 403 to this integration. No active protection is evidenced; an authorized repository administrator must configure protection and required checks.
 - Production `main` remains unchanged. No merge, deployment, live migration, Auth/SMTP setting change or paid resource purchase was performed.
