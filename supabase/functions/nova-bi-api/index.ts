@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { findAuthUserByEmail } from "./invitations.ts";
+import { findAuthUserByEmail, hasConfirmedEmail } from "./invitations.ts";
 import { parseJsonObject, RequestInputError } from "./request-input.ts";
 import { configuredSiteOrigin, createCorsHeaders, withSiteOrigin } from "./cors.ts";
 
@@ -169,6 +169,7 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
       let authUserCreated = false;
       let notificationSent = false;
       if (existingUser) {
+        if (!hasConfirmedEmail(existingUser)) return fail("This NOVA account has not confirmed its email address yet. Ask the user to confirm their email, then resend the company invitation.", 409);
         if (existingUser.id === userId) return fail("You cannot invite your own account to this company.", 400);
         invitedUserId = existingUser.id;
       } else {

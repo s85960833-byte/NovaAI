@@ -1,7 +1,13 @@
 export type AuthUserLookup = {
   id: string;
   email?: string | null;
+  email_confirmed_at?: string | null;
 };
+
+export function hasConfirmedEmail(user: AuthUserLookup): boolean {
+  return typeof user.email_confirmed_at === "string" && user.email_confirmed_at.length > 0;
+}
+
 
 type AdminAuthClient = {
   auth: {

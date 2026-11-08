@@ -1,4 +1,4 @@
-import { findAuthUserByEmail } from "./invitations.ts";
+import { findAuthUserByEmail, hasConfirmedEmail } from "./invitations.ts";
 
 Deno.test("finds existing users case-insensitively", async () => {
   const admin = { auth: { admin: { listUsers: async () => ({
@@ -35,4 +35,16 @@ Deno.test("fails closed when the Admin API lookup fails", async () => {
   let rejected = false;
   try { await findAuthUserByEmail(admin, "person@example.com"); } catch { rejected = true; }
   if (!rejected) throw new Error("lookup errors must not be treated as a new account");
+});
+
+Deno.test("requires existing account email confirmation before in-app invitations", () => {
+  if (!hasConfirmedEmail({ id: "confirmed", email: "ok@example.com", email_confirmed_at: "2026-11-01T00:00:00Z" })) {
+    throw new Error("confirmed email must be eligible for an in-app invitation");
+  }
+  if (hasConfirmedEmail({ id: "unconfirmed", email: "pending@example.com", email_confirmed_at: null })) {
+    throw new Error("unconfirmed email must not be eligible for an in-app invitation");
+  }
+  if (hasConfirmedEmail({ id: "missing", email: "missing@example.com" })) {
+    throw new Error("missing confirmation timestamp must fail closed");
+  }
 });
