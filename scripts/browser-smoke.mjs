@@ -125,7 +125,7 @@ try{
  await desktop.route('**/api/chat/completions',async route=>{
   const payload=route.request().postDataJSON();
   modeChatRequests.push(payload);
-  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({choices:[{message:{role:'assistant',content:'NOVA_CHAT_FLOW_OK'}}]})});
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({choices:[{message:{role:'assistant',content:'NOVA_CHAT_FLOW_OK_'+modeChatRequests.length}}]})});
  });
  await desktop.locator('#hi .nr-card[data-group="agents"]').click();
  await desktop.locator('#novaModes.open').waitFor();
@@ -137,8 +137,30 @@ try{
  assert.ok(modeChatRequests[0].messages.some(m=>String(m.content).includes('Please verify the NOVA chat round trip.')),'Agents chat request must include the submitted user message');
  const persistedModeHistory=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova_modes_v1')||'{}').histories?.general||[]);
  assert.ok(persistedModeHistory.some(m=>m.role==='user'&&m.text==='Please verify the NOVA chat round trip.'),'Agents chat must persist the user message in its own mode history');
- assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK'),'Agents chat must persist the assistant reply in its own mode history');
+ assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK_1'),'Agents chat must persist the assistant reply in its own mode history');
  console.log('PASS Agents chat round trip, backend request, assistant response and per-mode history persistence');
+
+ // Simulate the browser speech-recognition API to test the voice-to-chat bridge without claiming hardware microphone access.
+ await desktop.locator('#nmBack').click();
+ await desktop.locator('#nmContent [data-mode="voice"]').click();
+ await desktop.locator('#nmVoiceLang').waitFor();
+ await desktop.locator('#nmVoiceLang').selectOption('hi-IN');
+ await desktop.evaluate(()=>{
+  window.__novaVoiceLang='';
+  window.SpeechRecognition=class{
+   constructor(){this.lang='';}
+   start(){window.__novaVoiceLang=this.lang;setTimeout(()=>this.onresult?.({results:[[{transcript:'Voice transcript smoke test'}]]}),0);}
+   stop(){}
+  };
+ });
+ await desktop.locator('#nmMic').click();
+ await desktop.waitForFunction(()=>[...document.querySelectorAll('#nmContent .nmchat .nmbubble.assistant')].some(el=>el.textContent.includes('NOVA_CHAT_FLOW_OK_2')));
+ assert.equal(await desktop.evaluate(()=>window.__novaVoiceLang),'hi-IN','voice recognition must use the selected Hindi (India) language');
+ assert.equal(modeChatRequests.length,2,'voice transcription must submit exactly one additional chat request');
+ const voiceHistory=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova_modes_v1')||'{}').histories?.voice||[]);
+ assert.ok(voiceHistory.some(m=>m.role==='user'&&m.text==='Voice transcript smoke test'),'voice transcript must enter the Voice mode history');
+ assert.ok(voiceHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK_2'),'voice reply must persist in the Voice mode history');
+ console.log('PASS mocked voice recognition, Hindi language selection, transcription-to-chat bridge and Voice history persistence');
  await desktop.locator('#nmClose').click();
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
 
