@@ -476,3 +476,10 @@ References: https://supabase.com/docs/reference/cli/supabase-migration-repair an
 ## Migration filename reconciliation — 8 November 2026
 
 The 11 historical candidate migration filenames have been aligned to the exact version timestamps and logical names recorded by the live Supabase migration ledger; the twelfth already matched. Historical branding and rate-limit SQL files have been restored, with the branding backfill and rate-limit hardening separated into forward migrations. Three forward migrations remain pending. This is a repository-only change: no live migration repair, SQL, Edge Function deployment, Auth/SMTP setting, Render deployment or branch-protection change was performed. An authorized DBA must confirm `supabase migration list --remote` and `supabase db push --dry-run --remote` show only the three forward migrations before obtaining owner approval. Release remains NO-GO until all operational gates pass.
+
+
+## Exact-head candidate CI — 8 November 2026
+
+- Candidate head `b0bbc6d76cfe418f7dd39f1a89b5615198a13669` passed exact-head CI [#42453911925](https://github.com/s85960833-byte/NovaAI/actions/runs/42453911925): 34 successful steps, 0 failures, 4 live-only checks skipped.
+- Historical migration filenames now match the live ledger versions. Three forward-only migrations remain pending; remote dry-run and explicit owner approval are still required before production SQL.
+- No live production, Supabase, Render, Auth/SMTP, billing or branch-protection setting was changed. Release remains NO-GO.

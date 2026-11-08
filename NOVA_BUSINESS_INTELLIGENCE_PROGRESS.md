@@ -5,7 +5,7 @@ Updated: 8 November 2026
 ## Current authoritative candidate
 
 - Unified candidate: [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74), branch `feature/nova-integrated-release-clean-20261108`.
-- Use Draft PR #74 for the live candidate head and exact-head CI; its Checks tab is authoritative. A green run on an earlier commit does not verify a newer commit.
+- Current candidate head `b0bbc6d76cfe418f7dd39f1a89b5615198a13669` passed exact-head CI [#42453911925](https://github.com/s85960833-byte/NovaAI/actions/runs/42453911925): 34 successful steps, 0 failures, 4 live-only checks skipped. PR #74 remains Draft and undeployed.
 - PR #74 remains Open, Draft, unmerged and undeployed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`.
 - Superseded PR #73 remains historical only. PR #46 and BI-only PR #67 are predecessors, not release targets.
 
