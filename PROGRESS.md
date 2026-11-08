@@ -410,3 +410,11 @@ This checkpoint supersedes older progress entries above wherever they describe N
 - PR/README/pitch/security/progress records were reconciled with the latest code and live-state findings. Production `main` remains unchanged; no merge, deploy, live migration, or Auth/SMTP change was made.
 - Live CORS, audit-read policy and rate-limit search_path remain at the previously inspected production state; candidate migrations and exact-origin CORS are not deployed.
 - Physical Android testing, real SMTP/Auth and two-account tests, backup/restore, privacy/retention/deletion, hosting/health-check, CSP tightening, and branch-protection verification remain release blockers. Paid sales and production promises remain NO-GO.
+
+
+## Documentation-head verification — 8 November 2026
+
+- Current unified candidate head: `a8385e98463f28fcf0e13547ee5bb5db2f1fe0ec`; exact-head documentation-only CI [#42443325980](https://github.com/s85960833-byte/NovaAI/actions/runs/42443325980) completed successfully.
+- Latest application-code verification remains exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) on `7f7d6bc475359c19975dbb8702205af5ad86cb30`. The intervening candidate commits are documentation-only.
+- The documentation-only workflow does not replace the application-code run or the four live checks skipped on the unmerged feature branch.
+- PR #73 remains open, Draft, unmerged and undeployed. Production `main` remains unchanged.
