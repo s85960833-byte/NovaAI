@@ -49,7 +49,7 @@ html,body{background:#050817!important}body{background-image:radial-gradient(ell
   }
 }
 
-body.nova-dashboard-home #box,body.nova-dashboard-home .note{display:none!important}
+body.nova-dashboard-home:not(.nova-image-mode) #box,body.nova-dashboard-home:not(.nova-image-mode) .note{display:none!important}
 #nrGlobalSearch{min-height:44px}
 #nrSidebarLinks button{min-height:44px}
 #nrSidebarLinks button:focus-visible{outline:3px solid #8deaff;outline-offset:3px}
