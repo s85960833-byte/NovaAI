@@ -119,6 +119,29 @@ try{
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
  console.log('PASS Business Intelligence and Company Cloud launch only from Agents; nested dialogs restore focus');
 
+ // Exercise a complete Agents chat round trip against deterministic local API responses.
+ const modeChatRequests=[];
+ await desktop.route('**/api/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({model:'browser-test-model'})}));
+ await desktop.route('**/api/chat/completions',async route=>{
+  const payload=route.request().postDataJSON();
+  modeChatRequests.push(payload);
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({choices:[{message:{role:'assistant',content:'NOVA_CHAT_FLOW_OK'}}]})});
+ });
+ await desktop.locator('#hi .nr-card[data-group="agents"]').click();
+ await desktop.locator('#novaModes.open').waitFor();
+ await desktop.locator('#nmContent [data-mode="general"]').click();
+ await desktop.locator('#nmInput').fill('Please verify the NOVA chat round trip.');
+ await desktop.locator('#nmSend').click();
+ await desktop.waitForFunction(()=>[...document.querySelectorAll('#nmContent .nmchat .nmbubble.assistant')].some(el=>el.textContent.includes('NOVA_CHAT_FLOW_OK')));
+ assert.equal(modeChatRequests.length,1,'Agents chat must make exactly one backend request');
+ assert.ok(modeChatRequests[0].messages.some(m=>String(m.content).includes('Please verify the NOVA chat round trip.')),'Agents chat request must include the submitted user message');
+ const persistedModeHistory=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova_modes_v1')||'{}').histories?.general||[]);
+ assert.ok(persistedModeHistory.some(m=>m.role==='user'&&m.text==='Please verify the NOVA chat round trip.'),'Agents chat must persist the user message in its own mode history');
+ assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK'),'Agents chat must persist the assistant reply in its own mode history');
+ console.log('PASS Agents chat round trip, backend request, assistant response and per-mode history persistence');
+ await desktop.keyboard.press('Escape');
+ await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
+
 
  const mobileContext=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2,isMobile:true,hasTouch:true});
  const mobile=await mobileContext.newPage();
