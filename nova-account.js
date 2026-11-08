@@ -6,7 +6,8 @@ const mount=$('novaAccountMount'),dialog=$('novaAccountDialog');
 if(!mount||!dialog)return;
 let client=null,user=null,session=null,recovery=false,suppressSync=false,timer=null,busy=false;
 const say=(message,error=false)=>{const n=$('novaAccountStatus');if(n){n.textContent=message;n.dataset.error=error?'true':'false'}};
-const enabled=()=>localStorage.getItem(SYNC_KEY)==='true';
+const enabled=()=>{try{return localStorage.getItem(SYNC_KEY)==='true'}catch(e){return false}};
+const setEnabled=value=>{try{if(value)localStorage.setItem(SYNC_KEY,'true');else localStorage.removeItem(SYNC_KEY)}catch(e){throw new Error('This browser does not allow local sync preferences to be saved.')}};
 function getClient(){
  if(client)return client;
  if(!window.NovaBusinessCloud?.getClient)throw new Error('Account service is not ready. Refresh and try again.');
@@ -102,18 +103,18 @@ $('novaCloudSync').addEventListener('change',async e=>{
   if(!confirm('Enable cloud sync? Chat text, titles and memory will be stored in your NOVA account. Image attachments are excluded.')){
    e.target.checked=false;return;
   }
-  localStorage.setItem(SYNC_KEY,'true');await syncNow();
+  try{setEnabled(true)}catch(err){e.target.checked=false;say(err.message,true);return}await syncNow();
  }else{
-  localStorage.removeItem(SYNC_KEY);say('Cloud sync is off. The saved cloud copy remains until you delete it.');
+  setEnabled(false);say('Cloud sync is off. The saved cloud copy remains until you delete it.');
  }
 });
 $('novaSyncNow').addEventListener('click',syncNow);
 $('novaDeleteCloud').addEventListener('click',async()=>{
  if(!user||!confirm('Delete the cloud chat backup for this account? Local chats on this device will remain.'))return;
- try{const {error}=await getClient().from('nova_user_workspaces').delete().eq('user_id',user.id);if(error)throw error;localStorage.removeItem(SYNC_KEY);$('novaCloudSync').checked=false;say('Cloud backup deleted. Local chats remain.');}catch(e){say(e.message,true)}
+ try{const {error}=await getClient().from('nova_user_workspaces').delete().eq('user_id',user.id);if(error)throw error;setEnabled(false);$('novaCloudSync').checked=false;say('Cloud backup deleted. Local chats remain.');}catch(e){say(e.message,true)}
 });
 $('novaSignOut').addEventListener('click',async()=>{
- try{const {error}=await getClient().auth.signOut();if(error)throw error;localStorage.removeItem(SYNC_KEY);say('Signed out.');}catch(e){say(e.message,true)}
+ try{const {error}=await getClient().auth.signOut();if(error)throw error;setEnabled(false);say('Signed out.');}catch(e){say(e.message,true)}
 });
 window.addEventListener('nova:state-saved',scheduleSync);
 boot();
