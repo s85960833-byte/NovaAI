@@ -19,13 +19,13 @@ NOVA is an India-oriented, Hindi-and-English AI web application. The current pro
 
 ## Project status
 
-**Only limited concept/discovery conversations are permitted. Paid sales, customer onboarding and live-product claims remain on hold until production readiness is explicitly cleared in `PITCH_READINESS.md`.**
+**Limited non-paid discovery only.** The core app is live at https://novaai-4auo.onrender.com. General NOVA account and opt-in cloud-sync code merged in PR [#83](https://github.com/s85960833-byte/NovaAI/pull/83), but Render has not yet deployed the merge commit. Do not represent account/cloud sync as live until a new Render deployment and live Auth checks pass.
 
-The unified NOVA candidate (three-workspace UI + Business Intelligence) is on `feature/nova-integrated-release-clean-20261108` in Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74). It is not the Production release.
+Supabase now has 16 migrations, including the per-user workspace table with RLS. Real email delivery, two-account sync isolation, self-service account deletion, payments and final legal/support controls remain incomplete. See [PITCH_READINESS.md](PITCH_READINESS.md).
 
 Production URL: https://novaai-4auo.onrender.com
 
-Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. Clean Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74) is the authoritative candidate and remains unmerged/undeployed. Its Checks tab is the only source for current exact-head CI; earlier green runs do not verify later commits. Live Supabase still has wildcard CORS, broad audit-log SELECT policy and the older rate-limit function search_path; candidate fixes are not live. See `PITCH_READINESS.md` for release gates.
+The older PR #74/PR #75 release notes and pre-deployment findings below are historical records only; they are superseded by the current status block at the top of this README.
 
 ## Architecture
 
@@ -36,7 +36,7 @@ Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. Clean Draf
 - Existing general chat/settings data uses browser-local storage. Do not describe it as cloud-synced.
 - Provider keys belong in server-side environment variables, never in browser code or commits.
 
-## Verification — integrated candidate
+## Historical verification notes (superseded by current status above)
 
 The unified candidate is maintained in Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74). The latest exact-head candidate CI is [#42456085762](https://github.com/s85960833-byte/NovaAI/actions/runs/42456085762) on `d7b72cd113126aa2580c942bae1d7c404ad2e32a`: 34 successful steps, 0 failures and 4 live-only checks skipped. The current PR head and Checks tab remain authoritative. It passed syntax, Markdown link injection regression tests, mode registry, rate-limit and provider-URL tests, PDF.js 6.5.438 security checks plus Chromium module/worker and actual PDF-upload tests, PostgreSQL migration/RLS integration, Deno Edge Function type-check and tests, BI calculations/CSV validation, evaluation-fixture validation, production dependency audit, local routes/PWA runtime smoke, graceful shutdown, Company Cloud browser workflows, Chromium workspace interactions, CSP violation checks and five-viewport mobile/drawer regression tests. Four live-only checks remain skipped on the unmerged feature branch.
 
