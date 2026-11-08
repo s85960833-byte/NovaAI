@@ -14,7 +14,7 @@ The unified NOVA candidate (three-workspace UI + Business Intelligence) is on `f
 
 Production URL: https://novaai-4auo.onrender.com
 
-Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. The clean unified candidate is Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74), open, unmerged and undeployed, based directly on `main`. Current clean candidate head `6045490e84d84f37e5ac7a31f87a01252523d946` passed exact-head CI [#42449142030](https://github.com/s85960833-byte/NovaAI/actions/runs/42449142030): 34 successful steps, 0 failures and 4 live-only checks skipped. Live Supabase still has wildcard CORS, broad audit-log SELECT policy and the older rate-limit function search_path; candidate fixes are not live. See `PITCH_READINESS.md` for current release gates.
+Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. The clean unified candidate is Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74), open, unmerged and undeployed, based directly on `main`. Current clean candidate head `ea9f0e49039e05da3a3b970166e5d1153c4ed523` passed exact-head CI [#42449353062](https://github.com/s85960833-byte/NovaAI/actions/runs/42449353062): 34 successful steps, 0 failures and 4 live-only checks skipped. Application-code and SQL regression changes were separately verified on preceding exact head [#42449142030](https://github.com/s85960833-byte/NovaAI/actions/runs/42449142030). Live Supabase still has wildcard CORS, broad audit-log SELECT policy and the older rate-limit function search_path; candidate fixes are not live. See `PITCH_READINESS.md` for current release gates.
 
 ## Architecture
 
