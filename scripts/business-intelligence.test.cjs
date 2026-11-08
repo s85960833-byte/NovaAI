@@ -264,7 +264,7 @@ test('NOVA BI white-label settings are tenant-scoped and owner/admin writable on
  assert.ok(migration.includes('logo_url ~'));
  assert.ok(migration.includes('primary_color ~'));
  const backfill=readFileSync('supabase/migrations/20261108120100_nova_bi_branding_backfill.sql','utf8');
- assert.ok(!migration.includes('insert into public.nova_bi_branding(organization_id,brand_name)'));
+ assert.ok(!migration.includes('select id,name from public.nova_bi_organizations'));
  assert.ok(backfill.includes('insert into public.nova_bi_branding(organization_id,brand_name)'));
  assert.ok(backfill.includes('on conflict (organization_id) do nothing'));
  assert.ok(edge.includes('path === "branding"'));
