@@ -55,3 +55,8 @@ NOVA is an India-oriented Hindi-English AI web workspace:
 - Any discussion of purchase, ownership, intellectual property, accounts, payment or contracts must be handled by a responsible adult with qualified legal support.
 
 **Status:** Limited discovery only. Not approved for paid sale or production customer onboarding.
+
+
+## Newly identified cloud-sync conflict defect — 8 November 2026
+
+Code review of `nova-account.js` and `nova-app.js` found that when a chat with the same ID exists locally and remotely, the local copy unconditionally replaces the remote copy during merge. Newer messages added on another device can therefore be lost on the next sync. Saved memory and custom instructions are imported only when the local values are empty, so edits made on another device may not propagate. This is a confirmed multi-device sync limitation, not merely a missing test. Do not describe cloud sync as conflict-safe or rely on it for important data until merge semantics are repaired and regression-tested.
