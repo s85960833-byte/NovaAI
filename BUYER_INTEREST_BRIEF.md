@@ -10,7 +10,7 @@ NOVA is an India-oriented Hindi-English AI web workspace with three product area
 - **NOVA Build:** digital creation and builder workflows.
 - **NOVA Agents:** everyday assistant and agent workflows.
 
-The core application is hosted at https://novaai-4auo.onrender.com. The current production deployment may not include the latest account/cloud-sync implementation; verify the live release before demonstrating or describing those features.
+The core application is hosted at https://novaai-4auo.onrender.com.
 
 ## What can be explored in a supervised preview
 
@@ -23,7 +23,7 @@ The core application is hosted at https://novaai-4auo.onrender.com. The current 
 
 - No verified paying customers, revenue, or commercial traction are being represented.
 - Paid checkout, subscription enforcement, refunds and tax-invoice operations are not configured.
-- Real account email delivery, redirect configuration, two-account isolation and full account deletion are not yet verified end to end.
+- Real account email delivery, redirect configuration, two-account isolation in the live hosted environment, and full account deletion are not yet verified end to end.
 - Optional cloud sync must not be described as live until the corresponding deployment and live tests pass.
 - General chat history is browser-local unless the separately labelled optional cloud-sync feature is deployed and explicitly enabled.
 - Render currently uses a Free plan; no always-on guarantee or SLA is offered.
@@ -43,14 +43,16 @@ The core application is hosted at https://novaai-4auo.onrender.com. The current 
 - No payment, deposit, subscription, customer onboarding or confidential-data processing is being requested.
 - No price, valuation, revenue, customer count, certification, security guarantee, SLA or delivery date is promised.
 - Do not share API keys, credentials, private user data, or unrestricted repository access during discovery.
-- Any discussion of ownership, purchase, payment, contracts, intellectual property or transfer of accounts/assets must be handled by the responsible adult and reviewed by qualified legal support.
+- Any discussion of ownership, purchase, payment, contracts, intellectual property or transfer of accounts/assets must be handled by a responsible adult and reviewed by qualified legal support.
 - A prospective buyer's interest is not a commitment or proof of product value.
 
 ## Current release evidence
 
-- Main release candidate commit: `914d4fcf3ed72a0de64759c281ec9ff50564101f`.
-- PR #86 merged with the live-release gate fix, workspace-sync privilege hardening and pinned Deno CI installation.
-- CI run #42471639955 is still validating the merged revision; its live Render gate must pass before the latest release can be represented as deployed.
-- Supabase Security and Health Advisors reported zero findings at the latest check. This is not a security certification or a substitute for end-to-end tenant-isolation testing.
+- PR #86 merged: live-release gate fix, workspace-sync privilege hardening and pinned Deno CI installation.
+- PR #87 merged: this supervised, non-binding product-interest brief.
+- PR #88 merged as commit `73467755f2e16eb3b45449c028da8b0e24280c83`; its automated browser/mobile regression checks and PostgreSQL RLS integration checks passed.
+- Render's most recent successful production deployment is still commit `f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8`, which predates the merged PR #86/#87/#88 changes. Do not claim the latest account/cloud-sync changes are live until a deployment of the current main branch succeeds and the live smoke gate passes.
+- The previous Render attempt for commit `e743034977ce38aa24a8a892d4ba87f020b3f52a` failed at startup because `toidentifier` was missing. The subsequent successful deployment of `f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8` includes the dependency fix; confirm the new main-branch deployment independently.
+- Supabase Security and Health Advisors reported zero findings at the latest check. This is not a security certification or a substitute for live end-to-end tenant-isolation testing.
 
-**Document status:** Discovery-only draft. Update the evidence and limitations after each verified deployment and test cycle.
+**Document status:** Discovery-only draft. Refresh evidence and limitations after each verified deployment and test cycle.
