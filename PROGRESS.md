@@ -400,3 +400,13 @@ This checkpoint supersedes older progress entries above wherever they describe N
 - Browser screenshots are CI-emulated Chromium evidence only; they do not replace physical Android testing.
 - Live Render/provider/image-generation checks were skipped; the candidate was not deployed. Real signup/email, two-account tenant isolation, physical Android behavior, live HTTPS headers, backup/restore, retention/privacy and incident-response gates remain open.
 - No PR merge, Production deployment, live Supabase migration, Edge Function replacement, Auth configuration change or paid-resource change was performed. Keep the candidate Draft until the owner authorizes the relevant release steps.
+
+
+## Current release status correction — 8 November 2026
+
+- The authoritative candidate is Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73). Its current head and main-branch comparison are shown directly in GitHub; avoid copying a fixed ahead-count into long-lived documentation because every documentation commit changes it.
+- Application-code verification remains [run #42434333838](https://github.com/s85960833-byte/NovaAI/actions/runs/42434333838): succeeded with 34 successful steps, 0 failed and 4 live-production checks skipped. The later documentation-only workflow [run #42435302169](https://github.com/s85960833-byte/NovaAI/actions/runs/42435302169) succeeded but does not replace application-code or live-environment checks.
+- PR description was rewritten to remove duplicated/corrupted text and to state the verified status and remaining release gates.
+- README candidate status was corrected to avoid stale commit counts. Production `main` remains unchanged; no merge, deploy, live migration, or Auth/SMTP change was made.
+- Live CORS, audit-read policy and rate-limit search_path remain at the previously inspected production state; candidate migrations and exact-origin CORS are not deployed.
+- Physical Android testing, real SMTP/Auth and two-account tests, backup/restore, privacy/retention/deletion, hosting/health-check, CSP tightening, and branch-protection verification remain release blockers. Paid sales and production promises remain NO-GO.
