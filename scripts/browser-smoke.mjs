@@ -121,12 +121,19 @@ try{
 
  // Exercise a complete Agents chat round trip against deterministic local API responses.
  const modeChatRequests=[];
- await desktop.route('**/api/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({model:'browser-test-model'})}));
+ await desktop.route('**/api/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({model:'browser-test-model',image:true})}));
  await desktop.route('**/api/chat/completions',async route=>{
   const payload=route.request().postDataJSON();
   modeChatRequests.push(payload);
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({choices:[{message:{role:'assistant',content:'NOVA_CHAT_FLOW_OK_'+modeChatRequests.length}}]})});
  });
+ const imageRequests=[];
+ const testImage='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/Yf8AAAAASUVORK5CYII=';
+ await desktop.route('**/api/image',async route=>{
+  imageRequests.push(route.request().postDataJSON());
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({jobId:'browser-image-job'})});
+ });
+ await desktop.route('**/api/image/status/browser-image-job',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({status:'done',image:testImage})}));
  await desktop.locator('#hi .nr-card[data-group="agents"]').click();
  await desktop.locator('#novaModes.open').waitFor();
  await desktop.locator('#nmContent [data-mode="general"]').click();
@@ -171,7 +178,14 @@ try{
  await desktop.locator('#imbar').waitFor({state:'visible',timeout:5000});
  assert.equal(await desktop.locator('#box').isVisible(),true,'Image Studio must reveal the composer while the workspace dashboard is mounted');
  assert.equal(await desktop.locator('#in').isVisible(),true,'Image Studio prompt must be reachable from NOVA Build');
- console.log('PASS NOVA Build Image Studio launcher opens the image prompt composer');
+ await desktop.locator('#imopt').waitFor({state:'visible'});
+ await desktop.locator('#imopt button[aria-pressed="true"]').click();
+ await desktop.locator('#in').fill('A small blue geometric star on a dark background');
+ await desktop.locator('#send').click();
+ await desktop.locator('#log img.thumb[src^="data:image/png;base64,"]').waitFor({state:'visible',timeout:12000});
+ assert.equal(imageRequests.length,1,'Build Image Studio must submit one image-generation job');
+ assert.ok(imageRequests[0].prompt.includes('blue geometric star'),'image-generation request must include the user's prompt');
+ console.log('PASS NOVA Build Image Studio launch, async image job polling and rendered image result');
  await desktop.locator('#imbar').click();
  await desktop.waitForFunction(()=>!document.body.classList.contains('nova-image-mode'));
  assert.equal(await desktop.locator('#box').isVisible(),false,'closing Image Studio must restore the clean workspace home');
