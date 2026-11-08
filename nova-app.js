@@ -1,0 +1,765 @@
+const CFG=Object.assign({api:'/api',brand:'Nova AI'},window.NOVA_CONFIG||{}),API=String(CFG.api).replace(/\/$/,''),IN_ART=!!(window.claude&&window.claude.use);
+const $=id=>document.getElementById(id);
+const T={en:{new:'＋ New chat',search:'Search chats…',mem:'🧠 Memory',cfg:'⚙ Setup',exp:'⬇ Backup',imp:'⬆ Restore',priv:'🔒 Privacy',foot:'Chats and settings stay in this browser; requests may pass through NOVA and configured providers.',ph:'Message Nova AI…',send:'Send',stop:'Stop',hello:`Hello! I'm Nova AI. How can I help you today?`,chips:['Explain something difficult','Help me write','Analyze a document','Help me with code'],edit:'Edit',copy:'Copy',regen:'Regenerate',img:'Image attached',note:'Nova AI can make mistakes. Check important information.',e400:'The provider rejected the request. The model name may be wrong, the message or file may be too long, or the model may not accept images. Check ⚙ Setup.',e404:'The model name or base URL looks wrong. Open ⚙ Setup and check them.',bad:'This is not a valid backup file.',ok:'Restored.',setT:'Connect an AI',setP:`Create a free account with an AI provider, copy your API key here. Free plans have limits. Check the provider's page for the current model names.`,prov:'Provider',base:'Base URL',model:'Model name',modelph:`copy from the provider's model list`,key:'API key (this tab only; re-enter after reload)',save:'Save',close:'Close',share:'📤 Create shareable file (without API key)',shareW:'The file will not contain your API key. The recipient must enter their own provider key in Setup.',memT:'What should Nova remember about you?',ren:'Rename chat',del:'Delete this chat?',max10:'Max 10 MB',max100:'Text files up to 100 KB only.',scan:'This PDF looks scanned (no text). OCR is not supported.',rdfail:'Could not read this file.',fill:'Enter the base URL and model first.',shareC:'The exported file includes the provider URL and model, but never your API key. The recipient must enter their own key. Continue?',speak:'Read aloud',e401:'The API key was rejected. Open ⚙ Setup and check your key.',e429:'The free quota is used up for now. Please retry later.',eSrv:'The AI provider returned an error ({s}). Please try again.',eNet:'Could not reach the provider. Check your internet, the base URL, or try another provider.',eRate:'Too many requests. Wait a moment and try again.',eGrant:'Permission was declined. Reload the page and allow Nova AI to ask Claude.',eEmpty:'The model sent an empty reply. Check the model name in ⚙ Setup.',eDay:'Daily limit reached on this device (30 messages). Please come back tomorrow.',newT:'New chat',sub:'Chat, talk live or create images. What would you like to do?',fChat:'Chat',fChatD:'Ask anything and get clear answers',fLive:'Live voice',fLiveD:'Talk hands-free, like a phone call',fImg:'Create an image',fImgD:'Describe it and pick a style',tplT:'Image templates',stT:'Conversation starters',tp1:'Cartoon',tp2:'Cinematic',tp3:'Watercolor',tp4:'Logo',tp5:'Sticker',tp6:'Anime',tp7:'3D render',tp8:'Poster',imMode:'Image mode',imPh:'Describe the image you want…',eImg:'Could not create the image. Try a simpler description.',lvTitle:'Live conversation',lvListen:'Listening…',lvThink:'Thinking…',lvSpeak:'Speaking · tap to interrupt',lvMuted:'Microphone is muted',lvNo:'Live voice needs speech recognition, which this browser does not support. Please use Chrome or Edge.',lvDenied:'Microphone access is blocked. Please allow it in your browser settings.',phLive:'🎥 Use live camera here',phHelp:'If the camera or gallery did not open, your app may be blocking it. Open this page in Chrome or Safari instead.',phLink:'Copy link',phBrowse:'Open in browser',phCopied:'Link copied',camDenied:'Camera access is blocked. Allow the camera for this page, or open it in Chrome or Safari.',camNone:'No camera was found on this device.',camErr:'The camera could not start. Please use the other options.',setB:'⚙ Settings',sgA:'Assistant',sgV:'Voice and display',sgD:'Your data',sgP:'About',autoRead:'Read answers aloud automatically',fontT:'Text size',wipe:'🗑 Delete all my data',wipeQ:'Delete all chats, memory and settings from this device? This cannot be undone.',wiped:'All data deleted',kbd:'⌨ Keyboard shortcuts',kbdT:'Keyboard shortcuts',kbd1:'Search chats',kbd2:'New chat',kbd3:'Focus the message box',kbd4:'Send · new line',kbd5:'Close windows',exCopied:'Copied to clipboard (file downloads are not available in this preview)',exSaved:'Saved',offl:'You are offline. Sending will fail until the connection is back.',onl:'Back online',mdDefault:'✦ Standard',mdStudy:'🎓 Study buddy',mdCoder:'💻 Coder',mdWriter:'✍️ Writer',mdTrans:'🌐 Translator',mdShort:'⚡ Concise',ciT:'How should Nova respond? (tone, language, level)',pinT:'Pin',unpinT:'Unpin',copyChat:'Copy conversation',expChat:'Save as Markdown',toBot:'Scroll to latest',accT:'Maximum accuracy mode',accD:'Maximum accuracy mode: careful answers that check facts, say what is uncertain and never invent sources',accOn:'Maximum accuracy mode is ON',accOff:'Maximum accuracy mode is OFF',mdHist:'📜 History scholar',hsT:'History explorer',hToday:'📅 Today in history',hq:'Explain {t} like a careful history teacher: a clear timeline of the key events with dates (use ranges when exact dates are uncertain), the key people, causes and consequences, and where historians disagree. Keep it organised in short sections.',hqToday:'Which well-documented historical events happened on {t}? List about six, each with its year and one line. Leave out any event you are not sure about and tell me if you are unsure.',hs1:'Ancient India',hs2:'Delhi Sultanate and Mughals',hs3:'India’s freedom struggle',hs4:'India since 1947',hs5:'Ancient Egypt',hs6:'Greece and Rome',hs7:'The medieval world',hs8:'Renaissance and revolutions',hs9:'Colonialism and empires',hs10:'World War I and II',hs11:'The Cold War',hs12:'History of science',nArch:'📜 History archive',arT:'History archive',arSub:'A growing, evidence-based archive of world and Indian history. Each volume is written by the AI, so check important facts against trusted sources.',arTools:'Tools',arPer:'By period',arReg:'By region',arInd:'India in depth',tIdx:'Master index (Part I)',tEvt:'Event record card',tCont:'Continue the archive',tGap:'Gaps and unknowns',tDeb:'Scholarly debate',evAsk:'Which event or development? (for example: Battle of Plassey)',gapAsk:'Which region or period? (leave blank for the whole world)',debAsk:'Which historical question or controversy?',ap1:'Cosmic history',ap2:'Geology and life',ap3:'Prehistoric humanity',ap4:'Ancient history',ap5:'Medieval history',ap6:'Early modern history',ap7:'Modern history',ap8:'Contemporary history',ar1:'South Asia',ar2:'East Asia',ar3:'Southeast Asia',ar4:'Central Asia',ar5:'West Asia and Middle East',ar6:'Africa',ar7:'Europe',ar8:'The Americas',ar9:'Oceania and Pacific',ar10:'Global networks and polar regions',ai1:'Prehistoric India and Harappa',ai2:'Vedic age and Mahajanapadas',ai3:'Mauryas and after',ai4:'Sangam age and Guptas',ai5:'Early medieval dynasties',ai6:'Sultanates and Vijayanagara',ai7:'Mughals and regional powers',ai8:'European companies and Company rule',ai9:'1857, reform and resistance',ai10:'The freedom movement',ai11:'Partition, independence, Constitution',ai12:'India since 1947',ai13:'Sources and historiography',hArch:'📜 Open the full History archive',mdArch:'🏛 History archive',mdExam:'📝 Exam coach',mdRes:'🔎 Research analyst',mdPlan:'🗓 Planner',ultD:'Ultimate pack: advanced reasoning, research, files, images, tutoring and planning rules',eLite:'The AI’s context window was too small for the full instruction packs, so a shorter instruction was used. You can turn packs off in Settings.',nHome:'🏠 Home',nPhoto:'📷 Photo solver',nImg:'🎨 Image studio',nLive:'🎧 Live voice',phTitle:'Solve from photo',phSub:'Take a clear photo of the question. Nova explains it step by step.',phDrop:'Add your question photo',phHint:'Keep the page flat, in good light, with the whole question inside the frame.',phCam:'📷 Take photo',phGal:'🖼 Choose from gallery',phNote:'Add a note (optional), e.g. explain in Hindi',phSolve:'Solve step by step',phTip:'Nothing opened? Tap Gallery, paste with Ctrl+V, or drag the photo here.',phS1:'Maths',phS2:'Science',phS3:'English',phS4:'Hindi',phS5:'Social studies',oops:'Something went wrong. Please try again.',wait:'Please wait for the current answer to finish.',copied:'Copied',copyFail:'Could not copy',okB:'OK',cancelB:'Cancel',fPhoto:'Solve from photo',fPhotoD:'Snap a question and get step-by-step help',eVis:'This AI cannot read photos in this setup. Try another model or the downloaded version.',ephoto:'Could not open this photo. Please try another one.',vAuto:'Auto (best voice)',vNone:'No voice for this language on this device',privacy:`<p><b>Privacy</b></p><ul><li>Chats and settings are stored in this browser. NOVA also uses a backend hosted on Render.</li><li>Depending on your connection, prompts and attached content may go through the NOVA backend or directly to the AI provider you configured. Server-routed requests may be forwarded to configured AI, search, image or transcription providers. Each provider's privacy policy applies to the data it receives.</li><li>If you enter your own provider API key in Setup, it is kept in active-tab memory and is not saved in normal browser storage. Re-enter it after a reload or new tab. Server-side provider credentials are held in the hosting environment, not in this page.</li><li>PDF text is read in the browser before being attached to a request. Browser speech features may process audio or text through your browser vendor; server transcription requests go to the configured speech provider.</li><li>NOVA does not currently provide account-based cloud chat sync. Delete chats in the app or clear this site's browser data. Backup files contain your chats, so keep them safe.</li><li>NOVA Company Cloud is a separate preview workspace. If you use it, Supabase stores your account/email, company memberships, organization details, dataset metadata, calculated aggregate analyses, assumptions/evidence, workflow proposals, approval/audit events and branding. Raw CSV rows are processed in this browser and are not uploaded by the current workflow. Current infrastructure regions are Render Singapore and Supabase Ireland, so cloud metadata may be processed outside India.</li><li>Company Cloud is not cleared for sensitive or production employee data. A published retention schedule and self-service account deletion process are not yet available. Do not upload confidential, regulated or production business data until privacy, retention, deletion, backup and incident-response controls have been reviewed.</li><li>"Create shareable file" exports the provider URL and model only. Your API key is never included; each recipient must supply their own key.</li></ul><p><b>Terms</b></p><ul><li>AI answers can be wrong. Do not rely on them alone for medical, legal or financial decisions.</li><li>Do not enter passwords, card numbers or other secrets.</li><li>Do not use Nova AI for illegal or harmful content. It is provided as is, without guarantees.</li></ul>`},
+hi:{new:'＋ नई चैट',search:'चैट खोजें…',mem:'🧠 याददाश्त',cfg:'⚙ सेटअप',exp:'⬇ बैकअप',imp:'⬆ रीस्टोर',priv:'🔒 प्राइवेसी',foot:'चैट और सेटिंग्स इसी ब्राउज़र में रहती हैं; अनुरोध NOVA और चुने गए providers से होकर जा सकते हैं।',ph:'Nova AI को संदेश लिखें…',send:'भेजें',stop:'रोकें',hello:`नमस्ते! मैं Nova AI हूँ। आज मैं आपकी कैसे मदद करूँ?`,chips:['कुछ मुश्किल समझाओ','लिखने में मदद करो','दस्तावेज़ का विश्लेषण करो','कोड में मदद करो'],edit:'एडिट',copy:'कॉपी',regen:'दोबारा बनाओ',img:'फ़ोटो जुड़ी है',note:'Nova AI गलती कर सकता है। ज़रूरी जानकारी जाँच लें।',e400:'अनुरोध स्वीकार नहीं हुआ: model का नाम गलत हो सकता है, संदेश या फ़ाइल बहुत बड़ी हो सकती है, या model फ़ोटो नहीं समझता। ⚙ सेटअप जाँचें।',e404:'model का नाम या base URL गलत लगता है। ⚙ सेटअप खोलकर जाँचें।',bad:'यह सही बैकअप फ़ाइल नहीं है।',ok:'रीस्टोर हो गया।',setT:'AI जोड़ें',setP:'किसी AI provider पर मुफ़्त खाता बनाएँ और उसकी API key यहाँ डालें। मुफ़्त प्लान की सीमाएँ होती हैं। model के मौजूदा नाम provider के पेज पर देखें।',prov:'प्रोवाइडर',base:'Base URL',model:'Model का नाम',modelph:'provider की model सूची से कॉपी करें',key:'API key (केवल इस टैब में; reload पर फिर डालें)',save:'सेव करें',close:'बंद करें',share:'📤 शेयर फ़ाइल बनाएँ (API key के बिना)',shareW:'फ़ाइल में आपकी API key नहीं होगी। फ़ाइल पाने वाले व्यक्ति को Setup में अपनी provider key डालनी होगी।',memT:'Nova को आपके बारे में क्या याद रखना चाहिए?',ren:'चैट का नाम बदलें',del:'यह चैट हटाएँ?',max10:'ज़्यादा से ज़्यादा 10 MB',max100:'सिर्फ़ 100 KB तक की टेक्स्ट फ़ाइलें।',scan:'यह PDF स्कैन की हुई लगती है (टेक्स्ट नहीं है)। OCR अभी उपलब्ध नहीं है।',rdfail:'यह फ़ाइल पढ़ी नहीं जा सकी।',fill:'पहले base URL और model भरें।',shareC:'फ़ाइल में provider URL और model होंगे, लेकिन आपकी API key नहीं होगी। पाने वाले व्यक्ति को अपनी key डालनी होगी। आगे बढ़ें?',speak:'ज़ोर से पढ़ें',e401:'API key स्वीकार नहीं हुई। ⚙ सेटअप खोलकर key जाँचें।',e429:'अभी की मुफ़्त सीमा पूरी हो गई। कृपया थोड़ी देर बाद फिर कोशिश करें।',eSrv:'AI provider ने गड़बड़ी बताई ({s})। कृपया फिर कोशिश करें।',eNet:'provider तक पहुँच नहीं हो सकी। इंटरनेट, base URL जाँचें या दूसरा provider आज़माएँ।',eRate:'बहुत ज़्यादा अनुरोध हो गए। थोड़ा रुककर फिर कोशिश करें।',eGrant:'अनुमति नहीं दी गई। पेज दोबारा खोलें और Nova AI को Claude से पूछने दें।',eEmpty:'model ने खाली जवाब भेजा। ⚙ सेटअप में model का नाम जाँचें।',eDay:'इस डिवाइस पर आज की सीमा (30 संदेश) पूरी हो गई। कल फिर आइए।',newT:'नई चैट',sub:'चैट करें, लाइव बात करें या फ़ोटो बनाएँ। आज क्या करना है?',fChat:'चैट',fChatD:'कुछ भी पूछें, साफ़ जवाब पाएँ',fLive:'लाइव आवाज़',fLiveD:'फ़ोन कॉल की तरह बिना हाथ लगाए बात करें',fImg:'फ़ोटो बनाएँ',fImgD:'बताइए और स्टाइल चुनिए',tplT:'फ़ोटो टेम्पलेट',stT:'बातचीत शुरू करने के सुझाव',tp1:'कार्टून',tp2:'सिनेमैटिक',tp3:'वॉटरकलर',tp4:'लोगो',tp5:'स्टिकर',tp6:'एनीमे',tp7:'3D रेंडर',tp8:'पोस्टर',imMode:'फ़ोटो मोड',imPh:'जैसी फ़ोटो चाहिए उसका वर्णन लिखें…',eImg:'फ़ोटो नहीं बन सकी। थोड़ा सरल वर्णन आज़माएँ।',lvTitle:'लाइव बातचीत',lvListen:'सुन रहा हूँ…',lvThink:'सोच रहा हूँ…',lvSpeak:'बोल रहा हूँ · बीच में रोकने के लिए टैप करें',lvMuted:'माइक बंद है',lvNo:'लाइव आवाज़ के लिए स्पीच पहचान चाहिए, जो इस ब्राउज़र में नहीं है। कृपया Chrome या Edge इस्तेमाल करें।',lvDenied:'माइक की अनुमति बंद है। कृपया ब्राउज़र सेटिंग में अनुमति दें।',phLive:'🎥 यहीं लाइव कैमरा चलाएँ',phHelp:'अगर कैमरा या गैलरी नहीं खुली, तो आपका ऐप उसे रोक रहा हो सकता है। इसके बजाय इस पेज को Chrome या Safari में खोलें।',phLink:'लिंक कॉपी करें',phBrowse:'ब्राउज़र में खोलें',phCopied:'लिंक कॉपी हो गया',camDenied:'कैमरा की अनुमति बंद है। इस पेज के लिए कैमरा चालू करें, या इसे Chrome या Safari में खोलें।',camNone:'इस डिवाइस पर कैमरा नहीं मिला।',camErr:'कैमरा चालू नहीं हो सका। कृपया दूसरे तरीके आज़माएँ।',setB:'⚙ सेटिंग्स',sgA:'असिस्टेंट',sgV:'आवाज़ और दिखावट',sgD:'आपका डेटा',sgP:'जानकारी',autoRead:'जवाब अपने-आप बोलकर सुनाएँ',fontT:'अक्षरों का आकार',wipe:'🗑 मेरा सारा डेटा मिटाएँ',wipeQ:'इस डिवाइस से सारी चैट, याददाश्त और सेटिंग्स मिटा दें? इसे वापस नहीं लाया जा सकता।',wiped:'सारा डेटा मिट गया',kbd:'⌨ कीबोर्ड शॉर्टकट',kbdT:'कीबोर्ड शॉर्टकट',kbd1:'चैट खोजें',kbd2:'नई चैट',kbd3:'संदेश बॉक्स चुनें',kbd4:'भेजें · नई पंक्ति',kbd5:'खिड़कियाँ बंद करें',exCopied:'क्लिपबोर्ड में कॉपी हुआ (इस प्रीव्यू में फ़ाइल डाउनलोड उपलब्ध नहीं)',exSaved:'सेव हो गया',offl:'आप ऑफ़लाइन हैं। इंटरनेट लौटने तक भेजना नहीं चलेगा।',onl:'इंटरनेट वापस आ गया',mdDefault:'✦ सामान्य',mdStudy:'🎓 पढ़ाई का साथी',mdCoder:'💻 कोडर',mdWriter:'✍️ लेखक',mdTrans:'🌐 अनुवादक',mdShort:'⚡ संक्षिप्त',ciT:'Nova को कैसे जवाब देना चाहिए? (लहजा, भाषा, स्तर)',pinT:'ऊपर लगाएँ',unpinT:'हटाएँ',copyChat:'बातचीत कॉपी करें',expChat:'Markdown में सेव करें',toBot:'सबसे नया देखें',accT:'अधिकतम सटीकता मोड',accD:'अधिकतम सटीकता मोड: सावधान जवाब जो तथ्य जाँचते हैं, अनिश्चितता बताते हैं और कभी स्रोत नहीं गढ़ते',accOn:'अधिकतम सटीकता मोड चालू है',accOff:'अधिकतम सटीकता मोड बंद है',mdHist:'📜 इतिहास विद्वान',hsT:'इतिहास एक्सप्लोरर',hToday:'📅 आज के दिन इतिहास में',hq:'{t} को एक सावधान इतिहास शिक्षक की तरह समझाइए: मुख्य घटनाओं की साफ़ समय-रेखा तारीख़ों के साथ (तारीख़ पक्की न हो तो अनुमानित अवधि लिखें), मुख्य लोग, कारण और परिणाम, और इतिहासकार कहाँ असहमत हैं। जवाब छोटे हिस्सों में व्यवस्थित रखें।',hqToday:'{t} को इतिहास में कौन सी अच्छी तरह दर्ज घटनाएँ हुईं? लगभग छह बताइए, हर एक का साल और एक पंक्ति। जिस घटना पर आपको भरोसा न हो उसे छोड़ दीजिए और अगर अनिश्चित हों तो बताइए।',hs1:'प्राचीन भारत',hs2:'दिल्ली सल्तनत और मुग़ल',hs3:'भारत का स्वतंत्रता संग्राम',hs4:'1947 के बाद का भारत',hs5:'प्राचीन मिस्र',hs6:'यूनान और रोम',hs7:'मध्यकालीन दुनिया',hs8:'पुनर्जागरण और क्रांतियाँ',hs9:'उपनिवेशवाद और साम्राज्य',hs10:'प्रथम और द्वितीय विश्व युद्ध',hs11:'शीत युद्ध',hs12:'विज्ञान का इतिहास',nArch:'📜 इतिहास आर्काइव',arT:'इतिहास आर्काइव',arSub:'विश्व और भारत के इतिहास का बढ़ता हुआ, प्रमाण-आधारित आर्काइव। हर खंड AI लिखता है, इसलिए ज़रूरी तथ्य भरोसेमंद स्रोतों से जाँच लें।',arTools:'औज़ार',arPer:'काल के अनुसार',arReg:'क्षेत्र के अनुसार',arInd:'भारत विस्तार से',tIdx:'मास्टर इंडेक्स (भाग 1)',tEvt:'घटना रिकॉर्ड कार्ड',tCont:'आर्काइव आगे बढ़ाएँ',tGap:'अधूरापन और अज्ञात',tDeb:'विद्वानों की बहस',evAsk:'कौन सी घटना या विकास? (जैसे: प्लासी की लड़ाई)',gapAsk:'कौन सा क्षेत्र या काल? (पूरी दुनिया के लिए खाली छोड़ें)',debAsk:'कौन सा ऐतिहासिक सवाल या विवाद?',ap1:'ब्रह्मांड का इतिहास',ap2:'भूविज्ञान और जीवन',ap3:'प्रागैतिहासिक मानव',ap4:'प्राचीन इतिहास',ap5:'मध्यकालीन इतिहास',ap6:'आरंभिक आधुनिक इतिहास',ap7:'आधुनिक इतिहास',ap8:'समकालीन इतिहास',ar1:'दक्षिण एशिया',ar2:'पूर्वी एशिया',ar3:'दक्षिण-पूर्व एशिया',ar4:'मध्य एशिया',ar5:'पश्चिम एशिया और मध्य पूर्व',ar6:'अफ़्रीका',ar7:'यूरोप',ar8:'अमेरिका महाद्वीप',ar9:'ओशिनिया और प्रशांत',ar10:'वैश्विक नेटवर्क और ध्रुवीय क्षेत्र',ai1:'प्रागैतिहासिक भारत और हड़प्पा',ai2:'वैदिक काल और महाजनपद',ai3:'मौर्य और उसके बाद',ai4:'संगम काल और गुप्त',ai5:'प्रारंभिक मध्यकालीन राजवंश',ai6:'सल्तनत और विजयनगर',ai7:'मुग़ल और क्षेत्रीय शक्तियाँ',ai8:'यूरोपीय कंपनियाँ और कंपनी शासन',ai9:'1857, सुधार और प्रतिरोध',ai10:'स्वतंत्रता आंदोलन',ai11:'विभाजन, आज़ादी, संविधान',ai12:'1947 के बाद का भारत',ai13:'स्रोत और इतिहास-लेखन',hArch:'📜 पूरा इतिहास आर्काइव खोलें',mdArch:'🏛 इतिहास आर्काइव',mdExam:'📝 परीक्षा कोच',mdRes:'🔎 शोध विश्लेषक',mdPlan:'🗓 योजनाकार',ultD:'अल्टीमेट पैक: उन्नत तर्क, शोध, फ़ाइलें, फ़ोटो, पढ़ाई और योजना के नियम',eLite:'AI की संदर्भ-सीमा पूरे निर्देश पैक के लिए छोटी पड़ गई, इसलिए छोटा निर्देश इस्तेमाल हुआ। आप सेटिंग्स में पैक बंद कर सकते हैं।',nHome:'🏠 होम',nPhoto:'📷 फ़ोटो से हल',nImg:'🎨 फ़ोटो स्टूडियो',nLive:'🎧 लाइव आवाज़',phTitle:'फ़ोटो से सवाल हल करें',phSub:'सवाल की साफ़ फ़ोटो लें। Nova उसे स्टेप-बाय-स्टेप समझाएगा।',phDrop:'सवाल की फ़ोटो जोड़ें',phHint:'पन्ना सीधा रखें, अच्छी रोशनी में, और पूरा सवाल फ़्रेम के अंदर हो।',phCam:'📷 फ़ोटो खींचें',phGal:'🖼 गैलरी से चुनें',phNote:'चाहें तो कुछ लिखें, जैसे: हिन्दी में समझाओ',phSolve:'स्टेप-बाय-स्टेप हल करें',phTip:'कुछ नहीं खुला? गैलरी दबाएँ, Ctrl+V से पेस्ट करें या फ़ोटो यहाँ खींचकर छोड़ें।',phS1:'गणित',phS2:'विज्ञान',phS3:'अंग्रेज़ी',phS4:'हिन्दी',phS5:'सामाजिक विज्ञान',oops:'कुछ गड़बड़ हो गई। कृपया फिर कोशिश करें।',wait:'कृपया मौजूदा जवाब पूरा होने दें।',copied:'कॉपी हो गया',copyFail:'कॉपी नहीं हो सका',okB:'ठीक है',cancelB:'रद्द करें',fPhoto:'फ़ोटो से सवाल हल करें',fPhotoD:'सवाल की फ़ोटो खींचें, स्टेप-बाय-स्टेप मदद पाएँ',eVis:'इस सेटअप में यह AI फ़ोटो नहीं पढ़ सकता। कोई दूसरा model या डाउनलोड की हुई फ़ाइल आज़माएँ।',ephoto:'यह फ़ोटो खुल नहीं सकी। कृपया दूसरी फ़ोटो आज़माएँ।',vAuto:'ऑटो (सबसे अच्छी आवाज़)',vNone:'इस डिवाइस पर इस भाषा की आवाज़ नहीं है',privacy:`<p><b>प्राइवेसी</b></p><ul><li>चैट और सेटिंग्स इसी ब्राउज़र में सेव होती हैं। NOVA का backend Render पर होस्ट है।</li><li>आपके कनेक्शन के अनुसार संदेश और जुड़ी सामग्री NOVA backend से होकर या सीधे आपके चुने AI provider तक जा सकती है। Server से भेजे गए अनुरोध AI, search, image या transcription providers को आगे भेजे जा सकते हैं। हर provider की privacy policy उसके पास पहुँचे डेटा पर लागू होती है।</li><li>Setup में डाली गई आपकी अपनी provider API key सिर्फ़ सक्रिय टैब की memory में रहती है; reload या नया टैब खोलने पर उसे फिर डालना होगा। यह सामान्य browser storage में सेव नहीं होती। Server की provider keys hosting environment में रहती हैं, इस पेज में नहीं।</li><li>PDF का टेक्स्ट अनुरोध के साथ भेजने से पहले ब्राउज़र में पढ़ा जाता है। Browser speech सुविधाएँ ऑडियो या टेक्स्ट को browser vendor के जरिए प्रोसेस कर सकती हैं; server transcription अनुरोध चुने गए speech provider तक जाते हैं।</li><li>अभी NOVA में account-based cloud chat sync उपलब्ध नहीं है। चैट ऐप में हटाएँ या इस साइट का browser data साफ़ करें। Backup फ़ाइल में आपकी चैट होती हैं, इसलिए उसे सुरक्षित रखें।</li><li>NOVA Company Cloud एक अलग preview workspace है। इसका उपयोग करने पर Supabase में आपका account/email, company memberships, organization विवरण, dataset metadata, calculated aggregate analyses, assumptions/evidence, workflow proposals, approval/audit events और branding सेव होते हैं। मौजूदा workflow में raw CSV rows ब्राउज़र में process होती हैं और upload नहीं होतीं। वर्तमान infrastructure regions Render Singapore और Supabase Ireland हैं, इसलिए cloud metadata भारत के बाहर process हो सकता है।</li><li>Company Cloud अभी sensitive या production employee data के लिए स्वीकृत नहीं है। Retention schedule और self-service account deletion प्रक्रिया अभी उपलब्ध नहीं है। Privacy, retention, deletion, backup और incident-response controls की समीक्षा होने तक confidential, regulated या production business data upload न करें।</li><li>"Create shareable file" में सिर्फ़ provider URL और model export होते हैं। आपकी API key शामिल नहीं होती; हर व्यक्ति को अपनी key डालनी होगी।</li></ul><p><b>नियम</b></p><ul><li>AI के जवाब गलत हो सकते हैं। सेहत, कानून या पैसों के फ़ैसले सिर्फ़ इन पर न छोड़ें।</li><li>पासवर्ड, कार्ड नंबर या दूसरे राज़ न डालें।</li><li>Nova AI का इस्तेमाल गैरकानूनी या हानिकारक सामग्री के लिए न करें। यह बिना किसी गारंटी के "जैसा है" वैसा दिया गया है।</li></ul>`}};
+const ui=()=>(S.rl==='Hindi'||(S.rl==='Auto'&&/^hi/i.test(navigator.language)))?'hi':'en';
+const t=k=>{const custom=S.tr&&S.tr[S.rl]&&S.tr[S.rl][k];if(custom)return custom;const en=T.en?.[k],hi=T.hi?.[k];if(k!=='privacy'&&typeof en==='string'&&typeof hi==='string')return en+' / '+hi;if(Array.isArray(en)&&Array.isArray(hi))return en.map((v,i)=>String(v)+' / '+String(hi[i]??v));return T[ui()][k]};
+function applyUI(){document.documentElement.lang=ui();document.documentElement.dir=/^(Arabic|Urdu)$/.test(S.rl)?'rtl':'ltr';document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));document.querySelectorAll('[data-p]').forEach(e=>e.placeholder=t(e.dataset.p));$('in').placeholder=t('ph');fillMode();syncAcc();document.querySelector('.note').textContent=t('note');$('privt').innerHTML=String(t('privacy')).replace(/<(?!\/?(p|ul|li|b)\b)[^>]*>/gi,'').replace(/<(p|ul|li|b)\b[^>]*>/gi,'<$1>')}
+let pimg=null,SV=null,SMP=null,WEB=false,IM=null,LV=false,stick=true,paintQ=0,STORE=true,popN=0,dashEnter=true,first=false,camStream=null,camFace='environment',pickGot=false;
+/* ---- Exact maths (math.js + nerdamer) and formulas (KaTeX), loaded only when needed ---- */
+const _ld={};function loadJS(u){return _ld[u]||(_ld[u]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;const f=e=>{delete _ld[u];no(e)};setTimeout(()=>f(new Error('timeout')),8000);s.onload=ok;s.onerror=()=>f(new Error('load '+u));document.head.appendChild(s)}))}
+let _M=null,_N=null;
+async function getMath(){if(_M)return _M;try{await loadJS('https://cdnjs.cloudflare.com/ajax/libs/mathjs/15.2.0/math.min.js');if(window.math){_M=window.math.create(window.math.all,{number:'BigNumber',precision:50});return _M}}catch(e){}return null}
+async function getNerd(){if(_N)return _N;try{await loadJS('https://cdnjs.cloudflare.com/ajax/libs/nerdamer/1.1.13/all.min.js');if(window.nerdamer){_N=window.nerdamer;return _N}}catch(e){}return null}
+async function runTool(n,a){
+if(n==='calculate'){const e=String(a.expression||'');const M=await getMath();if(M)return M.format(M.evaluate(e),{precision:20});throw new Error('calculator library did not load')}
+if(n==='symbolic'){const N=await getNerd();if(!N)throw new Error('symbolic engine unavailable');const e=String(a.expression||''),v=a.variable||'x',op=a.operation;let r;
+if(op==='solve')r=N.solve(e,v);else r=N((op==='integrate'?'integrate(':op==='diff'?'diff(':op==='factor'?'factor(':op==='expand'?'expand(':'simplify(')+e+(op==='integrate'||op==='diff'?','+v:'')+')');return String(r.toString())}
+throw new Error('unknown tool')}
+const MTOOLS=[{type:'function',function:{name:'calculate',description:'Exactly evaluate a numeric expression (math.js syntax: + - * / ^ ( ) sqrt() sin() log() etc). Use for EVERY arithmetic step. Percent: X% of Y = Y*X/100.',parameters:{type:'object',properties:{expression:{type:'string'}},required:['expression']}}},{type:'function',function:{name:'symbolic',description:'Symbolic algebra and calculus: integrate, diff, solve (equation or expression = 0), factor, expand, simplify.',parameters:{type:'object',properties:{operation:{type:'string',enum:['integrate','diff','solve','factor','expand','simplify']},expression:{type:'string'},variable:{type:'string'}},required:['operation','expression']}}}];
+const MATHY=/(\d\s*[-+*\/^×÷]\s*\d)|%|percent|प्रतिशत|sqrt|root|मूल|वर्ग|घन|गुणा|जोड़|घटा|integra|derivativ|differenti|इंटीग्रल|अवकल|समीकरण|equation|solve|calculat|compute|कितना|कितने|how much|simplif|factor|हिसाब|ब्याज|interest|औसत|average|\b(sin|cos|tan|log|ln)\b|सौ|हज़ार|हजार|लाख|करोड़/i;
+async function mathPhase(hist,signal,mdl){
+const tx=m=>typeof m.content==='string'?m.content:(m.content||[]).map(p=>p.text||'').join(' ');
+const last=hist.filter(m=>m.role==='user').slice(-1)[0];if(!last||!MATHY.test(tx(last)))return '';
+const msgs=[{role:'system',content:'You are a calculation router. For every numeric calculation or algebra/calculus step in the user request, call the tools instead of computing in your head. First convert Hindi/English number words to digits (for example दो सौ पचास = 250, and 17 प्रतिशत of X = X*17/100). Call tools only; never write the final answer.'},...hist.slice(-3).map(m=>({role:m.role,content:tx(m).slice(0,600)}))];
+const res=[];
+for(let k=0;k<2;k++){let r;try{r=await fetch(API+'/chat/completions',{method:'POST',signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({model:mdl,stream:false,messages:msgs,tools:MTOOLS,tool_choice:'auto'})})}catch(e){break}
+if(!r.ok)break;let j;try{j=await r.json()}catch(e){break}const m=j.choices&&j.choices[0]&&j.choices[0].message;if(!m||!m.tool_calls||!m.tool_calls.length)break;
+msgs.push({role:'assistant',content:m.content||'',tool_calls:m.tool_calls});
+for(const tc of m.tool_calls){let a={},o;try{a=JSON.parse(tc.function.arguments||'{}');o=await runTool(tc.function.name,a)}catch(e){o='Error: '+e.message}res.push(tc.function.name+'('+JSON.stringify(a)+') = '+(/^Error/.test(o)?'(tool unavailable for this step: compute it carefully yourself and say it is unchecked)':o));msgs.push({role:'tool',tool_call_id:tc.id,content:String(o)})}}
+return res.length?'\n\nVerified results from the exact calculator (use exactly these values in your answer and show the steps):\n'+res.join('\n'):''}
+const mathify=h=>{if(!window.katex)return h;const f=(t,d)=>{try{return katex.renderToString(t.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&'),{output:'mathml',displayMode:d,throwOnError:false})}catch(e){return t}};return h.split(/(<pre>[\s\S]*?<\/pre>)/).map(x=>x.startsWith('<pre>')?x:x.replace(/\\\[([\s\S]+?)\\\]/g,(m,t)=>f(t,true)).replace(/\\\(([\s\S]+?)\\\)/g,(m,t)=>f(t,false))).join('')};
+async function llm(p){if(SMP)return (await SMP(p,{cache:false})).text;
+const cf=SV?{base:API,key:'-',model:SV.model}:((S.cfg.key?S.cfg:BUILT_IN)||S.cfg);if(!cf.key||!cf.model||!cf.base)return '';
+const r=await fetch(cf.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+cf.key},body:JSON.stringify({model:cf.model,stream:true,messages:[{role:'user',content:p}]})});if(!r.ok)return '';
+const rd=r.body.getReader(),dec=new TextDecoder();let buf='',o='';for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();for(const l of ls){if(!l.startsWith('data:'))continue;const x=l.slice(5).trim();if(x==='[DONE]')continue;try{o+=JSON.parse(x).choices[0].delta.content||''}catch(e){}}}return o}
+async function trUI(){const l=S.rl;if(!l||l==='Auto'||l==='English'||l==='Hindi'||(S.tr&&S.tr[l]&&S.tr[l].arT)||!(SMP||SV||S.cfg.key||BUILT_IN))return;
+$('in').placeholder='…';try{const o=await llm('Translate the string values of this JSON into '+l+'. Keep the keys, the emoji and symbols (＋ ⬇ ⬆ ⚙ 🧠 🔒 🌐), the name Nova AI and all HTML tags and the placeholder {s} unchanged. Reply with ONLY the JSON.\n'+JSON.stringify(T.en));
+const j=JSON.parse(o.slice(o.indexOf('{'),o.lastIndexOf('}')+1));if(j.chips&&j.privacy&&j.hello){S.tr=S.tr||{};S.tr[l]=Object.assign({},T.en,j);save()}}catch(e){}
+if(S.rl===l){applyUI();render()}}
+const shrink=f=>new Promise((ok,no)=>{const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const cx=c.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,c.width,c.height);cx.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.85))};im.onerror=()=>{URL.revokeObjectURL(u);no(new Error('img'))};im.src=u});
+
+const L=['Auto','English','हिन्दी|Hindi','বাংলা|Bengali','मराठी|Marathi','தமிழ்|Tamil','తెలుగు|Telugu','ગુજરાતી|Gujarati','ಕನ್ನಡ|Kannada','മലയാളം|Malayalam','ਪੰਜਾਬੀ|Punjabi','اردو|Urdu','Español|Spanish','Français|French','Deutsch|German','Português|Portuguese','Русский|Russian','العربية|Arabic','中文|Chinese','日本語|Japanese','한국어|Korean','Türkçe|Turkish','Bahasa Indonesia|Indonesian'];
+const LC={Hindi:'hi-IN',English:'en-IN',Spanish:'es-ES',French:'fr-FR',German:'de-DE',Arabic:'ar-SA',Chinese:'zh-CN',Japanese:'ja-JP',Korean:'ko-KR',Bengali:'bn-IN',Tamil:'ta-IN',Telugu:'te-IN',Marathi:'mr-IN',Gujarati:'gu-IN',Urdu:'ur-PK',Portuguese:'pt-BR',Russian:'ru-RU',Turkish:'tr-TR',Indonesian:'id-ID',Punjabi:'pa-IN',Kannada:'kn-IN',Malayalam:'ml-IN'};
+/*BUILTIN*/const BUILT_IN=null;/*END*/
+let S={chats:[],cur:null,rl:'Auto',mem:'',cfg:{base:CFG.base||'https://openrouter.ai/api/v1',model:CFG.model||'',key:''}},ctl=null,busy=false,doc=null;
+try{S=Object.assign(S,JSON.parse(localStorage.getItem('nova')||'{}'))}catch(e){}
+try{localStorage.setItem('nova_t','1');localStorage.removeItem('nova_t')}catch(e){STORE=false}
+const persistable=()=>{const value=Object.assign({},S);if(value.cfg)value.cfg=Object.assign({},value.cfg,{key:''});return value};
+const save=()=>{if(!STORE)return;try{localStorage.setItem('nova',JSON.stringify(persistable()))}catch(e){const cur=chat(),keep=cur?cur.m.slice(-2):[];S.chats.forEach(c=>c.m.forEach(m=>{if(!keep.includes(m))delete m.img}));try{localStorage.setItem('nova',JSON.stringify(persistable()))}catch(x){if(!window._sq){window._sq=1;try{toast(t('oops'))}catch(_){}}}}};
+// One-time migration: keep any previously saved key available for this tab, but remove it from durable browser storage.
+if(STORE&&S.cfg&&S.cfg.key){try{localStorage.setItem('nova',JSON.stringify(persistable()))}catch(e){}}
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const inl=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(_,label,url)=>'<a href="'+url+'" target="_blank" rel="noopener noreferrer">'+label+'</a>');
+const SEP=/^\s*\|[\s:|-]+\|\s*$/,LI=/^\s*([-*]|\d+\.)\s+(.*)/;
+const blk=t=>{const L=t.split('\n'),o=[];let i=0,m;while(i<L.length){const l=L[i];
+if(/^\s*\|.*\|\s*$/.test(l)&&i+1<L.length&&SEP.test(L[i+1])){const rows=[];while(i<L.length&&/^\s*\|/.test(L[i])){if(!SEP.test(L[i]))rows.push(L[i].trim().replace(/^\||\|$/g,'').split('|'));i++}o.push('<table>'+rows.map((r,k)=>'<tr>'+r.map(c=>(k?'<td>':'<th>')+inl(c.trim())).join('')+'</tr>').join('')+'</table>');continue}
+if(LI.test(l)){const ol=/^\s*\d/.test(l),it=[];while(i<L.length&&(m=L[i].match(LI))){it.push('<li>'+inl(m[2])+'</li>');i++}o.push((ol?'<ol>':'<ul>')+it.join('')+(ol?'</ol>':'</ul>'));continue}
+if(m=l.match(/^#{1,6}\s*(.+)$/)){o.push('<p><b>'+inl(m[1])+'</b></p>');i++;continue}
+if(!l.trim()){i++;continue}
+const p=[inl(L[i++])];while(i<L.length&&L[i].trim()&&!LI.test(L[i])&&!/^#{1,6}\s/.test(L[i])&&!/^\s*\|/.test(L[i]))p.push(inl(L[i++]));o.push('<p>'+p.join('<br>')+'</p>')}return o.join('')};
+const DOTS='<span class="dots"><i></i><i></i><i></i></span>';
+const md0=s=>s.split('```').map((p,i)=>i%2?'<pre><button class="cp" type="button">Copy</button><code>'+esc(p.replace(/^[\w-]*\n/,''))+'</code></pre>':blk(p)).join('');
+const md=s=>mathify(md0(s));
+const chat=()=>S.chats.find(c=>c.id===S.cur);
+const hasDev=()=>{try{return S.chats.some(c=>c.m.slice(-8).some(m=>m.r==='user'&&/[\u0900-\u097F]/.test(m.c||'')))}catch(e){return false}};
+const vlang=()=>LC[S.rl]||(hasDev()?'hi-IN':(navigator.language||'en-IN'));
+function newChat(){dashEnter=true;const e=S.chats.find(c=>!c.m.length&&!c.doc);if(e){S.cur=e.id;doc=null;stick=true;save();render();$('side').classList.remove('open');return}const c={id:Date.now()+'',title:'New chat',m:[]};S.chats.unshift(c);S.cur=c.id;doc=null;save();render();$('side').classList.remove('open')}
+function bubble(m,last){const d=document.createElement('div');d.className='m '+(m.r==='user'?'u':'a');const b=document.createElement('div');b.className='b';
+if(m.r==='user'){if(m.img){const im=document.createElement('img');im.src=m.img;im.className='thumb';im.alt='';b.append(im)}b.append(document.createTextNode(m.c))}else b.innerHTML=m.e?'<span class="err">'+esc(m.c)+'</span>':(m.gen?skel(m):m.c?cite(md(m.c),m):(m.srch&&busy?'<div class="lsearch"><i></i><span>'+esc(LS('srch'))+'</span></div>':DOTS));if(m.r!=='user'&&m.img){const im=document.createElement('img');im.src=m.img;im.className='thumb'+(m.fresh?' reveal':'');if(m.fresh)m.fresh=0;im.style.maxWidth='100%';im.style.maxHeight='none';im.alt='';b.prepend(im)}d.append(b);if(m.r!=='user'&&!m.e&&(m.src||m.live)&&!(m.srch&&busy)){const sb=srcBox(m);if(sb)d.append(sb)}
+if(m.r==='user'&&!busy){const a=document.createElement('div');a.className='act';const x=document.createElement('button');x.textContent='✎';x.title=t('edit');x.setAttribute('aria-label',t('edit'));x.onclick=()=>edit(m);a.append(x);d.append(a)}
+if(m.r!=='user'&&m.c&&!m.e&&!busy){const a=document.createElement('div');a.className='act';
+const mk=(t,f,l)=>{const x=document.createElement('button');x.textContent=t;x.onclick=f;if(l){x.title=l;x.setAttribute('aria-label',l)}a.append(x)};
+mk('⧉',async()=>{toast(await copyText(m.c+srcText(m))?t('copied'):t('copyFail'))},t('copy'));if(m.img)mk('⬇',()=>dlImg(m),tI('dl'));if(m.ip&&(m.img||m.e))mk('↻',()=>makeImg(m.ip,m),tI('again'));
+if(window.speechSynthesis)mk('🔊',()=>readAloud(m.c),t('speak'));if(last&&SV&&SV.live&&!m.src&&!(m.live&&m.live.err))mk('🔎',()=>{WEB=true;regen()},LS('verify'));
+if(last)mk('↻',regen,t('regen'));d.append(a)}return d}
+function render(){renderList();renderMain();try{paintLive()}catch(e){}}
+function renderList(){const l=$('list');l.innerHTML='';const q=$('q').value.toLowerCase();[...S.chats].sort((a,b)=>(b.pin?1:0)-(a.pin?1:0)).filter(c=>!q||c.title.toLowerCase().includes(q)||c.m.some(x=>(x.c||'').toLowerCase().includes(q))).forEach(c=>{const d=document.createElement('div');d.className='it'+(c.id===S.cur?' on':'');
+const s=document.createElement('span');s.textContent=c.title==='New chat'?t('newT'):c.title;s.onclick=()=>{S.cur=c.id;stick=true;save();render();$('side').classList.remove('open')};
+const r=document.createElement('button');r.textContent='✎';r.setAttribute('aria-label','Rename');r.onclick=async()=>{const n=await askText(t('ren'),c.title);if(n){c.title=n.slice(0,60);save();renderList()}};
+const x=document.createElement('button');x.textContent='✕';x.setAttribute('aria-label','Delete');x.onclick=async()=>{if(await askYN(t('del'))){S.chats=S.chats.filter(z=>z!==c);if(S.cur===c.id)S.cur=S.chats[0]?S.chats[0].id:null;save();render()}};
+const pb=document.createElement('button');pb.textContent=c.pin?'📍':'📌';pb.title=t(c.pin?'unpinT':'pinT');pb.setAttribute('aria-label',t(c.pin?'unpinT':'pinT'));pb.onclick=()=>{c.pin=!c.pin;save();renderList()};d.append(s,r,pb,x);l.append(d)})}
+function renderMain(){document.body.classList.toggle('nova-image-mode',!!IM);doc=(chat()||{}).doc||null;const log=$('log');log.innerHTML='';const c=chat();
+if(!c||!c.m.length){dash()}
+else{c.m.forEach((m,i)=>{const n=bubble(m,i===c.m.length-1);if(popN&&i>=c.m.length-popN)n.classList.add('pop');log.append(n)});popN=0}
+$('send').textContent=busy?'■':'↑';$('send').setAttribute('aria-label',t(busy?'stop':'send'));$('imbar').hidden=!IM;if($('imopt'))$('imopt').hidden=!IM;if(IM)$('imbar').textContent='🎨 '+t('imMode')+(IM.d?' · '+IM.name:'')+'  ✕';$('in').placeholder=IM?t('imPh'):t('ph');$('xcopy').hidden=$('xexp').hidden=!(c&&c.m.length);$('xcopy').title=t('copyChat');$('xexp').title=t('expChat');$('xcopy').setAttribute('aria-label',t('copyChat'));$('xexp').setAttribute('aria-label',t('expChat'));$('docbar').hidden=!doc&&!pimg;$('docbar').textContent=(doc?'📎 '+doc.n+'  ':'')+(pimg?t('img')+'  ':'')+'✕';if(pimg){const im=new Image();im.src=pimg;im.className='mini';im.alt='';$('docbar').prepend(im)}{const mm=$('msgs');if(!(chat()&&chat().m.length))mm.scrollTop=0;else if(stick)mm.scrollTop=mm.scrollHeight;$('tobot').hidden=stick||!(c&&c.m.length)}}
+function errText(e){const s=e&&e.status;if(!s&&navigator.onLine===false)return 'इंटरनेट बंद है — कनेक्शन चालू करके दोबारा भेजें. / No internet connection: turn it on and resend.';if(SV&&(s===401||s===403))return 'सर्वर की API चाबी गलत या खत्म हो गई है — Render में LLM_KEY जाँचें. / The server API key is wrong or expired: check LLM_KEY on Render.';if(e&&(e.vis||e.code==='images_unavailable'||e.code==='image_rejected'))return t('eVis');if(e&&e.code==='rate_limited')return t('eRate');if(e&&e.code==='not_granted')return t('eGrant');if(s===401||s===403)return t('e401');if(s===429)return t('e429');if(s===400)return t('e400');if(s===404)return t('e404');if(s)return t('eSrv').replace('{s}',s);return t('eNet')}
+
+const LSTR={en:{srch:'Searching live sources…',live:'Live',sources:'sources',unavail:'Live verification is unavailable right now — this answer may be outdated.',partial:'Some sources were unavailable: ',liveAuto:'Live search: Auto (searches when the question needs fresh facts)',liveOn:'Live search: Always on',liveOff:'Live search: Off',wnT:'World Now',wnUp:'Updated',wnLoad:'Loading the latest headlines…',wnFail:'Could not load headlines right now.',wnAsk:'Explain this news in simple words with the latest details: ',pers:'Personalization',pLen:'Answer length',pShort:'Short',pNorm:'Normal',pLong:'Detailed',pTone:'Tone',pCas:'Casual',pFor:'Formal',pLive:'Live search',pAuto:'Auto',pOn:'Always',pOff:'Off',pCite:'Show [1] source numbers in answers',pChips:'Show source list under answers',pCity:'My city (weather & time)',pRate:'Speech speed',verify:'Check this live',pTest:'Test live sources',pTesting:'Testing…',pTestFail:'Test could not run',tabs:{world:'World',india:'India',hindi:'हिंदी',tech:'Tech',science:'Science',business:'Business',sports:'Sports'},q:[['📰','Breaking news','What is happening in the world right now?'],['🌤','Weather','What is the weather like today{c}?'],['📈','Markets','Sensex, Nifty, gold and bitcoin price now'],['🏏','Sports','Latest sports scores today'],['🤖','AI & tech','Latest AI and tech news today'],['🔬','Science','Latest science discoveries this week'],['☀️','Daily briefing','My daily briefing today: top world and India news, tech, markets and weather{c}'],['📅','2026 so far','Timeline of the major world events of 2026 so far']]},
+hi:{srch:'लाइव स्रोतों में खोज रहा हूँ…',live:'लाइव',sources:'स्रोत',unavail:'अभी लाइव जाँच उपलब्ध नहीं है — यह जवाब पुराना हो सकता है।',partial:'कुछ स्रोत उपलब्ध नहीं थे: ',liveAuto:'लाइव खोज: ऑटो (ताज़ा जानकारी चाहिए तो खुद खोजेगा)',liveOn:'लाइव खोज: हमेशा चालू',liveOff:'लाइव खोज: बंद',wnT:'दुनिया अभी',wnUp:'अपडेट',wnLoad:'ताज़ा सुर्खियाँ आ रही हैं…',wnFail:'अभी सुर्खियाँ नहीं आ पाईं।',wnAsk:'इस खबर को आसान भाषा में समझाओ और ताज़ा जानकारी दो: ',pers:'पसंद की सेटिंग्स',pLen:'जवाब की लंबाई',pShort:'छोटा',pNorm:'सामान्य',pLong:'विस्तार से',pTone:'अंदाज़',pCas:'दोस्ताना',pFor:'औपचारिक',pLive:'लाइव खोज',pAuto:'ऑटो',pOn:'हमेशा',pOff:'बंद',pCite:'जवाब में [1] स्रोत नंबर दिखाओ',pChips:'जवाब के नीचे स्रोत सूची दिखाओ',pCity:'मेरा शहर (मौसम और समय के लिए)',pRate:'बोलने की रफ़्तार',verify:'लाइव जाँचो',pTest:'लाइव स्रोत जाँचो',pTesting:'जाँच चल रही है…',pTestFail:'जाँच नहीं हो पाई',tabs:{world:'दुनिया',india:'भारत',hindi:'हिंदी',tech:'टेक',science:'विज्ञान',business:'व्यापार',sports:'खेल'},q:[['📰','ताज़ा खबरें','दुनिया में अभी क्या चल रहा है?'],['🌤','मौसम','आज{c} मौसम कैसा है?'],['📈','बाज़ार','सेंसेक्स, निफ्टी, सोना और बिटकॉइन का भाव अभी'],['🏏','खेल','आज के खेल के ताज़ा स्कोर'],['🤖','AI और टेक','आज की ताज़ा AI और टेक खबरें'],['🔬','विज्ञान','इस हफ्ते की नई वैज्ञानिक खोजें'],['☀️','आज की ब्रीफिंग','आज की मेरी ब्रीफिंग: दुनिया और भारत की बड़ी खबरें, टेक, बाज़ार और मौसम{c}'],['📅','2026 अब तक','2026 की अब तक की बड़ी घटनाओं की टाइमलाइन']]}};
+const LS=k=>{const L=LSTR[ui()]||LSTR.en;return L[k]!==undefined?L[k]:LSTR.en[k]};
+S.pref=Object.assign({len:'normal',tone:'casual',cite:true,chips:true,city:'',rate:1},S.pref||{});
+const LIVEY=/news|latest|breaking|today|tonight|right now|currently|this (week|month|year|morning|evening)|yesterday|happening|what happened|update|recent|newest|score|live\b|match|ipl|price|stock|share|sensex|nifty|bitcoin|crypto|gold|silver|petrol|diesel|rate\b|exchange|weather|forecast|temperature|rain|aqi|earthquake|election|result|winner|who won|launch|released?|new model|trending|20(2[4-9])|on this day|timeline|history of|ताज़ा|ताजा|खबर|समाचार|आज|अभी|कल|मौसम|भाव|कीमत|स्कोर|मैच|चुनाव|नतीजे|परिणाम|क्या हुआ|कब हुआ|चल रहा|नवीनतम|हाल ही|इतिहास|तापमान|बारिश|भूकंप/i;
+const fmtAgo=iso=>{const t=Date.parse(iso);if(!t)return '';const m=(Date.now()-t)/6e4;if(m<0)return '';const hi=ui()==='hi';if(m<60)return Math.max(1,Math.round(m))+(hi?' मि':'m');const hr=m/60;if(hr<48)return Math.round(hr)+(hi?' घं':'h');const d=hr/24;if(d<60)return Math.round(d)+(hi?' दिन':'d');return new Date(t).toLocaleDateString(hi?'hi-IN':undefined,{month:'short',year:'numeric'})};
+const srcText=m=>m.src&&m.src.length?'\n\nSources:\n'+m.src.map(s=>'['+s.n+'] '+s.t+' — '+s.p+' — '+s.u).join('\n'):'';
+const okUrl=u=>/^https?:\/\//i.test(String(u||''));
+const LIVERULES="LIVE DATA RULES: Answer from the numbered sources above and cite them inline as [1], [2] next to the claims they support (the app already shows the source list, so do not paste URLs). Give the direct answer first, then the key developments with dates, converted to the person's time zone shown above. Always distinguish the event date from the publication date and say how fresh the data is using the retrieval time. Label anything reported by only one source, disputed, an allegation, a prediction or a forecast as such, and point out conflicts between sources. Prefer PRIMARY/OFFICIAL sources for official facts. If the data is incomplete or does not answer the question, say so plainly; never invent details, sources, links, prices, scores, quotes or dates. Pass on any warning such as delayed, unofficial or not-live. For a future period, report only scheduled or forecast items and never call them completed. Keep it natural and concise, and offer a fuller timeline or report if that would help.";
+const LIVEOFF="== LIVE DATA == UNAVAILABLE\nLive retrieval was attempted but failed. Do NOT state current events, prices, scores, weather or other time-sensitive facts as verified. Tell the person that live verification is unavailable right now, then answer only from general knowledge with a clear caveat that it may be outdated.";
+function persText(){const p=S.pref||{};let x='';if(p.len==='short')x+=' Keep replies short (one to four sentences) unless the person asks for detail.';else if(p.len==='long')x+=' Give thorough, well-structured, detailed answers.';if(p.tone==='formal')x+=' Use a polite, formal tone.';if(p.city)x+=" The person's home city is "+p.city+'; use it for weather or time questions when no other place is given.';if(p.cite===false)x+=' Do not put [n] citation markers in the text.';return x}
+const cite=(html,m)=>{if(!m.src||!m.src.length||(S.pref&&S.pref.cite===false))return html;return html.replace(/\[(\d{1,2})\]/g,(x,n)=>{const s=m.src.find(z=>z.n==n);return s&&okUrl(s.u)?'<a class="cite" href="'+esc(s.u)+'" target="_blank" rel="noopener noreferrer nofollow" title="'+esc(s.t)+'">['+n+']</a>':x})};
+function srcBox(m){const L=m.live||{},A=(m.src||[]).filter(s=>okUrl(s.u));if(!A.length&&!L.err)return null;const w=document.createElement('div');w.className='srcs';
+if(!A.length){const d=document.createElement('div');d.className='swarn';d.textContent='⚠ '+LS('unavail');w.append(d);return w}
+const hd=document.createElement('div');hd.className='shd';let tm='';try{tm=new Date(L.at).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',timeZone:L.tz||undefined,timeZoneName:'short'})}catch(e){}hd.textContent='🔎 '+LS('live')+(tm?' · '+tm:'')+' · '+A.length+' '+LS('sources');w.append(hd);
+if(!S.pref||S.pref.chips!==false){const row=document.createElement('div');row.className='srow';A.forEach(s=>{const a=document.createElement('a');a.className='sc'+(s.q==='primary'?' pri':'');a.href=s.u;a.target='_blank';a.rel='noopener noreferrer nofollow';a.title=s.t;const ag=s.e||fmtAgo(s.d);a.textContent='['+s.n+'] '+String(s.p||'').slice(0,24)+(ag?' · '+ag:'')+(s.q==='primary'?' ✓':'');row.append(a)});w.append(row)}
+if(L.failed&&L.failed.length){const f=document.createElement('div');f.className='sfail';f.textContent=LS('partial')+L.failed.join(', ');w.append(f)}return w}
+function paintLive(){const b=$('web');if(!b)return;const m=S.live||'auto';b.style.background=m==='on'?'var(--acc)':'';b.style.color=m==='on'?'var(--onacc)':'';b.style.opacity=m==='off'?'.45':'';b.textContent=m==='on'?'🔎':'🌐';b.title=LS(m==='on'?'liveOn':m==='off'?'liveOff':'liveAuto');b.setAttribute('aria-label',b.title)}
+let WN={t:0,d:null,tab:'world',busy:false,err:0};
+async function loadWN(force){if(!SV||!SV.live||WN.busy)return;if(!force&&WN.d&&Date.now()-WN.t<3e5)return;WN.busy=true;WN.err=0;try{const r=await fetch(API+'/feed?cat=all&lang='+ui()),j=await r.json();if(r.ok&&j.cats&&Object.keys(j.cats).length){WN.d=j.cats;WN.t=Date.now();WN.at=j.at;if(!j.cats[WN.tab])WN.tab=Object.keys(j.cats)[0]}else WN.err=1}catch(e){WN.err=1}WN.busy=false;const p=document.getElementById('wnbody');if(p)fillWN()}
+function askLive(q){$('in').value=q;go()}
+function fillWN(){const p=document.getElementById('wnbody'),tb=document.getElementById('wntabs'),up=document.getElementById('wnup');if(!p)return;p.innerHTML='';tb.innerHTML='';
+if(!WN.d){const d=document.createElement('div');d.className='wnl';d.textContent=WN.err?LS('wnFail'):LS('wnLoad');p.append(d);if(WN.err){const r=document.createElement('button');r.type='button';r.textContent='↻';r.onclick=()=>loadWN(true);p.append(r)}return}
+Object.keys(WN.d).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=(LS('tabs')||{})[k]||k;b.className=k===WN.tab?'on':'';b.onclick=()=>{WN.tab=k;fillWN()};tb.append(b)});
+if(up&&WN.at)try{up.textContent=LS('wnUp')+' '+new Date(WN.at).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}catch(e){}
+(WN.d[WN.tab]||[]).slice(0,5).forEach(it=>{if(!okUrl(it.url))return;const r=document.createElement('div');r.className='wni';const b=document.createElement('button');b.type='button';b.className='wt';b.append(document.createTextNode(it.title));const sm=document.createElement('small');sm.textContent=[it.publisher,fmtAgo(it.date)].filter(Boolean).join(' · ');b.append(sm);b.onclick=()=>askLive(LS('wnAsk')+it.title);const a=document.createElement('a');a.href=it.url;a.target='_blank';a.rel='noopener noreferrer nofollow';a.textContent='↗';a.title=it.publisher||'';a.setAttribute('aria-label','Open article');r.append(b,a);p.append(r)})}
+function wnowEl(){const city=(S.pref&&S.pref.city)||'';const q=document.createElement('div');q.className='lq';(LS('q')||[]).forEach(([e,l,txt])=>{const b=document.createElement('button');b.type='button';b.className='hb';b.textContent=e+' '+l;b.onclick=()=>askLive(txt.replace('{c}',city?(ui()==='hi'?' '+city+' में':' in '+city):''));q.append(b)});
+const w=document.createElement('div');w.className='wnow';w.innerHTML='<div class="wnh"><b>🌍 '+esc(LS('wnT'))+'</b><span style="display:flex;align-items:center;gap:4px"><small id="wnup"></small><button type="button" id="wnr" aria-label="Refresh">↻</button></span></div><div class="wnt" id="wntabs"></div><div id="wnbody"></div>';
+setTimeout(()=>{fillWN();loadWN();const rb=document.getElementById('wnr');if(rb)rb.onclick=()=>loadWN(true)},0);return [q,w]}
+setInterval(()=>{try{if(!document.hidden&&SV&&SV.live&&!(chat()&&chat().m.length)&&!busy)loadWN(true)}catch(e){}},3e5);
+function buildPers(){const box=$('pers');if(!box)return;$('persH').textContent=LS('pers');box.innerHTML='';const P=S.pref;
+const row=(lab,el)=>{const l=document.createElement('label');const s=document.createElement('span');s.textContent=lab;l.append(s,el);box.append(l);return el};
+const sel=(opts,val,fn)=>{const s=document.createElement('select');opts.forEach(([v,t0])=>{const o=document.createElement('option');o.value=v;o.textContent=t0;if(v===val)o.selected=true;s.append(o)});s.onchange=()=>{fn(s.value);save()};return s};
+row(LS('pLen'),sel([['short',LS('pShort')],['normal',LS('pNorm')],['long',LS('pLong')]],P.len,v=>{P.len=v}));
+row(LS('pTone'),sel([['casual',LS('pCas')],['formal',LS('pFor')]],P.tone,v=>{P.tone=v}));
+row(LS('pLive'),sel([['auto',LS('pAuto')],['on',LS('pOn')],['off',LS('pOff')]],S.live||'auto',v=>{S.live=v;paintLive()}));
+const ck=(lab,key)=>{const i=document.createElement('input');i.type='checkbox';i.checked=P[key]!==false;i.onchange=()=>{P[key]=i.checked;save();render()};row(lab,i)};ck(LS('pCite'),'cite');ck(LS('pChips'),'chips');
+const c=document.createElement('input');c.type='text';c.maxLength=40;c.value=P.city||'';c.placeholder='Delhi';c.oninput=()=>{P.city=c.value.trim();save()};row(LS('pCity'),c);
+const tb=document.createElement('button');tb.type='button';tb.textContent='🔧 '+LS('pTest');const so=document.createElement('div');so.className='stout';tb.onclick=async()=>{so.textContent=LS('pTesting');try{const rs=await fetch(API+'/live/selftest'),jj=await rs.json();if(!rs.ok||!jj.results)throw 0;so.innerHTML='';const okn=jj.results.filter(x=>x.ok).length,hb=document.createElement('b');hb.textContent=okn+'/'+jj.results.length+' ✓';so.append(hb);jj.results.forEach(x=>{const d=document.createElement('div');d.textContent=(x.ok?'✅ ':'❌ ')+x.name+' — '+x.ms+' ms'+(x.ok?'':' ('+x.note+')');so.append(d)})}catch(e){so.textContent='❌ '+LS('pTestFail')}};box.append(tb,so);
+const r=document.createElement('input');r.type='range';r.min='0.7';r.max='1.4';r.step='0.1';r.value=P.rate||1;r.oninput=()=>{P.rate=Number(r.value);save()};row(LS('pRate'),r)}
+async function ask(c){const cf=SMP?{base:'x',model:'x',key:'x'}:SV?{base:API,model:SV.model,key:'-'}:(S.cfg.key?S.cfg:BUILT_IN)||S.cfg;if(!cf.key||!cf.model||!cf.base){$('dcfg').showModal();return}
+if(BUILT_IN&&!S.cfg.key){const d=new Date().toDateString();if(S.day!==d){S.day=d;S.n=0}if((S.n||0)>=30){c.m.push({r:'assistant',c:t('eDay'),e:1});save();render();return}S.n=(S.n||0)+1;save()}
+busy=true;ctl=new AbortController();const a={r:'assistant',c:''};c.m.push(a);render();
+let wr='',wsrc='';
+{const lu=[...c.m].reverse().find(m=>m.r==='user'),lq=lu?String(lu.c||''):'',lmode=S.live||'auto',fl=WEB;WEB=false;
+if(SV&&SV.live&&!IM&&lq&&(fl||lmode!=='off')&&(fl||lmode==='on'||(LIVEY.test(lq)&&!lu.img))){
+a.srch=1;render();if(LV)lvSet('search');
+try{const c2=new AbortController(),tm=setTimeout(()=>c2.abort(),24000),ab=()=>c2.abort();ctl.signal.addEventListener('abort',ab);
+const r=await fetch(API+'/live',{method:'POST',signal:c2.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({q:lq.slice(0,500),mode:(lmode==='on'||fl)?'always':'auto',lang:(ui()==='hi'||/[\u0900-\u097F]/.test(lq))?'hi':'en',tz:(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return ''}})(),place:(S.pref&&S.pref.city)||''})});
+clearTimeout(tm);ctl.signal.removeEventListener('abort',ab);const j=await r.json().catch(()=>({}));
+if(r.ok&&j.ok&&j.context){wr=j.context;a.src=(j.sources||[]).map(s=>({n:s.n,t:s.title,u:s.url,p:s.publisher,d:s.date,e:s.eventDate,k:s.kind,q:s.quality}));a.live={at:j.retrievedAt,tz:j.tz,used:(j.used||[]).filter(x=>!String(x).startsWith('via:')),failed:(j.failed||[]).map(f=>f.name),intents:j.intents||[]}}
+else{wr='LIVE_UNAVAILABLE';a.live={err:1,failed:(j.failed||[]).map(f=>f.name)}}}
+catch(e){if(!ctl.signal.aborted){wr='LIVE_UNAVAILABLE';a.live={err:1,failed:[]}}}
+a.srch=0;if(!ctl.signal.aborted)render()}}
+const sysRaw="You are "+CFG.brand+", a warm, brilliant assistant in a one-to-one conversation, like a knowledgeable friend. Reply directly and naturally in simple words and match the person's tone. CONVERSATION STYLE: talk like a real, warm person, not a manual. Mirror the person: casual chat gets a casual, short reply (one to three sentences); Hinglish gets natural Hinglish; when they use emojis, answer with fitting emojis the way a friend would; when they are upset, worried or sad, drop jokes and respond with real care first and advice second; when they are excited, share the excitement. Use natural spoken phrasing, small reactions (arre waah, hmm, oh no) and vary how your sentences start. Have thoughts and feelings like a thoughtful friend, ask a natural follow-up when it fits and refer back to things said earlier in the chat. In casual talk never use headings or bullet lists and never say As an AI. For study, work, factual or technical questions switch to clear, structured help. You are an AI and never claim to be human: if someone sincerely asks, say so honestly and warmly and carry on naturally. Start with the answer itself, never with filler such as 'Sure!' or 'Great question'. Keep casual messages short and give thorough answers to thorough questions. For maths or logic show the method and every step clearly, give the final answer last, and check the result. Write formulas in LaTeX using \\( \\) for inline and \\[ \\] for display maths. Understand Hindi and Hinglish number words (दो सौ पचास = 250, 'X का 17 प्रतिशत' = X×17/100). When a verified calculator block is provided, use exactly those values. For science and biology research be precise, separate well-established facts from preliminary evidence, mention uncertainty and the kind of study or source, and suggest a professional for personal health decisions. Be honest when unsure and never invent facts or sources. If a request is ambiguous, ask one short clarifying question. When it fits, end with one short helpful follow-up offer or question. "+(S.rl&&S.rl!=='Auto'?"Always reply in "+S.rl+".":"Reply in the language the user writes in.")+" Use Markdown only when it helps: short paragraphs, bullet or numbered lists, bold for key terms, tables for comparisons, fenced code blocks for code."+(LV?"\nThis is a live spoken conversation: answer in one to three short natural sentences. No Markdown, no lists, no emoji, no symbols.":"")+(c.m.slice(-30).some(m=>m.r==='user'&&m.img)?PHOTOSYS:"")+ACCP(wr,c)+MODEP()+(S.mem?"\nUser asked you to remember: "+S.mem:"")+(doc?"\n\nUploaded document ("+doc.n+"), answer from it and cite [Page n] if present:\n"+doc.t:"")+(persText()?"\n\nPREFERENCES:"+persText():"")+"\n\nCurrent date and time: "+new Date().toLocaleString('en-GB',{dateStyle:'full',timeStyle:'short'})+". Your own knowledge has a cutoff date: for anything that may have changed since (news, prices, scores, weather, who currently holds an office, latest versions) say you cannot verify it unless live data is provided below."+(wr&&wr!=='LIVE_UNAVAILABLE'?"\n\n"+wr+"\n"+LIVERULES:"")+(wr==='LIVE_UNAVAILABLE'?"\n\n"+LIVEOFF:"");
+const sys=SV?sysRaw:sysRaw.replace(/\[\[\/?PACKS\]\]/g,''),sysLite=sysRaw.replace(/\[\[PACKS\]\][\s\S]*?\[\[\/PACKS\]\]/,'');
+const hs=c.m.slice(0,-1).filter(m=>!m.e&&(m.c!==''||m.img)).slice(-30);let li=-1;hs.forEach((m,i)=>{if(m.img&&m.r==='user')li=i});const hist=mergeRoles(hs.map((m,i)=>({role:m.r==='user'?'user':'assistant',content:(m.r==='user'&&m.img&&i===li)?[{type:'text',text:m.c||PHOTOQ},{type:'image_url',image_url:{url:m.img}}]:m.c})));
+const lc=$('log').lastChild,el=lc&&lc.querySelector?lc.querySelector('.b'):null;
+try{if(SMP){const ms=hist.map(m=>({role:m.role,content:typeof m.content==='string'?m.content:m.content[0].text}));ms[ms.length-1].content=sys+'\n\n---\nUser message:\n'+ms[ms.length-1].content;
+const o={signal:ctl.signal,cache:false,modelTier:LV?'quick':'default',onText:x=>{a.c=x.text;schedPaint(el,a);if(LV)lvFeed(a.c)}};
+if(li>=0){let cap=null;try{cap=(await SMP.limits()).images}catch(x){}
+if(!cap){if(li===hs.length-1)throw{vis:1}}else{const bs=atob(hs[li].img.split(',')[1]),u8=new Uint8Array(bs.length);for(let i=0;i<bs.length;i++)u8[i]=bs.charCodeAt(i);o.images=[new Blob([u8],{type:'image/jpeg'})];if(li<hs.length-1)ms[ms.length-1].content+='\n\n(The photo shared earlier in this chat is attached again for reference.)'}}
+const rr=await SMP(ms,o);a.c=rr.text||a.c;if(!a.c){a.e=1;a.c=t('e400')}}else{const run=async(sysText)=>{const r=await fetch(cf.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+cf.key},body:JSON.stringify({model:cf.model,stream:true,max_tokens:(S.mode==='archive'?(CFG.archiveTokens||4096):undefined),temperature:(li>=0||(typeof MATHY!=='undefined'&&MATHY.test((c.m.filter(x=>x.r==='user').pop()||{}).c||'')))?0.3:0.8,messages:[{role:'system',content:sysText},...hist]})});
+if(!r.ok){let b='';try{const j=await r.json();b=(j.error&&(j.error.message||j.error))||''}catch(x){}throw{status:r.status,body:String(b).slice(0,200)}}
+const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
+for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
+for(const l of ls){if(!l.startsWith('data:'))continue;const d=l.slice(5).trim();if(d==='[DONE]')continue;try{a.c+=JSON.parse(d).choices[0].delta.content||''}catch(x){}}
+schedPaint(el,a);if(LV)lvFeed(a.c)}};
+let sysM=sys;if(SV){try{sysM=sys+await mathPhase(hist,ctl.signal,cf.model)}catch(x){}}
+try{await run(sysM)}catch(e){if(e&&e.status===400&&sys!==sysLite&&/context|token|too long|maximum|exceed|length/i.test(e.body||'')){toast(t('eLite'));a.c='';await run(sysLite)}else throw e}
+if(a.c&&wsrc)a.c+=wsrc;if(!a.c){a.e=1;a.c=t('eEmpty')}}}
+catch(e){if(!(ctl.signal.aborted)){a.e=1;a.c=errText(e)+(e&&e.body?' Provider said: '+e.body:'')}else if(!a.c){c.m.pop()}}
+if(paintQ){clearTimeout(paintQ);paintQ=0}if(S.ar&&!LV&&!a.e&&a.c&&window.speechSynthesis)readAloud(a.c);if(LV)lvDone(a);busy=false;ctl=null;save();render()}
+function go(){if(busy){ctl&&ctl.abort();return}const v=$('in').value.trim();if(!v&&!pimg)return;if(IM&&v){makeImg(v);return}if(!chat())newChat();const c=chat();stick=true;popN=2;try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}c.m.push({r:'user',c:v,img:pimg||undefined});pimg=null;
+if(c.title==='New chat')c.title=(v||'🖼 Image').slice(0,40);$('in').value='';S.draft='';$('in').style.height='auto';ask(c)}
+function regen(){const c=chat();if(!c||busy)return;while(c.m.length&&c.m[c.m.length-1].r!=='user')c.m.pop();popN=1;ask(c)}
+async function pdfText(f){if(!window.pdfjsLib){window.pdfjsLib=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.mjs')}
+window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.worker.mjs';
+const p=await window.pdfjsLib.getDocument({data:await f.arrayBuffer(),isEvalSupported:false}).promise;let o='';for(let i=1;i<=p.numPages&&o.length<60000;i++){const c=await(await p.getPage(i)).getTextContent();o+='\n[Page '+i+']\n'+c.items.map(x=>x.str).join(' ')}
+if(o.replace(/\[Page \d+\]|\s/g,'').length<20)throw new Error('scan');return o.slice(0,60000)}
+$('file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{
+if(f.type.startsWith('image/')){await takeImage(f,false);return}
+if(/\.pdf$/i.test(f.name)){if(f.size>1e7)return toast(t('max10'));doc={n:f.name,t:await pdfText(f)}}
+else{if(f.size>102400)return toast(t('max100'));doc={n:f.name,t:(await f.text()).slice(0,60000)}}const d0=doc;if(!chat())newChat();chat().doc=d0;save();render()}
+catch(x){console.error('NOVA PDF import failed',x?.message||x);doc=null;toast(t(x.message==='scan'?'scan':'rdfail'))}};
+L.forEach(x=>{const p=x.split('|'),o=document.createElement('option');o.value=p[1]||p[0];o.textContent=p[0]==='Auto'?'🌐 Auto':p[0];$('lang').append(o)});
+$('lang').value=S.rl||'Auto';$('lang').onchange=e=>{S.rl=e.target.value;save();applyUI();render();trUI()};
+$('send').onclick=go;$('new').onclick=newChat;$('menu').onclick=()=>$('side').classList.toggle('open');
+$('in').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();if(!busy)go()}};
+let dT=0;$('in').oninput=e=>{e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';clearTimeout(dT);dT=setTimeout(()=>{S.draft=$('in').value;save()},500)};
+$('theme').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='light'?'dark':'light';S.theme=r.dataset.theme;save()};
+document.documentElement.dataset.theme=S.theme||(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark');
+$('cfg').onclick=()=>{$('base').value=S.cfg.base;$('model').value=S.cfg.model;$('key').value=S.cfg.key;$('dcfg').showModal()};
+$('pre').onchange=e=>{if(e.target.value)$('base').value=e.target.value};
+$('csave').onclick=()=>{S.cfg={base:$('base').value.trim(),model:$('model').value.trim(),key:$('key').value.trim()};save();$('dcfg').close()};
+$('cclose').onclick=()=>$('dcfg').close();
+$('share').onclick=async()=>{const k={base:$('base').value.trim(),model:$('model').value.trim()};if(!k.model||!k.base)return toast(t('fill'));
+if(!await askYN(t('shareC')))return;
+const cl=document.documentElement.cloneNode(true);['#log','#list','#docbar'].forEach(s=>{cl.querySelector(s).innerHTML=''});cl.querySelector('#docbar').setAttribute('hidden','');let h='<!DOCTYPE html>\n'+cl.outerHTML;
+h=h.replace(/<script src="https:\/\/cdnjs[^>]*><\/script>/g,'');
+const exportedConfig={api:CFG.api,brand:CFG.brand,base:k.base,model:k.model};
+h=h.replace('window.NOVA_CONFIG=window.NOVA_CONFIG||{api:"/api",brand:"Nova AI"};','window.NOVA_CONFIG='+JSON.stringify(exportedConfig).replace(/</g,'\\u003c')+';');
+const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([h],{type:'text/html'}));a.download='nova-ai-shared.html';document.body.append(a);a.click();a.remove()};
+$('mem').onclick=()=>{$('memt').value=S.mem||'';$('cit').value=S.ci||'';$('dmem').showModal()};
+$('msave').onclick=()=>{S.mem=$('memt').value.trim().slice(0,1500);S.ci=$('cit').value.trim().slice(0,800);save();$('dmem').close()};$('mclose').onclick=()=>$('dmem').close();
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR){const mic=$('mic');mic.hidden=false;let rec=null;const off=()=>{rec=null;mic.textContent='🎤'};
+mic.onclick=()=>{if(rec){rec.stop();return}rec=new SR();rec.lang=vlang();rec.interimResults=true;rec.onresult=e=>{$('in').value=[...e.results].map(r=>r[0].transcript).join('')};rec.onend=off;rec.onerror=off;mic.textContent='⏹';try{rec.start()}catch(x){off()}}}
+if(BUILT_IN)$('cfg').style.display='none';
+function edit(m){const c=chat();if(!c||busy)return;const i=c.m.indexOf(m);if(i<0)return;$('in').value=m.c;pimg=m.img||null;c.m.length=i;save();render();$('in').focus();$('in').oninput({target:$('in')})}
+$('q').oninput=renderList;$('msgs').addEventListener('scroll',()=>{const m=$('msgs');stick=m.scrollHeight-m.scrollTop-m.clientHeight<90;$('tobot').hidden=stick||!(chat()&&chat().m.length)},{passive:true});
+$('log').onclick=e=>{if(e.target.classList.contains('thumb')){$('zoom').firstChild.src=e.target.src;$('zoom').hidden=false;return}const b=e.target.closest('.cp');if(b){copyText(b.nextElementSibling.textContent).then(ok=>{b.textContent=ok?'✓':'✕'})}};
+$('docbar').onclick=()=>{pimg=null;doc=null;if(chat())chat().doc=null;save();render()};
+$('priv').onclick=()=>$('dpriv').showModal();$('pclose').onclick=()=>$('dpriv').close();
+$('exp').onclick=()=>saveText('nova-backup.json',JSON.stringify({chats:S.chats,mem:S.mem,ci:S.ci}),'application/json');
+$('impf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const j=JSON.parse(await f.text());if(!Array.isArray(j.chats))throw 0;const ids=new Set(S.chats.map(c=>c.id));j.chats.forEach(c=>{if(c&&c.id&&Array.isArray(c.m)&&!ids.has(String(c.id)))S.chats.push({id:String(c.id),title:String(c.title||'Chat').slice(0,60),m:c.m.map(m=>({r:m.r==='user'?'user':'assistant',c:String(m.c||''),img:typeof m.img==='string'&&m.img.startsWith('data:image/')?m.img:undefined})),doc:c.doc&&typeof c.doc.t==='string'?{n:String(c.doc.n),t:c.doc.t}:null})});if(!S.mem&&typeof j.mem==='string')S.mem=j.mem.slice(0,1500);if(!S.ci&&typeof j.ci==='string')S.ci=j.ci.slice(0,800);save();render();toast(t('ok'))}catch(x){toast(t('bad'))}};
+if(!S.cur||!chat())S.cur=S.chats[0]?S.chats[0].id:null;const TPL=[{e:'🧸',g:'linear-gradient(135deg,#ff9a9e,#fecfef)',d:'cute colourful cartoon, bold clean outlines, playful'},{e:'🎬',g:'linear-gradient(135deg,#232526,#c9a45c)',d:'cinematic, dramatic lighting, film still, moody colour grading'},{e:'🌸',g:'linear-gradient(135deg,#7aa7f7,#b5e3f5)',d:'soft watercolour painting, gentle washes, paper texture'},{e:'💎',g:'linear-gradient(135deg,#5b2d8e,#c85a8a)',d:'modern minimal logo, simple geometric mark, flat vector'},{e:'🍬',g:'linear-gradient(135deg,#f6a43b,#fd7b6a)',d:'die-cut sticker, thick white border, glossy cute character'},{e:'🌙',g:'linear-gradient(135deg,#667eea,#d46cf0)',d:'anime style, vibrant colours, dreamy sky'},{e:'🧊',g:'linear-gradient(135deg,#1fb86a,#18c7b8)',d:'3D render, soft studio light, glossy clay material'},{e:'🖼️',g:'linear-gradient(135deg,#f0508a,#f2b21c)',d:'bold poster design, striking composition, big shapes'}];
+const PHOTOQ='Look at this photo. If it contains a question or a problem, solve it step by step. Otherwise describe what you see.';
+const PHOTOSYS="\nThe person shared a photo (a school question, textbook page, notes or homework). Work like a careful teacher. First read the photo line by line and silently list every question with its number. Answer EVERY visible question in order unless the person named specific ones. If the person asked for answers only, give only a compact numbered list such as 1) (b) 4 followed by one short reason line each. Otherwise show numbered steps in simple words, every calculation, a clear final answer and a one-line check. For multiple choice give the correct option letter and its text plus a one-line reason; for fill in the blanks give the word; for chemistry give balanced equations; for maths use the verified calculator values when they are provided. If a question is cut off, blurry or you are not sure what is written, name exactly which question and why, do not guess, and ask for a closer, straighter, better lit photo. Reply in the language the person writes in; for Hindi or Hinglish explain in Hindi and keep technical terms in English. Keep the answer neat and easy to copy.";
+async function takeImage(f,auto){let u;try{u=await shrink(f)}catch(e){toast(t('ephoto'));if(!$('photo').hidden)$('perr').textContent=t('ephoto');return}pimg=u;pickGot=true;$('phelp').hidden=true;if(camStream)camOff();if(!$('photo').hidden){$('perr').textContent='';phSync();return}render();if(auto&&!$('in').value.trim())go()}
+const imgOK=()=>true,liveOK=()=>(!!(window.SpeechRecognition||window.webkitSpeechRecognition)||canRec())&&!!window.speechSynthesis;
+function syncFeatures(){const i=imgOK(),l=liveOK();$('gen').hidden=!i;$('nImg').hidden=!i;$('nLive').hidden=!l;$('lv').hidden=!l}
+let tT=0;function toast(m){const e=$('toast');e.textContent=m;e.hidden=false;clearTimeout(tT);tT=setTimeout(()=>{e.hidden=true},3600)}
+function askDlg(msg,val){return new Promise(res=>{const dl=$('dask'),i=$('aski');$('askm').textContent=msg;i.hidden=val==null;i.value=val||'';let done=false;const fin=v=>{if(done)return;done=true;dl.close();res(v)};$('askok').onclick=()=>fin(val==null?true:i.value.trim());$('askno').onclick=()=>fin(val==null?false:null);dl.oncancel=e=>{e.preventDefault();fin(val==null?false:null)};i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('askok').click()}};dl.showModal();if(val!=null)i.focus()})}
+const askYN=m=>askDlg(m),askText=(m,v)=>askDlg(m,v||'');
+async function saveText(name,text,mime){if(IN_ART){toast(await copyText(text)?t('exCopied'):t('copyFail'));return}try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:mime}));a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast(t('exSaved'))}catch(e){toast(t('copyFail'))}}
+const MP={study:'Study buddy mode: you are a patient, friendly tutor for students, including young children. Use very simple words and everyday examples, go step by step, and end with one short question to check understanding. Never hand over homework answers without explaining how to reach them.',coder:'Coding mode: act as a senior software engineer. Give working, minimal code in fenced blocks, mention important edge cases briefly, and explain only what is needed.',writer:'Writing mode: help the person write and polish text. Offer a clear draft in their voice and suggest one or two improvements.',trans:'Translator mode: translate whatever the person sends into the reply language (or into English if the text is already in the reply language). Keep the meaning and tone, with no extra commentary unless asked.',short:'Concise mode: answer in the fewest words that are still clear, with no preamble.',history:'History mode: act as a careful history teacher covering Indian and world history from prehistory to the present. Give dates as BCE/CE, use ranges or say circa when exact dates are uncertain, check the order of events, name the key people, separate well-documented facts from tradition or legend, say what kind of evidence exists (inscriptions, chronicles, archaeology, later accounts) and mention where historians disagree. A timeline or short sections often help. Never invent dates, quotations or sources.',archive:'History archive mode: you are building the history archive described in the history master prompt in this system prompt. Produce the master index (Part I) only when the person asks for it; otherwise answer exactly what was asked in the archive style: evidence-based, dated, with confidence levels and competing interpretations. When a volume is long, stop at a natural section end, say what is covered and what comes next, and resume from there when asked to continue.',exam:'Exam coach mode: act as a rigorous tutor for school, university, competitive and professional exams, including UPSC. Explain from fundamentals to advanced level, generate difficult original practice questions and label them clearly as original, never as authentic past papers unless you can verify them, evaluate the person\'s answers for factual accuracy, structure, relevance and analytical depth, point out mistakes explicitly and give a corrected model answer. Do not invent historical facts, syllabus details or scholarly opinions.',research:'Research analyst mode: structure answers like a short research report: summary, evidence, limitations, disagreements and a reasoned conclusion. Distinguish established knowledge from new or disputed findings. If no web search results are provided, say that you are working from training knowledge only and cannot verify recent developments.',planner:'Planner mode: turn the goal into practical ordered steps; identify dependencies, constraints, costs, risks and alternatives; say what you can do inside this chat and what the person must do themselves; never claim an action was completed.'};
+const ACC=`UNIVERSAL ACCURACY RULES
+Prioritize truth, correctness, evidence and clarity over speed or confidence. Understand exactly what is asked (context, units, dates, assumptions); if essential information is missing ask one short question, otherwise state reasonable assumptions.
+Facts: separate verified facts, deductions, estimates, hypotheses and opinions. Never fabricate statistics, dates, quotations, papers, citations, sources, names or equations. If a claim cannot be verified say so. Politely correct false premises.
+Reasoning: break problems into parts, choose the right method for the subject, check steps, units and results (maths: verify independently; code: syntax, edge cases, security; history: chronology, primary evidence, scholarly disagreement; science: correlation vs causation, theory vs established evidence).
+Sources: use web results when provided; prefer primary, official and peer-reviewed sources; cross-check important claims; cite accurately; never pretend to have searched, read, tested, calculated or verified anything you have not.
+Uncertainty: if known, answer directly; if partly known, give the reliable part and say what is uncertain; for unsolved problems explain the state of knowledge; use confidence language that matches the evidence.
+Every subject: apply the proper method of that field. For medicine, law, finance and other high-stakes topics state the limits and recommend a qualified professional.
+Output: direct answer first, then the reasoning needed; match the language, format and expertise of the person; concise for simple questions, detailed for complex ones; for YES or NO questions answer in that form when the question allows.
+Before sending silently check: did I answer the actual question, are facts, units and calculations consistent, did I invent anything, does the conclusion follow, did I state the uncertainty. When corrected, verify the claim, admit genuine mistakes and fix them.
+Accuracy matters more than sounding clever. Never claim to be infallible or to have tools you do not have.`;
+const ULT=`ADVANCED RULES
+Reasoning: analyze systematically, consider alternatives, counterexamples and edge cases; never fabricate a proof or claim an unsolved problem is solved; prefer an honest partial answer to an invented complete one.
+Research: when search results are provided, use authoritative sources, cross-check disputed claims, cite next to the claim and separate new findings from established knowledge. Research reports: summary, evidence, limitations, disagreements, reasoned conclusion.
+Maths and science: step by step, check arithmetic, algebra and units; distinguish proven, conjectured and speculative.
+Code: correct, readable, secure; explain assumptions and edge cases; never claim code was run or tested unless it was.
+Files and images: answer from what is actually visible or readable; say when quality, cropping or ambiguity limits interpretation; never claim to have opened or seen what was not provided.
+Memory and privacy: use only the notes provided, never invent past conversations, protect sensitive information.
+Study help: be a rigorous tutor from fundamentals to advanced; give original practice questions; point out mistakes and give corrected model answers; for exams verify syllabi, chronology and terminology; never invent historical facts.
+Writing: follow the requested language, tone, length and format and keep facts accurate. Data: inspect first, check quality, choose suitable methods, never invent datasets.
+Planning: turn goals into ordered steps with dependencies, risks and alternatives; report what was actually done; never claim an action succeeded without confirmation.
+Format: direct answer first, then the essential evidence; use lists, tables, equations, code or citations only when they help. Be ambitious in solving problems but conservative in factual claims.`;
+const HIST=`ULTIMATE UNIVERSAL HISTORY MASTER PROMPT
+COMPLETE HUMAN HISTORY, WORLD CIVILIZATIONS, ARCHAEOLOGY, CHRONOLOGY AND HISTORICAL RESEARCH
+
+ROLE:
+Act as an exceptionally rigorous world-history research assistant, historian, archaeologist, epigraphist, anthropologist, historical geographer, numismatist, and multidisciplinary research analyst. Your mission is to construct the most comprehensive, accurate, evidence-based and systematically organized account of history that your actual knowledge, tools, context window and available sources permit.
+
+PRIMARY OBJECTIVE:
+Build an extensive, continuously expandable historical knowledge archive covering the entire known history of the universe, Earth, life, humanity, civilizations, societies, states, cultures, religions, sciences, technologies, wars, migrations, economies, political systems, discoveries, inventions, individuals, institutions and ideas up to the present date.
+
+Do not falsely claim that every historical event has been recorded or that any finite response can contain all historical knowledge. Instead, maximize coverage, accuracy, chronological completeness and verifiability, identifying gaps explicitly.
+
+1. TEMPORAL COVERAGE
+
+Cover every period, using the most appropriate chronology and dating conventions:
+
+A. Cosmological history:
+The Big Bang, cosmic expansion, formation of galaxies and stars, formation of the Solar System, formation of Earth, geological eras and major planetary changes.
+
+B. Geological and biological history:
+Precambrian history, origin and evolution of life, major evolutionary transitions, mass extinctions, dinosaurs, mammals, primates and the emergence of hominins.
+
+C. Prehistoric humanity:
+Early hominins, Homo erectus, Neanderthals, Denisovans, Homo sapiens, migrations, prehistoric tools, fire, language hypotheses, art, burial practices, hunter-gatherers, agriculture, animal domestication and permanent settlements.
+
+D. Ancient history:
+Early settlements, urbanization, writing systems, states, kingdoms, empires, religions, laws, trade networks, technology and cultural developments across all inhabited regions.
+
+E. Medieval history:
+Political transformations, kingdoms, empires, trade, religions, intellectual movements, scientific developments, migrations, agricultural systems, maritime networks and intercultural exchanges.
+
+F. Early modern history:
+Oceanic exploration, global trade, gunpowder empires, colonial expansion, religious transformations, scientific developments, slavery, forced migration, capitalism and political revolutions.
+
+G. Modern history:
+Industrialization, nationalism, imperialism, abolition movements, constitutional developments, democratic movements, world wars, revolutions, decolonization, independence movements, economic transformations and international institutions.
+
+H. Contemporary history:
+Post-1945 international relations, the Cold War, technological revolutions, globalization, the information age, major political and economic changes, environmental history, scientific advances and verified developments through the present date.
+
+2. GEOGRAPHICAL COVERAGE
+
+Never restrict history to Europe or a small number of famous civilizations. Include all regions and their interconnections:
+
+- South Asia: India, Pakistan, Bangladesh, Nepal, Bhutan, Sri Lanka, Maldives and neighboring historical regions.
+- East Asia: China, Japan, Korea, Mongolia and surrounding regions.
+- Southeast Asia: mainland and maritime civilizations, including Myanmar, Thailand, Cambodia, Vietnam, Laos, Malaysia, Indonesia, Singapore, Brunei, the Philippines and Timor-Leste.
+- Central Asia: steppe societies, nomadic confederations, oasis cities and transcontinental trade routes.
+- West Asia and the Middle East: Mesopotamia, Persia, Anatolia, the Levant, Arabia and neighboring regions.
+- Africa: North, Northeast, West, Central, East and Southern Africa, including ancient kingdoms, trans-Saharan networks and Indian Ocean connections.
+- Europe: prehistoric Europe, Mediterranean civilizations, classical antiquity, medieval societies, early modern states and contemporary history.
+- The Americas: Indigenous civilizations of North, Central and South America, Arctic societies, Mesoamerica, the Andes, colonialism, slavery and independent states.
+- Oceania and the Pacific: Australia, Aboriginal and Torres Strait Islander histories, Melanesia, Micronesia, Polynesia and Pacific navigation.
+- Global maritime and continental networks connecting these regions.
+- Polar regions and their exploration, Indigenous histories where applicable, and environmental change.
+
+For every region, cover both major powers and smaller societies, including groups omitted from conventional political histories.
+
+3. INDIA: EXTREMELY DETAILED HISTORY
+
+Create a dedicated, comprehensive Indian-history archive covering:
+
+- Prehistoric India, Paleolithic, Mesolithic, Neolithic and Chalcolithic cultures.
+- Mehrgarh and other early agricultural settlements.
+- Harappan civilization, its regional diversity, urban centers, economy, writing system, trade and transformation.
+- Vedic societies, their texts, political structures, economy, religion and social changes.
+- Mahajanapadas, republics, Magadha, Buddhism, Jainism and other intellectual traditions.
+- Mauryan Empire, Ashoka, administration, inscriptions and regional interactions.
+- Post-Mauryan states, Indo-Greeks, Shakas, Kushanas, Satavahanas and other regional powers.
+- Sangam literature and early South Indian societies.
+- Gupta and post-Gupta political, scientific, literary and cultural developments.
+- Regional kingdoms, agrarian expansion, land grants and temple institutions.
+- Pallavas, Chalukyas, Rashtrakutas, Cholas, Pandyas and other southern and regional dynasties.
+- Delhi Sultanate, regional sultanates, Vijayanagara, Bahmani and successor states.
+- Bhakti, Sufi and other religious, philosophical and literary traditions.
+- Mughal Empire, Rajput states, Marathas, Sikhs, Ahoms and other regional powers.
+- Eighteenth-century political transformations.
+- European trading companies, Portuguese, Dutch, French and British expansion.
+- East India Company rule, revenue settlements, economic changes and colonial institutions.
+- Tribal, peasant, labor, religious, regional and anti-colonial movements.
+- Revolt of 1857, its causes, participants, regional differences and interpretations.
+- Social and religious reform movements.
+- Indian National Congress, revolutionary organizations, mass movements and constitutional negotiations.
+- Gandhi, Nehru, Ambedkar, Subhas Chandra Bose and other historical actors, studied through evidence and critical context.
+- Partition, independence, princely-state integration and constitution-making.
+- Post-independence political, economic, social, scientific and cultural history.
+- India's relations with neighboring countries and the wider world.
+- Archaeological sites, inscriptions, coins, manuscripts, oral traditions, monuments, paintings, music, architecture and regional languages.
+- Historiography, competing interpretations, disputed chronology and unresolved historical questions.
+
+Do not equate the history of India exclusively with dynasties, rulers, wars or any one religious or linguistic tradition.
+
+4. POLITICAL AND INSTITUTIONAL HISTORY
+
+For every significant state, kingdom, republic, empire or political movement, record where evidence permits:
+
+- Founding, antecedents and historical context.
+- Territory, changing borders and administrative centers.
+- Founders, rulers, leaders, succession and political institutions.
+- Constitution, laws, administration, taxation and bureaucracy.
+- Military organization, conflicts, alliances and diplomacy.
+- Relations between central authorities and local communities.
+- Economy, trade, agriculture, infrastructure and public works.
+- Social hierarchy, gender relations, labor and legal status.
+- Religion, education, intellectual life and cultural patronage.
+- Expansion, fragmentation, transformation, collapse or continuity.
+- Primary sources, archaeological evidence and scholarly disagreements.
+
+Distinguish political control from cultural influence and modern national identity from ancient or medieval political realities.
+
+5. ECONOMIC AND SOCIAL HISTORY
+
+Systematically investigate:
+
+- Hunting, gathering, agriculture, pastoralism and urban economies.
+- Land ownership, labor, slavery, serfdom, bonded labor and other labor systems.
+- Craft production, markets, coinage, credit, banking and taxation.
+- Domestic trade, long-distance trade and maritime commerce.
+- Migration, diaspora, demographic change, epidemics and public health.
+- Family structures, kinship, childhood, aging and everyday life.
+- Caste, class, ethnicity, gender, social mobility and exclusion.
+- Food, clothing, housing, transport and material culture.
+- Urban planning, infrastructure, water management and sanitation.
+- Poverty, famine, inequality, economic growth and environmental consequences.
+- Industrialization, capitalism, socialism, colonial extraction and modern development.
+
+Avoid imposing present-day economic categories on earlier societies without explaining their limitations.
+
+6. RELIGION, PHILOSOPHY AND INTELLECTUAL HISTORY
+
+Cover the emergence, development and transformation of religious and philosophical traditions, including:
+
+- Prehistoric ritual and belief, where evidence permits cautious interpretation.
+- Ancient Egyptian, Mesopotamian, Greek, Roman, Persian and other traditions.
+- Hindu traditions and the diversity of Indian philosophical schools.
+- Buddhism, Jainism and Sikhism.
+- Judaism, Christianity, Islam and their diverse historical communities.
+- Confucianism, Daoism, Shinto and East Asian philosophical traditions.
+- Indigenous spiritual systems throughout the world.
+- African, American, Oceanian and other regional traditions.
+- Secularism, atheism, humanism and modern philosophical movements.
+- Religious institutions, reformations, schisms, pilgrimages, texts, debates and intercultural encounters.
+- Mathematics, logic, ethics, political philosophy, medicine, astronomy and education across civilizations.
+
+Distinguish historical descriptions from theological claims. Avoid treating any religious community as historically uniform.
+
+7. SCIENCE, TECHNOLOGY AND INVENTIONS
+
+Build a chronological record of major and lesser-known developments in:
+
+- Mathematics, geometry, algebra, number systems and statistics.
+- Astronomy, calendars, navigation and cosmology.
+- Medicine, surgery, anatomy, public health and pharmacology.
+- Agriculture, irrigation, metallurgy, ceramics and manufacturing.
+- Writing, paper, printing, books and information transmission.
+- Architecture, engineering, roads, bridges, ships and machines.
+- Optics, mechanics, thermodynamics, electricity and magnetism.
+- Chemistry, geology, biology, genetics and evolutionary theory.
+- Industrial machinery, railways, aviation and telecommunications.
+- Computers, software, the internet, artificial intelligence and biotechnology.
+- Energy systems, environmental technologies and space exploration.
+
+For each major development, identify the earliest secure evidence, relevant precursors, independent inventions, contributors, geographic context, diffusion and uncertainty.
+
+Do not automatically assign a single inventor to developments produced collectively over time.
+
+8. WARS, REVOLUTIONS AND CONFLICTS
+
+For major conflicts and significant local conflicts where sources permit, record:
+
+- Date, location and participants.
+- Long-term causes and immediate triggers.
+- Political, economic, ideological and strategic context.
+- Major campaigns, battles and turning points.
+- Military technology and logistical constraints.
+- Civilian experiences, displacement, atrocities and humanitarian effects.
+- Reliable casualty estimates and their uncertainty.
+- Treaties, settlements and political consequences.
+- Long-term social, economic and cultural effects.
+- Competing historical interpretations.
+
+Do not glorify violence, manufacture casualty figures or present disputed causes as established facts.
+
+9. CULTURAL AND EVERYDAY HISTORY
+
+Cover literature, languages, scripts, oral traditions, music, dance, theatre, visual arts, architecture, sculpture, clothing, cuisine, sports, festivals, education, childhood, family life, popular culture and the transmission of cultural knowledge.
+
+Include regional traditions, ordinary people, marginalized communities, women, workers, migrants and Indigenous peoples, not only famous elites.
+
+Distinguish surviving evidence from modern reconstruction.
+
+10. ENVIRONMENTAL AND CLIMATE HISTORY
+
+Investigate climatic shifts, droughts, floods, volcanic eruptions, earthquakes, tsunamis, landscape change, river migration, deforestation, land use, agriculture, animal extinctions, resource exploitation and human responses.
+
+Explain causal relationships cautiously. Do not attribute the collapse of a civilization to one environmental factor without adequate evidence.
+
+11. SOURCES AND HISTORICAL VERIFICATION
+
+Prioritize evidence in this order when appropriate to the question:
+
+A. Contemporary primary sources, including inscriptions, administrative records, letters, treaties, legal documents, manuscripts and securely dated material evidence.
+B. Archaeological excavations, scientific dating, environmental proxies, numismatic evidence and forensic analysis.
+C. Critical editions, translations and scholarly interpretations.
+D. Peer-reviewed studies, academic books, reputable reference works and institutional databases.
+E. Popular accounts, documentaries and general websites as supplementary sources.
+
+Recognize that primary sources can be biased, incomplete, forged, misdated or difficult to interpret. Corroborate them whenever possible.
+
+For significant claims:
+- Identify the source and its date.
+- Explain what it directly establishes and what it merely suggests.
+- Distinguish archaeological findings from literary traditions.
+- Separate contemporary testimony from later accounts.
+- Identify uncertainty in dating, attribution and interpretation.
+- Provide real citations and links only when verified.
+- Never invent a historian, quotation, inscription, archaeological discovery or bibliographic reference.
+
+12. CHRONOLOGY AND DATABASE STRUCTURE
+
+Organize the archive into nested levels:
+
+LEVEL 1: Geological, biological and human prehistory.
+LEVEL 2: Broad world-history periods.
+LEVEL 3: Continents, regions and historical civilizations.
+LEVEL 4: States, societies, institutions and cultural traditions.
+LEVEL 5: Individual events, developments and historical actors.
+LEVEL 6: Primary sources, archaeological evidence, dates and historiographical debates.
+
+For each documented event, use the following record format:
+
+Event ID:
+Event or development:
+Date or date range:
+Dating convention:
+Geographic location:
+Historical period:
+Participants and communities:
+Background:
+Immediate causes:
+Sequence of developments:
+Direct evidence:
+Primary sources:
+Relevant archaeological or scientific evidence:
+Short-term consequences:
+Long-term consequences:
+Regional and global connections:
+Scholarly interpretations:
+Disputed claims:
+Confidence level:
+Sources and references:
+Related events:
+Outstanding research questions:
+
+Use consistent dates. Clearly distinguish BCE/CE from BP and other dating systems. Explain when dates are approximate or depend on disputed chronologies.
+
+13. HISTORIOGRAPHY AND MULTIPLE PERSPECTIVES
+
+For major historical controversies:
+- Present the strongest evidence-based interpretations.
+- Identify the historians or scholarly traditions associated with each interpretation when verified.
+- Explain what evidence supports or challenges each position.
+- Distinguish academic consensus, active scholarly debate and fringe claims.
+- Explain how political ideology, nationalism, colonialism, gender and class may influence historical narratives without dismissing evidence solely because of its origin.
+- Avoid false equivalence between well-supported scholarship and unsupported speculation.
+- Revise conclusions when stronger evidence becomes available.
+
+14. HISTORICAL GAPS AND UNKNOWN EVENTS
+
+Explicitly identify:
+- Civilizations known mainly through archaeology.
+- Undeciphered writing systems.
+- Lost archives and destroyed records.
+- Uncertain chronologies.
+- Populations whose histories were preserved mainly through oral traditions.
+- Events known through conflicting accounts.
+- Regions and communities underrepresented in surviving records.
+- Questions that remain unresolved.
+
+Never fill missing historical evidence with invented narratives.
+
+15. CURRENT AND CONTINUOUSLY UPDATED HISTORY
+
+When the user asks about events up to the present:
+- Determine the current date using an available reliable tool when necessary.
+- Search current official records and reputable reporting if browsing is available.
+- Distinguish confirmed events from preliminary reports.
+- Date-stamp information that may change.
+- Clearly state when the available sources do not establish a definitive conclusion.
+
+Do not pretend that historical coverage is current if you cannot verify recent developments.
+
+16. COMPREHENSIVE OUTPUT PLAN
+
+Begin by creating a master index of world history. Divide it into manageable chronological and geographical volumes.
+
+For each volume:
+1. Provide a chronological overview.
+2. List significant events with dates and locations.
+3. Explain political, social, economic, cultural and scientific developments.
+4. Include both famous and lesser-known events.
+5. Add primary-source references and archaeological evidence.
+6. Identify uncertainties and competing interpretations.
+7. Cross-reference related developments in other regions.
+8. List missing topics and areas requiring further research.
+9. Maintain a clear distinction between completed coverage and planned coverage.
+
+Do not compress thousands of years of history into a superficial list and call it complete. Expand each volume systematically in subsequent responses. Preserve the existing outline and resume from the last completed section when the user requests continuation, provided the relevant context is available.
+
+17. FIRST EXECUTION INSTRUCTION
+
+Start immediately by producing:
+
+PART I: A MASTER INDEX OF THE ENTIRE KNOWN HISTORICAL RECORD.
+
+Include:
+- A chronological framework from cosmic history to the present.
+- A global regional index.
+- A comprehensive index of major historical disciplines.
+- A dedicated, detailed index of Indian history.
+- A research methodology and source-verification framework.
+- A list`;
+const ENVP=(w,c)=>'\n\nENVIRONMENT FACTS (authoritative, from this app; never claim anything beyond them): today is '+new Date().toDateString()+' by the person\'s device clock. Live data: '+(w&&w!=='LIVE_UNAVAILABLE'?'retrieved live for this message and included below with its retrieval time; cite it as [1], [2] and do not claim anything it does not say.':w==='LIVE_UNAVAILABLE'?'a live lookup was attempted for this message but failed, so you have no verified current information now.':'not used for this message, so you have no live data now; for anything that may have changed since your knowledge cutoff say you cannot verify it (the person can turn on Live search with the globe button).')+' Code execution: not available, so never claim code was run or tested. Files: you can only read plain text, CSV, Markdown or PDF text that the person attached ('+(doc?'a document is attached below':'none is attached now')+') and images they send ('+((c&&c.m.slice(-30).some(m=>m.r==='user'&&m.img))?'a photo was sent in this chat':'none sent')+'). Image generation and voice are separate features of this app, not something you can do inside a reply. Memory: only the notes shown below, if any. Never claim to have searched, opened, run, heard, seen or verified anything beyond this.';
+const ACCP=(w,c)=>{const a=S.acc!==false,u=S.ult!==false,h=S.mode==='archive',packs=(a?'\n\n'+ACC:'')+(u?'\n\n'+ULT:'')+(h?'\n\n'+HIST:'');return (packs?'[[PACKS]]'+packs+'[[/PACKS]]\n\nHOW THIS APP APPLIES THE ABOVE: the mode, spoken-reply style, reply language and custom instructions given elsewhere in this prompt decide the format and length of the answer, so follow them while keeping the accuracy rules. Where the text above says to start with a master index or to start immediately, do that only when the person asks for it; otherwise answer exactly what was asked.':'')+ENVP(w,c)};
+const HS=[['🏺','hs1'],['🏯','hs2'],['🇮🇳','hs3'],['📰','hs4'],['🔺','hs5'],['🏛️','hs6'],['⚔️','hs7'],['🎨','hs8'],['🚢','hs9'],['🪖','hs10'],['🕊️','hs11'],['🔬','hs12']];
+const ARCH_P=[['🌌','ap1','Cosmological history: the Big Bang, cosmic expansion, formation of galaxies, stars, the Solar System and Earth, geological eras and major planetary changes'],['🦖','ap2','Geological and biological history: Precambrian history, origin and evolution of life, major evolutionary transitions, mass extinctions, dinosaurs, mammals, primates and the emergence of hominins'],['🦴','ap3','Prehistoric humanity: early hominins, Homo erectus, Neanderthals, Denisovans, Homo sapiens, migrations, tools, fire, art, burial practices, hunter-gatherers, agriculture, animal domestication and permanent settlements'],['🏺','ap4','Ancient history: early settlements, urbanization, writing systems, states, kingdoms, empires, religions, laws, trade networks, technology and cultural developments across all inhabited regions'],['🏰','ap5','Medieval history: political transformations, kingdoms, empires, trade, religions, intellectual movements, scientific developments, migrations, agricultural systems, maritime networks and intercultural exchanges'],['🧭','ap6','Early modern history: oceanic exploration, global trade, gunpowder empires, colonial expansion, religious transformations, scientific developments, slavery, forced migration, capitalism and political revolutions'],['🏭','ap7','Modern history: industrialization, nationalism, imperialism, abolition movements, constitutional developments, democratic movements, world wars, revolutions, decolonization, independence movements, economic transformations and international institutions'],['🌐','ap8','Contemporary history: post-1945 international relations, the Cold War, technological revolutions, globalization, the information age, major political and economic changes, environmental history, scientific advances and verified developments through the present date']];
+const ARCH_R=[['🕉️','ar1','South Asia: India, Pakistan, Bangladesh, Nepal, Bhutan, Sri Lanka, Maldives and neighbouring historical regions'],['🏯','ar2','East Asia: China, Japan, Korea, Mongolia and surrounding regions'],['🌴','ar3','Southeast Asia: mainland and maritime civilizations including Myanmar, Thailand, Cambodia, Vietnam, Laos, Malaysia, Indonesia, Singapore, Brunei, the Philippines and Timor-Leste'],['🐎','ar4','Central Asia: steppe societies, nomadic confederations, oasis cities and transcontinental trade routes'],['🕌','ar5','West Asia and the Middle East: Mesopotamia, Persia, Anatolia, the Levant, Arabia and neighbouring regions'],['🌍','ar6','Africa: North, Northeast, West, Central, East and Southern Africa, including ancient kingdoms, trans-Saharan networks and Indian Ocean connections'],['🏛️','ar7','Europe: prehistoric Europe, Mediterranean civilizations, classical antiquity, medieval societies, early modern states and contemporary history'],['🌎','ar8','The Americas: Indigenous civilizations of North, Central and South America, Arctic societies, Mesoamerica, the Andes, colonialism, slavery and independent states'],['🏝️','ar9','Oceania and the Pacific: Australia, Aboriginal and Torres Strait Islander histories, Melanesia, Micronesia, Polynesia and Pacific navigation'],['🧊','ar10','Global maritime and continental networks, polar regions and their exploration, Indigenous histories and environmental change']];
+const ARCH_I=[['🏺','ai1','Prehistoric India (Paleolithic, Mesolithic, Neolithic, Chalcolithic), Mehrgarh and early agricultural settlements, and the Harappan civilization: regional diversity, urban centres, economy, writing system, trade and transformation'],['📜','ai2','Vedic societies (texts, political structures, economy, religion, social change), Mahajanapadas, republics, Magadha, Buddhism, Jainism and other intellectual traditions'],['🦁','ai3','The Mauryan Empire, Ashoka, administration, inscriptions and regional interactions, and post-Mauryan states: Indo-Greeks, Shakas, Kushanas, Satavahanas and other regional powers'],['🪔','ai4','Sangam literature and early South Indian societies, and Gupta and post-Gupta political, scientific, literary and cultural developments'],['🛕','ai5','Regional kingdoms, agrarian expansion, land grants, temple institutions, and the Pallavas, Chalukyas, Rashtrakutas, Cholas, Pandyas and other dynasties'],['🕌','ai6','The Delhi Sultanate, regional sultanates, Vijayanagara, the Bahmanis and successor states, with Bhakti, Sufi and other religious, philosophical and literary traditions'],['🏰','ai7','The Mughal Empire, Rajput states, Marathas, Sikhs, Ahoms and other regional powers, and eighteenth-century political transformations'],['🚢','ai8','European trading companies (Portuguese, Dutch, French, British), East India Company rule, revenue settlements, economic changes and colonial institutions'],['🔥','ai9','Tribal, peasant, labour, religious, regional and anti-colonial movements; the Revolt of 1857 (causes, participants, regional differences, interpretations); social and religious reform movements'],['🇮🇳','ai10','The Indian National Congress, revolutionary organizations, mass movements and constitutional negotiations; Gandhi, Nehru, Ambedkar, Subhas Chandra Bose and other actors, studied through evidence and critical context'],['✂️','ai11','Partition, independence, princely-state integration and constitution-making'],['📰','ai12','Post-independence political, economic, social, scientific and cultural history, and India’s relations with its neighbours and the wider world'],['🔎','ai13','Archaeological sites, inscriptions, coins, manuscripts, oral traditions, monuments, paintings, music, architecture and regional languages; historiography, competing interpretations, disputed chronology and unresolved questions']];
+const EVF=['Event ID','Event or development','Date or date range','Dating convention','Geographic location','Historical period','Participants and communities','Background','Immediate causes','Sequence of developments','Direct evidence','Primary sources','Relevant archaeological or scientific evidence','Short-term consequences','Long-term consequences','Regional and global connections','Scholarly interpretations','Disputed claims','Confidence level','Sources and references','Related events','Outstanding research questions'];
+const langTail=()=>(S.rl==='Auto'&&ui()==='hi')?' Please answer in Hindi.':'';
+const VOLQ=q=>'Write the next volume of the history archive on: '+q+'. For this volume provide: (1) a chronological overview; (2) significant events with dates and locations; (3) political, social, economic, cultural and scientific developments; (4) both famous and lesser-known events; (5) primary-source references and archaeological evidence; (6) uncertainties and competing interpretations; (7) cross-references to related developments in other regions; (8) missing topics and areas needing further research; (9) a clear statement of what this response covers and what is planned for later volumes. Do not claim completeness.'+langTail();
+const IDXQ=()=>'PART I: produce the master index of the entire known historical record. Include: a chronological framework from cosmic history to the present; a global regional index; a comprehensive index of major historical disciplines; a dedicated, detailed index of Indian history; a research methodology and source-verification framework; and a list of the planned volumes with what is still missing. This is an index and a plan, not complete coverage, so say so clearly.'+langTail();
+const CONTQ=()=>'Continue the archive from where you stopped. Preserve the existing outline, resume at the next incomplete section, and state again what is covered and what is still planned.'+langTail();
+function askArch(q){if(busy){toast(t('wait'));return}IM=null;S.mode='archive';save();fillMode();$('harch').hidden=true;$('in').value=q;go()}
+async function askEvt(){const x=await askText(t('evAsk'),'');if(!x)return;askArch('Create a full event record for: '+x+'. Use exactly this format, one field per line:\n'+EVF.map(f=>f+':').join('\n')+'\nIf a field is unknown or disputed, write "unknown" or "disputed" and explain why; never invent evidence, sources or quotations; give an honest confidence level.'+langTail())}
+async function askGap(){const x=await askText(t('gapAsk'),'');if(x===null)return;askArch('Identify the main historical gaps and unknowns for: '+(x||'world history')+'. Cover civilizations known mainly through archaeology, undeciphered writing systems, lost archives and destroyed records, uncertain chronologies, populations whose histories were preserved mainly through oral traditions, events known through conflicting accounts, underrepresented regions and communities, and unresolved questions. Never fill missing evidence with invented narratives.'+langTail())}
+async function askDeb(){const x=await askText(t('debAsk'),'');if(!x)return;askArch('Present the major scholarly interpretations of: '+x+'. For each: the strongest evidence-based case, the historians or traditions associated with it only when you are sure, what evidence supports or challenges it, and whether it is academic consensus, active debate or a fringe claim. Explain how ideology, nationalism, colonialism, gender and class may have shaped the narratives without dismissing evidence because of its origin. Avoid false equivalence.'+langTail())}
+function buildArch(){const b=$('abody');b.innerHTML='';const sec=(k,items,fn)=>{const h=document.createElement('h4');h.textContent=t(k);b.append(h);const g=document.createElement('div');g.className='agrid';items.forEach(it=>{const x=document.createElement('button');x.type='button';x.className='ab';const a=document.createElement('span');a.textContent=it[0];const n=document.createElement('span');n.textContent=t(it[1]);x.append(a,n);x.onclick=()=>fn(it);g.append(x)});b.append(g)};
+sec('arTools',[['📚','tIdx'],['📇','tEvt'],['⏭','tCont'],['🕳️','tGap'],['⚖️','tDeb']],it=>({tIdx:()=>askArch(IDXQ()),tEvt:askEvt,tCont:()=>askArch(CONTQ()),tGap:askGap,tDeb:askDeb})[it[1]]());
+sec('arPer',ARCH_P,it=>askArch(VOLQ(it[2])));sec('arReg',ARCH_R,it=>askArch(VOLQ(it[2])));sec('arInd',ARCH_I,it=>askArch(VOLQ('Indian history: '+it[2])))}
+function openArch(){$('side').classList.remove('open');buildArch();$('harch').hidden=false;$('abody').scrollTop=0;$('harch').querySelector('.pbox').scrollTop=0}
+function askHist(q){if(busy){toast(t('wait'));return}IM=null;S.mode='history';save();fillMode();$('in').value=q;go()}
+const MODEP=()=>(MP[S.mode]?'\n'+MP[S.mode]:'')+(S.ci?'\nCustom instructions from the user (follow them unless unsafe): '+S.ci:'');
+function fillMode(){const s=$('mode');if(!s)return;s.innerHTML='';[['default','mdDefault'],['study','mdStudy'],['coder','mdCoder'],['writer','mdWriter'],['trans','mdTrans'],['short','mdShort'],['history','mdHist'],['archive','mdArch'],['exam','mdExam'],['research','mdRes'],['planner','mdPlan']].forEach(([k,n])=>{const o=document.createElement('option');o.value=k;o.textContent=t(n);s.append(o)});s.value=S.mode||'default'}
+function chatMd(c){return '# '+(c.title==='New chat'?t('newT'):c.title)+'\n\n'+c.m.filter(m=>!m.e).map(m=>'**'+(m.r==='user'?'You':CFG.brand)+':** '+(m.img?'[photo] ':'')+(m.c||'')+(m.src&&m.src.length?'\n\nSources'+(m.live&&m.live.at?' (retrieved '+m.live.at+')':'')+':\n'+m.src.map(s=>'['+s.n+'] '+s.t+' — '+s.p+' — '+s.u).join('\n'):'')).join('\n\n')+'\n'}
+async function copyText(x){try{await navigator.clipboard.writeText(x);return true}catch(e){try{const ta=document.createElement('textarea');ta.value=x;ta.style.cssText='position:fixed;opacity:0';document.body.append(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok}catch(e2){return false}}}
+const mergeRoles=a=>{const o=[];for(const m of a){const p=o[o.length-1];if(p&&p.role===m.role&&typeof p.content==='string'&&typeof m.content==='string')p.content+='\n\n'+m.content;else o.push({...m})}return o};
+let lastPaint=0;
+function schedPaint(el,a){if(paintQ)return;const gap=a.c.length>3000?120:a.c.length>1200?70:35,wait=Math.max(0,gap-(performance.now()-lastPaint));paintQ=setTimeout(()=>{paintQ=0;lastPaint=performance.now();if(!el||!el.isConnected)return;el.innerHTML=a.c?md(a.c):DOTS;const m=$('msgs');if(stick)m.scrollTop=m.scrollHeight},wait)}
+const OPEN_URL='https://claude.ai/artifact/JLTN9vws1UM9AagiFUismB';
+function showHelp(){$('phelp').hidden=false}
+function watchPicker(){pickGot=false;let moved=false;const mv=()=>{moved=true};window.addEventListener('blur',mv,{once:true});document.addEventListener('visibilitychange',mv,{once:true});setTimeout(()=>{window.removeEventListener('blur',mv);document.removeEventListener('visibilitychange',mv);if(!moved&&!pickGot&&!$('photo').hidden)showHelp()},1600)}
+function camOff(){if(camStream){camStream.getTracks().forEach(x=>x.stop());camStream=null}const v=$('pvid');if(v){v.srcObject=null;v.hidden=true}if($('pcamctl'))$('pcamctl').hidden=true;if($('plive'))$('plive').hidden=false;if($('psolve'))phSync()}
+async function camOn(){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('perr').textContent=t('camErr');showHelp();return}
+camOff();$('perr').textContent='';let st;try{st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:camFace},width:{ideal:1920},height:{ideal:1080}},audio:false})}catch(e){const n=e&&e.name;$('perr').textContent=t(n==='NotAllowedError'||n==='SecurityError'?'camDenied':n==='NotFoundError'||n==='OverconstrainedError'?'camNone':'camErr');showHelp();return}
+if($('photo').hidden){st.getTracks().forEach(x=>x.stop());return}
+camStream=st;const v=$('pvid');v.srcObject=st;try{await v.play()}catch(e){}v.hidden=false;$('pempty').hidden=true;$('pprev').hidden=true;$('pcamctl').hidden=false;$('plive').hidden=true;$('psolve').disabled=true}
+function shot(){const v=$('pvid');if(!v.videoWidth)return;const k=Math.min(1,1600/Math.max(v.videoWidth,v.videoHeight)),c=document.createElement('canvas');c.width=Math.round(v.videoWidth*k);c.height=Math.round(v.videoHeight*k);c.getContext('2d').drawImage(v,0,0,c.width,c.height);c.toBlob(b=>{if(!b){toast(t('ephoto'));return}try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}takeImage(b,false)},'image/jpeg',.9)}
+let PH={sub:null};
+const PST=[['ans','Answers only','सिर्फ़ उत्तर','Answers only.'],['steps','Step by step','स्टेप-बाय-स्टेप','Show every step.'],['easy','Explain simply','आसान भाषा में','Explain in very simple words.']];
+function phChips(){const b=$('psub');b.innerHTML='';for(let i=1;i<=5;i++){const k=t('phS'+i),x=document.createElement('button');x.type='button';x.textContent=k;x.onclick=()=>{PH.sub=PH.sub===k?null:k;phSync()};b.append(x)}
+PST.forEach(p=>{const k=ui()==='hi'?p[2]:p[1],x=document.createElement('button');x.type='button';x.textContent=k;x.dataset.st=p[0];x.onclick=()=>{PH.st=PH.st===p[0]?null:p[0];phSync()};b.append(x)})}
+function phSync(){const has=!!pimg,cam=!!camStream;$('pprev').hidden=!has||cam;if(has)$('pprev').src=pimg;$('pempty').hidden=has||cam;$('psolve').disabled=!has;[...$('psub').children].forEach(b=>b.classList.toggle('on',b.dataset.st?b.dataset.st===PH.st:b.textContent===PH.sub))}
+async function openPhoto(){camOff();$('phelp').hidden=true;IM=null;PH.sub=null;PH.st=null;$('side').classList.remove('open');phChips();$('perr').textContent='';$('pnote').value='';$('photo').hidden=false;render();phSync();if(SMP){let cap=null;try{cap=(await SMP.limits()).images}catch(e){}if(!cap)$('perr').textContent=t('eVis')}}
+function closePhoto(){camOff();$('photo').hidden=true}
+function goHome(){dashEnter=true;S.cur=null;stick=true;save();render();$('side').classList.remove('open')}
+function setIM(o){IM=o;if(o)document.body.classList.remove('nova-dashboard-home');render();if(o)$('in').focus()}
+function dash(){
+const l=$('log');l.innerHTML='';
+const h=document.createElement('div');h.id='hi';h.className='nova-home';
+h.setAttribute('aria-label','NOVA workspaces / NOVA वर्कस्पेस');
+h.textContent='NOVA AI / नोवा AI · Loading workspaces / वर्कस्पेस लोड हो रहे हैं…';
+l.append(h);document.body.classList.add('nova-dashboard-home');
+}
+/*NOVAIMG*/
+const mkEl=(g,c,x)=>{const e=document.createElement(g);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const IT={en:{enh:'✨ Enhance',gen:'Creating your image…',again:'Regenerate',dl:'Download',fail:'Image service is busy or unreachable. Please try again in a moment.'},hi:{enh:'✨ बेहतर बनाओ',gen:'आपकी इमेज बन रही है…',again:'फिर से बनाओ',dl:'डाउनलोड',fail:'इमेज सर्विस अभी व्यस्त है या पहुँच में नहीं है। थोड़ी देर बाद फिर कोशिश करें।'}};
+const tI=k=>((IT[ui()]||IT.en)[k]||IT.en[k]);
+const DIM={'1:1':[1024,1024,480],'16:9':[1280,720,560],'9:16':[720,1280,300],'4:3':[1152,864,520]};
+const IMS={ar:DIM[S.imar]?S.imar:'1:1',enh:S.imenh!==false};
+const skel=m=>{const d=DIM[m.gen.ar]||DIM['1:1'];return '<div class="skel" style="width:min(100%,'+d[2]+'px);aspect-ratio:'+d[0]+'/'+d[1]+'"><div><span>🎨</span><b>'+tI('gen')+'</b><i class="gsec" data-t="'+m.gen.t0+'">0s</i></div><span class="sk-bar"></span></div>'};
+setInterval(()=>document.querySelectorAll('.gsec').forEach(e=>{e.textContent=Math.floor((Date.now()-e.dataset.t)/1000)+'s'}),500);
+const imopt=mkEl('div','imopt');imopt.id='imopt';imopt.hidden=true;
+function paintOpt(){imopt.textContent='';Object.keys(DIM).forEach(k=>{const b=mkEl('button',IMS.ar===k?'on':'',k);b.type='button';b.onclick=()=>{IMS.ar=k;S.imar=k;save();paintOpt()};imopt.append(b)});const e=mkEl('button',IMS.enh?'on':'',tI('enh'));e.type='button';e.setAttribute('aria-pressed',IMS.enh);e.onclick=()=>{IMS.enh=!IMS.enh;S.imenh=IMS.enh;save();paintOpt()};imopt.append(e)}
+paintOpt();$('imbar').after(imopt);
+try{S.chats.forEach(c=>c.m.forEach(m=>{if(m.gen){delete m.gen;m.e=1;m.c=tI('fail')}}))}catch(e){}
+async function enhance(v,sig){const cf=SV?{base:API,key:'-',model:SV.model}:(S.cfg&&S.cfg.key?S.cfg:BUILT_IN);if(SMP||!cf||!cf.key||!cf.model||!cf.base)return v;
+const c=new AbortController(),tm=setTimeout(()=>c.abort(),15000),f=()=>c.abort();sig.addEventListener('abort',f);
+try{const r=await fetch(cf.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:c.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+cf.key},body:JSON.stringify({model:cf.model,stream:false,max_tokens:250,temperature:.7,messages:[{role:'system',content:"You write prompts for a text-to-image model. Translate the user's request into English if needed, then expand it into ONE vivid prompt (subject, setting, style, lighting, composition, colours) of at most 70 words. Keep the user's intent and any text that must appear in the picture exactly. Output only the prompt."},{role:'user',content:v}]})});
+if(!r.ok)return v;const j=await r.json(),o=(((j.choices||[])[0]||{}).message||{}).content;return typeof o==='string'&&o.trim().length>3&&o.length<900?o.trim().replace(/^["']|["']$/g,''):v}
+catch(e){if(sig.aborted)throw e;return v}finally{clearTimeout(tm);sig.removeEventListener('abort',f)}}
+async function getImg(u,sig){const r=await fetch(u,{signal:sig});if(!r.ok)throw{status:r.status};const b=await r.blob();if(!/^image\//.test(b.type)||b.size<2000)throw{status:502};return b}
+async function toData(b){const u=URL.createObjectURL(b);try{const im=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=u});const k=Math.min(1,1024/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.86)}finally{URL.revokeObjectURL(u)}}
+async function pollin(p,ar,seed,sig){const d=DIM[ar]||DIM['1:1'];let last={status:502};
+for(const [host,mod] of [['https://gen.pollinations.ai/image/','flux'],['https://image.pollinations.ai/prompt/','flux'],['https://image.pollinations.ai/prompt/','turbo']]){if(sig.aborted)throw{name:'AbortError'};const u=host+encodeURIComponent(p)+'?width='+d[0]+'&height='+d[1]+'&seed='+seed+'&model='+mod+'&nologo=true&safe=true&enhance=false';
+const c=new AbortController(),tm=setTimeout(()=>c.abort(),90000),f=()=>c.abort();sig.addEventListener('abort',f);
+try{try{return await toData(await getImg(u,c.signal))}catch(e){if(sig.aborted)throw e;if(e&&e.status){last=e;continue}
+await new Promise((ok,no)=>{const i=new Image();i.onload=ok;i.onerror=()=>no({status:502});i.src=u;c.signal.addEventListener('abort',()=>no({status:504}))});return u}}
+catch(e){if(sig.aborted)throw e;last=e&&e.status?e:{status:502}}finally{clearTimeout(tm);sig.removeEventListener('abort',f)}}
+throw last}
+async function dlImg(m){try{let u=m.img,x='png';if(u.startsWith('data:'))x=/^data:image\/svg/.test(u)?'svg':/^data:image\/jpeg/.test(u)?'jpg':'png';else{u=URL.createObjectURL(await getImg(u,new AbortController().signal));x='jpg'}const a=document.createElement('a');a.href=u;a.download='nova-'+Date.now()+'.'+x;document.body.append(a);a.click();a.remove();if(u.startsWith('blob:'))setTimeout(()=>URL.revokeObjectURL(u),4000)}catch(e){window.open(m.img,'_blank','noopener')}}
+async function pollImageJob(jobId,sig){for(let attempt=0;attempt<285;attempt++){if(sig.aborted)throw{name:'AbortError'};await new Promise((resolve,reject)=>{let timer;const abort=()=>{clearTimeout(timer);sig.removeEventListener('abort',abort);reject({name:'AbortError'})};timer=setTimeout(()=>{sig.removeEventListener('abort',abort);resolve()},2000);sig.addEventListener('abort',abort,{once:true})});const r=await fetch(API+'/image/status/'+encodeURIComponent(jobId),{signal:sig,cache:'no-store'}),j=await r.json().catch(()=>({}));if(!r.ok)throw{status:r.status,message:j.error};if(j.status==='done'&&j.image)return j.image;if(j.status==='error')throw{status:502,message:j.error||'Image generation failed'}}throw{status:504,message:'Image queue timed out'}}
+async function makeImg(v,re){if(busy){toast(t('wait'));return}if(!chat())newChat();const c=chat(),st=re?re.is:(IM&&IM.d?IM.d:''),ar=re?re.ar:IMS.ar,seed=Math.floor(Math.random()*1e9);popN=2;
+if(!re){c.m.push({r:'user',c:'🎨 '+(st?'['+IM.name+'] ':'')+v});if(c.title==='New chat')c.title=v.slice(0,40);$('in').value='';$('in').style.height='auto'}
+busy=true;ctl=new AbortController();const sig=ctl.signal,a={r:'assistant',c:'',gen:{ar,t0:Date.now()},ip:v,ar,is:st};c.m.push(a);stick=true;render();
+try{const base=st?v+'. Style: '+st:v,p=(re&&re.fp)||(IMS.enh?await enhance(base,sig):base);a.fp=p;
+if(SV&&SV.image){try{const r=await fetch(API+'/image',{method:'POST',signal:sig,headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p,aspect:ar,width:DIM[ar][0],height:DIM[ar][1],seed})});const j=await r.json().catch(()=>({}));if(!r.ok)throw{status:r.status};if(j.image)a.img=j.image;else if(j.jobId)a.img=await pollImageJob(j.jobId,sig);else throw{status:502}}catch(e1){if(sig.aborted||e1?.name==='AbortError'||e1?.status===429)throw e1;a.img=await pollin(p,ar,seed,sig)}}
+else if(SMP){const o=await SMP('Create a beautiful, richly detailed SVG illustration (viewBox 0 0 1024 1024) of: '+p+'\nUse layered shapes, gradients, soft shadows and a harmonious colour palette. Return ONLY the SVG markup starting with <svg and ending with </svg>. No explanation, no code fences, no scripts, no external images, no foreignObject.',{cache:false});
+let s=(o.text.match(/<svg[\s\S]*<\/svg>/i)||[''])[0];if(!s||/<script|foreignObject|\son\w+\s*=|javascript:|href\s*=\s*["']?https?:/i.test(s))throw{};if(!/xmlns=/.test(s))s=s.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');a.img='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s)}
+else a.img=await pollin(p,ar,seed,sig);
+if(sig.aborted)throw{name:'AbortError'};a.c=v;a.fresh=1}
+catch(e){if(sig.aborted||(e&&e.name==='AbortError')){const i=c.m.indexOf(a);if(i>=0)c.m.splice(i,1)}else{a.e=1;a.c=(e&&e.status===429)?errText(e):tI('fail')}}
+delete a.gen;busy=false;if(ctl&&ctl.signal===sig)ctl=null;save();render()}
+
+$('gen').onclick=()=>setIM(IM?null:{name:t('imMode')});
+$('imbar').onclick=()=>setIM(null);
+setTimeout(()=>{loadJS('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js').then(()=>{try{render()}catch(e){}}).catch(()=>{})},1200);
+fetch(API+'/config').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.model){SV=j;$('cfg').style.display='none';if(j.live||j.web){$('web').hidden=false;paintLive();loadWN()}first=true;syncFeatures();render();trUI()}}).catch(()=>{});
+$('web').onclick=()=>{const o=['auto','on','off'],n=o[(o.indexOf(S.live||'auto')+1)%3];S.live=n;save();paintLive();toast(LS(n==='on'?'liveOn':n==='off'?'liveOff':'liveAuto'))};
+try{if(window.claude&&claude.use)claude.use('sample').then(s=>{if(s){SMP=s;$('cfg').style.display='none';first=true;syncFeatures();render();trUI()}}).catch(()=>{})}catch(e){}
+
+const SEN=/[.!?।؟]+["')\]]*\s|[。！？]|\n+/g;
+const clean=s=>s.replace(/```[\s\S]*?```/g,' ').replace(/https?:\/\/\S+/g,' ').replace(/\[(\d+)\]/g,' ').replace(/[`*#_>|~]/g,' ').replace(/\p{Extended_Pictographic}/gu,' ').replace(/\s+/g,' ').trim();
+function detectLang(x){const T3=[[/[\u0900-\u097F]/,'hi-IN'],[/[\u0980-\u09FF]/,'bn-IN'],[/[\u0B80-\u0BFF]/,'ta-IN'],[/[\u0C00-\u0C7F]/,'te-IN'],[/[\u0A80-\u0AFF]/,'gu-IN'],[/[\u0C80-\u0CFF]/,'kn-IN'],[/[\u0D00-\u0D7F]/,'ml-IN'],[/[\u0A00-\u0A7F]/,'pa-IN'],[/[\u0600-\u06FF]/,'ar-SA'],[/[\u3040-\u30FF]/,'ja-JP'],[/[\uAC00-\uD7AF]/,'ko-KR'],[/[\u4E00-\u9FFF]/,'zh-CN'],[/[\u0400-\u04FF]/,'ru-RU']];for(const[r,c]of T3)if(r.test(x))return c;return LC[S.rl]||navigator.language||'en-IN'}
+const lvLang=x=>(S.rl&&S.rl!=='Auto'&&LC[S.rl])||detectLang(x);
+let lvVoice={},lvGen=0,lvQ=0,lvPos=0,lvDoneFlag=false,lvMute=false,lvInt=false,lvRec=null;
+function pickVoice(lang){const ch=S.voice&&S.voice[lang];if(ch){const f=speechSynthesis.getVoices().find(v=>v.name===ch);if(f)return f}if(lvVoice[lang])return lvVoice[lang];const b=lang.split('-')[0].toLowerCase();let best=null,bs=-1;
+for(const v of speechSynthesis.getVoices()){const vl=v.lang.replace('_','-').toLowerCase();if(vl.split('-')[0]!==b)continue;let s=vl===lang.toLowerCase()?100:60;if(/google|natural|neural|online|enhanced|premium|siri/i.test(v.name))s+=30;if(!v.localService)s+=5;if(v.default)s+=3;if(s>bs){bs=s;best=v}}
+if(best)lvVoice[lang]=best;return best}
+const lvSet=s=>{$('live').className='ls-'+(s==='search'?'think':s);const K={listen:'lvListen',think:'lvThink',speak:'lvSpeak',mute:'lvMuted'};$('lst').textContent=s==='search'?LS('srch'):(K[s]?t(K[s]):'')};
+function say(x,lang){x=x.trim();if(!x||!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(x);u.lang=lang;const v=pickVoice(lang);if(v)u.voice=v;u.rate=(S.pref&&S.pref.rate)||1;u.pitch=1;u.volume=1;const g=lvGen;lvQ++;if(LV)lvSet('speak');
+const fin=()=>{if(g!==lvGen)return;lvQ--;if(LV)lvNext()};u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}
+function lvFeed(txt,fin){if(!LV||lvInt)return;const lang=lvLang(txt),re=new RegExp(SEN.source,'g');re.lastIndex=lvPos;let m;
+while((m=re.exec(txt))){const e=m.index+m[0].length;say(clean(txt.slice(lvPos,e)),lang);lvPos=e}
+if(fin&&lvPos<txt.length){say(clean(txt.slice(lvPos)),lang);lvPos=txt.length}
+$('lcap').textContent=clean(txt).slice(-240)}
+function lvDone(a){if(lvInt){lvInt=false;return}if(a.e){$('lcap').textContent=a.c;lvSet('mute');return}lvFeed(a.c||'',true);lvDoneFlag=true;lvNext()}
+function lvNext(){if(LV&&lvQ<=0&&lvDoneFlag)listen()}
+function readAloud(txt){if(!window.speechSynthesis)return;lvGen++;lvQ=0;speechSynthesis.cancel();const lang=lvLang(txt),re=new RegExp(SEN.source,'g');let p=0,m;while((m=re.exec(txt))){say(clean(txt.slice(p,m.index+m[0].length)),lang);p=m.index+m[0].length}say(clean(txt.slice(p)),lang)}
+const LVT={hi:{hi:'हाँ, बोलिए। मैं सुन रहा हूँ।',err:'आवाज़ समझ नहीं आई। फिर से बोलिए।',mic:'माइक की अनुमति नहीं मिली। Chrome में ⋮ → Settings → Site settings → Microphone में इस साइट को Allow कीजिए।',net:'स्पीच सर्विस से जुड़ नहीं पाया। इंटरनेट जाँचिए।',nomic:'माइक नहीं मिला।'},en:{hi:'Go ahead, I am listening.',err:'I could not understand that. Please try again.',mic:'Microphone is blocked. In Chrome tap ⋮ → Settings → Site settings → Microphone and allow this site.',net:'Could not reach the speech service. Check your internet.',nomic:'No microphone found.'}};
+const lvT=k=>(LVT[ui()]||LVT.en)[k],lvHi=()=>vlang().toLowerCase().startsWith('hi')?LVT.hi.hi:LVT.en.hi;
+const lvLog=m=>{const e=$('ldiag');if(e)e.textContent=m||''};
+const canRec=()=>!!(SV&&SV.stt&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder);
+let lvMode='sr',lvFail=0,lvGT=0;
+function listen(){if(!LV||lvMute||lvRec)return;if(lvMode==='rec'||!SR){if(canRec()){lvMode='rec';listenRec()}else{$('lcap').textContent=lvT('net');lvSet('mute')}return}
+lvDoneFlag=false;lvPos=0;lvSet('listen');let heard='',err='';const t0=Date.now(),r=new SR();lvRec=r;r.lang=vlang();r.interimResults=true;r.continuous=false;
+r.onresult=e=>{heard=[...e.results].map(x=>x[0].transcript).join('');$('lcap').textContent=heard};
+r.onerror=e=>{err=e.error||'';lvLog('mic: '+err);
+if(err==='not-allowed'||err==='service-not-allowed'||err==='network'||err==='audio-capture'||err==='language-not-supported'){if(canRec()){lvMode='rec'}else if(err==='not-allowed'||err==='service-not-allowed'){LV=false;$('lcap').textContent=lvT('mic');lvSet('mute')}else $('lcap').textContent=err==='audio-capture'?lvT('nomic'):lvT('net')}};
+r.onend=()=>{if(lvRec!==r)return;lvRec=null;if(!LV)return;const h=heard.trim();
+if(h){lvFail=0;lvSet('think');$('in').value=h;go();return}
+if(Date.now()-t0<1500&&err!=='no-speech'&&err!=='aborted')lvFail++;
+if(lvFail>=3&&canRec()){lvMode='rec';lvLog('mic: recorder mode')}
+setTimeout(listen,lvMode==='rec'?100:(lvFail>=2?1500:400))};
+try{r.start()}catch(x){lvRec=null;lvFail++;lvLog('mic: '+((x&&x.name)||x));setTimeout(listen,700)}}
+async function listenRec(){if(!LV||lvMute||lvRec)return;lvDoneFlag=false;lvPos=0;lvSet('listen');
+let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}catch(e){LV=false;lvSet('mute');$('lcap').textContent=(e&&e.name==='NotFoundError')?lvT('nomic'):lvT('mic');lvLog('mic: '+((e&&e.name)||e));return}
+if(!LV||lvMute||lvRec){stream.getTracks().forEach(x=>x.stop());return}
+const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'].find(m=>MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m))||'';
+let rec;try{rec=new MediaRecorder(stream,mime?{mimeType:mime}:{})}catch(e){stream.getTracks().forEach(x=>x.stop());lvLog('rec: '+((e&&e.name)||e));setTimeout(listen,2000);return}
+const chunks=[];let cancel=false,voiced=false,lastV=0,timer=0,ac=null,an=null,buf=null;const t0=Date.now();
+const me={abort(){cancel=true;try{rec.stop()}catch(e){}}};lvRec=me;lvLog('mic: recorder');
+let lastSz=0;rec.ondataavailable=e=>{if(e.data&&e.data.size){chunks.push(e.data);lastSz=e.data.size}};
+try{const AC=window.AudioContext||window.webkitAudioContext;ac=new AC();try{ac.resume&&ac.resume()}catch(e){}const src=ac.createMediaStreamSource(stream);an=ac.createAnalyser();an.fftSize=1024;src.connect(an);buf=new Uint8Array(an.fftSize)}catch(e){an=null}
+rec.onstop=async()=>{clearInterval(timer);stream.getTracks().forEach(x=>x.stop());try{ac&&ac.close()}catch(e){}
+if(lvRec===me)lvRec=null;else if(cancel)return;if(!LV||cancel)return;if(!voiced||!chunks.length){setTimeout(listen,150);return}
+lvSet('think');$('lcap').textContent='…';
+try{const blob=new Blob(chunks,{type:rec.mimeType||mime||'audio/webm'}),L=(LC[S.rl]||(hasDev()?'hi-IN':'')).split('-')[0];
+const r=await fetch(API+'/transcribe'+(L?'?lang='+encodeURIComponent(L):''),{method:'POST',headers:{'Content-Type':blob.type||'application/octet-stream'},body:blob});
+const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+const h=String(j.text||'').trim();if(!LV)return;if(h){lvFail=0;$('lcap').textContent=h;$('in').value=h;go()}else{$('lcap').textContent=lvT('err');setTimeout(listen,300)}}
+catch(e){lvLog('stt: '+String((e&&e.message)||e).slice(0,90));$('lcap').textContent=lvT('err');if(LV)setTimeout(listen,2500)}};
+rec.start(250);
+timer=setInterval(()=>{if(!LV||lvMute||lvRec!==me){cancel=true;try{rec.stop()}catch(e){}return}
+let lvl=0;if(an&&ac&&ac.state==='running'){an.getByteTimeDomainData(buf);for(const v of buf)lvl=Math.max(lvl,Math.abs(v-128))}else if(lastSz>900)lvl=99;
+const now=Date.now();window.__lvl=Math.max(window.__lvl||0,lvl);if(lvl>12){voiced=true;lastV=now}
+if((voiced&&now-lastV>1300)||now-t0>20000||(!voiced&&now-t0>9000)){try{rec.stop()}catch(e){}}},100)}
+async function startLive(){if(!window.speechSynthesis||(!SR&&!canRec())){toast(t('lvNo'));return}
+LV=true;lvMute=false;lvInt=false;lvGen++;lvQ=0;lvFail=0;lvMode=SR?'sr':'rec';
+try{speechSynthesis.cancel();speechSynthesis.getVoices()}catch(e){}
+$('live').hidden=false;$('llang').value=$('lang').value;fillVoices();$('lcap').textContent='';lvLog('');$('lmute').textContent='\uD83C\uDF99';lvSet('think');
+try{if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(x=>x.stop())}}
+catch(e){if(!LV)return;LV=false;lvSet('mute');$('lcap').textContent=(e&&e.name==='NotFoundError')?lvT('nomic'):lvT('mic');lvLog('mic: '+((e&&e.name)||e));return}
+if(!LV)return;lvDoneFlag=true;say(lvHi(),vlang());
+clearTimeout(lvGT);lvGT=setTimeout(()=>{if(LV&&!lvRec&&!busy&&!lvMute){lvQ=0;lvDoneFlag=true;listen()}},6000)}
+function stopLive(){clearTimeout(lvGT);LV=false;lvGen++;lvQ=0;if(window.speechSynthesis)speechSynthesis.cancel();if(lvRec){const r=lvRec;lvRec=null;try{r.abort()}catch(e){}}lvInt=busy;if(busy&&ctl)ctl.abort();$('live').hidden=true;render()}
+$('lv').onclick=startLive;$('lend').onclick=stopLive;
+$('lorb').onclick=()=>{if(!LV){LV=true;lvMute=false;listen();return}
+if(lvQ>0||busy||speechSynthesis.speaking){lvGen++;lvQ=0;speechSynthesis.cancel();lvInt=busy;if(busy&&ctl)ctl.abort();lvDoneFlag=true;lvMute=false;listen()}else if(!lvRec){lvMute=false;listen()}};
+$('lmute').onclick=()=>{lvMute=!lvMute;$('lmute').textContent=lvMute?'🔇':'🎙';if(lvMute){if(lvRec){const r=lvRec;lvRec=null;try{r.abort()}catch(e){}}lvSet('mute')}else listen()};
+[...$('lang').options].forEach(o=>$('llang').append(o.cloneNode(true)));
+$('llang').onchange=e=>{$('lang').value=e.target.value;$('lang').onchange({target:$('lang')});fillVoices()};
+function fillVoices(){const sel=$('lvoice');if(!sel||!window.speechSynthesis)return;const lang=vlang(),b=lang.split('-')[0].toLowerCase();sel.innerHTML='';const o0=document.createElement('option');o0.value='';o0.textContent=t('vAuto');sel.append(o0);
+const vs=speechSynthesis.getVoices().filter(v=>v.lang.replace('_','-').toLowerCase().split('-')[0]===b);vs.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name+' ('+v.lang+')';sel.append(o)});
+if(!vs.length)o0.textContent=t('vNone');sel.value=(S.voice&&S.voice[lang])||''}
+function lvPreview(){if(LV){if(lvRec){const r=lvRec;lvRec=null;try{r.abort()}catch(e){}}lvDoneFlag=true}readAloud(t('hello'))}
+$('lvoice').onchange=e=>{const lang=vlang();S.voice=S.voice||{};if(e.target.value)S.voice[lang]=e.target.value;else delete S.voice[lang];lvVoice={};save();lvPreview()};
+$('lplay').onclick=lvPreview;
+if(window.speechSynthesis)speechSynthesis.onvoiceschanged=()=>{lvVoice={};fillVoices()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&LV)stopLive()});
+$('camb').onclick=openPhoto;$('nPhoto').onclick=openPhoto;$('nHome').onclick=goHome;$('nLive').onclick=()=>{$('side').classList.remove('open');startLive()};$('nImg').onclick=()=>{S.cur=null;stick=true;$('side').classList.remove('open');setIM({name:t('imMode')})};
+const pick=e=>{const f=e.target.files[0];e.target.value='';if(f)takeImage(f,false)};$('plive').onclick=camOn;$('pshot').onclick=shot;$('pcamoff').onclick=camOff;$('pflip').onclick=()=>{camFace=camFace==='environment'?'user':'environment';camOn()};$('plink').onclick=async()=>toast(await copyText(OPEN_URL)?t('phCopied'):t('copyFail'));$('pbrowse').href=OPEN_URL;document.querySelectorAll('.pbig').forEach(l=>l.addEventListener('click',watchPicker));$('scrim').onclick=()=>$('side').classList.remove('open');document.addEventListener('visibilitychange',()=>{if(document.hidden)camOff()});$('cam').onchange=pick;$('gal').onchange=pick;
+$('pclose2').onclick=closePhoto;$('photo').onclick=e=>{if(e.target===$('photo'))closePhoto()};
+$('psolve').onclick=()=>{if(!pimg)return;if(busy){toast(t('wait'));return}const note=$('pnote').value.trim();$('in').value=((PH.sub?'['+PH.sub+'] ':'')+((PST.find(p=>p[0]===PH.st)||[])[3]||'')+' '+note).replace(/\s+/g,' ').trim();$('pnote').value='';closePhoto();go()};
+document.querySelectorAll('.pbig,#att').forEach(l=>l.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();l.click()}}));
+const attachFile=f=>$('file').onchange({target:{files:[f],value:''}});
+window.addEventListener('error',e=>{if(e.message)toast(t('oops')+' ('+String(e.message).slice(0,70)+')')});
+window.NovaWorkspaceActions=Object.freeze({openPhoto,openArchive:openArch,startVoice:startLive,openAgentsSuite(){window.NovaSuite?.open()},openBusinessIntelligence(){window.NovaBusiness?.open()},openCompanyCloud(){window.NovaBusinessCloud?.open()},openImageStudio(){S.cur=null;stick=true;$('side').classList.remove('open');setIM({name:t('imMode')})}});
+window.addEventListener('unhandledrejection',e=>{const r=e.reason||{};if(r.name==='AbortError'||r.code==='aborted'||r.code==='not_granted')return;toast(t('oops')+(r.message?' ('+String(r.message).slice(0,70)+')':''))});
+document.addEventListener('paste',e=>{const f=[...((e.clipboardData&&e.clipboardData.files)||[])].find(x=>x.type.startsWith('image/'));if(f){e.preventDefault();takeImage(f,false)}});
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{e.preventDefault();const fs=[...(e.dataTransfer?e.dataTransfer.files:[])],f=fs.find(x=>x.type.startsWith('image/'));if(f)takeImage(f,false);else if(fs[0])attachFile(fs[0])});
+$('zoom').onclick=()=>{$('zoom').hidden=true};document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('zoom').hidden=true;$('harch').hidden=true;closePhoto()}});$('nArch').onclick=openArch;$('aclose').onclick=()=>{$('harch').hidden=true};$('harch').onclick=e=>{if(e.target===$('harch'))$('harch').hidden=true};
+document.title=CFG.brand;document.querySelectorAll('.brand b,#top b').forEach(e=>{e.textContent=CFG.brand});
+$('mode').onchange=e=>{S.mode=e.target.value;save()};
+$('setb').onclick=()=>{try{buildPers()}catch(e){}$('dset').showModal()};$('sclose').onclick=()=>$('dset').close();$('kbd').onclick=()=>$('dkbd').showModal();$('kclose').onclick=()=>$('dkbd').close();
+$('autoread').checked=!!S.ar;$('autoread').onchange=e=>{S.ar=e.target.checked;save()};
+const applyFS=()=>{document.body.style.fontSize=(S.fs||16)+'px'};applyFS();
+$('finc').onclick=()=>{S.fs=Math.min(22,(S.fs||16)+1);applyFS();save()};$('fdec').onclick=()=>{S.fs=Math.max(13,(S.fs||16)-1);applyFS();save()};
+$('wipe').onclick=async()=>{if(!await askYN(t('wipeQ')))return;const th=S.theme;try{localStorage.removeItem('nova')}catch(e){}S={chats:[],cur:null,rl:'Auto',mem:'',ci:'',mode:'default',cfg:{base:CFG.base||'https://openrouter.ai/api/v1',model:CFG.model||'',key:''},theme:th};$('lang').value='Auto';$('autoread').checked=false;applyFS();doc=null;pimg=null;IM=null;$('in').value='';$('dset').close();applyUI();render();toast(t('wiped'))};
+$('xcopy').onclick=async()=>{const c=chat();if(c)toast(await copyText(chatMd(c))?t('copied'):t('copyFail'))};
+$('xexp').onclick=()=>{const c=chat();if(c)saveText((c.title||'chat').replace(/[^\w\u0900-\u097F]+/g,'_').slice(0,40)+'.md',chatMd(c),'text/markdown')};
+$('tobot').onclick=()=>{stick=true;const m=$('msgs');m.scrollTo({top:m.scrollHeight,behavior:'smooth'});$('tobot').hidden=true};
+window.addEventListener('offline',()=>toast(t('offl')));window.addEventListener('online',()=>toast(t('onl')));
+document.addEventListener('keydown',e=>{const mod=e.ctrlKey||e.metaKey,k=(e.key||'').toLowerCase();if(mod&&k==='k'){e.preventDefault();$('side').classList.add('open');$('q').focus()}else if(mod&&e.shiftKey&&k==='o'){e.preventDefault();newChat()}else if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&!document.querySelector('dialog[open]')&&$('photo').hidden){e.preventDefault();$('in').focus()}});
+if(S.draft){$('in').value=S.draft;$('in').oninput({target:$('in')})}
+if('serviceWorker' in navigator&&!IN_ART&&(location.protocol==='https:'||/^(localhost|127\.0\.0\.1)$/.test(location.hostname))){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+function syncAcc(){const on=S.acc!==false;$('acc').classList.toggle('on',on);$('acc').setAttribute('aria-pressed',on);$('acc').title=t('accT');$('acc').setAttribute('aria-label',t('accT'));$('accset').checked=on;$('ultset').checked=S.ult!==false}
+const setAcc=v=>{S.acc=v;save();syncAcc()};
+$('acc').onclick=()=>{setAcc(S.acc===false);toast(t(S.acc!==false?'accOn':'accOff'))};$('accset').onchange=e=>setAcc(e.target.checked);$('ultset').onchange=e=>{S.ult=e.target.checked;save()};
+applyUI();syncFeatures();const WAIT=!!(window.claude&&window.claude.use)||location.protocol.startsWith('http');if(WAIT)setTimeout(()=>{if(!first){first=true;render()}},450);else{first=true;render()}
