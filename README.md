@@ -4,7 +4,7 @@ NOVA core app is live at https://novaai-4auo.onrender.com. Render serves app com
 
 Supabase is ACTIVE_HEALTHY with 15 migrations; nova-bi-api is ACTIVE v14 with JWT verification. Security and Health Advisors currently report zero findings.
 
-**Sales boundary:** supervised non-paid discovery and preview only, using synthetic/non-sensitive data. Paid checkout, server-side entitlements, general NOVA account login/cloud chat sync, verified email delivery, real-account tenant isolation, privacy/retention/deletion, support/incident response, backup/restore, always-on hosting, physical Android testing and full AI-provider quality/cost evaluation are not yet complete. NOVA BI remains a limited preview, not a production business-data service. Do not promise SLA, enterprise readiness, confidentiality guarantees or perfect AI answers.
+**Sales boundary:** Only limited concept/discovery conversations are permitted. Paid sales, customer onboarding and confidential-data use remain blocked. Supervised non-paid previews only, using synthetic/non-sensitive data. Paid checkout, server-side entitlements, general NOVA account login/cloud chat sync, verified email delivery, real-account tenant isolation, privacy/retention/deletion, support/incident response, backup/restore, always-on hosting, physical Android testing and full AI-provider quality/cost evaluation are not yet complete. NOVA BI remains a limited preview, not a production business-data service. Do not promise SLA, enterprise readiness, confidentiality guarantees or perfect AI answers.
 
 See [PITCH_READINESS.md](PITCH_READINESS.md) for the release gates and [NOVA_PITCH_KIT.md](NOVA_PITCH_KIT.md) for approved discovery messaging. Older status entries below are historical only.
 
