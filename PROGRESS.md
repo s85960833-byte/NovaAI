@@ -1,13 +1,14 @@
 ## Current verified status — 8 November 2026
 
-- Production core app: LIVE at https://novaai-4auo.onrender.com.
-- Live code commit: f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8; deployment dep-dbo3i7m417fc73f6bdbg.
-- Main contains later documentation-only sales-readiness updates; the deployed application code remains the verified live commit listed above.
-- Core release CI [#42465380068](https://github.com/s85960833-byte/NovaAI/actions/runs/42465380068) and post-docs main CI [#42466432792](https://github.com/s85960833-byte/NovaAI/actions/runs/42466432792): both passed 38 steps, 0 failures. Live route smoke, CSP/HSTS, PWA/assets, five-viewport mobile, Company Cloud browser flows and free image generation passed.
-- Supabase: ACTIVE_HEALTHY, PostgreSQL 17.11, 15 migrations, Edge Function nova-bi-api ACTIVE v14 with JWT verification; Security and Health Advisors zero findings.
+- Production core app: LIVE at https://novaai-4auo.onrender.com on commit f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8, deployment dep-dbo3i7m417fc73f6bdbg.
+- PR #83 merged account UI and optional per-user cloud sync to main at c8ad3c646d68bde2836810995f2e91d87691cfe7. Render has not yet deployed this commit; account UI is not yet live.
+- Main CI [#42468478954](https://github.com/s85960833-byte/NovaAI/actions/runs/42468478954): 38 successful steps, 0 failures. Live route smoke, CSP/HSTS, PWA/assets, five-viewport mobile, Company Cloud browser flows and free image generation passed.
+- Feature CI [#42468340703](https://github.com/s85960833-byte/NovaAI/actions/runs/42468340703) and targeted account/browser CI [#42468340606](https://github.com/s85960833-byte/NovaAI/actions/runs/42468340606) passed.
+- Supabase: ACTIVE_HEALTHY, PostgreSQL 17.11, 16 migrations, Edge Function nova-bi-api ACTIVE v14 with JWT verification; Security and Health Advisors zero findings. The new per-user workspace table is deployed with RLS, four auth.uid() ownership policies and anonymous SELECT denied.
+- Account code: email/password sign-up, sign-in, recovery and resend UI; optional sync is off by default, excludes image attachments and offers cloud-backup deletion. Real Auth email flows and two-account isolation have not been tested.
 - Sales boundary: non-paid discovery and supervised previews with synthetic data only. Paid sales/onboarding remains NO-GO.
-- Remaining gates: general NOVA auth/cloud sync, live Auth email/SMTP and two-account tenant isolation, subscription checkout/entitlements/refunds, privacy/retention/deletion/support/incident process, paid always-on hosting and restore drill, health-check path, main branch protection, physical Android testing, live full-model/search/voice accuracy and cost evaluation, and NOVA BI's remaining tenant-backed data/action limitations.
-- Do not claim SLA, enterprise/security certification, guaranteed uptime/AI accuracy, account sync, paid billing or production BI.
+- Remaining gates: Render deployment of account code; Auth URL/redirect and SMTP; real signup/reset email tests; two-account isolation; account deletion; payment checkout/entitlements/refunds; final privacy/terms/support/incident process; paid always-on hosting and restore drill; health-check path; main branch protection; physical Android testing; live full-model/search/voice accuracy and cost evaluation; NOVA BI tenant-backed data/action limitations.
+- Do not claim SLA, enterprise/security certification, guaranteed uptime/AI accuracy, account sync in the live app, paid billing or production BI.
 - Historical entries below are retained for reference; this block is authoritative.
 
 ---
