@@ -172,6 +172,16 @@ try{
  assert.equal(await desktop.locator('#box').isVisible(),true,'Image Studio must reveal the composer while the workspace dashboard is mounted');
  assert.equal(await desktop.locator('#in').isVisible(),true,'Image Studio prompt must be reachable from NOVA Build');
  console.log('PASS NOVA Build Image Studio launcher opens the image prompt composer');
+ await desktop.locator('#imbar').click();
+ await desktop.waitForFunction(()=>!document.body.classList.contains('nova-image-mode'));
+ assert.equal(await desktop.locator('#box').isVisible(),false,'closing Image Studio must restore the clean workspace home');
+ await desktop.locator('#hi .nr-card[data-group="learn"]').click();
+ await desktop.locator('#novaModes.open').waitFor();
+ await desktop.locator('#nmContent [data-quick="openPhoto"]').click();
+ await desktop.locator('#photo').waitFor({state:'visible'});
+ await desktop.locator('#pclose2').click();
+ await desktop.waitForFunction(()=>document.querySelector('#photo').hidden);
+ console.log('PASS Learn Photo Questions launcher opens and closes the existing photo-question panel');
 
  const mobileContext=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2,isMobile:true,hasTouch:true});
  const mobile=await mobileContext.newPage();
