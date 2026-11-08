@@ -101,7 +101,7 @@ $('novaRecoveryForm').addEventListener('submit',async e=>{
 });
 $('novaCloudSync').addEventListener('change',async e=>{
  if(e.target.checked){
-  if(!confirm('Enable cloud sync? Chat text, titles and memory will be stored in your NOVA account. Image attachments are excluded.')){
+  if(!confirm('Enable cloud sync? Up to 40 recent chats (up to 150 messages each), extracted text from attached documents, saved memory and custom instructions will be stored in your NOVA account. Image attachments themselves are excluded. Avoid syncing sensitive content.')){
    e.target.checked=false;return;
   }
   try{setEnabled(true)}catch(err){e.target.checked=false;say(err.message,true);return}await syncNow();
