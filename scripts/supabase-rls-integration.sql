@@ -308,7 +308,7 @@ begin
 end $workspace_privileges$;
 
 -- Static privilege checks are run as the database owner after all RLS scenarios.
-do $
+do $$
 begin
   if has_function_privilege('authenticated','public.nova_bi_organization_bootstrap_guard()','execute') then
     raise exception 'Authenticated clients must not execute organization trigger functions directly';
