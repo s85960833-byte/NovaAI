@@ -320,7 +320,7 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
       if (typeof input.name !== "string" || input.name.trim().length < 1 || input.name.trim().length > 160) return fail("Dataset name must be 1 to 160 characters");
       if (!["csv", "xlsx", "manual", "integration"].includes(String(input.source_type))) return fail("Unsupported source_type");
       if (typeof input.fingerprint !== "string" || input.fingerprint.length < 8 || input.fingerprint.length > 160) return fail("Invalid dataset fingerprint");
-      if (!Number.isInteger(input.row_count) || input.row_count < 0 || input.row_count > 20000) return fail("row_count must be between 0 and 20000");
+      if (typeof input.row_count !== "number" || !Number.isInteger(input.row_count) || input.row_count < 0 || input.row_count > 20000) return fail("row_count must be between 0 and 20000");
       if (!Array.isArray(input.column_names) || input.column_names.length > 100 || input.column_names.some((x: unknown) => typeof x !== "string" || x.length > 100)) return fail("column_names must contain at most 100 short strings");
       const { data, error } = await db.from("nova_bi_datasets").insert({
         organization_id: input.organization_id, created_by: userId, name: input.name.trim(),
