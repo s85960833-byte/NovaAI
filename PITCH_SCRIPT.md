@@ -1,48 +1,51 @@
-# NOVA — Current Early Discovery Script
+# NOVA — Early Buyer-Interest Conversation Script
 
-**Status: LIMITED CONCEPT DISCOVERY ONLY.** Use this script for supervised product preview and non-paid discovery only. Do not offer a paid product or customer-data onboarding.
+**For supervised, non-paid discovery only.** Do not offer a paid product or customer-data onboarding.
 
-## 30-second Hindi intro
+## Opening — Hindi
 
-NOVA एक Hindi-English AI workspace है। इसमें पढ़ाई के लिए NOVA Learn, digital creation के लिए NOVA Build और रोज़मर्रा की AI सहायता के लिए NOVA Agents हैं। Core app live है और मुख्य interface तथा selected free-provider flows की जाँच हुई है। अभी हम शुरुआती users से feedback लेकर account security, privacy, reliability और billing को paid launch से पहले पूरा कर रहे हैं।
+NOVA एक Hindi-English AI workspace है। इसमें पढ़ाई के लिए NOVA Learn, digital creation के लिए NOVA Build और रोज़मर्रा की AI सहायता के लिए NOVA Agents हैं। Core app live है और automated तथा selected live checks पास हुए हैं। अभी हम product feedback और शुरुआती buyer interest समझ रहे हैं। Paid launch से पहले account security, privacy, recovery, support, Android testing और billing के कुछ जरूरी gates बाकी हैं।
 
-## 30-second English intro
+## Opening — English
 
-NOVA is a Hindi-English AI workspace for India. It brings learning, digital creation and everyday AI assistance together through NOVA Learn, NOVA Build and NOVA Agents. The core app is live and selected workflows have passed automated and live checks. We are gathering early feedback while completing account security, privacy, reliability and billing requirements before paid onboarding.
+NOVA is a Hindi-English AI workspace for India. It brings learning, digital creation and everyday assistant workflows together through NOVA Learn, NOVA Build and NOVA Agents. The core app is live and selected automated and live checks have passed. We are gathering product feedback and early buyer interest while completing account security, privacy, recovery, support, physical Android and billing requirements before any paid launch.
 
 ## Five-minute preview
 
-1. **Home:** show the three workspaces and explain their purpose.
-2. **Learn:** run one harmless sample question.
-3. **Build:** demonstrate a supported image/creation workflow; mention free-provider limits.
-4. **Agents:** run a short, harmless assistant task.
-5. **History and settings:** explain browser-local history and demonstrate settings.
-6. **Feedback:** ask which workflow matters and what must improve before adoption.
+1. Show the home screen and three workspaces.
+2. Run one harmless learning example.
+3. Demonstrate one supported creation workflow.
+4. Demonstrate one harmless assistant task.
+5. Explain local chat storage and optional cloud sync accurately.
+6. If showing NOVA BI, label it preview-only and use synthetic data.
+7. Ask for feedback; record only information the participant agrees to share.
 
-Use synthetic data only. Do not upload customer, employee, student, financial or confidential company information. Do not fake a successful generation if a provider fails; show the failure honestly and use a clearly labelled recording as backup.
+## Accurate cloud-sync statement
+
+Cloud sync is off by default. If explicitly enabled, it stores up to 40 recent chats (up to 150 messages each), message text, extracted text from attached documents, saved memory and custom instructions; image attachments themselves are excluded. Avoid syncing sensitive content. Turning sync off stops future uploads but does not delete an existing backup.
 
 ## Qualification questions
 
-- Which of the three workspaces is most useful?
+- Which workspace is most useful to you?
 - What problem do you currently solve with other tools?
-- How often does this problem occur?
-- What would you need to trust the workflow?
-- What would need to be ready before you consider paying?
+- How often does that problem occur?
+- What would you need to trust this workflow?
+- What must be ready before you consider adopting or paying for it?
 
 ## Objection handling
 
 **Can I subscribe now?**  
-Not yet. Checkout and server-side subscription enforcement are not configured.
+No. Paid checkout and server-side plan enforcement are not configured.
 
-**Can I use this for confidential company work?**  
-Not during this preview. Tenant-isolation, retention, deletion and operational recovery gates remain open.
+**Can I use confidential company data?**  
+No. The preview is limited to synthetic or non-sensitive sample data.
 
-**Is chat synced across devices?**  
-Not currently. General chat/settings history is browser-local.
+**Is account sync production-verified?**  
+Not end to end. Real email delivery, redirect settings and two-account isolation remain unverified.
 
 **Can you guarantee availability or answer quality?**  
-No. AI providers can be unavailable, rate-limited or produce incorrect answers.
+No. Providers can be unavailable, rate-limited or produce incorrect answers.
 
 ## Close
 
-Thank them for the feedback, record only the information they consent to share, and do not promise a launch date or paid plan until the remaining release gates have passed.
+Thank them for feedback. Do not request payment, confidential data, passwords or API keys. Do not promise a sale price, launch date, uptime or performance. Any actual purchase or ownership discussion must be handled by a responsible adult with qualified legal review.
