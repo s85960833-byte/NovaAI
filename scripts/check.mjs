@@ -63,6 +63,21 @@ syntaxCheck('NOVA app external script', appScript);
 syntaxCheck('NOVA config external script', configScript);
 if (!server.includes("'/nova-config.js','/nova-app.js'")) throw new Error('Externalized scripts are missing from the offline shell cache');
 if (!requiredCspFragments.every(fragment => html.includes(fragment))) throw new Error('Document resource Content Security Policy is incomplete');
+const accountClient = readFileSync('nova-account.js', 'utf8');
+const workspaceMigration = readFileSync('supabase/migrations/20261108093219_nova_user_workspace_sync.sql', 'utf8');
+syntaxCheck('nova-account.js', accountClient);
+if (!html.includes('id="novaAccountDialog"') || !html.includes('id="novaAccountMount"') || !html.includes('/nova-account.js')) throw new Error('NOVA account UI is not mounted in settings');
+if (!server.includes("app.get('/nova-account.js'")) throw new Error('NOVA account script route is missing');
+if (!cloudClientExportAvailable()) {}
+function cloudClientExportAvailable(){return readFileSync('nova-business-cloud.js','utf8').includes('getClient:ensureClient')}
+if (!cloudClientExportAvailable()) throw new Error('NOVA account must reuse the shared Supabase client');
+if (!accountClient.includes('signInWithPassword') || !accountClient.includes('.auth.signUp') || !accountClient.includes('resetPasswordForEmail') || !accountClient.includes('.auth.resend')) throw new Error('NOVA account auth flows are incomplete');
+if (!accountClient.includes("localStorage.getItem(SYNC_KEY)==='true'") || !accountClient.includes('Sync my chats') || !accountClient.includes('nova_user_workspaces')) throw new Error('Optional account cloud sync controls are missing');
+if (!accountClient.includes('Delete cloud backup') || !accountClient.includes("from('nova_user_workspaces').delete()")) throw new Error('User cloud-backup deletion control is missing');
+for (const fragment of ['enable row level security','to authenticated','(select auth.uid())','with check (user_id = (select auth.uid()))','payload_size']) {
+  if (!workspaceMigration.toLowerCase().includes(fragment)) throw new Error('Per-user workspace migration is missing security control: '+fragment);
+}
+if (workspaceMigration.includes('service_role') || workspaceMigration.includes('to anon')) throw new Error('Per-user workspace table must not expose anonymous or service-role access');
 const cloudClient = readFileSync('nova-business-cloud.js', 'utf8');
 if (!cloudClient.includes('const orgId=state.orgId') || !cloudClient.includes('if(state.orgId!==orgId)return')) throw new Error('Company switch must discard stale tenant responses');
 if (!cloudClient.includes('if(value!==raw)node.nodeValue=value') || !cloudClient.includes('if(value!==raw)el.setAttribute(attr,value)')) throw new Error('Company Cloud bilingual MutationObserver must skip unchanged DOM values to avoid a self-triggering mutation loop');
