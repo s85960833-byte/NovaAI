@@ -92,3 +92,22 @@ No live service, production database, Auth setting, billing plan, branch protect
 - The successful run passed syntax/security, PostgreSQL migration and tenant-RLS integration, Deno Edge Function type-check/CORS tests, BI calculations/CSV, dependency audit, local runtime/PWA, Chromium workspace/PDF, Company Cloud mobile-browser workflows and five-viewport responsive/drawer tests.
 - Live deployed Edge Function, Render/provider/image checks were skipped because this candidate is not deployed. No physical Android device, real SMTP/Auth email, or two-real-account live tenant test has been completed.
 - PR #73 remains Draft, open, unmerged and undeployed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. No live service, database, Auth setting, billing plan or deployment was changed.
+
+
+## Authoritative candidate status — 8 November 2026
+
+This section supersedes earlier dated candidate-head and CI snapshots above. Historical entries are retained as audit history; use this section for the current release decision.
+
+- Draft PR #73 head: `0411d158650c909c133d3eda069b587b04ac9d61`; open, Draft, unmerged. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`.
+- Exact-head CI run [#42430566602](https://github.com/s85960833-byte/NovaAI/actions/runs/42430566602) completed successfully. PostgreSQL migration/RLS integration, Edge Function type-check, BI calculations/CSV tests, dependency audit, Chromium/PDF, Company Cloud browser workflows and five-viewport mobile/drawer tests passed. No failed steps were reported.
+- The following live checks were skipped by workflow conditions: deployed Edge Function auth/CORS, live Render website/provider smoke, live image-generation smoke, and wait-for-production deployment. A green CI run is candidate verification, not production verification or physical Android testing.
+- Current GitHub comparison: 490 commits ahead of `main`, 0 behind, 64 changed files. This is a large review surface; the authorized project owner must review the full history and diff before any merge.
+- The connected Render service is configured to deploy `main`, on the Free plan in Singapore; no health-check path is configured. It has not been switched to this candidate.
+- Live Supabase Edge Function `nova-bi-api` remains ACTIVE v13 with `verify_jwt=true`; its deployed source still has wildcard CORS. Live migration history currently ends at `20261106130204`. Candidate migrations `20261106195900_nova_bi_rate_limit_search_path_hardening.sql` and `20261108120000_nova_bi_audit_admin_read_only.sql` are not applied live.
+- The candidate now consistently limits audit-log read access to active owners/admins in its database migration, Company Cloud UI, provider-neutral role permission map and regression tests. This is verified in isolated PostgreSQL CI only, not live Supabase.
+- No production deployment, live migration, Auth/SMTP setting, billing change, hosting-plan change, branch-protection change or real customer-data operation was performed in this work session.
+
+### Release decision remains NO-GO for paid sales or customer onboarding
+
+Outstanding gates remain: owner-approved release review; full diff/history review; apply candidate migrations and deploy the candidate Edge Function only with approval; live exact-origin CORS/auth tests; controlled real-account signup/confirmation/reset/invitation tests with verified custom SMTP and redirect allow-list; two-account cross-tenant and role tests; physical Android accessibility/performance checks; approved hosting, health checks, backups and restore drill; region/data-residency decision; CSP tightening; complete account deletion/retention/owner-transfer/privacy/incident-response/secret-rotation procedures; and verified branch protection. Do not collect confidential company or employee data, promise SLA/availability, or accept payment on the basis of candidate CI.
+
