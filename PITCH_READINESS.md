@@ -58,3 +58,8 @@ No paying customers, revenue, traction, valuation, security certification or SLA
 SMTP/domain settings, Supabase Auth URL allow-list, physical Android testing, hosting/merchant account decisions, legal approval, support ownership, backup destination and restore access require the responsible account owner. No paid plan or cost-bearing setting should be changed without explicit approval.
 
 **Final readiness label: NOT READY FOR PAID SALE OR PRODUCTION CUSTOMER ONBOARDING. LIMITED DISCOVERY ONLY.**
+
+
+## Newly identified cloud-sync conflict defect — 8 November 2026
+
+Code review of `nova-account.js` and `nova-app.js` found that when a chat with the same ID exists locally and remotely, the local copy unconditionally replaces the remote copy during merge. Newer messages added on another device can therefore be lost on the next sync. Saved memory and custom instructions are imported only when the local values are empty, so edits made on another device may not propagate. This is a confirmed multi-device sync limitation, not merely a missing test. Do not describe cloud sync as conflict-safe or rely on it for important data until merge semantics are repaired and regression-tested.
