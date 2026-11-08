@@ -369,3 +369,14 @@ test('NOVA BI API distinguishes malformed and oversized request input from serve
  assert.ok(edge.includes('new RequestInputError("Request body must be valid UTF-8", 400)'));
  assert.ok(edge.includes('if (error instanceof RequestInputError) return fail(message, error.status)'));
 });
+
+
+test('company audit events are visible only to active owners and admins',()=>{
+ const migration=readFileSync(path.join(__dirname,'..','supabase','migrations','20261108120000_nova_bi_audit_admin_read_only.sql'),'utf8');
+ const cloud=readFileSync(path.join(__dirname,'..','nova-business-cloud.js'),'utf8');
+ assert.ok(migration.includes('drop policy if exists nova_bi_audit_read_member'));
+ assert.ok(migration.includes("m.role in ('owner','admin')"));
+ assert.ok(migration.includes("m.status = 'active'"));
+ assert.ok(cloud.includes("const canViewAudit=['owner','admin'].includes(currentOrg?.role)"));
+ assert.ok(cloud.includes("if(role==='owner'||role==='admin')html+='<div class=\\\"ncb-card\\\"><b>Audit events</b>"));
+});
