@@ -418,3 +418,9 @@ This checkpoint supersedes older progress entries above wherever they describe N
 - Latest application-code verification remains exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) on `7f7d6bc475359c19975dbb8702205af5ad86cb30`. Intervening changes include documentation corrections and a PostgreSQL RLS integration-test update.
 - The documentation-only workflow does not replace the application-code run or the four live checks skipped on the unmerged feature branch.
 - PR #73 remains open, Draft, unmerged and undeployed. Production `main` remains unchanged.
+
+
+## Latest test-only candidate CI — 8 November 2026
+
+- Commit `e90f3f91525191b78149d8a02aa63133bdc0f029` passed exact-head GitHub Actions [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943). This adds an active-admin audit-read assertion to the isolated PostgreSQL RLS integration test; runtime application code and live Supabase were not changed.
+- Four live checks remain skipped on this unmerged candidate. PR #73 remains Draft, unmerged and undeployed.
