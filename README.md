@@ -56,3 +56,8 @@ Only non-paid, adult-supervised buyer-interest conversations and synthetic-data 
 - Start command: `node nova-server.txt`.
 - Supabase provides authentication and the optional per-user workspace-sync table, protected by row-level security.
 - Provider secrets must remain server-side; never commit keys or expose them in browser code.
+
+
+## Cloud-sync limitation to disclose
+
+A code review found that local chats with the same ID overwrite remote versions during sync, so newer messages from another device can be lost. Saved memory and custom instructions are imported only when the local values are empty. Cloud sync is therefore not conflict-safe yet; do not rely on it for important data or present it as production-ready. This must be fixed and regression-tested before customer onboarding.
