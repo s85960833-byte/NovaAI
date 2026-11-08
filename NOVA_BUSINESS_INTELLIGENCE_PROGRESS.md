@@ -5,8 +5,8 @@ Updated: 2026-11-08
 ## Authoritative current release checkpoint
 
 - Unified candidate: [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`; open, Draft, unmerged and undeployed. Use the PR's live comparison for commit/file counts; this document intentionally does not hard-code them.
-- Application-code snapshot: `7f7d6bc475359c19975dbb8702205af5ad86cb30`; subsequent changes include documentation corrections and a PostgreSQL RLS integration-test assertion; the latest test run is tracked in PR #73. Check Draft PR #73 and its linked Actions runs for the current documentation head and exact-head CI result. Never infer that skipped live checks passed.
-- Latest application-code verification snapshot: `7f7d6bc475359c19975dbb8702205af5ad86cb30`; exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) passed. Later changes include documentation corrections and the PostgreSQL RLS integration-test update.
+- Application-code snapshot: `7f7d6bc475359c19975dbb8702205af5ad86cb30`; subsequent changes include documentation corrections and a PostgreSQL RLS integration-test assertion; test-only commit `e90f3f91525191b78149d8a02aa63133bdc0f029` passed exact-head CI [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943). Check Draft PR #73 for the live branch head; never infer that skipped live checks passed. Never infer that skipped live checks passed.
+- Latest application-code verification snapshot: `7f7d6bc475359c19975dbb8702205af5ad86cb30`; exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) passed. Later changes include documentation corrections and the PostgreSQL RLS integration-test update; the test-only update passed exact-head CI [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943).
 - Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`; Render production remains configured to deploy `main`. No candidate merge or deployment occurred.
 - Live Supabase findings remain unchanged: candidate audit-read and rate-limit search_path migrations are pending; deployed `nova-bi-api` v13 still has wildcard CORS; live audit SELECT still permits active members. Do not describe candidate hardening as live.
 - Candidate CI covers PostgreSQL 17 migration/RLS integration, Deno Edge Function type-check and invitation/CORS tests, BI calculation/CSV validation, dependency audit, local runtime/PWA smoke, Chromium Company Cloud workflows and responsive viewport tests.
@@ -18,7 +18,7 @@ Updated: 2026-11-08
 - Unified feature branch: `feature/nova-integrated-release-20261106`.
 - Review: [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73), which combines the three-workspace UI and NOVA BI.
 - BI-only PR #67 is a predecessor; PR #46 is an older divergent branch. Do not merge either as a substitute for PR #73.
-- Latest application-code verification snapshot is `7f7d6bc475359c19975dbb8702205af5ad86cb30` (exact-head CI #42443089589 passed). Later changes include documentation corrections and a PostgreSQL RLS integration-test update; use PR #73 for current branch-head and exact status. PR #73 remains Draft, unmerged and undeployed; live CORS and candidate migrations are not applied.
+- Latest application-code verification snapshot is `7f7d6bc475359c19975dbb8702205af5ad86cb30` (exact-head CI #42443089589 passed). Later changes include documentation corrections and a PostgreSQL RLS integration-test update; test-only commit `e90f3f91525191b78149d8a02aa63133bdc0f029` passed exact-head CI [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943). PR #73 remains Draft, unmerged and undeployed; live CORS and candidate migrations are not applied.
 - Production `main`, Render and the live Supabase schema/function remain unchanged. No merge, production deployment, live migration, Auth config change or SMTP change has been performed.
 - Production `main` and Render service `srv-dbidhpc9v7es73d6ia80` remain untouched. No merge or production deployment has been performed.
 - Approved NOVA BI Supabase project: `qrfwsewppafhxibdboam`. The separate Research-to-Code project has not been used.
@@ -45,7 +45,7 @@ Updated: 2026-11-08
 
 ## Automated verification
 
-- Latest fully verified application-code snapshot: `7f7d6bc475359c19975dbb8702205af5ad86cb30`; exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) passed. Later changes include documentation corrections and a PostgreSQL RLS integration-test update.
+- Latest fully verified application-code snapshot: `7f7d6bc475359c19975dbb8702205af5ad86cb30`; exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) passed. Later changes include documentation corrections and a PostgreSQL RLS integration-test update; test-only commit `e90f3f91525191b78149d8a02aa63133bdc0f029` passed exact-head CI [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943).
 - Latest documentation-only checkpoint before this progress-note correction: head `36e0460ea905116e1c198e45ad3e6ff6754001f3`; exact-head CI [#42442558669](https://github.com/s85960833-byte/NovaAI/actions/runs/42442558669) passed. Its browser artifact contains 360×800, 390×844, 412×915, 760×1024 and 1280×800 Chromium screenshots. These are browser simulations, not physical Android-device evidence.
 - Candidate CI applies the committed migrations to a fresh PostgreSQL 17 database and exercises tenant isolation, membership, invitation, approval separation, branding, audited deletion and server-only rate-limit behavior.
 - Candidate CI type-checks the Edge Function and runs invitation/CORS unit tests, BI calculation/CSV tests, syntax/security checks, dependency audit, local runtime/PWA smoke, Chromium workspace/PDF tests, Company Cloud browser workflows and five-viewport responsive/drawer tests.
@@ -110,6 +110,12 @@ Updated: 2026-11-08
 
 - Unified candidate: [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`; open, unmerged and undeployed.
 - Latest application-code snapshot: `7f7d6bc475359c19975dbb8702205af5ad86cb30`; exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) succeeded. It includes PostgreSQL 17 migration/RLS integration, Deno checks, BI tests and Chromium browser tests. Four live-only checks remain skipped.
-- Current documentation-only candidate head: `a8385e98463f28fcf0e13547ee5bb5db2f1fe0ec`; exact-head documentation CI [#42443325980](https://github.com/s85960833-byte/NovaAI/actions/runs/42443325980) succeeded. This is not a new application-code verification.
+- At that earlier checkpoint, documentation-only head `a8385e98463f28fcf0e13547ee5bb5db2f1fe0ec` passed CI [#42443325980](https://github.com/s85960833-byte/NovaAI/actions/runs/42443325980). The subsequent test-only PostgreSQL RLS assertion commit `e90f3f91525191b78149d8a02aa63133bdc0f029` passed exact-head CI [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943).
 - Live release blockers remain: deployed Edge Function wildcard CORS, unapplied candidate audit-read and rate-limit search_path migrations, real Auth/SMTP and two-account testing, physical Android verification, backup/restore, privacy/retention/deletion, hosting/region/health checks, CSP hardening and branch-protection verification.
 - Keep PR #73 Draft. No merge, deployment, live migration, Auth/SMTP change or paid resource change was performed. Release decision remains **NO-GO** for paid sales, customer onboarding, sensitive company data or production promises.
+
+
+## Latest test-only RLS verification — 8 November 2026
+
+- Latest exact-head candidate CI: commit `e90f3f91525191b78149d8a02aa63133bdc0f029`; [run #42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943) completed successfully. This test-only change adds an active-admin audit-read assertion to the PostgreSQL 17 RLS integration suite; it does not change runtime application code. Four live-only release checks remain skipped.
+- Runtime application source remains at the previously verified application-code snapshot; the latest change only strengthens the isolated PostgreSQL integration test. Live Supabase policy was not changed.
