@@ -378,6 +378,7 @@ app.get('/nova-reference.js', (q, r) => r.set('Cache-Control', 'no-cache').type(
 app.get('/nova-business-core.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business-core.js')));
 app.get('/nova-business.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business.js')));
 app.get('/nova-business-cloud.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business-cloud.js')));
+app.get('/nova-account.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-account.js')));
 app.get('/', (q, r) => r.set('Cache-Control', 'no-store, no-cache, must-revalidate').sendFile(path.join(__dirname, 'index.html')));
 // ===================== LIVE INTELLIGENCE (keyless connectors + optional keys) =====================
 // Every connector returns normalized sources: { title, url, publisher, date, kind, connector, snippet, eventDate? }
