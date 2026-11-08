@@ -1,64 +1,63 @@
-# NOVA — Current Founder Pitch Kit
+# NOVA — Buyer-Interest Preview Kit
 
-**Status: LIMITED CONCEPT DISCOVERY ONLY.** Core NOVA app is live. No paid sales, customer onboarding or confidential-data use. This pack is approved for non-paid product discovery and supervised previews only. Do not take payment or onboard customers into production until the release gates in [PITCH_READINESS.md](PITCH_READINESS.md) are closed.
+**Status: Non-paid, adult-supervised discovery only.** Not an offer to sell, valuation, purchase agreement or production-readiness claim.
 
-## One-line pitch
+## One-line description
 
-NOVA is an India-oriented Hindi-English AI workspace that brings learning, digital creation and everyday AI assistance into one mobile-first experience.
+NOVA is an India-oriented Hindi-English AI workspace that brings learning, digital creation and everyday assistant workflows into NOVA Learn, NOVA Build and NOVA Agents.
 
-## 30-second pitch — Hindi
+Preview: https://novaai-4auo.onrender.com
 
-NOVA एक Hindi-English AI workspace है, जिसमें पढ़ाई के लिए NOVA Learn, digital creation के लिए NOVA Build और रोज़मर्रा की AI सहायता के लिए NOVA Agents हैं। इसका core experience live है और हमने इसके मुख्य mobile workflows तथा free image-generation path की automated और live जाँच की है। अभी हम शुरुआती users से feedback लेना चाहते हैं, ताकि account security, data privacy, reliability और paid launch से पहले जरूरी चीज़ों को सही तरह पूरा किया जा सके।
+## 30-second introduction — Hindi
 
-## 30-second pitch — English
+NOVA एक Hindi-English AI workspace है, जिसमें पढ़ाई के लिए NOVA Learn, digital creation के लिए NOVA Build और रोज़मर्रा की AI सहायता के लिए NOVA Agents हैं। Core app live है और automated browser, security तथा selected live workflow checks पास हुए हैं। अभी हम शुरुआती feedback और buyer interest समझ रहे हैं। Paid launch से पहले account email, two-account isolation, privacy, support, recovery, Android device testing और billing की बाकी जाँच पूरी करनी है।
 
-NOVA is a Hindi-English AI workspace for India, bringing learning, digital creation and everyday AI assistance into one mobile-first product through NOVA Learn, NOVA Build and NOVA Agents. The core app is live and its main interface and selected free-provider flows have passed automated and live checks. We are currently validating real user needs while completing account, privacy, reliability and billing requirements before paid onboarding.
+## 30-second introduction — English
 
-## Product map
+NOVA is a Hindi-English AI workspace for India, with NOVA Learn for learning, NOVA Build for digital creation and NOVA Agents for assistant workflows. The core app is live and selected automated, security and live workflow checks have passed. We are gathering early feedback and understanding buyer interest while completing account, privacy, recovery, support, physical-device and billing requirements before any paid launch.
 
-- **NOVA Learn:** study and learning workflows.
-- **NOVA Build:** digital creation and builder workflows.
-- **NOVA Agents:** everyday assistant and agent workflows.
+## What to demonstrate
 
-## Supervised preview flow
+1. Home screen and bilingual workspace navigation.
+2. One harmless sample learning prompt in NOVA Learn.
+3. One supported creation flow in NOVA Build; disclose free-provider limits.
+4. One harmless assistant task in NOVA Agents.
+5. Account settings only with a test account; explain cloud sync is OFF by default and real email/two-account isolation are not yet verified.
+6. NOVA BI only as a preview with synthetic data.
 
-1. Open the production URL and show the home screen.
-2. Explain the three workspaces and bilingual navigation.
-3. Use a harmless sample learning prompt.
-4. Open Build and demonstrate a supported creation flow; explain that free providers can be rate-limited.
-5. Open Agents and demonstrate only a currently working feature.
-6. Explain that general chat history is browser-local, not account-synced.
-7. If showing BI, label it as a preview, use synthetic sample data and explain that CSV rows are local and workflow proposals do not execute external actions.
+## Accurate account-sync explanation
 
-## Questions for discovery calls
+Chat history stays on the device by default. If a signed-in user explicitly enables optional cloud sync, NOVA uploads up to 40 recent chats (up to 150 messages each), message text, extracted text from attached documents, saved memory and custom instructions. Image attachments themselves are excluded. Avoid syncing sensitive information. Turning sync off stops future uploads but does not erase an existing cloud backup; use the separate delete-backup control.
 
-- Which workspace would solve a real recurring problem?
-- What tool or process do you use today for that task?
-- What would make you trust this workflow?
-- Which feature would you test again next week?
-- What would need to be ready before you would pay for it?
+## Discovery questions
 
-## Answers to common questions
+- Which workspace solves a real recurring problem?
+- What tool or process do you currently use instead?
+- Which workflow would you want to test again?
+- What privacy, reliability, support and recovery evidence would you need before adopting it?
+- What would need to be ready before you would consider a paid product?
 
-**Can I buy or subscribe today?**  
-Not yet. Paid checkout and server-side plan enforcement are not configured.
+## Questions buyers may ask
 
-**Can I upload company or customer data?**  
-Not for this preview. Use synthetic or non-sensitive sample data only.
+**Can I subscribe or pay today?**  
+No. Checkout and server-side subscription enforcement are not configured.
 
-**Is chat history synced to an account?**  
-No. General NOVA chat/settings history is currently browser-local.
+**Can I use confidential company/customer data?**  
+No. This preview is for synthetic or non-sensitive sample data only.
 
-**Is every AI provider guaranteed to work?**  
-No. Provider availability, latency and free-tier quotas vary.
+**Is account sync production-verified?**  
+No. It is optional and off by default. Real email delivery, redirect configuration and live two-account isolation remain unverified.
 
 **Is NOVA BI production-ready?**  
-No. It is a preview; some data remains browser-local and workflow proposals do not execute external actions.
+No. It is a preview only. Use synthetic data.
+
+**Is uptime guaranteed?**  
+No. The current Render Free plan has no always-on guarantee or SLA.
 
 ## Claims to avoid
 
-Do not claim paying customers, revenue, traction, perfect accuracy, guaranteed uptime, enterprise readiness, certifications, regulatory compliance, account sync, secure company-data processing, completed billing, or guaranteed support. Do not quote a subscription price or refund promise before costs and terms are approved.
+Do not claim paying customers, revenue, traction, valuation, perfect accuracy, guaranteed uptime, enterprise readiness, certification, compliance, completed billing, secure confidential-data processing or guaranteed support. Do not promise a sale price or completion date.
 
-## Current sales boundary
+## Boundaries
 
-Non-paid discovery and supervised previews are okay. No payment collection, production onboarding, confidential-data use or SLA promise until the release gates are complete.
+No payment, deposit, paid trial, customer onboarding or confidential-data processing. Any purchase, IP, ownership, payment or contract discussion must be handled by a responsible adult with qualified legal support.
