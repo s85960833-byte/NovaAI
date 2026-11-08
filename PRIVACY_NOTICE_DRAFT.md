@@ -9,7 +9,7 @@
 ## 1. Information NOVA may process
 
 - Account email and authentication/session information when a person creates or uses a NOVA account through Supabase Auth.
-- Chat text, chat titles and memory only when a signed-in user explicitly enables optional account cloud sync. Sync is off by default. Image attachments are excluded from this sync. The user can disable future sync or delete the stored cloud backup from Account settings.
+- Up to the 40 most recent chats (up to 150 messages per chat), chat titles, message text, extracted text from attached documents, saved memory and custom instructions when a signed-in user explicitly enables optional account cloud sync. Sync is off by default. Image attachments themselves are excluded. Users can disable future sync or delete the stored cloud backup from Account settings. Disabling sync does not erase an existing backup.
 - Chat messages, prompts, files, image inputs, audio/transcription content or generated outputs as needed to provide a requested feature. Depending on the selected feature and route, this content may be processed by NOVA's backend and forwarded to configured AI, search, image or speech providers.
 - Company Cloud preview data, including organization membership, dataset metadata, calculated aggregate analyses, assumptions/evidence, workflow proposals, approval/audit events and branding. Current Company Cloud flows process raw CSV rows in the browser; do not assume all future integrations do so.
 - Basic technical request information processed by hosting, security and provider infrastructure.
