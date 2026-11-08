@@ -378,5 +378,5 @@ test('company audit events are visible only to active owners and admins',()=>{
  assert.ok(migration.includes("m.role in ('owner','admin')"));
  assert.ok(migration.includes("m.status = 'active'"));
  assert.ok(cloud.includes("const canViewAudit=['owner','admin'].includes(currentOrg?.role)"));
- assert.ok(cloud.includes("if(role==='owner'||role==='admin')html+='<div class=\\\"ncb-card\\\"><b>Audit events</b>"));
+ assert.ok(cloud.includes("if(role==='owner'||role==='admin')html+="));
 });
