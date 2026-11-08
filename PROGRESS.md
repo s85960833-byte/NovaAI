@@ -409,7 +409,7 @@ This checkpoint supersedes older progress entries above wherever they describe N
 - Re-audit found the Edge Function body parser accepted valid JSON scalars/arrays/null until route code accessed object properties, causing avoidable server errors. Added `request-input.ts`, made malformed/non-object JSON return HTTP 400, added four Deno regression tests and corrected the row-count type guard after CI type-check caught it.
 - PR/README/pitch/security/progress records were reconciled with the latest code and live-state findings. Production `main` remains unchanged; no merge, deploy, live migration, or Auth/SMTP change was made.
 - Live CORS, audit-read policy and rate-limit search_path remain at the previously inspected production state; candidate migrations and exact-origin CORS are not deployed.
-- Physical Android testing, real SMTP/Auth and two-account tests, backup/restore, privacy/retention/deletion, hosting/health-check, CSP tightening, and branch-protection verification remain release blockers. Paid sales and production promises remain NO-GO.
+- Physical Android testing, real SMTP/Auth and two-account tests, backup/restore, privacy/retention/deletion, hosting/health-check and CSP tightening remain release blockers. GitHub reports `main.protected: false` with no repository rulesets; an authorized repository administrator must enable branch protection and required checks before release. Paid sales and production promises remain NO-GO.
 
 
 ## Documentation-head verification — 8 November 2026
