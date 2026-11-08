@@ -380,3 +380,10 @@ Safe reconciliation is deliberately not performed by this audit because the conn
 References: https://supabase.com/docs/reference/cli/supabase-migration-repair and https://supabase.com/docs/guides/deployment/database-migrations.
 
 **Status:** release-blocking migration-history reconciliation is documented but not executed. No live SQL, migration history, Edge Function, Auth configuration or hosting setting was changed.
+
+## 22. Re-audit addendum — 8 November 2026
+
+- Clean integrated candidate remains Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74), based on production `main`; current head `6045490e84d84f37e5ac7a31f87a01252523d946` passed exact-head CI [#42449142030](https://github.com/s85960833-byte/NovaAI/actions/runs/42449142030): 34 successful steps, 0 failures, 4 live-only checks skipped.
+- Additional candidate fixes: default branding is backfilled for organizations created before the branding migration; branding GET tolerates a missing legacy row; PostgreSQL RLS integration now asserts default branding bootstrap; CSV import rejects more than 100 columns.
+- Production `main`, Render and Supabase were not modified. Live wildcard CORS, broad audit-read policy, rate-limit search_path, migration timestamp reconciliation, SMTP/Auth, real two-account isolation, physical Android, backups/restore, privacy/deletion, hosting/branch protection and CSP remain release gates.
+- **Decision remains NO-GO** for paid sales, customer onboarding with real company data, or production/SLA promises until all gates are verified and approved by the authorized project owner.
