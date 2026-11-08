@@ -70,7 +70,7 @@ Authenticated clients have no general membership write access. Invitation accept
 
 ## Verification and release gates
 - GitHub Actions applies all migrations to a fresh PostgreSQL 17 instance and runs RLS integration scenarios.
-- Deno type-check and deployed Edge Function unauthenticated/CORS smoke checks run in CI.
+- Candidate CI runs Deno type-check plus local invitation/CORS unit tests. The deployed Edge Function unauthenticated/CORS smoke is conditional on `main` and is skipped for this unmerged feature branch.
 - Calculation, CSV validation, server/PWA smoke tests and a Playwright mobile-viewport Company Cloud flow run in CI.
 - Before public release, complete real two-account browser testing (including invite email delivery), manual Android accessibility/touch checks, production regression/live smoke tests, backup/restore validation and a documented retention/incident-response policy.
 - Do not merge or deploy without explicit owner approval.
