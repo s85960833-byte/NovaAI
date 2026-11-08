@@ -6,6 +6,44 @@ insert into auth.users(id,email) values
  ('44444444-4444-4444-8444-444444444444','bi-invitee@example.invalid'),
  ('55555555-5555-4555-8555-555555555555','bi-analyst@example.invalid');
 
+-- Exercise the standalone NOVA account workspace table independently of NOVA BI tenants.
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+insert into public.nova_user_workspaces(user_id,payload)
+values('11111111-1111-4111-8111-111111111111','{"chats":[{"id":"owner-chat"}]}'::jsonb);
+do $workspace_owner$
+begin
+  if (select count(*) from public.nova_user_workspaces) <> 1 then
+    raise exception 'NOVA account owner cannot read their own workspace backup';
+  end if;
+end $workspace_owner$;
+reset role;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+do $workspace_outsider$
+begin
+  if exists(select 1 from public.nova_user_workspaces where user_id='11111111-1111-4111-8111-111111111111') then
+    raise exception 'Cross-account NOVA workspace backup leak detected';
+  end if;
+  begin
+    insert into public.nova_user_workspaces(user_id,payload)
+    values('11111111-1111-4111-8111-111111111111','{"chats":[{"id":"attacker-chat"}]}'::jsonb);
+    raise exception 'NOVA account user unexpectedly inserted a backup for another account';
+  exception when insufficient_privilege then
+    null;
+  end;
+end $workspace_outsider$;
+insert into public.nova_user_workspaces(user_id,payload)
+values('22222222-2222-4222-8222-222222222222','{"chats":[{"id":"outsider-own-chat"}]}'::jsonb);
+do $workspace_own$
+begin
+  if (select count(*) from public.nova_user_workspaces) <> 1 then
+    raise exception 'NOVA account user cannot read only their own workspace backup';
+  end if;
+end $workspace_own$;
+reset role;
+
 set role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
 insert into public.nova_bi_organizations(id,name,created_by)
@@ -251,6 +289,23 @@ begin
   end if;
 end $$;
 reset role;
+
+-- Static privilege checks are run as the database owner after all RLS scenarios.
+do $workspace_privileges$
+begin
+  if has_table_privilege('authenticated','public.nova_user_workspaces','TRUNCATE') then
+    raise exception 'Authenticated clients must not have TRUNCATE on account workspace backups';
+  end if;
+  if has_table_privilege('anon','public.nova_user_workspaces','SELECT') then
+    raise exception 'Anonymous clients must not read account workspace backups';
+  end if;
+  if not has_table_privilege('authenticated','public.nova_user_workspaces','SELECT')
+     or not has_table_privilege('authenticated','public.nova_user_workspaces','INSERT')
+     or not has_table_privilege('authenticated','public.nova_user_workspaces','UPDATE')
+     or not has_table_privilege('authenticated','public.nova_user_workspaces','DELETE') then
+    raise exception 'Authenticated clients must retain the required account workspace CRUD grants';
+  end if;
+end $workspace_privileges$;
 
 -- Static privilege checks are run as the database owner after all RLS scenarios.
 do $$
