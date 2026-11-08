@@ -1,16 +1,14 @@
-## Authoritative production re-audit — 8 November 2026
+## Authoritative security and deployment status — 8 November 2026
 
-This status block supersedes older release checkpoints below. Historical entries are retained as audit history only.
+This status block supersedes older release checkpoints below.
 
-- Integrated NOVA UI + Business Intelligence candidate PR #74 and the live-smoke-check correction PR #75 are **merged**. Production `main` is `25de14c7b9c5e44b7a716eaa9ea22ffe63f40c1a`.
-- Supabase project `qrfwsewppafhxibdboam` is `ACTIVE_HEALTHY`, PostgreSQL 17.11, region `eu-west-1`. All 15 migration versions are present, including the three forward migrations: rate-limit search_path hardening, owner/admin-only audit reads and branding backfill.
-- Deployed `nova-bi-api` is **ACTIVE v14**, with JWT verification enabled. Direct SQL confirms `nova_bi_consume_rate_limit` has an empty search_path; EXECUTE is denied to `anon` and `authenticated`, and allowed to `service_role`. All 10 NOVA BI tables have RLS enabled; audit SELECT is restricted to active owners/admins.
-- Supabase Security and Health Advisors report zero findings. Performance Advisor reports 13 INFO-level unused-index notices; do not drop indexes without workload evidence.
-- **Render has not deployed the merged main commit.** Service `srv-dbidhpc9v7es73d6ia80` is configured for branch `main` with auto-deploy enabled, but its newest deployment remains the old production baseline `48e12a68af656b471853ac2a4509da0e3df7ab24`. The main CI run [#42457722518](https://github.com/s85960833-byte/NovaAI/actions/runs/42457722518) failed only at its live-deployment wait: the current site returned HTTP 404 for `/nova-app.js`. Do not claim the merged frontend is live until a new Render deploy is confirmed and the live smoke passes.
-- Render remains on the Free plan in Singapore with no configured health-check path. No plan, region, environment-variable or health-check change is authorized by this status update.
-- Still unverified: real signup/confirmation/reset and invitation email delivery, Auth Site URL/redirect allow-list and custom SMTP, two-real-account tenant isolation on live Auth, physical Android touch/accessibility/performance, backup/restore drill, privacy/retention/account deletion and incident response, full membership/invitation revocation, CSP tightening, and GitHub branch protection (`main.protected=false`, no rulesets).
-- The app's general chat/settings/history remain browser-local; general NOVA account-backed chat sync and paid billing/entitlement enforcement are not established. BI CSV raw rows remain browser-local; workflow items are proposals, not external action execution; risk scores are heuristics; exports are capped at 100 latest records.
-- **Release decision: NO-GO for paid customer onboarding, confidential company data, SLA/availability promises or production-readiness claims.** Automated browser tests are not a physical Android test. Do not describe the new UI as live until Render deploy and production smoke pass.
+- Production core app remains live on Render commit f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8. PR #83 merged the general NOVA account/cloud-sync frontend at c8ad3c646d68bde2836810995f2e91d87691cfe7, but Render has not deployed that commit.
+- Supabase project qrfwsewppafhxibdboam is ACTIVE_HEALTHY, PostgreSQL 17.11, eu-west-1, with 16 migrations. The new per-user workspace table has RLS and four auth.uid()-scoped policies; anonymous SELECT is denied. Security and Health Advisors return zero findings.
+- The new frontend account flow is merged but not live. It provides email/password sign-up/sign-in, recovery/resend and explicit opt-in chat sync (text/title/memory only; image attachments excluded); a cloud-backup deletion control is included. Real Auth email delivery, two-account isolation and account deletion remain unverified/not complete.
+- Deployed nova-bi-api remains ACTIVE v14 with JWT verification. The browser contains only the Supabase publishable key; service-role credentials remain server-side.
+- Render remains Free in Singapore, one instance, with no configured /health path. Do not promise always-on availability, backups, restore guarantees or SLA.
+- Remaining gates include Auth Site URL/redirect and SMTP configuration, real account tests, account deletion, payment/entitlement/refund implementation, final privacy/terms/support/incident process, backup/restore, physical Android testing, main branch protection and live AI quality/cost evaluation.
+- **Release decision: LIMITED NON-PAID DISCOVERY ONLY. NO-GO for paid onboarding, confidential company data, enterprise/security claims or SLA promises.**
 
 ---
 
