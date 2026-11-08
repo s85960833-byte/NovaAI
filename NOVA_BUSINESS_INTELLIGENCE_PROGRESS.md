@@ -3,7 +3,7 @@
 Updated: 2026-11-07
 
 ## Authoritative current release checkpoint
-- Current unified candidate is Draft PR #73 on `feature/nova-integrated-release-20261106`; current head `18f9c6567d83e0c73add7e41f7e0050d4391a98f`, 496 commits ahead of production `main`, 0 behind, 64 changed files. Open, Draft, unmerged and undeployed.
+- Current unified candidate is Draft PR #73 on `feature/nova-integrated-release-20261106`; current head `18f9c6567d83e0c73add7e41f7e0050d4391a98f`, 501 commits ahead of production `main`, 0 behind, 64 changed files. Open, Draft, unmerged and undeployed.
 - Latest application-code verification snapshot: `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a`; exact-head CI #42434333838 passed with 34 successful steps, 0 failed and 4 live-production checks skipped. Later commits only update documentation.
 - Live Supabase: 12 migrations; candidate audit-read and rate-limit search_path migrations remain pending. Live `nova-bi-api` v13 still has wildcard CORS. The live audit SELECT policy still allows active members, while candidate restricts it to owners/admins.
 - All 10 BI tables have RLS enabled; Security and Health Advisors currently return zero findings. Performance Advisor has 13 INFO-only unused-index notices.

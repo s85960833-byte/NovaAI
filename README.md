@@ -14,7 +14,7 @@ The unified NOVA candidate (three-workspace UI + Business Intelligence) is on `f
 
 Production URL: https://novaai-4auo.onrender.com
 
-Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. Unified candidate PR #73 is open, Draft, unmerged and undeployed; current candidate head is `18f9c6567d83e0c73add7e41f7e0050d4391a98f` (496 commits ahead, 0 behind, 64 changed files). The latest application-code CI passed on `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a` with 34 successful steps, 0 failed and 4 live-production steps skipped; later commits only update documentation. Live Supabase still has wildcard CORS, broad audit-log SELECT policy and the older rate-limit function search_path; candidate fixes are not live. See `PITCH_READINESS.md` for current release gates.
+Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. Unified candidate PR #73 is open, Draft, unmerged and undeployed; see Draft PR #73 for the current candidate head (501 commits ahead, 0 behind, 64 changed files). The latest application-code CI passed on `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a` with 34 successful steps, 0 failed and 4 live-production steps skipped; later commits only update documentation. Live Supabase still has wildcard CORS, broad audit-log SELECT policy and the older rate-limit function search_path; candidate fixes are not live. See `PITCH_READINESS.md` for current release gates.
 
 ## Architecture
 
