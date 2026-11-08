@@ -63,6 +63,20 @@ syntaxCheck('NOVA app external script', appScript);
 syntaxCheck('NOVA config external script', configScript);
 if (!server.includes("'/nova-config.js','/nova-app.js'")) throw new Error('Externalized scripts are missing from the offline shell cache');
 if (!requiredCspFragments.every(fragment => html.includes(fragment))) throw new Error('Document resource Content Security Policy is incomplete');
+const accountClient = readFileSync('nova-account.js', 'utf8');
+const workspaceMigration = readFileSync('supabase/migrations/20261108093219_nova_user_workspace_sync.sql', 'utf8');
+syntaxCheck('nova-account.js', accountClient);
+if (!html.includes('id="novaAccountDialog"') || !html.includes('id="novaAccountMount"') || !html.includes('/nova-account.js')) throw new Error('NOVA account UI is not mounted in settings');
+if (!server.includes("app.get('/nova-account.js'")) throw new Error('NOVA account script route is missing');
+function cloudClientExportAvailable(){return readFileSync('nova-business-cloud.js','utf8').includes('getClient:ensureClient')}
+if (!cloudClientExportAvailable()) throw new Error('NOVA account must reuse the shared Supabase client');
+if (!accountClient.includes('signInWithPassword') || !accountClient.includes('.auth.signUp') || !accountClient.includes('resetPasswordForEmail') || !accountClient.includes('.auth.resend')) throw new Error('NOVA account auth flows are incomplete');
+if (!accountClient.includes("localStorage.getItem(SYNC_KEY)==='true'") || !accountClient.includes('Sync my chats') || !accountClient.includes('nova_user_workspaces')) throw new Error('Optional account cloud sync controls are missing');
+if (!accountClient.includes('Delete cloud backup') || !accountClient.includes("from('nova_user_workspaces').delete()")) throw new Error('User cloud-backup deletion control is missing');
+for (const fragment of ['enable row level security','to authenticated','(select auth.uid())','with check (user_id = (select auth.uid()))','payload_size']) {
+  if (!workspaceMigration.toLowerCase().includes(fragment)) throw new Error('Per-user workspace migration is missing security control: '+fragment);
+}
+if (workspaceMigration.includes('service_role') || workspaceMigration.includes('to anon')) throw new Error('Per-user workspace table must not expose anonymous or service-role access');
 const cloudClient = readFileSync('nova-business-cloud.js', 'utf8');
 if (!cloudClient.includes('const orgId=state.orgId') || !cloudClient.includes('if(state.orgId!==orgId)return')) throw new Error('Company switch must discard stale tenant responses');
 if (!cloudClient.includes('if(value!==raw)node.nodeValue=value') || !cloudClient.includes('if(value!==raw)el.setAttribute(attr,value)')) throw new Error('Company Cloud bilingual MutationObserver must skip unchanged DOM values to avoid a self-triggering mutation loop');
@@ -120,10 +134,11 @@ if (!appScript.includes('Your API key is never included') || !appScript.includes
 if (html.includes('CHAT · LEARN · MASTER') || html.includes('IMAGINE · DESIGN · CREATE') || html.includes('RESEARCH · DISCOVER · EXPLORE')) throw new Error('Old four-workspace visual shell remains');
 if (!html.includes('id="dset"')) throw new Error('Settings panel missing');
 if (appScript.includes('Nova AI has no server of its own') || appScript.includes('Nova AI का अपना कोई सर्वर नहीं है।')) throw new Error('Outdated privacy disclosure incorrectly says NOVA has no backend');
-if (!appScript.includes('backend hosted on Render') || !appScript.includes('account-based cloud chat sync')) throw new Error('NOVA backend and local-storage privacy disclosures are missing');
+if (!appScript.includes('backend hosted on Render') || !appScript.includes('Optional account-based cloud sync is OFF by default') || !appScript.includes('image attachments are excluded')) throw new Error('NOVA backend and cloud-sync privacy disclosures are missing');
 if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
 if (!appScript.includes('async function pollImageJob(') || !appScript.includes("API+'/image/status/'") || !appScript.includes('pollImageJob(j.jobId,sig)') || !appScript.includes("sig.addEventListener('abort',abort,{once:true})") || !appScript.includes("e1?.status===429")) throw new Error('Image studio must abort polling promptly and must not bypass server image rate limits');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
-if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'")) throw new Error('Existing optional feature asset routes missing');
+if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'") || !server.includes("app.get('/nova-account.js'")) throw new Error('Existing optional feature asset routes missing');
+if (!server.includes("const CACHE='nova-shell-v18-account-sync'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
 // Frontend entry points are external files and are syntax-checked above.
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');

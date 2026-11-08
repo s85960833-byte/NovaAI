@@ -88,15 +88,15 @@ await page.route('https://fonts.gstatic.com/**', route => route.abort());
 let supabaseStubHit = false;
 await page.route(/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js/, route => {
   supabaseStubHit = true;
-  return route.fulfill({ status: 200, contentType: 'application/javascript', body: `let testSession = null; let authListener = null;
+  return route.fulfill({ status: 200, contentType: 'application/javascript', body: `let testSession = null; let authListeners = [];
 window.__authCalls = [];
-window.__emitAuthEvent = (event, session) => authListener && authListener(event, session);
+window.__emitAuthEvent = (event, session) => authListeners.forEach(listener => listener(event, session));
 window.supabase = {
   createClient: function () {
     return {
       auth: {
         getSession: async () => ({ data: { session: testSession } }),
-        onAuthStateChange: (callback) => { authListener = callback; return { data: { subscription: { unsubscribe() {} } } }; },
+        onAuthStateChange: (callback) => { authListeners.push(callback); return { data: { subscription: { unsubscribe() { authListeners = authListeners.filter(listener => listener !== callback); } } } }; },
         signInWithPassword: async ({ email }) => {
           testSession = { access_token: 'fake-test-access-token', user: { id: '11111111-1111-4111-8111-111111111111', email } };
           return { data: { session: testSession, user: testSession.user }, error: null };

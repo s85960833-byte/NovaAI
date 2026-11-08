@@ -18,6 +18,17 @@ try{
  assert.ok(csp.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net"),'script CSP must allow only reviewed self/CDN script sources');
  assert.doesNotMatch(csp,/script-src[^;]*'unsafe-inline'/,'script CSP must not permit inline execution');
  assert.match(csp,/worker-src[^;]*https:\/\/cdn\.jsdelivr\.net/,'worker CSP must allow the pinned PDF.js worker origin');
+ await desktop.locator('#setb').click();
+ await desktop.locator('#dset').waitFor({state:'visible'});
+ await desktop.locator('#novaAccountOpen').waitFor({state:'visible'});
+ assert.equal(await desktop.evaluate(()=>localStorage.getItem('nova-cloud-sync-enabled')),null,'cloud chat sync must be opt-in and off by default');
+ await desktop.locator('#novaAccountOpen').click();
+ await desktop.locator('#novaAccountDialog').waitFor({state:'visible'});
+ assert.equal(await desktop.locator('#novaAccountEmailInput').isVisible(),true,'account dialog must expose email sign-in');
+ assert.equal(await desktop.locator('#novaSignUp').isVisible(),true,'account dialog must expose account creation');
+ await desktop.locator('#novaAccountClose').click();
+ await desktop.locator('#sclose').click();
+ console.log('PASS account dialog, email sign-in/create-account controls and opt-in-only cloud sync');
  const pdfSmoke=await desktop.evaluate(async()=>{
   const pdfjs=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.mjs');
   pdfjs.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.worker.mjs';
