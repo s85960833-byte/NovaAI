@@ -34,6 +34,9 @@ values('ffffffff-ffff-4fff-8fff-ffffffffffff','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaa
 
 do $rls_owner_seed$
 begin
+  if not exists (select 1 from public.nova_bi_branding where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and brand_name='Acme Test') then
+    raise exception 'Organization bootstrap must create default branding';
+  end if;
   if (select count(*) from public.nova_bi_organizations) <> 1 then
     raise exception 'Tenant isolation failed: owner should see exactly one organization';
   end if;

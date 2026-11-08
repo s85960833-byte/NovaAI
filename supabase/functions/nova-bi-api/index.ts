@@ -414,7 +414,7 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
       const { data, error } = await db.from("nova_bi_branding")
         .select("organization_id,brand_name,tagline,logo_url,primary_color,accent_color,updated_at")
         .eq("organization_id", orgId).single();
-      if (isNoRows(error)) return fail("Company branding record not found", 404);
+      if (isNoRows(error)) return json({ branding: null });
       if (error) throw error;
       return json({ branding: data });
     }

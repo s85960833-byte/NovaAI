@@ -12,6 +12,11 @@ create table if not exists public.nova_bi_branding (
   updated_at timestamptz not null default now()
 );
 
+-- Backfill organizations that existed before branding was introduced.
+insert into public.nova_bi_branding(organization_id,brand_name)
+select id,name from public.nova_bi_organizations
+on conflict (organization_id) do nothing;
+
 alter table public.nova_bi_branding enable row level security;
 revoke all on public.nova_bi_branding from anon, authenticated;
 grant select on public.nova_bi_branding to authenticated;
