@@ -188,8 +188,9 @@ try{
  console.log('PASS NOVA Build Image Studio launch, async image job polling and rendered image result');
  await desktop.locator('#imbar').click();
  await desktop.waitForFunction(()=>!document.body.classList.contains('nova-image-mode'));
- assert.equal(await desktop.locator('#box').isVisible(),false,'closing Image Studio must restore the clean workspace home');
- await desktop.locator('#hi .nr-card[data-group="learn"]').click();
+ assert.equal(await desktop.locator('#box').isVisible(),true,'closing Image Studio must return to the saved generated-image chat');
+ assert.equal(await desktop.locator('#log img.thumb[src^="data:image/png;base64,"]').count(),1,'generated image must remain visible after leaving Image Studio');
+ await desktop.evaluate(()=>window.NovaModeWorkspace.openGroup('learn'));
  await desktop.locator('#novaModes.open').waitFor();
  await desktop.locator('#nmContent [data-quick="openPhoto"]').click();
  await desktop.locator('#photo').waitFor({state:'visible'});
