@@ -184,7 +184,7 @@ try{
  await desktop.locator('#send').click();
  await desktop.locator('#log img.thumb[src^="data:image/png;base64,"]').waitFor({state:'visible',timeout:12000});
  assert.equal(imageRequests.length,1,'Build Image Studio must submit one image-generation job');
- assert.ok(imageRequests[0].prompt.includes('blue geometric star'),'image-generation request must include the user's prompt');
+ assert.ok(imageRequests[0].prompt.includes('blue geometric star'),"image-generation request must include the user's prompt");
  console.log('PASS NOVA Build Image Studio launch, async image job polling and rendered image result');
  await desktop.locator('#imbar').click();
  await desktop.waitForFunction(()=>!document.body.classList.contains('nova-image-mode'));
