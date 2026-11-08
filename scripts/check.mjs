@@ -125,6 +125,7 @@ for (const file of ['scripts/runtime-smoke.mjs','scripts/browser-smoke.mjs','scr
 
 if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
 if (!html.includes('id="uiLang"') || !html.includes('<option value="en">English</option>') || !html.includes('<option value="hi">हिंदी</option>') || !appScript.includes("uiLang:'en'") || !appScript.includes("const ui=()=>S.uiLang==='hi'?'hi':'en'") || !appScript.includes("$('uiLang').onchange")) throw new Error('Independent English/Hindi interface language switch is missing');
+if (!appScript.includes("document.documentElement.dir='ltr'") || appScript.includes("const custom=S.tr&&S.tr[S.rl]")) throw new Error('Interface language must remain independent from chat reply language and direction');
 if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>html.includes(x))) throw new Error('NOVA Learn, Build and Agents workspace scripts are not connected in the homepage');
 if (!['src="/nova-business-core.js"','src="/nova-business.js"','src="/nova-business-cloud.js"'].every(x=>html.includes(x)) || !html.includes('@supabase/supabase-js@2.119.0')) throw new Error('NOVA BI scripts and Supabase client are not connected in the homepage');
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>html.includes(x))) throw new Error('NOVA dashboard UI components missing');
