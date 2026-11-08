@@ -41,7 +41,7 @@ if (supabaseDeno.imports?.['@supabase/server'] !== 'npm:@supabase/server@1.9.2')
 const biEdge = readFileSync('supabase/functions/nova-bi-api/index.ts', 'utf8');
 if (!biEdge.includes('return fail("NOVA Business Intelligence request failed", 500);')) throw new Error('Unexpected BI backend failures must return a server-error status');
 const rateLimitMigration = readFileSync('supabase/migrations/20261101000010_nova_bi_api_rate_limits.sql', 'utf8');
-if (!/security definer\s+set search_path = ''/.test(rateLimitMigration)) throw new Error('Rate-limit SECURITY DEFINER function must use an empty search_path');
+if (!/security definer\s+set search_path = public, pg_temp/.test(rateLimitMigration)) throw new Error('Original applied rate-limit migration must retain its historical search_path; forward hardening belongs in a separate migration');
 const forwardHardening = readFileSync('supabase/migrations/20261106195900_nova_bi_rate_limit_search_path_hardening.sql', 'utf8');
 if (!/alter function public\.nova_bi_consume_rate_limit\([\s\S]*?set search_path = ''/i.test(forwardHardening)) throw new Error('Forward migration must harden the already-applied rate-limit function');
 if (!/revoke all[\s\S]*?from public, anon, authenticated/i.test(forwardHardening)) throw new Error('Forward migration must keep rate-limit RPC private to service_role');

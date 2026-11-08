@@ -12,6 +12,17 @@ insert into public.nova_bi_organizations(id,name,created_by)
 values('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','Acme Test','11111111-1111-4111-8111-111111111111');
 
 reset role;
+-- Simulate an organization that predates the branding row, then verify the forward-only backfill.
+delete from public.nova_bi_branding where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+insert into public.nova_bi_branding(organization_id,brand_name)
+select id,name from public.nova_bi_organizations
+on conflict (organization_id) do nothing;
+do $branding_backfill$
+begin
+  if not exists(select 1 from public.nova_bi_branding where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and brand_name='Acme Test') then
+    raise exception 'Forward branding backfill did not restore the missing organization branding row';
+  end if;
+end $branding_backfill$;
 set role authenticated;
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
 insert into public.nova_bi_organizations(id,name,created_by)

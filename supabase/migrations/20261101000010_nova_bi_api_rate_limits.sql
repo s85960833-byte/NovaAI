@@ -20,7 +20,7 @@ create or replace function public.nova_bi_consume_rate_limit(
 returns boolean
 language plpgsql
 security definer
-set search_path = ''
+set search_path = public, pg_temp
 as $$
 declare
   v_count integer;
