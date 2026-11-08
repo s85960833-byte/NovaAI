@@ -96,9 +96,9 @@ No live service, production database, Auth setting, billing plan, branch protect
 
 ## Authoritative candidate status — 8 November 2026
 
-This section supersedes earlier dated candidate-head and CI snapshots above. Historical entries are retained as audit history; use Draft PR #73 and its Checks/Actions links for the live candidate head and current CI status.
+This section supersedes earlier dated candidate-head and CI snapshots above. Historical entries are retained as audit history; use clean Draft PR #74 and its Checks/Actions links for the live candidate head and current CI status.
 
-- Unified candidate: Draft PR [#73](https://github.com/s85960833-byte/NovaAI/pull/73), branch `feature/nova-integrated-release-20261106`; open, Draft, unmerged and undeployed. Use the live PR comparison for commit/file counts; this document does not pin a mutable ahead-count.
+- Unified candidate: clean Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74), branch `feature/nova-integrated-release-clean-20261108`; open, Draft, unmerged and undeployed. It is based directly on production `main`; use the live PR comparison for commit/file counts.
 - Latest fully verified application-code snapshot: `7f7d6bc475359c19975dbb8702205af5ad86cb30`; exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) passed 34 successful steps, 0 failed, 4 live-only checks skipped. Subsequent changes include documentation corrections and a PostgreSQL RLS integration-test assertion; exact-head CI [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943) passed on test-only commit `e90f3f91525191b78149d8a02aa63133bdc0f029`.
 - The application-code update adds a dedicated request parser that rejects JSON `null`, arrays and scalar values with HTTP 400 rather than allowing a TypeError to become a server error. Deno tests cover valid objects, empty bodies, malformed JSON and non-object JSON. The browser viewport tests are Chromium simulations, not physical Android verification.
 - Successful automated candidate coverage includes syntax/security regression, PostgreSQL 17 migration and tenant-RLS integration, Deno Edge Function type-check and invitation/CORS tests, BI calculations/CSV, AI evaluation fixture validation, dependency audit, local runtime/PWA, Chromium workspace/PDF and Company Cloud browser flows, and five-viewport responsive/drawer tests.
@@ -122,7 +122,7 @@ No live production resources or customer data were changed. Keep PR #73 Draft an
 
 ## Current candidate security checkpoint — 8 November 2026
 
-Use [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73) and its Checks tab for the live candidate head and exact-head CI; historical green runs do not verify later commits. PR #73 remains Open, Draft, Unmerged and Undeployed. Production `main` remains unchanged. GitHub reports `main.protected: false` and no repository rulesets. Live Edge Function v13 still has wildcard CORS; candidate exact-origin CORS and database hardening migrations are not deployed. Keep NO-GO until live auth/CORS, real-account isolation, physical Android, recovery/privacy lifecycle, hosting and CSP are verified and owner-approved.
+Use clean [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) and its Checks tab for the live candidate head and exact-head CI; historical green runs do not verify later commits. PR #74 remains Open, Draft, Unmerged and Undeployed. Production `main` remains unchanged. GitHub reports `main.protected: false` and no repository rulesets. Live Edge Function v13 still has wildcard CORS; candidate exact-origin CORS and database hardening migrations are not deployed. Keep NO-GO until live auth/CORS, real-account isolation, physical Android, recovery/privacy lifecycle, hosting and CSP are verified and owner-approved.
 
 
 ## Supabase migration-history reconciliation blocker — 8 November 2026

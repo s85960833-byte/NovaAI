@@ -14,7 +14,7 @@ The unified NOVA candidate (three-workspace UI + Business Intelligence) is on `f
 
 Production URL: https://novaai-4auo.onrender.com
 
-Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. Unified candidate PR #73 is open, Draft, unmerged and undeployed; see Draft PR #73 for the current candidate head (the current comparison is shown in PR #73; the candidate remains unmerged). The latest application-code CI passed on `7f7d6bc475359c19975dbb8702205af5ad86cb30` with 44 BI unit tests, 12 Deno tests and 6 Playwright browser tests passed; live-only checks remain skipped; the latest test-only commit `e90f3f91525191b78149d8a02aa63133bdc0f029` extends the PostgreSQL RLS integration checks and passed exact-head CI [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943). Live Supabase still has wildcard CORS, broad audit-log SELECT policy and the older rate-limit function search_path; candidate fixes are not live. See `PITCH_READINESS.md` for current release gates.
+Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`. The clean unified candidate is Draft PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74), open, unmerged and undeployed, based directly on `main`. Exact-head CI for the consolidated branch is pending; prior green CI runs apply to the same source tree but do not replace the new PR checks. Live Supabase still has wildcard CORS, broad audit-log SELECT policy and the older rate-limit function search_path; candidate fixes are not live. See `PITCH_READINESS.md` for current release gates.
 
 ## Architecture
 
@@ -50,7 +50,7 @@ No merge, Production deployment, live Supabase migration, Edge Function replacem
 
 ## NOVA Business Intelligence
 
-NOVA BI is included in unified Draft PR #73 but is not launched or deployed. Do not use it with sensitive company data until real-account, privacy, retention and backup/restore gates are completed.
+NOVA BI is included in clean unified Draft PR #74 but is not launched or deployed. Do not use it with sensitive company data until real-account, privacy, retention and backup/restore gates are completed.
 
 The inspected Supabase project has 12 migrations, 10 RLS-enabled BI tables and an ACTIVE JWT-protected Edge Function v13. The latest Security and Health Advisors reported zero findings; Performance Advisor reported 13 unused-index INFO notices. Auth user, organization and membership counts were zero at the last inspection. These checks are not an enterprise certification or a public-launch approval.
 
@@ -79,4 +79,4 @@ This checkpoint supersedes older candidate-head and release-status notes above; 
 
 ## Current re-audit pointer — 8 November 2026
 
-PR [#74](https://github.com/s85960833-byte/NovaAI/pull/74) is the live source of truth for the candidate head, PR state and exact-head Checks/Actions. It remains Open, Draft, Unmerged and Undeployed. The latest fully verified application-code checkpoint remains `7f7d6bc475359c19975dbb8702205af5ad86cb30`; exact-head CI [#42443089589](https://github.com/s85960833-byte/NovaAI/actions/runs/42443089589) passed. The test-only PostgreSQL RLS assertion commit `e90f3f91525191b78149d8a02aa63133bdc0f029` also passed exact-head CI [#42443767943](https://github.com/s85960833-byte/NovaAI/actions/runs/42443767943). Subsequent changes are documentation-only; always verify the live PR Checks tab for the current documentation head rather than relying on a copied SHA. GitHub reports `main.protected: false` and no repository rulesets. Production `main` remains unchanged. Live CORS/migrations, real Auth/SMTP, two-account isolation, physical Android, backups/restore, privacy/deletion, hosting and CSP remain release gates. NO-GO for production, paid sales or customer-data onboarding.
+Clean [PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) is the live source of truth for the consolidated candidate head, PR state and exact-head Checks/Actions. It remains Open, Draft, Unmerged and Undeployed. The underlying application-code checkpoint and test-only PostgreSQL RLS assertion both passed their earlier exact-head CI runs; the new clean branch must pass its own checks. Subsequent clean-branch commits are documentation-only; always verify the live PR Checks tab for the current head rather than relying on a copied SHA. GitHub reports `main.protected: false` and no repository rulesets. Production `main` remains unchanged. Live CORS/migrations, real Auth/SMTP, two-account isolation, physical Android, backups/restore, privacy/deletion, hosting and CSP remain release gates. NO-GO for production, paid sales or customer-data onboarding.

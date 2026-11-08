@@ -428,7 +428,7 @@ This checkpoint supersedes older progress entries above wherever they describe N
 
 ## Latest live candidate checkpoint — 8 November 2026
 
-- Candidate branch and exact current head are displayed live in [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/74); consult its Checks tab for exact-head CI. Do not treat a prior SHA's green run as verification of a newer commit.
+- Candidate branch and exact current head are displayed live in clean [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74); consult its Checks tab for exact-head CI. Do not treat a prior SHA's green run as verification of a newer commit.
 - PR #73 remains Open, Draft, Unmerged and Undeployed. Production `main` remains `48e12a68af656b471853ac2a4509da0e3df7ab24`.
 - GitHub reports `main.protected: false`; repository rulesets are empty. An authorized repository administrator must enable protection and required checks.
 - Live Supabase still has wildcard CORS; candidate migrations remain unapplied. Real Auth/SMTP, two-account isolation, physical Android, hosting/health, backup/restore, privacy/deletion and CSP gates remain open. Release remains NO-GO.

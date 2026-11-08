@@ -123,7 +123,7 @@ Updated: 2026-11-08
 
 ## Current candidate and release checkpoint — 8 November 2026
 
-Candidate head and exact-head CI are intentionally not copied into this long-lived note; use [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) and its Checks tab as the live source of truth. PR #73 remains Open, Draft, Unmerged and Undeployed; production `main` is unchanged. GitHub reports `main.protected: false` with no repository rulesets. Live wildcard CORS and unapplied candidate migrations, Auth/SMTP, two-account isolation, physical Android, backup/restore, privacy/deletion, hosting and CSP remain release gates. Keep this module unreleased and NO-GO for paid onboarding or sensitive company data.
+Candidate head and exact-head CI are intentionally not copied into this long-lived note; use clean [Draft PR #74](https://github.com/s85960833-byte/NovaAI/pull/74) and its Checks tab as the live source of truth. PR #74 remains Open, Draft, Unmerged and Undeployed; production `main` is unchanged. GitHub reports `main.protected: false` with no repository rulesets. Live wildcard CORS and unapplied candidate migrations, Auth/SMTP, two-account isolation, physical Android, backup/restore, privacy/deletion, hosting and CSP remain release gates. Keep this module unreleased and NO-GO for paid onboarding or sensitive company data.
 
 
 ## Supabase migration-history reconciliation blocker — 8 November 2026
