@@ -263,6 +263,10 @@ test('NOVA BI white-label settings are tenant-scoped and owner/admin writable on
  assert.ok(migration.includes('nova_bi_branding_update_admin'));
  assert.ok(migration.includes('logo_url ~'));
  assert.ok(migration.includes('primary_color ~'));
+ const backfill=readFileSync('supabase/migrations/20261108120100_nova_bi_branding_backfill.sql','utf8');
+ assert.ok(!migration.includes('insert into public.nova_bi_branding(organization_id,brand_name)'));
+ assert.ok(backfill.includes('insert into public.nova_bi_branding(organization_id,brand_name)'));
+ assert.ok(backfill.includes('on conflict (organization_id) do nothing'));
  assert.ok(edge.includes('path === "branding"'));
  assert.ok(edge.includes('nova_bi_branding'));
  assert.ok(cloud.includes('White-label workspace appearance'));
@@ -329,7 +333,7 @@ test('NOVA BI API rate limits are atomic, server-only and stricter for invitatio
  assert.ok(migration.includes('alter table public.nova_bi_rate_limits enable row level security'));
  assert.ok(migration.includes('revoke all on table public.nova_bi_rate_limits from public, anon, authenticated'));
  assert.ok(migration.includes('security definer'));
- assert.ok(migration.includes("set search_path = ''"));
+ assert.ok(migration.includes('set search_path = public, pg_temp'));
  const forwardMigration=readFileSync('supabase/migrations/20261106195900_nova_bi_rate_limit_search_path_hardening.sql','utf8');
  assert.match(forwardMigration,/alter function public\.nova_bi_consume_rate_limit[\s\S]*?set search_path = ''/i);
  assert.match(forwardMigration,/revoke all[\s\S]*?from public, anon, authenticated/i);
