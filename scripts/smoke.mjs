@@ -40,7 +40,7 @@ const homeHtml = await home.text();
 const appResponse = await request('/nova-app.js');
 const appJs = await appResponse.text();
 if (!home.ok || !homeHtml.includes('<html lang="en">') || !homeHtml.includes('id="msgs"') || !homeHtml.includes('id="dset"') || !homeHtml.includes('id="photo"')) throw new Error('Previous standard NOVA chat UI, Settings, or image panel is missing');
-if (!homeHtml.includes("localStorage.getItem('nova')") || !homeHtml.includes('const persistable=()=>') || !homeHtml.includes('JSON.stringify(persistable())') || homeHtml.includes("localStorage.setItem('nova',JSON.stringify(S))")) throw new Error('Legacy chat storage compatibility or BYOK secret-persistence protection changed');
+if (!appResponse.ok || !appJs.includes("localStorage.getItem('nova')") || !appJs.includes('const persistable=()=>') || !appJs.includes('JSON.stringify(persistable())') || appJs.includes("localStorage.setItem('nova',JSON.stringify(S)")) throw new Error('Legacy chat storage compatibility or BYOK secret-persistence protection changed');
 if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"','src="/nova-reference.js"'].every(x=>homeHtml.includes(x))) throw new Error('NOVA three-workspace UI scripts are not connected in the live homepage');
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>homeHtml.includes(x))) throw new Error('Cosmic India dashboard UI is not live');
 if (homeHtml.includes('id="novaSplash"') || homeHtml.includes('id="novaLivingCore"')) throw new Error('New workspace/splash interface unexpectedly returned');
