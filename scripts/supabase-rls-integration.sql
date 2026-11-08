@@ -145,12 +145,15 @@ set role authenticated;
 select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
 update public.nova_bi_workflow_proposals set status='approved'
 where id='ffffffff-ffff-4fff-8fff-ffffffffffff';
-do $$
+do $
 begin
   if not exists(select 1 from public.nova_bi_workflow_approvals where proposal_id='ffffffff-ffff-4fff-8fff-ffffffffffff' and actor_id='33333333-3333-4333-8333-333333333333' and decision='approved') then
     raise exception 'Admin approval record was not created';
   end if;
-end $$;
+  if not exists(select 1 from public.nova_bi_audit_events where organization_id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') then
+    raise exception 'Active admin cannot read the company audit log';
+  end if;
+end $;
 reset role;
 
 set role authenticated;
