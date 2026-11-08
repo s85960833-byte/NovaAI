@@ -49,3 +49,8 @@ No. Providers can be unavailable, rate-limited or produce incorrect answers.
 ## Close
 
 Thank them for feedback. Do not request payment, confidential data, passwords or API keys. Do not promise a sale price, launch date, uptime or performance. Any actual purchase or ownership discussion must be handled by a responsible adult with qualified legal review.
+
+
+## Cloud-sync limitation to disclose
+
+A code review found that local chats with the same ID overwrite remote versions during sync, so newer messages from another device can be lost. Saved memory and custom instructions are imported only when the local values are empty. Cloud sync is therefore not conflict-safe yet; do not rely on it for important data or present it as production-ready. This must be fixed and regression-tested before customer onboarding.
