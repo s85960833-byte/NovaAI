@@ -380,3 +380,14 @@ test('company audit events are visible only to active owners and admins',()=>{
  assert.ok(cloud.includes("const canViewAudit=['owner','admin'].includes(currentOrg?.role)"));
  assert.ok(cloud.includes("if(role==='owner'||role==='admin')html+="));
 });
+
+
+test('provider-neutral role permissions keep audit logs owner/admin-only',()=>{
+ const security=require('../nova-business-security.js');
+ assert.ok(security.ROLE_PERMISSIONS.owner.includes('audit:read'));
+ assert.ok(security.ROLE_PERMISSIONS.admin.includes('audit:read'));
+ assert.ok(!security.ROLE_PERMISSIONS.analyst.includes('audit:read'));
+ assert.ok(!security.ROLE_PERMISSIONS.viewer.includes('audit:read'));
+ assert.throws(()=>security.authorize({active:true,userId:'analyst-1',organizationId:'org-1',role:'analyst'},{verified:true,userId:'analyst-1',sessionId:'session-1'},'org-1','audit:read'),e=>e.code==='FORBIDDEN');
+ assert.throws(()=>security.authorize({active:true,userId:'viewer-1',organizationId:'org-1',role:'viewer'},{verified:true,userId:'viewer-1',sessionId:'session-2'},'org-1','audit:read'),e=>e.code==='FORBIDDEN');
+});
