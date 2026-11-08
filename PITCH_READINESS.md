@@ -2,7 +2,7 @@
 
 - **Production URL:** https://novaai-4auo.onrender.com
 - **Live application commit:** f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8 — Render deployment dep-dbo3i7m417fc73f6bdbg, status LIVE.
-- **Main branch:** f6b86e92b1727103dbbe50dcab5d04c240e2e779. The difference from the live app commit is the test-only CSP smoke assertion correction; no app code changed in that follow-up.
+- **Mainline reconciliation:** main now contains later documentation-only sales-readiness updates. The live application code remains the verified commit listed above; no application code changed after that deployed release.
 - **Latest main CI:** run #42465380068, retry attempt 2, 38 successful steps, 0 failed. It passed five-viewport Chromium/mobile regression, Company Cloud browser workflows, production live wait/smoke, security headers (CSP frame-ancestors 'none' and HSTS), PWA/assets/config validation, and live free image generation (community-free, WebP). Full paid/provider AI evaluation, live search and paid image paths were intentionally skipped to avoid unapproved quota/cost use; the 60-case fixture is structure validation, not model-quality scoring.
 - **Supabase:** project qrfwsewppafhxibdboam is ACTIVE_HEALTHY, PostgreSQL 17.11, eu-west-1; 15 migrations are present; nova-bi-api is ACTIVE v14 with JWT verification; Security and Health Advisors currently return zero findings.
 - **Render operating limits:** Free plan, Singapore region, one instance, no configured health-check path. Supabase is on its Free plan. Do not promise always-on service, automatic backup, restore guarantees or SLA.
