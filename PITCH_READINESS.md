@@ -1,3 +1,19 @@
+## Superseding release checkpoint — 8 November 2026, 11:30 UTC
+
+This checkpoint supersedes older deployment and CI statements below.
+
+- **Production app:** https://novaai-4auo.onrender.com
+- **Latest verified Render deployment:** app commit `cf29ca10205f929ff836167669de65115c3c37f8`, deployment `dep-dbo5mv3l550s738pq8qg`, status `live`. Render build and app startup succeeded; logs show Node listening on port 10000.
+- **Main-branch verification:** [GitHub Actions run #42475885065](https://github.com/s85960833-byte/NovaAI/actions/runs/42475885065) completed successfully. It passed syntax, Markdown injection, mode registry, rate-limit, provider URL, PDF security, PostgreSQL migration/RLS integration, Deno checks/tests, deployed Edge Function auth/CORS smoke, BI calculation/CSV tests, fixture validation, production dependency audit, local runtime/PWA, graceful shutdown, Chromium workspace/PDF tests, Company Cloud browser tests, five viewport/drawer mobile regression tests, live deployment gate, live website smoke and free-only image-generation smoke.
+- The live smoke verified the deployed homepage, required assets, bilingual workspace markers, preserved local chat-storage contract, PWA assets, HTTP security headers/CSP/HSTS, health endpoint and validation guards. The separate free-only image test completed with a valid image from the community-free provider. This does not certify AI answer accuracy or provider uptime.
+- **Account/cloud-sync code:** the account asset and opt-in UI are deployed. Cloud sync is OFF by default. If enabled, the current snapshot contains up to 40 recent chats (up to 150 messages each), message text, extracted text from attached documents, saved memory and custom instructions; image attachments themselves are excluded. The Account UI, opt-in confirmation and privacy draft disclose this scope.
+- **Still unverified:** real Auth signup/confirmation/reset email delivery; Supabase Site URL and redirect allow-list; two real accounts proving end-to-end cloud-sync isolation; complete account deletion; support-led deletion and retention; physical Android testing; backup/restore drill; branch protection; paid checkout and server-side subscription enforcement; refunds/tax invoices; final privacy/terms/legal approvals; support and incident ownership; full live AI accuracy/latency/cost evaluation.
+- **Hosting:** Render remains on Free plan, Singapore region, one instance, without an always-on guarantee or SLA. Do not promise uninterrupted availability.
+- **NOVA BI:** preview only; synthetic data only. Do not accept confidential, personal, employee, student, regulated or customer data.
+- **Commercial boundary:** no paying customers, revenue, valuation, traction or certification are represented. Only non-paid, adult-supervised buyer-interest discovery is appropriate. Actual sale, payment, contract, ownership or IP transfer requires a responsible adult and qualified legal review.
+
+**Decision:** LIMITED DISCOVERY ONLY. Not ready for paid sale, customer onboarding, confidential-data processing or production promises.
+
 ## Current verified release status — 8 November 2026
 
 - **Production URL:** https://novaai-4auo.onrender.com
