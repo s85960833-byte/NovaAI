@@ -1,3 +1,17 @@
+# Current release status — 8 November 2026, 11:30 UTC
+
+NOVA is deployed at https://novaai-4auo.onrender.com. Render confirms successful deployment of main commit `cf29ca10205f929ff836167669de65115c3c37f8` (deployment `dep-dbo5mv3l550s738pq8qg`). The app process started and bound to port 10000. This is deployment evidence, not proof that every hosted route or user flow works.
+
+- Buyer-interest document: [BUYER_INTEREST_BRIEF.md](BUYER_INTEREST_BRIEF.md). It is for supervised, non-paid feedback only.
+- The next main-branch verification run for the buyer-brief correction is in progress: [GitHub Actions run #42475838373](https://github.com/s85960833-byte/NovaAI/actions/runs/42475838373). Syntax, Markdown-injection, mode registry, rate-window, provider-URL and PDF security checks have passed so far; the remaining PostgreSQL, Deno, browser/mobile and live-release checks have not yet completed.
+- External HTTP smoke verification is currently blocked in the verification environment; do not claim `/health`, homepage/assets, response headers or live workflows passed until the workflow's live smoke steps pass.
+- Real email confirmation/reset delivery, Auth redirect allow-list, two-real-account cloud-sync isolation, full account deletion and physical Android verification remain unverified.
+- Payments, subscription enforcement, refunds, tax invoices, final legal policies, support/incident process, backup/restore, and always-on hosting/SLA are not ready.
+- NOVA BI is an early interface preview only; use synthetic data, never confidential or personal data.
+- No paying customers, revenue, traction, valuation, security certification or SLA are represented.
+
+**Decision:** non-paid, adult-supervised buyer-interest conversations only. No paid sale, deposits, customer onboarding or confidential-data use. Any ownership, IP, payment or contract discussion must be handled by a responsible adult with qualified legal review. This status block supersedes older contradictory deployment/sales-status paragraphs below; older entries are retained as historical notes.
+
 ## Current production and sales status — 8 November 2026
 
 NOVA core app is live at https://novaai-4auo.onrender.com on app commit f6a3b643c5e8e8c4bb56bc84c2c9a886d0f016b8 (deployment dep-dbo3i7m417fc73f6bdbg). The account/cloud-sync implementation merged to main in PR #83 (commit c8ad3c646d68bde2836810995f2e91d87691cfe7), but Render has not yet deployed that commit; do not describe the new account UI as live.
