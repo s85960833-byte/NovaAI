@@ -7,8 +7,8 @@
 const ROLE_PERMISSIONS = Object.freeze({
   owner: Object.freeze(['dataset:read','dataset:write','dataset:export','dataset:delete','analysis:run','workflow:propose','workflow:approve','member:read','member:invite','member:change_role','audit:read','org:manage']),
   admin: Object.freeze(['dataset:read','dataset:write','dataset:export','dataset:delete','analysis:run','workflow:propose','workflow:approve','member:read','member:invite','member:change_role','audit:read','org:manage']),
-  analyst: Object.freeze(['dataset:read','dataset:write','dataset:export','analysis:run','workflow:propose','audit:read']),
-  viewer: Object.freeze(['dataset:read','analysis:read','audit:read'])
+  analyst: Object.freeze(['dataset:read','dataset:write','dataset:export','analysis:run','workflow:propose']),
+  viewer: Object.freeze(['dataset:read','analysis:read'])
 });
 const fail = (code) => { const e = new Error(code); e.code = code; throw e; };
 
