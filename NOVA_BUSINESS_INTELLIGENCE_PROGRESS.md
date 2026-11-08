@@ -3,19 +3,19 @@
 Updated: 2026-11-07
 
 ## Authoritative current release checkpoint
-- The current unified candidate is Draft PR #73 on `feature/nova-integrated-release-20261106`; it includes the three-workspace UI and NOVA BI. Earlier PR #67 / BI-only branch statements below are historical checkpoints and must not be treated as the current release target.
-- Latest application-code verification snapshot: `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf`; exact-head push/PR CI #42382919198 and #42382923272 passed. Later audit commits are documentation-only; use PR #73 for the current branch head and exact CI status.
-- Live production remains unchanged. Supabase has 12 migrations; the candidate rate-limit search_path migration is pending. Live `nova-bi-api` v13 still has wildcard CORS. All 10 BI tables have RLS enabled; Security and Health Advisors returned zero findings; Performance Advisor has 13 INFO-only unused-index notices.
-- Authenticated users can update only `nova_bi_memberships.status`; they cannot update membership `role`, `organization_id`, or `user_id`. Live SMTP delivery, two-account tenant isolation, physical Android, hosting/recovery and privacy reviews remain unverified.
+- Current unified candidate is Draft PR #73 on `feature/nova-integrated-release-20261106`; current head `18f9c6567d83e0c73add7e41f7e0050d4391a98f`, 496 commits ahead of production `main`, 0 behind, 64 changed files. Open, Draft, unmerged and undeployed.
+- Latest application-code verification snapshot: `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a`; exact-head CI #42434333838 passed with 34 successful steps, 0 failed and 4 live-production checks skipped. Later commits only update documentation.
+- Live Supabase: 12 migrations; candidate audit-read and rate-limit search_path migrations remain pending. Live `nova-bi-api` v13 still has wildcard CORS. The live audit SELECT policy still allows active members, while candidate restricts it to owners/admins.
+- All 10 BI tables have RLS enabled; Security and Health Advisors currently return zero findings. Performance Advisor has 13 INFO-only unused-index notices.
+- Read-only 24-hour Edge Function log sample: 509 requests (340 OPTIONS/204, 169 GET `/me`/401), no successful authenticated API request in that sample. Real Auth/SMTP delivery and two-account tenant isolation remain unverified.
+- Render production remains on `main` in Singapore; Supabase remains in Ireland. Physical Android, backup/restore, privacy, account deletion, hosting and branch-protection checks remain open.
 - **Paid-sales status: NO-GO.** See `PITCH_READINESS.md` and Draft PR #73 for current release gates.
-
-
 
 ## Current release state
 - Unified feature branch: `feature/nova-integrated-release-20261106`.
 - Review: [Draft PR #73](https://github.com/s85960833-byte/NovaAI/pull/73), which combines the three-workspace UI and NOVA BI.
 - BI-only PR #67 is a predecessor; PR #46 is an older divergent branch. Do not merge either as a substitute for PR #73.
-- Latest application-code verification snapshot is `1f24545b9a42ee1883c4293b2b74b9f6ecc8f4cf` (exact-head push/PR CI #42382919198 and #42382923272). Subsequent audit commits are documentation-only; use PR #73 for current branch-head and exact CI status. PR #73 remains Draft, unmerged and undeployed; live CORS and migration are not fixed yet.
+- Latest application-code verification snapshot is `aa822abe16ff77e5d8533dbec2b69e30e35aaa2a` (exact-head CI #42434333838 passed). Later commits are documentation-only; use PR #73 for current branch-head and exact status. PR #73 remains Draft, unmerged and undeployed; live CORS and candidate migrations are not applied.
 - Production `main`, Render and the live Supabase schema/function remain unchanged. No merge, production deployment, live migration, Auth config change or SMTP change has been performed.
 - Production `main` and Render service `srv-dbidhpc9v7es73d6ia80` remain untouched. No merge or production deployment has been performed.
 - Approved NOVA BI Supabase project: `qrfwsewppafhxibdboam`. The separate Research-to-Code project has not been used.
