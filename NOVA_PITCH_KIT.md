@@ -248,3 +248,6 @@ This checkpoint supersedes older candidate-head, CI-run and release-status state
 - **Decision: NO-GO for paid sales, paid onboarding or production promises.** Only disclosed, non-sensitive concept feedback; no payments, confidential customer data, SLA or live-availability claims. Commercial, billing and infrastructure decisions require the authorized adult project owner.
 
 This checkpoint supersedes older candidate-head, migration-count, CSP and release-status statements above. Older entries are historical audit notes only.
+
+
+**Latest release-status pointer (8 Nov 2026):** The authoritative re-audit is recorded in `PITCH_READINESS.md` §21. It reconfirms that PR #73 is unmerged/undeployed, candidate CI skipped live Render/Edge Function/provider/image checks, the deployed Edge Function still has wildcard CORS, and paid sales remain NO-GO. Treat older dated checkpoints in this file as historical.
