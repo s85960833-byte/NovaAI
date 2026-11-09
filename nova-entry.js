@@ -2,42 +2,48 @@
   'use strict';
   const gate = document.getElementById('novaEntryGate');
   const video = document.getElementById('novaEntryVideo');
-  const hint = document.getElementById('novaEntryHint');
   if (!gate) return;
 
-  let language = 'en';
-  try {
-    const state = JSON.parse(localStorage.getItem('nova') || '{}');
-    if (state && state.uiLang === 'hi') language = 'hi';
-  } catch (_) {}
-  if (hint) hint.textContent = language === 'hi'
-    ? 'प्रवेश करने के लिए कहीं भी टैप करें'
-    : 'TAP ANYWHERE TO ENTER';
-  gate.setAttribute('aria-label', language === 'hi' ? 'NOVA में प्रवेश करें' : 'Enter NOVA');
-
   let entered = false;
+  let fallbackTimer = 0;
   const enter = () => {
     if (entered) return;
     entered = true;
+    if (fallbackTimer) window.clearTimeout(fallbackTimer);
     gate.classList.add('is-leaving');
     gate.setAttribute('aria-hidden', 'true');
+    if (video) video.pause();
     window.setTimeout(() => {
       gate.hidden = true;
-      if (video) video.pause();
+      gate.remove();
     }, 360);
   };
 
-  gate.addEventListener('click', enter);
-  gate.addEventListener('keydown', event => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      enter();
-    }
-  });
+  // The intro is a one-shot, muted experience. Its end event opens the app.
+  if (!video) {
+    enter();
+    return;
+  }
+  video.loop = false;
+  video.muted = true;
+  video.autoplay = true;
+  video.playsInline = true;
+  video.addEventListener('ended', enter, { once: true });
+  video.addEventListener('error', enter, { once: true });
 
-  if (video) {
-    video.muted = true;
-    const playback = video.play();
-    if (playback && typeof playback.catch === 'function') playback.catch(() => {});
+  // If autoplay is blocked or media cannot start, never leave the user stuck
+  // on the entry screen waiting for a manual tap.
+  fallbackTimer = window.setTimeout(() => {
+    if (video.paused && video.currentTime === 0) enter();
+  }, 1800);
+
+  const playback = video.play();
+  if (playback && typeof playback.then === 'function') {
+    playback.then(() => {
+      if (fallbackTimer) {
+        window.clearTimeout(fallbackTimer);
+        fallbackTimer = 0;
+      }
+    }).catch(enter);
   }
 })();

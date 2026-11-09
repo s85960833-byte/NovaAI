@@ -208,13 +208,14 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 #novaEntryGate[hidden]{display:none!important}
 #novaEntryGate video{display:block;width:100%;height:100%;object-fit:contain;object-position:center;background:transparent}
 #novaEntryGate:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(2,4,14,.12),transparent 24%,transparent 72%,rgba(2,4,14,.30))}
-#novaEntryGate .nova-entry-hint{position:absolute;z-index:2;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:calc(100vw - 32px);padding:10px 18px;border:1px solid rgba(238,195,116,.62);border-radius:999px;background:rgba(7,8,24,.72);color:#f7e5bb;font:800 12px/1.3 Nunito,system-ui,sans-serif;letter-spacing:1.2px;text-align:center;white-space:nowrap;box-shadow:0 0 28px rgba(214,164,83,.18);animation:novaEntryPulse 2.2s ease-in-out infinite}
+#novaEntryGate .nova-entry-hint{opacity:0;visibility:hidden;transition:opacity .45s ease,visibility .45s ease}#novaEntryGate .nova-entry-hint.is-visible{opacity:1;visibility:visible;animation:novaEntryPulse 2.2s ease-in-out infinite}
+#novaEntryGate .nova-entry-hint{position:absolute;z-index:2;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:calc(100vw - 32px);padding:10px 18px;border:1px solid rgba(238,195,116,.62);border-radius:999px;background:rgba(7,8,24,.72);color:#f7e5bb;font:800 12px/1.3 Nunito,system-ui,sans-serif;letter-spacing:1.2px;text-align:center;white-space:nowrap;box-shadow:0 0 28px rgba(214,164,83,.18)}
 #novaEntryGate.is-leaving{opacity:0;pointer-events:none}
-@keyframes novaEntryPulse{50%{opacity:.66;transform:translateX(-50%) translateY(-2px)}}
+@keyframes novaEntryPulse{50%{transform:translateX(-50%) translateY(-2px)}}
 @media(max-width:480px){#novaEntryGate .nova-entry-hint{font-size:11px;letter-spacing:.8px;padding:10px 15px}}
 @media(prefers-reduced-motion:reduce){#novaEntryGate{transition:none}#novaEntryGate .nova-entry-hint{animation:none}}
 </style></head><body>
-<section id="novaEntryGate" role="button" tabindex="0" aria-label="Enter NOVA" aria-describedby="novaEntryHint"><video id="novaEntryVideo" autoplay muted loop playsinline preload="auto" aria-hidden="true"><source src="/assets/nova-entry.mp4" type="video/mp4"></video><span class="nova-entry-hint" id="novaEntryHint">TAP ANYWHERE TO ENTER</span></section>
+<section id="novaEntryGate" aria-label="NOVA introduction"><video id="novaEntryVideo" autoplay muted playsinline preload="auto" aria-hidden="true"><source src="/assets/nova-entry.mp4" type="video/mp4"></video></section>
 
 <aside id="side"><div class="brand"><span class="logo">✦</span><b>Nova AI</b></div>
 <button id="new" data-i="new">＋ New chat</button><nav class="nav"><button id="nHome" data-i="nHome"></button><button id="nPhoto" data-i="nPhoto" hidden></button><button id="nArch" data-i="nArch" hidden></button><button id="nImg" data-i="nImg" hidden></button><button id="nLive" data-i="nLive" hidden></button></nav><input id="q" type="search" data-p="search" aria-label="Search chats"><div id="list"></div>
