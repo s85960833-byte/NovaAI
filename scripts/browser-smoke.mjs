@@ -153,6 +153,9 @@ try{
  await desktop.locator('#uiLangTop').selectOption('hi');
  await desktop.waitForFunction(()=>document.documentElement.lang==='hi');
  await desktop.waitForTimeout(80);
+ const businessLanguageDebug=await desktop.evaluate(()=>({lang:document.documentElement.lang,api:typeof window.NovaBusiness,refresh:typeof window.NovaBusiness?.refreshLanguage,visible:document.querySelector('#novaBusiness')?.classList.contains('show')}));
+ console.log('BUSINESS_LANGUAGE_DEBUG:',JSON.stringify(businessLanguageDebug));
+ await desktop.evaluate(()=>window.NovaBusiness?.refreshLanguage?.());
  const businessHindiText=await desktop.locator('#nbBody').innerText();
  console.log('BUSINESS_HINDI_TEXT:',businessHindiText.slice(0,500));
  assert.ok(businessHindiText.includes('बिज़नेस इंटेलिजेंस डैशबोर्ड'),'Business Intelligence must re-render in Hindi');
