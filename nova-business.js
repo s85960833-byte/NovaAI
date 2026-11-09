@@ -117,7 +117,7 @@ const HINDI={
   "Not connected — this is a plan only. No external system was changed.": "कनेक्ट नहीं है — यह केवल योजना है। किसी बाहरी सिस्टम में बदलाव नहीं किया गया।"
 };
 const isHindi=()=>document.documentElement.lang==='hi';
-const bilingualValue=value=>{const raw=String(value??''),key=raw.trim(),pair=key.match(/^(.+?)\s\/\s([\u0900-\u097F][^/]*)$/);if(pair)return isHindi()?pair[2]:pair[1];if(!isHindi())return raw;const hi=HINDI[key];if(hi)return raw.replace(key,hi);let valueText=raw;for(const [en,hin] of Object.entries(HINDI)){const escaped=en.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\let valueText=raw;for(const [en,hin] of Object.entries(HINDI))if(valueText.includes(en))valueText=valueText.replaceAll(en,hin);return valueText');valueText=valueText.replace(new RegExp('(^|[^A-Za-z0-9])'+escaped+'(?=$|[^A-Za-z0-9])','gi'),(_,prefix)=>prefix+hin)}return valueText};
+const bilingualValue=value=>{const raw=String(value??''),key=raw.trim(),pair=key.match(/^(.+?)\\s\\/\\s([\\u0900-\\u097F][^/]*)$/);if(pair)return isHindi()?pair[2]:pair[1];if(!isHindi())return raw;const hi=HINDI[key];if(hi)return hi;let valueText=raw;for(const [en,hin] of Object.entries(HINDI)){const escaped=en.split('').map(ch=>'.*+?^${}()|[]\\'.includes(ch)?'\\\\'+ch:ch).join('');valueText=valueText.replace(new RegExp('(^|[^A-Za-z0-9])'+escaped+'(?=$|[^A-Za-z0-9])','gi'),(_,prefix)=>prefix+hin)}return valueText};
 const translatedTextNodes=new WeakMap(),translatedAttributes=new WeakMap();
 function bilingualize(root){
  if(!root)return;
