@@ -29,7 +29,8 @@ async function enterNOVA(page,{method='click',checkAsset=false}={}){
   assert.match(range.headers()['content-range']||'',/^bytes 0-31\/39788$/,'entry movie Content-Range must be correct');
  }
  const hindi=await page.evaluate(()=>{try{return JSON.parse(localStorage.getItem('nova')||'{}').uiLang==='hi'}catch{return false}});
- assert.equal(await page.locator('#novaEntryHint').innerText(),hindi?'प्रवेश करने के लिए कहीं भी टैप करें':'TAP ANYWHERE TO ENTER','entry hint must follow the saved interface language');
+ await page.locator('#novaEntryHint').waitFor({state:'visible',timeout:3000});
+ assert.equal(await page.locator('#novaEntryHint').innerText(),hindi?'प्रवेश करने के लिए कहीं भी टैप करें':'TAP ANYWHERE TO ENTER','entry hint must follow the saved interface language after its intentional 2-second delay');
  if(method==='keyboard'){await gate.focus();await page.keyboard.press('Enter')}
  else if(method==='tap'){await gate.tap({position:{x:Math.floor((await gate.boundingBox()).width/2),y:Math.floor((await gate.boundingBox()).height/2)}})}
  else await gate.click({position:{x:20,y:20}});
