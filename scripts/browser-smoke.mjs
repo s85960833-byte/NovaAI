@@ -10,33 +10,21 @@ const track=page=>{
 };
 
 
-async function enterNOVA(page,{checkAsset=false}={}){
- const gate=page.locator('#novaEntryGate'),video=page.locator('#novaEntryVideo');
+async function enterNOVA(page){
+ const gate=page.locator('#novaEntryGate');
  if(await gate.count()===0){
   assert.equal(await page.evaluate(()=>localStorage.getItem('nova_intro_completed_v1')),'1','a previously completed intro must stay dismissed');
   await page.locator('#hi').waitFor({state:'visible',timeout:10000});
   return;
  }
- await gate.waitFor({state:'visible',timeout:15000});
- const attrs=await video.evaluate(v=>({autoplay:v.autoplay,muted:v.muted,loop:v.loop,playsInline:v.playsInline,source:v.querySelector('source')?.getAttribute('src')||''}));
- assert.deepEqual(attrs,{autoplay:true,muted:true,loop:false,playsInline:true,source:'/assets/nova-entry.mp4'},'entry video must autoplay muted exactly once, never loop and stay inline on mobile');
- assert.equal(await page.locator('#novaEntryHint').count(),0,'intro must not require or advertise a manual tap');
- if(checkAsset){
-  const url=new URL('/assets/nova-entry.mp4',BASE).toString();
-  const whole=await page.request.get(url);
-  assert.equal(whole.status(),200,'entry video endpoint must serve the movie');
-  assert.match(whole.headers()['content-type']||'',/video\/mp4/i,'entry movie must use the MP4 MIME type');
-  assert.equal(Number(whole.headers()['content-length']),39788,'entry movie payload must remain intact and compact');
-  const bytes=await whole.body();
-  assert.equal(bytes.length,39788,'entry movie response must contain the full asset');
-  const range=await page.request.get(url,{headers:{Range:'bytes=0-31'}});
-  assert.equal(range.status(),206,'entry movie must support browser byte-range requests');
-  assert.equal((await range.body()).length,32,'entry movie byte-range response length');
-  assert.match(range.headers()['content-range']||'',/^bytes 0-31\/39788$/,'entry movie Content-Range must be correct');
- }
- await video.evaluate(v=>v.dispatchEvent(new Event('ended')));
- await gate.waitFor({state:'detached',timeout:3000});
- await page.locator('#hi').waitFor({state:'visible',timeout:5000});
+ await gate.waitFor({state:'visible',timeout:5000});
+ assert.equal(await page.locator('#novaEntryVideo').count(),0,'low-resolution video must not be used in the intro');
+ assert.equal(await gate.locator('.nova-entry-word').innerText(),'NOVA','crisp NOVA wordmark must be visible');
+ await gate.click({position:{x:30,y:30}});
+ await gate.waitFor({state:'visible',timeout:500});
+ assert.equal(await page.evaluate(()=>localStorage.getItem('nova_intro_completed_v1')),'1','intro must persist before user interaction');
+ await gate.waitFor({state:'detached',timeout:6000});
+ await page.locator('#hi').waitFor({state:'visible',timeout:10000});
  assert.equal(await page.evaluate(()=>localStorage.getItem('nova_intro_completed_v1')),'1','intro completion must persist');
 }
 
@@ -45,9 +33,9 @@ async function verifyIntroDoesNotReplay(page){
  await page.reload({waitUntil:'domcontentloaded'});
  await page.locator('#novaEntryGate').waitFor({state:'detached',timeout:5000});
  await page.locator('#hi').waitFor({state:'visible',timeout:10000});
- assert.equal(await page.locator('#novaEntryVideo').count(),0,'completed intro must not replay after reload');
- await page.evaluate(()=>localStorage.removeItem('nova_intro_completed_v1'));
- console.log('PASS intro plays once and stays dismissed after reload');
+ assert.equal(await page.locator('#novaEntryVideo').count(),0,'legacy video element must never be reintroduced');
+ await page.evaluate(()=>{localStorage.removeItem('nova_intro_completed_v1');document.cookie='nova_intro_seen=; Max-Age=0; Path=/';});
+ console.log('PASS intro is tap-proof, one-time and persistent after reload');
 }
 
 try{
