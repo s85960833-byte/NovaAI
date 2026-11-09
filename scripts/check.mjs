@@ -113,7 +113,7 @@ for (const [label, fragment] of [
 if (!workspace.includes("openGroup(group){if(!REG.groups.some(g=>g.id===group))return false;show(group);return true;}")) throw new Error('Workspace group launcher contract missing');
 if (!registry.includes("{id:'builder',group:'build'")) throw new Error('NOVA Build has no App & Website Builder mode');
 if (!registry.includes("{id:'document',group:'agents'")) throw new Error('NOVA Agents has no document assistant mode');
-if (!tier.includes('NOVA Learn / नोवा लर्न') || !tier.includes('NOVA Build / नोवा बिल्ड') || !tier.includes('NOVA Agents / नोवा एजेंट्स')) throw new Error('Three bilingual workspace cards are missing');
+if (!tier.includes("tr('NOVA Learn','नोवा लर्न')") || !tier.includes("tr('NOVA Build','नोवा बिल्ड')") || !tier.includes("tr('NOVA Agents','नोवा एजेंट्स')")) throw new Error('Three bilingual workspace cards are missing');
 if (!tier.includes('tr=(a,b)=>hi()?b:a') || !workspace.includes('tr=(en,hi)=>isHi()?hi:en')) throw new Error('Workspace labels must follow the selected English/Hindi interface language');
 if (!tier.includes('Three connected workspaces for learning, building and AI agents.') || !tier.includes("tr('THREE WORKSPACES','तीन वर्कस्पेस')") || tier.includes('Four connected spaces') || tier.includes('चार वर्कस्पेस')) throw new Error('Home copy must consistently describe exactly three workspaces in both languages');
 if (!tier.includes('function ambientAtmosphere()') || !tier.includes('function settings()') || !tier.includes('function boot(){ambientAtmosphere();accent();settings();')) throw new Error('S-tier background motion and settings must load without mounting a competing home dashboard');
