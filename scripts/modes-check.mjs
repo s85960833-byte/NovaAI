@@ -23,7 +23,8 @@ assert.ok(suite.includes('function bilingualize(root)')&&suite.includes('bilingu
 assert.ok(!suite.includes("btn.id='novaSuiteLauncher'")&&!suite.includes("append(btn)"),'Agents Studio must not be launched from the global sidebar');
 assert.ok(workspace.includes("['openAgentsSuite','✦','Agents Studio / एजेंट स्टूडियो']")&&app.includes('openAgentsSuite(){window.NovaSuite?.open()}'),'Agents Studio must launch only from NOVA Agents workspace');
 const tier=readFileSync('s-tier.js','utf8');
-for(const label of ['NOVA Learn / नोवा लर्न','NOVA Build / नोवा बिल्ड','NOVA Agents / नोवा एजेंट्स','INDIAN INTELLIGENCE / भारतीय बुद्धिमत्ता','HINDI / हिन्दी · ENGLISH / अंग्रेज़ी','Nova Experience / NOVA अनुभव','Data Saver / Lite Mode · डेटा सेवर / लाइट मोड','Startup Chime · स्टार्टअप ध्वनि','Festival Greetings · त्योहारों की शुभकामनाएँ','Accent Palette / रंग थीम'])assert.ok(tier.includes(label),'missing bilingual home/settings label: '+label);
+for(const label of ['NOVA Learn / नोवा लर्न','NOVA Build / नोवा बिल्ड','NOVA Agents / नोवा एजेंट्स','INDIAN INTELLIGENCE / भारतीय बुद्धिमत्ता','HINDI / हिन्दी · ENGLISH / अंग्रेज़ी'])assert.ok(tier.includes(label),'missing workspace/brand source label: '+label);
+for(const label of ["tr('Nova Experience','NOVA अनुभव')","tr('Data Saver / Lite Mode','डेटा सेवर / लाइट मोड')","tr('Startup Chime (off by default)','स्टार्टअप ध्वनि (डिफ़ॉल्ट रूप से बंद)')","tr('Festival Greetings (off by default)','त्योहारों की शुभकामनाएँ (डिफ़ॉल्ट रूप से बंद)')","tr('Accent Palette','रंग थीम')"])assert.ok(tier.includes(label),'missing language-aware setting: '+label);
 assert.ok(tier.includes('DESIGNED IN INDIA / भारत में निर्मित')&&tier.includes('BUILT FOR THE WORLD / दुनिया के लिए'),'brand origin must be bilingual');
 
 assert.ok(workspace.includes('openGroup(group)'));
@@ -44,8 +45,8 @@ assert.ok(cloud.includes('function bilingualize(root)')&&cloud.includes('bilingu
 for(const action of ['openPhoto,openArchive:openArch','startVoice:startLive','openAgentsSuite(){window.NovaSuite?.open()}','openBusinessIntelligence(){window.NovaBusiness?.open()}','openCompanyCloud(){window.NovaBusinessCloud?.open()}','openImageStudio(){'])assert.ok(app.includes(action),'legacy feature action bridge missing: '+action);
 assert.ok(html.includes('id="nPhoto" data-i="nPhoto" hidden')&&html.includes('id="nArch" data-i="nArch" hidden'),'learning-only legacy shortcuts must not remain in global sidebar');
 
-assert.ok(workspace.includes("g.name+' / '+g.nameHi"),'workspace group labels must always show Hindi and English');
-assert.ok(workspace.includes("name:`${m.name} / ${m.nameHi}`")&&workspace.includes("desc:`${m.desc} / ${m.descHi}`"),'mode names and descriptions must always show Hindi and English');
+assert.ok(workspace.includes("isHi()?(g.nameHi||g.name):g.name"),'workspace group labels must follow the selected interface language');
+assert.ok(workspace.includes("name:isHi()?(m.nameHi||m.name):m.name")&&workspace.includes("desc:isHi()?(m.descHi||m.desc):m.desc"),'mode names and descriptions must follow the selected interface language');
 assert.ok(!workspace.includes("add(top,'novaModesTop'"),'legacy all-modes launchers must be removed');
 const ids=r.modes.map(x=>x.id);
 for(const id of ['general','voice','document','schemes','shopkeeper','math','photo','ncert','board','ssc','upsc','english','builder'])assert.ok(ids.includes(id),'missing '+id);
@@ -71,7 +72,7 @@ assert.ok(workspace.includes('(lowData()?1.5:4)*1024*1024'),'image upload size g
 assert.ok(workspace.includes('Calculation check (user-provided rate)'),'GST instruction must preserve multimodal image content');
 assert.ok(workspace.includes('file?.image?null:cacheGet(ck)'),'image-specific answers must bypass text-only cache');
 assert.ok(workspace.includes('Low Data Mode')&&workspace.includes('कम डेटा मोड'),'low-data mode toggle must be bilingual');
-assert.ok(workspace.includes("document.querySelector('#lang')?.addEventListener('change'"),'mode workspace must react to the app language selector');
+assert.ok(workspace.includes("window.addEventListener('nova:ui-language-changed'"),'mode workspace must react to the global interface language selector');
 assert.ok(server.includes('HORDE_API_KEY')&&server.includes('/generate/async')&&server.includes('/generate/check/')&&server.includes('/generate/status/'),'free community image fallback is missing');
 assert.ok(server.includes('censor_nsfw: true')&&server.includes('nsfw: false'),'image safety settings are missing');
 assert.ok(server.includes("app.get('/api/image/status/:id'")&&server.includes('UUID job IDs are unguessable'),'image status polling must tolerate proxy IP rotation');
