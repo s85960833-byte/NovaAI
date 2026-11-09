@@ -79,3 +79,25 @@ test('mobile drawer, Settings and workspace composer boundaries',async({page})=>
   await page.keyboard.press('Escape');
   await expect(page.locator('#novaModes.open')).toBeHidden();
 });
+
+
+test('English is the first-run default and the global UI switch supports only English and Hindi', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+  const top = page.locator('#uiLangTop');
+  await expect(top).toBeVisible();
+  await expect(top.locator('option')).toHaveCount(2);
+  await expect(top).toHaveValue('en');
+  await expect(page.locator('#lang option')).toHaveCount(2);
+  await expect(page.locator('#lang')).toHaveValue('English');
+  await top.selectOption('hi');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'hi');
+  await expect(page.locator('#uiLang')).toHaveValue('hi');
+  await expect(page.locator('#uiLangTop')).toHaveValue('hi');
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('nova') || '{}').uiLang)).toBe('hi');
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#uiLangTop')).toHaveValue('hi');
+  await page.locator('#uiLangTop').selectOption('en');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('#uiLang')).toHaveValue('en');
+});
