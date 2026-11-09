@@ -151,7 +151,11 @@ try{
  await desktop.locator('#novaBusiness.show').waitFor();
  assert.ok((await desktop.locator('#nbBody').innerText()).includes('Business Intelligence Dashboard'));
  await desktop.locator('#uiLangTop').selectOption('hi');
- assert.ok((await desktop.locator('#nbBody').innerText()).includes('बिज़नेस इंटेलिजेंस डैशबोर्ड'),'Business Intelligence must re-render in Hindi');
+ await desktop.waitForFunction(()=>document.documentElement.lang==='hi');
+ await desktop.waitForTimeout(80);
+ const businessHindiText=await desktop.locator('#nbBody').innerText();
+ console.log('BUSINESS_HINDI_TEXT:',businessHindiText.slice(0,500));
+ assert.ok(businessHindiText.includes('बिज़नेस इंटेलिजेंस डैशबोर्ड'),'Business Intelligence must re-render in Hindi');
  await desktop.locator('#uiLangTop').selectOption('en');
  await desktop.keyboard.press('Escape');
  await desktop.waitForFunction(()=>!document.querySelector('#novaBusiness').classList.contains('show'));
