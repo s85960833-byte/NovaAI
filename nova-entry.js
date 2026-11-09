@@ -16,11 +16,19 @@
   gate.setAttribute('aria-label', language === 'hi' ? 'NOVA में प्रवेश करें' : 'Enter NOVA');
 
   let entered = false;
+  if (hint) hint.setAttribute('aria-hidden', 'true');
+  window.setTimeout(() => {
+    if (!entered && hint) {
+      hint.classList.add('is-visible');
+      hint.setAttribute('aria-hidden', 'false');
+    }
+  }, 2000);
   const enter = () => {
     if (entered) return;
     entered = true;
     gate.classList.add('is-leaving');
     gate.setAttribute('aria-hidden', 'true');
+    if (hint) hint.setAttribute('aria-hidden', 'true');
     window.setTimeout(() => {
       gate.hidden = true;
       if (video) video.pause();
