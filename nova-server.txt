@@ -9,6 +9,7 @@
 // Free-tier hosts such as Render or Railway can run this. Check each provider's current limits.
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const E = process.env;
 const { secureProviderBase } = require('./nova-provider-url');
 const BASE = secureProviderBase('LLM_BASE', E.LLM_BASE, 'https://openrouter.ai/api/v1');
@@ -367,7 +368,38 @@ app.get('/icons/nova-emblem.svg', (q, r) => r.set('Cache-Control','public, max-a
 app.get(['/icons/icon-192.png', '/icons/icon-512.png'], (q, r) => r.set('Content-Type', 'image/png').send(ICONS[q.path.includes('512') ? 512 : 192]));
 app.get('/mode-registry.js', (q, r) => r.type('application/javascript').sendFile(path.join(__dirname, 'mode-registry.js')));
 app.get('/mode-workspace.js', (q, r) => r.type('application/javascript').sendFile(path.join(__dirname, 'mode-workspace.js')));
-app.get('/sw.js', (q, r) => r.set('Content-Type', 'application/javascript').send("const CACHE='nova-shell-v18-account-sync';const CORE=['/','/nova-config.js','/nova-app.js','/nova-sync-merge.js','/mode-registry.js','/mode-workspace.js','/s-tier.js','/nova-suite.js','/nova-reference.js','/nova-business-core.js','/nova-business.js','/nova-business-cloud.js','/nova-account.js','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png','/icons/nova-emblem.svg'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(k=>k.startsWith('nova-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==location.origin||u.pathname.startsWith('/api/'))return;e.respondWith(fetch(e.request).then(r=>{if(r.ok&&r.type==='basic'){const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match(e.request).then(hit=>hit||caches.match('/'))))});"));
+// Reassemble the small, compressed entry movie from checked-in text chunks.
+const ENTRY_VIDEO_BASE64 = Array.from({ length: 10 }, (_, index) =>
+  fs.readFileSync(path.join(__dirname, 'assets', 'entry-video', 'part-' + String(index + 1).padStart(2, '0') + '.b64.txt'), 'utf8').replace(/\s+/g, '')
+).join('');
+const ENTRY_VIDEO = Buffer.from(ENTRY_VIDEO_BASE64, 'base64');
+if (!ENTRY_VIDEO.length) throw new Error('NOVA entry video asset is empty');
+app.get('/assets/nova-entry.mp4', (q, r) => {
+  const total = ENTRY_VIDEO.length;
+  const range = q.headers.range;
+  const headers = { 'Content-Type': 'video/mp4', 'Accept-Ranges': 'bytes', 'Cache-Control': 'public, max-age=86400' };
+  if (range) {
+    const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+    if (!match || (!match[1] && !match[2])) {
+      r.status(416).set('Content-Range', 'bytes */' + total).end();
+      return;
+    }
+    let start = match[1] ? Number(match[1]) : Math.max(0, total - Number(match[2]));
+    let end = match[2] ? Number(match[2]) : total - 1;
+    if (!match[1] && match[2]) end = total - 1;
+    end = Math.min(end, total - 1);
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || start >= total || end < start) {
+      r.status(416).set('Content-Range', 'bytes */' + total).end();
+      return;
+    }
+    const chunk = ENTRY_VIDEO.subarray(start, end + 1);
+    r.status(206).set({ ...headers, 'Content-Length': String(chunk.length), 'Content-Range': 'bytes ' + start + '-' + end + '/' + total }).end(chunk);
+    return;
+  }
+  r.status(200).set({ ...headers, 'Content-Length': String(total) }).end(ENTRY_VIDEO);
+});
+app.get('/nova-entry.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-entry.js')));
+app.get('/sw.js', (q, r) => r.set('Content-Type', 'application/javascript').send("const CACHE='nova-shell-v19-entry-gate';const CORE=['/','/nova-entry.js','/nova-config.js','/nova-app.js','/nova-sync-merge.js','/mode-registry.js','/mode-workspace.js','/s-tier.js','/nova-suite.js','/nova-reference.js','/nova-business-core.js','/nova-business.js','/nova-business-cloud.js','/nova-account.js','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png','/icons/nova-emblem.svg'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(k=>k.startsWith('nova-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==location.origin||u.pathname.startsWith('/api/')||u.pathname==='/assets/nova-entry.mp4')return;e.respondWith(fetch(e.request).then(r=>{if(r.ok&&r.type==='basic'){const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match(e.request).then(hit=>hit||caches.match('/'))))});"));
 let shuttingDown = false;
 app.get('/health', (q, r) => r.status(shuttingDown ? 503 : 200).json({ status: shuttingDown ? 'shutting_down' : 'ok', ready: !shuttingDown, service: 'nova-ai', timestamp: new Date().toISOString() }));
 app.get('/s-tier.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 's-tier.js')));
@@ -848,11 +880,11 @@ function findDates(q) {
   const add = (y, m, d, pos, len) => { y = +y; m = +m; d = d == null ? null : +d; if (y < 1990 || y > 2100 || m < 1 || m > 12 || (d != null && (d < 1 || d > 31))) return; const k = y + '-' + m + '-' + d; if (seen.has(k)) return; for (const r of res) if (pos >= r.pos && pos < r.pos + r.len) return; seen.add(k); res.push({ y, m, d, pos, len }); };
   let m;
   for (m of ql.matchAll(/(\d{4})-(\d{1,2})-(\d{1,2})/g)) add(m[1], m[2], m[3], m.index, m[0].length);
-  for (m of ql.matchAll(new RegExp(NB + '(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?(' + MONRE + ')[,.]?\\s+(\\d{4})' + NA, 'giu'))) add(m[3], MON[m[2].toLowerCase()], m[1], m.index, m[0].length);
-  for (m of ql.matchAll(new RegExp(NB + '(' + MONRE + ')\\s+(\\d{1,2})(?:st|nd|rd|th)?,?\\s+(\\d{4})' + NA, 'giu'))) add(m[3], MON[m[1].toLowerCase()], m[2], m.index, m[0].length);
+  for (m of ql.matchAll(new RegExp(NB + '(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?(' + MONRE + ')[,.]?\s+(\d{4})' + NA, 'giu'))) add(m[3], MON[m[2].toLowerCase()], m[1], m.index, m[0].length);
+  for (m of ql.matchAll(new RegExp(NB + '(' + MONRE + ')\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})' + NA, 'giu'))) add(m[3], MON[m[1].toLowerCase()], m[2], m.index, m[0].length);
   for (m of ql.matchAll(/(?<!\d)(\d{1,2})[\/.-](\d{1,2})[\/.-](20\d\d|19\d\d)(?!\d)/g)) add(m[3], m[2], m[1], m.index, m[0].length);
-  for (m of ql.matchAll(new RegExp(NB + '(' + MONRE + ')[,]?\\s+(\\d{4})' + NA, 'giu'))) add(m[2], MON[m[1].toLowerCase()], null, m.index, m[0].length);
-  for (m of ql.matchAll(new RegExp(NB + '(\\d{4})\\s+(?:\u0915\u0947\\s+)?(' + MONRE + ')' + NA, 'giu'))) add(m[1], MON[m[2].toLowerCase()], null, m.index, m[0].length);
+  for (m of ql.matchAll(new RegExp(NB + '(' + MONRE + ')[,]?\s+(\d{4})' + NA, 'giu'))) add(m[2], MON[m[1].toLowerCase()], null, m.index, m[0].length);
+  for (m of ql.matchAll(new RegExp(NB + '(\d{4})\s+(?:\u0915\u0947\s+)?(' + MONRE + ')' + NA, 'giu'))) add(m[1], MON[m[2].toLowerCase()], null, m.index, m[0].length);
   for (m of ql.matchAll(/(?<![\d-])(19[89]\d|20\d\d)(?![\d-])/g)) add(m[1], 1, null, m.index, 4) || null;
   // years: mark granularity
   return res.sort((a, b) => a.pos - b.pos).map(r => ({ ...r, g: r.d != null ? 'day' : (new RegExp(NB + '(' + MONRE + ')', 'iu').test(ql.slice(Math.max(0, r.pos - 14), r.pos + r.len + 14)) ? 'month' : 'year') }));

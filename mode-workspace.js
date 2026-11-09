@@ -42,7 +42,7 @@ root.addEventListener('keydown',e=>{
 });
 const content=$('#nmContent'),compose=$('#nmCompose'),input=$('#nmInput');
 function show(groupFilter){returnFocus=document.activeElement;syncStaticLabels();root.setAttribute('aria-hidden','false');root.classList.add('open');drawHome(groupFilter);$('#nmTitle')?.focus({preventScroll:true})}
-function hide(restore=true){root.classList.remove('open');root.setAttribute('aria-hidden','true');stopSpeech();const target=returnFocus;returnFocus=null;if(restore&&target?.isConnected)target.focus({preventScroll:true})}
+function hide(restore=true){root.classList.remove('open');root.setAttribute('aria-hidden','true');stopSpeech();const target=returnFocus;returnFocus=null;const fallback=activeGroup?document.querySelector('#hi .nr-card[data-group="'+activeGroup+'"]'):null;const focusTarget=target?.isConnected?target:fallback;if(restore&&focusTarget?.isConnected)focusTarget.focus({preventScroll:true})}
 function drawHome(groupFilter){
  stopSpeech();syncStaticLabels();active=null;activeGroup=groupFilter||null;upload=null;compose.hidden=true;$('#nmBack').hidden=true;$('#nmTitle').textContent=tr('Nova AI · Modes','Nova AI · मोड्स');
  const quick={learn:[['openPhoto','▧','Photo Questions / फोटो वाले सवाल']],build:[['openImageStudio','✦','Image Studio / इमेज स्टूडियो']],agents:[['startVoice','◉','Live Voice / लाइव वॉइस'],['openAgentsSuite','✦','Agents Studio / एजेंट स्टूडियो'],['openArchive','◷','History Archive / इतिहास संग्रह'],['openBusinessIntelligence','▦','Business Intelligence / बिज़नेस इंटेलिजेंस'],['openCompanyCloud','◈','Company Account Cloud / कंपनी अकाउंट क्लाउड']]};
