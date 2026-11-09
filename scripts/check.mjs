@@ -152,29 +152,14 @@ if (!server.includes("const CACHE='nova-shell-v19-entry-gate'") || !server.inclu
 
 const entryClient = readFileSync('nova-entry.js', 'utf8');
 syntaxCheck('nova-entry.js', entryClient);
-const entryVideoBase64 = Array.from({ length: 10 }, (_, index) =>
-  readFileSync('assets/entry-video/part-' + String(index + 1).padStart(2, '0') + '.b64.txt', 'utf8').replace(/\s+/g, '')
-).join('');
-const entryVideoBytes = Buffer.from(entryVideoBase64, 'base64');
-const entryVideoHash = createHash('sha256').update(entryVideoBytes).digest('hex');
-if (entryVideoBase64.length !== 53052 || entryVideoBytes.length !== 39788 ||
-    entryVideoHash !== 'a0cdb3526faa4e868cf1c6b79b853bb6884a15fac52bc68a2688a04e1e59f36c') {
-  throw new Error('NOVA intro video chunks are incomplete or corrupted');
-}
-if (!html.includes('id="novaEntryGate"') || !html.includes('id="novaEntryVideo"') ||
-    !html.includes('autoplay muted playsinline') || html.includes('autoplay muted loop') ||
-    !html.includes('/assets/nova-entry.mp4') || !html.includes('/nova-entry.js') ||
-    !entryClient.includes("video.loop = false") ||
+if (!html.includes('id="novaEntryGate"') || html.includes('id="novaEntryVideo"') ||
+    !html.includes('nova-entry-core') || !html.includes('A NEW ERA OF INTELLIGENCE') ||
+    !html.includes('/nova-entry.js') ||
     !entryClient.includes("localStorage.setItem(PLAYED_KEY, '1')") ||
-    !entryClient.includes("video.addEventListener('ended', enter")) {
-  throw new Error('Full-screen one-shot autoplay intro with persistent completion is missing');
-}
-if (!server.includes("Buffer.from(ENTRY_VIDEO_BASE64, 'base64')") ||
-    !server.includes("app.get('/assets/nova-entry.mp4'") ||
-    !server.includes("app.get('/nova-entry.js'") ||
-    !server.includes("'Accept-Ranges': 'bytes'") ||
-    !server.includes("r.status(206)")) {
-  throw new Error('NOVA entry video delivery route must support byte-range streaming');
+    !entryClient.includes("document.cookie = COOKIE_KEY + '=1") ||
+    !entryClient.includes("gate.addEventListener(type") ||
+    !entryClient.includes("window.setTimeout(finish, duration)")) {
+  throw new Error('NOVA crisp, non-interactive, persistent one-time motion intro is missing');
 }
 
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
