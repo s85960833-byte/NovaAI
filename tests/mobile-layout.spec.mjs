@@ -3,6 +3,11 @@ import { test, expect } from '@playwright/test';
 
 mkdirSync('artifacts', { recursive: true });
 const BASE = process.env.NOVAAI_URL || 'http://127.0.0.1:8787';
+async function enterNOVA(page) {
+  await page.locator('#novaEntryGate').evaluate(element => element.click());
+  await page.locator('#novaEntryGate').waitFor({ state: 'hidden', timeout: 3000 });
+}
+
 const sizes = [
   { width: 360, height: 800 },
   { width: 390, height: 844 },
@@ -17,6 +22,7 @@ for (const size of sizes) {
     page.on('pageerror', error => pageErrors.push(error.message));
     await page.setViewportSize(size);
     await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+    await enterNOVA(page);
     await expect(page.locator('#main')).toBeVisible();
     await expect(page.locator('#hi .nr-cards')).toBeVisible();
     await expect(page.locator('#hi .nr-card[data-group="learn"]')).toBeVisible();
@@ -56,6 +62,7 @@ for (const size of sizes) {
 test('mobile drawer, Settings and workspace composer boundaries',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await page.goto(BASE+'/',{waitUntil:'domcontentloaded'});
+  await enterNOVA(page);
   await page.locator('#menu').click();
   await expect(page.locator('#side')).toHaveClass(/open/);
   await page.locator('#scrim').click({position:{x:380,y:420}});
