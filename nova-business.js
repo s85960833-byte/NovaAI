@@ -21,6 +21,8 @@ const HINDI={
   "Project risk": "प्रोजेक्ट जोखिम",
   "What-if impact": "संभावित प्रभाव",
   "Data quality": "डेटा गुणवत्ता",
+  "CSV files are parsed and analyzed in this browser. Raw rows are not uploaded to NOVA or sent to an AI provider. Data remains in memory only until this page is refreshed or closed.": "CSV फ़ाइलों को इसी ब्राउज़र में पढ़ा और विश्लेषित किया जाता है। मूल पंक्तियाँ NOVA पर अपलोड नहीं होतीं और न ही किसी AI प्रदाता को भेजी जाती हैं। डेटा केवल इसी पेज की मेमोरी में रहता है और पेज रीफ़्रेश या बंद होने पर हट जाता है।",
+  "Company Cloud supports authenticated company accounts, tenant-scoped shared metadata and aggregate analysis history. Open Company Account · Cloud to sign in, create a company and save approved analysis summaries. Raw CSV rows remain in this browser. External company integrations and real workflow execution are not connected.": "Company Cloud प्रमाणित कंपनी खातों, कंपनी-सीमित साझा मेटाडेटा और समेकित विश्लेषण इतिहास का समर्थन करता है। साइन इन करने, कंपनी बनाने और स्वीकृत विश्लेषण सारांश सहेजने के लिए Company Account · Cloud खोलें। CSV की मूल पंक्तियाँ इसी ब्राउज़र में रहती हैं। बाहरी कंपनी इंटीग्रेशन और वास्तविक वर्कफ़्लो निष्पादन अभी कनेक्ट नहीं हैं।",
   "Privacy and data status": "गोपनीयता और डेटा स्थिति",
   "Import a CSV file": "CSV फ़ाइल आयात करें",
   "Import a CSV to see source-row coverage, parser warnings and invalid-field counts.": "स्रोत पंक्तियों का कवरेज, पार्सर चेतावनियाँ और अमान्य फ़ील्ड देखने के लिए CSV आयात करें।",
@@ -115,7 +117,7 @@ const HINDI={
   "Not connected — this is a plan only. No external system was changed.": "कनेक्ट नहीं है — यह केवल योजना है। किसी बाहरी सिस्टम में बदलाव नहीं किया गया।"
 };
 const isHindi=()=>document.documentElement.lang==='hi';
-const bilingualValue=value=>{const raw=String(value??''),key=raw.trim(),pair=key.match(/^(.+?)\s\/\s([\u0900-\u097F][^/]*)$/);if(pair)return isHindi()?pair[2]:pair[1];if(!isHindi())return raw;const hi=HINDI[key];if(hi)return raw.replace(key,hi);let valueText=raw;for(const [en,hin] of Object.entries(HINDI))if(valueText.includes(en))valueText=valueText.replaceAll(en,hin);return valueText};
+const bilingualValue=value=>{const raw=String(value??''),key=raw.trim(),pair=key.match(/^(.+?)\s\/\s([\u0900-\u097F][^/]*)$/);if(pair)return isHindi()?pair[2]:pair[1];if(!isHindi())return raw;const hi=HINDI[key];if(hi)return raw.replace(key,hi);let valueText=raw;for(const [en,hin] of Object.entries(HINDI)){const escaped=en.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\let valueText=raw;for(const [en,hin] of Object.entries(HINDI))if(valueText.includes(en))valueText=valueText.replaceAll(en,hin);return valueText');valueText=valueText.replace(new RegExp('(^|[^A-Za-z0-9])'+escaped+'(?=$|[^A-Za-z0-9])','gi'),(_,prefix)=>prefix+hin)}return valueText};
 const translatedTextNodes=new WeakMap(),translatedAttributes=new WeakMap();
 function bilingualize(root){
  if(!root)return;
