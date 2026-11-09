@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const $=s=>document.querySelector(s),tr=(en,hi)=>`${en} / ${hi}`;
+const $=s=>document.querySelector(s),isHi=()=>document.documentElement.lang==='hi'||(()=>{try{return JSON.parse(localStorage.getItem('nova')||'{}').uiLang==='hi'}catch{return false}})(),tr=(en,hi)=>isHi()?hi:en;
 const css=`
 html,body{background:#050817!important}body{background-image:radial-gradient(ellipse at 75% 10%,#18216b55,transparent 40%),radial-gradient(ellipse at 90% 80%,#5514a522,transparent 38%)!important}
 #side{width:218px!important;min-width:218px;background:linear-gradient(180deg,#080d20f5,#090b1bf5)!important;border-right:1px solid #263a7b!important;padding:16px 12px!important;gap:12px!important}
@@ -100,6 +100,7 @@ function boot(){
   const apply=()=>{const root=$('#hi');if(root&&!root.hidden){render(root);document.body.classList.add('nova-dashboard-home')}else document.body.classList.remove('nova-dashboard-home')};
   apply();
   new MutationObserver(apply).observe(host,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
+  window.addEventListener('nova:ui-language-changed',()=>{const root=$('#hi');if(root&&!root.hidden){delete root.dataset.referenceUi;render(root);}const search=$('#nrGlobalSearch');if(search){search.placeholder='⌕  '+tr('Search saved chats…','सेव की गई चैट खोजें…');search.setAttribute('aria-label',tr('Search saved chats','सेव की गई चैट खोजें'));}const links=$('#nrSidebarLinks');if(links){const pairs=[['NOVA Build','नोवा बिल्ड'],['NOVA Learn','नोवा लर्न'],['NOVA Agents','नोवा एजेंट्स']];links.querySelectorAll('button').forEach((b,i)=>{if(pairs[i])b.textContent=['⌘','▱','◈'][i]+'　'+tr(...pairs[i])})}});
  }
 }
 if($('#log')&&$('#top'))boot();else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
