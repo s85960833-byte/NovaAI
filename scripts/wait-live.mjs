@@ -45,9 +45,9 @@ for (let i = 0; i < 36; i++) {
     ].join(', ');
 
     const requiredReferenceMarkers = [
-      'NOVA Build / नोवा बिल्ड',
-      'NOVA Learn / नोवा लर्न',
-      'NOVA Agents / नोवा एजेंट्स',
+      "tr('NOVA Build','नोवा बिल्ड')",
+      "tr('NOVA Learn','नोवा लर्न')",
+      "tr('NOVA Agents','नोवा एजेंट्स')",
       'body.nova-dashboard-home:not(.nova-image-mode) #box',
       'nr-hero',
       'nr-cards',
