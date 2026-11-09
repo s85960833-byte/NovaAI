@@ -21,6 +21,10 @@ try{
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'hi','Hindi interface selection must update the document language');
  assert.equal(await desktop.locator('#uiLang').inputValue(),'hi','Settings and top language selectors must stay synchronized');
  assert.ok((await desktop.locator('#new').innerText()).includes('नई चैट'),'Hindi interface selection must translate visible controls');
+ await desktop.locator('#hi .nr-card[data-group="learn"]').waitFor({state:'visible',timeout:15000});
+ const hindiHome=await desktop.locator('#hi .nr-cards').innerText();
+ assert.ok(hindiHome.includes('नोवा बिल्ड')&&hindiHome.includes('नोवा लर्न')&&hindiHome.includes('नोवा एजेंट्स'),'Hindi dashboard must translate all three workspace cards');
+ assert.ok(!hindiHome.includes('NOVA Build /')&&!hindiHome.includes('NOVA Learn /')&&!hindiHome.includes('NOVA Agents /'),'Hindi dashboard must not show mixed English/Hindi card labels');
  await desktop.reload({waitUntil:'domcontentloaded'});
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'hi','selected Hindi interface language must persist after reload');
  assert.ok((await desktop.locator('#new').innerText()).includes('नई चैट'),'persisted Hindi must render translated controls after reload');
@@ -87,7 +91,7 @@ try{
  assert.equal(desktopState.columns,3,'desktop should show three workspace cards');
  assert.equal(desktopState.composer,'none','global composer must be hidden on workspace home');
  for(const label of ['NOVA Build','NOVA Learn','NOVA Agents'])assert.ok(desktopState.bilingual.includes(label),'missing English workspace card '+label);
- assert.ok(!desktopState.bilingual.includes(' / '),'English workspace cards must not show mixed bilingual labels');
+ assert.ok(!desktopState.bilingual.includes('NOVA Build /')&&!desktopState.bilingual.includes('NOVA Learn /')&&!desktopState.bilingual.includes('NOVA Agents /'),'English workspace cards must not show mixed bilingual labels');
  assert.equal(await desktop.locator('#hi [data-nr]').count(),0,'home must not expose direct photo/voice agent shortcuts');
  assert.equal(await desktop.locator('#hi #nrAsk').count(),0,'home must not expose a global AI prompt');
  const searchPlaceholder=await desktop.locator('#nrGlobalSearch').getAttribute('placeholder');
