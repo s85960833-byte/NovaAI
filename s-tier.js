@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id),hi=()=>document.documentElement.lang==='
 const languageTextNodes=new WeakMap(),languageAttributes=new WeakMap();
 function localizeBilingual(root){
  if(!root)return;
- const choose=source=>{const match=String(source).match(/^(\\s*)(.*?)\\s\\/\\s([\\u0900-\\u097F].*?)(\\s*)$/s);return match?(hi()?match[1]+match[3]+match[4]:match[1]+match[2]+match[4]):source};
+ const choose=source=>{const match=String(source).match(/^(\s*)(.*?)\s\/\s([\u0900-\u097F].*?)(\s*)$/s);return match?(hi()?match[1]+match[3]+match[4]:match[1]+match[2]+match[4]):source};
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;
  while((node=walker.nextNode())){const current=node.nodeValue,previous=languageTextNodes.get(node),source=previous&&current===previous.rendered?previous.source:current,next=choose(source);node.nodeValue=next;languageTextNodes.set(node,{source,rendered:next})}
  root.querySelectorAll('[aria-label],[title],[placeholder]').forEach(el=>['aria-label','title','placeholder'].forEach(attr=>{if(!el.hasAttribute(attr))return;const current=el.getAttribute(attr),key=el.tagName+':'+attr,previous=languageAttributes.get(el)?.[key],source=previous&&current===previous.rendered?previous.source:current,next=choose(source);el.setAttribute(attr,next);const saved=languageAttributes.get(el)||{};saved[key]={source,rendered:next};languageAttributes.set(el,saved)}));
