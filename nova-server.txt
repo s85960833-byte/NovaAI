@@ -370,7 +370,7 @@ app.get('/mode-registry.js', (q, r) => r.type('application/javascript').sendFile
 app.get('/mode-workspace.js', (q, r) => r.type('application/javascript').sendFile(path.join(__dirname, 'mode-workspace.js')));
 // Reassemble the small, compressed entry movie from checked-in text chunks.
 const ENTRY_VIDEO_BASE64 = Array.from({ length: 10 }, (_, index) =>
-  fs.readFileSync(path.join(__dirname, 'assets', 'entry-video', 'part-' + String(index + 1).padStart(2, '0') + '.b64.txt'), 'utf8').replace(/\\s+/g, '')
+  fs.readFileSync(path.join(__dirname, 'assets', 'entry-video', 'part-' + String(index + 1).padStart(2, '0') + '.b64.txt'), 'utf8').replace(/\s+/g, '')
 ).join('');
 const ENTRY_VIDEO = Buffer.from(ENTRY_VIDEO_BASE64, 'base64');
 if (!ENTRY_VIDEO.length) throw new Error('NOVA entry video asset is empty');
@@ -379,7 +379,7 @@ app.get('/assets/nova-entry.mp4', (q, r) => {
   const range = q.headers.range;
   const headers = { 'Content-Type': 'video/mp4', 'Accept-Ranges': 'bytes', 'Cache-Control': 'public, max-age=86400' };
   if (range) {
-    const match = /^bytes=(\\d*)-(\\d*)$/.exec(range);
+    const match = /^bytes=(\d*)-(\d*)$/.exec(range);
     if (!match || (!match[1] && !match[2])) {
       r.status(416).set('Content-Range', 'bytes */' + total).end();
       return;
@@ -880,11 +880,11 @@ function findDates(q) {
   const add = (y, m, d, pos, len) => { y = +y; m = +m; d = d == null ? null : +d; if (y < 1990 || y > 2100 || m < 1 || m > 12 || (d != null && (d < 1 || d > 31))) return; const k = y + '-' + m + '-' + d; if (seen.has(k)) return; for (const r of res) if (pos >= r.pos && pos < r.pos + r.len) return; seen.add(k); res.push({ y, m, d, pos, len }); };
   let m;
   for (m of ql.matchAll(/(\d{4})-(\d{1,2})-(\d{1,2})/g)) add(m[1], m[2], m[3], m.index, m[0].length);
-  for (m of ql.matchAll(new RegExp(NB + '(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?(' + MONRE + ')[,.]?\\s+(\\d{4})' + NA, 'giu'))) add(m[3], MON[m[2].toLowerCase()], m[1], m.index, m[0].length);
-  for (m of ql.matchAll(new RegExp(NB + '(' + MONRE + ')\\s+(\\d{1,2})(?:st|nd|rd|th)?,?\\s+(\\d{4})' + NA, 'giu'))) add(m[3], MON[m[1].toLowerCase()], m[2], m.index, m[0].length);
+  for (m of ql.matchAll(new RegExp(NB + '(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?(' + MONRE + ')[,.]?\s+(\d{4})' + NA, 'giu'))) add(m[3], MON[m[2].toLowerCase()], m[1], m.index, m[0].length);
+  for (m of ql.matchAll(new RegExp(NB + '(' + MONRE + ')\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})' + NA, 'giu'))) add(m[3], MON[m[1].toLowerCase()], m[2], m.index, m[0].length);
   for (m of ql.matchAll(/(?<!\d)(\d{1,2})[\/.-](\d{1,2})[\/.-](20\d\d|19\d\d)(?!\d)/g)) add(m[3], m[2], m[1], m.index, m[0].length);
-  for (m of ql.matchAll(new RegExp(NB + '(' + MONRE + ')[,]?\\s+(\\d{4})' + NA, 'giu'))) add(m[2], MON[m[1].toLowerCase()], null, m.index, m[0].length);
-  for (m of ql.matchAll(new RegExp(NB + '(\\d{4})\\s+(?:\u0915\u0947\\s+)?(' + MONRE + ')' + NA, 'giu'))) add(m[1], MON[m[2].toLowerCase()], null, m.index, m[0].length);
+  for (m of ql.matchAll(new RegExp(NB + '(' + MONRE + ')[,]?\s+(\d{4})' + NA, 'giu'))) add(m[2], MON[m[1].toLowerCase()], null, m.index, m[0].length);
+  for (m of ql.matchAll(new RegExp(NB + '(\d{4})\s+(?:\u0915\u0947\s+)?(' + MONRE + ')' + NA, 'giu'))) add(m[1], MON[m[2].toLowerCase()], null, m.index, m[0].length);
   for (m of ql.matchAll(/(?<![\d-])(19[89]\d|20\d\d)(?![\d-])/g)) add(m[1], 1, null, m.index, 4) || null;
   // years: mark granularity
   return res.sort((a, b) => a.pos - b.pos).map(r => ({ ...r, g: r.d != null ? 'day' : (new RegExp(NB + '(' + MONRE + ')', 'iu').test(ql.slice(Math.max(0, r.pos - 14), r.pos + r.len + 14)) ? 'month' : 'year') }));
