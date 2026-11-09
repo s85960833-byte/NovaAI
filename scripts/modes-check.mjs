@@ -23,7 +23,8 @@ assert.ok(suite.includes('function bilingualize(root)')&&suite.includes('bilingu
 assert.ok(!suite.includes("btn.id='novaSuiteLauncher'")&&!suite.includes("append(btn)"),'Agents Studio must not be launched from the global sidebar');
 assert.ok(workspace.includes("['openAgentsSuite','✦','Agents Studio / एजेंट स्टूडियो']")&&app.includes('openAgentsSuite(){window.NovaSuite?.open()}'),'Agents Studio must launch only from NOVA Agents workspace');
 const tier=readFileSync('s-tier.js','utf8');
-for(const label of ['NOVA Learn / नोवा लर्न','NOVA Build / नोवा बिल्ड','NOVA Agents / नोवा एजेंट्स','INDIAN INTELLIGENCE / भारतीय बुद्धिमत्ता','HINDI / हिन्दी · ENGLISH / अंग्रेज़ी','Nova Experience / NOVA अनुभव','Data Saver / Lite Mode · डेटा सेवर / लाइट मोड','Startup Chime · स्टार्टअप ध्वनि','Festival Greetings · त्योहारों की शुभकामनाएँ','Accent Palette / रंग थीम'])assert.ok(tier.includes(label),'missing bilingual home/settings label: '+label);
+for(const label of ['NOVA Learn / नोवा लर्न','NOVA Build / नोवा बिल्ड','NOVA Agents / नोवा एजेंट्स','INDIAN INTELLIGENCE / भारतीय बुद्धिमत्ता','HINDI / हिन्दी · ENGLISH / अंग्रेज़ी'])assert.ok(tier.includes(label),'missing workspace/brand source label: '+label);
+for(const label of ["tr('Nova Experience','NOVA अनुभव')","tr('Data Saver / Lite Mode','डेटा सेवर / लाइट मोड')","tr('Startup Chime (off by default)','स्टार्टअप ध्वनि (डिफ़ॉल्ट रूप से बंद)')","tr('Festival Greetings (off by default)','त्योहारों की शुभकामनाएँ (डिफ़ॉल्ट रूप से बंद)')","tr('Accent Palette','रंग थीम')"])assert.ok(tier.includes(label),'missing language-aware setting: '+label);
 assert.ok(tier.includes('DESIGNED IN INDIA / भारत में निर्मित')&&tier.includes('BUILT FOR THE WORLD / दुनिया के लिए'),'brand origin must be bilingual');
 
 assert.ok(workspace.includes('openGroup(group)'));
