@@ -10,11 +10,11 @@ const data=()=>read(STORE,{version:1,histories:{},lastMode:'general'});
 const saveData=x=>write(STORE,x);
 const lowData=()=>data().lowData!==false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const language=()=>{const selected=document.querySelector('#lang')?.value;if(selected==='English'||selected==='Hindi')return selected;try{const saved=JSON.parse(localStorage.getItem('nova')||'{}').rl;if(saved==='Hindi'||saved==='English')return saved}catch(e){}return 'English'};
+const language=()=>{if(document.documentElement.lang==='hi')return 'Hindi';try{return JSON.parse(localStorage.getItem('nova')||'{}').uiLang==='hi'?'Hindi':'English'}catch(e){return 'English'}};
 const isHi=()=>language()==='Hindi';
-const tr=(en,hi)=>`${en} / ${hi}`;
+const tr=(en,hi)=>isHi()?hi:en;
 function syncStaticLabels(){const back=$('#nmBack'),close=$('#nmClose'),title=$('#nmTitle'),file=$('#nmFile'),mic=$('#nmMic'),send=$('#nmSend');if(back)back.textContent='←';if(close)close.textContent=tr('Close','बंद करें');if(title&&!active)title.textContent=tr('Nova AI · Modes','Nova AI · मोड्स');if(file)file.textContent='📎 '+tr('Attach file/photo','फ़ाइल/फोटो जोड़ें');if(mic)mic.textContent='🎙 '+tr('Speak','बोलें');if(send)send.textContent=tr('Send','भेजें');if(input)input.placeholder=active==='document'?tr('Upload a bill, notice, or form, or type a question…','बिल, नोटिस या फॉर्म अपलोड करें, या सवाल लिखें…'):active==='photo'?tr('Choose a photo of the question or type it…','सवाल की फोटो चुनें या सवाल लिखें…'):tr('Type your question…','अपना सवाल लिखें…')}
-const mode=id=>{const m=REG.modes.find(x=>x.id===id)||REG.modes[0];return {...m,name:`${m.name} / ${m.nameHi}`,desc:`${m.desc} / ${m.descHi}`,prompt:isHi()?(m.promptHi||m.prompt):m.prompt};};
+const mode=id=>{const m=REG.modes.find(x=>x.id===id)||REG.modes[0];return {...m,name:isHi()?(m.nameHi||m.name):m.name,desc:isHi()?(m.descHi||m.desc):m.desc,prompt:isHi()?(m.promptHi||m.prompt):m.prompt};};
 const history=id=>{const d=data();return d.histories[id]||(d.histories[id]=[])};
 const css=`
 #novaModes{position:fixed;inset:0;z-index:1000;background:var(--bg,#120d1b);color:var(--fg,#f3ecf8);display:none;flex-direction:column;font:16px/1.5 "Noto Sans Devanagari","Nirmala UI",Mangal,system-ui,sans-serif}
@@ -134,7 +134,7 @@ function voice(){const SR=window.SpeechRecognition||window.webkitSpeechRecogniti
 $('#nmClose').onclick=hide;$('#nmBack').onclick=()=>drawHome(activeGroup);$('#nmSend').onclick=send;$('#nmMic').onclick=voice;
 $('#nmFile').onclick=()=>$('#nmPick').click();$('#nmPick').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;try{upload={...await extractFile(f),name:f.name};$('#nmUploadName').textContent=tr('File ready: ','फ़ाइल तैयार: ')+f.name+tr(' (not stored on the server after submission)',' (भेजने के बाद सर्वर पर सेव नहीं होती)');}catch(err){$('#nmStatus').textContent=err.message}};
 input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
-document.querySelector('#lang')?.addEventListener('change',()=>{syncStaticLabels();const b1=$('#novaModesTop'),b2=$('#novaModesSide'),b3=$('#novaModesHome');if(b1)b1.textContent=tr('☷ Modes','☷ मोड्स');if(b2)b2.textContent=tr('☷ Open Modes','☷ मोड्स खोलें');if(b3)b3.textContent=tr('☷ Open All Modes','☷ सभी मोड्स खोलें');if(root.classList.contains('open')){if(active)drawChat();else drawHome(activeGroup);}});
+window.addEventListener('nova:ui-language-changed',()=>{syncStaticLabels();const b1=$('#novaModesTop'),b2=$('#novaModesSide'),b3=$('#novaModesHome');if(b1)b1.textContent=tr('☷ Modes','☷ मोड्स');if(b2)b2.textContent=tr('☷ Open Modes','☷ मोड्स खोलें');if(b3)b3.textContent=tr('☷ Open All Modes','☷ सभी मोड्स खोलें');if(root.classList.contains('open')){if(active)drawChat();else drawHome(activeGroup);}});
 window.addEventListener('online',()=>{offline=false;if(active)drawChat()});window.addEventListener('offline',()=>{offline=true;if(active)drawChat()});
 window.NovaModeWorkspace=Object.freeze({openGroup(group){if(!REG.groups.some(g=>g.id===group))return false;show(group);return true;},openMode(id){const m=REG.modes.find(x=>x.id===id);if(!m)return false;returnFocus=document.activeElement;activeGroup=m.group;openMode(id);return true;},close:hide});
 if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('/sw.js').catch(()=>{});
