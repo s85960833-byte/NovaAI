@@ -132,7 +132,7 @@ test('business dialog supports keyboard focus management and visible focus style
  const ui=readFileSync(path.join(__dirname,'..','nova-business.js'),'utf8');
  assert.match(ui,/aria-modal/);
  assert.match(ui,/if\(e\.key==='Tab'\)/);
- assert.match(ui,/returnFocus\.focus\(\)/);
+ assert.match(ui,/target\.focus\(\)/);assert.match(ui,/returnFocus\?\.isConnected/);
  assert.match(ui,/focus-visible/);
  assert.match(ui,/aria-current=/);
 });
