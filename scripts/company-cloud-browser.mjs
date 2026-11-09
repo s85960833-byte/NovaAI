@@ -191,7 +191,10 @@ assert.equal(localHealth.status, 200, 'local NOVA server must be healthy before 
 const homeResponse = await page.goto('http://127.0.0.1:8787', { waitUntil: 'commit', timeout: 15000 });
 assert.equal(homeResponse?.status(), 200, 'local NOVA homepage must return HTTP 200');
 await page.waitForTimeout(1000);
-progress('local homepage loaded');
+// Dismiss the new full-screen entry gate in this feature-level test before interacting with workspace controls.
+await page.locator('#novaEntryGate').evaluate(element => element.click());
+await page.locator('#novaEntryGate').waitFor({ state: 'hidden', timeout: 3000 });
+progress('local homepage loaded and entry gate dismissed');
 const pdfModuleCheck = await page.evaluate(async () => {
   try {
     const module = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.mjs');
