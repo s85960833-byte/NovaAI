@@ -192,7 +192,7 @@ const homeResponse = await page.goto('http://127.0.0.1:8787', { waitUntil: 'comm
 assert.equal(homeResponse?.status(), 200, 'local NOVA homepage must return HTTP 200');
 // This suite targets Company Cloud, not the intro animation. Mark the one-time intro as
 // already completed before navigation so the test never clicks or bypasses the entry gate.
-await page.evaluate(() => localStorage.setItem('nova_intro_completed_v1', '1'));
+await page.evaluate(() => localStorage.setItem('nova_intro_completed_v2', '1'));
 await page.reload({ waitUntil: 'domcontentloaded' });
 await page.locator('#novaEntryGate').waitFor({ state: 'detached', timeout: 5000 });
 progress('local homepage loaded with the previously completed intro skipped');
