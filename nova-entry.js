@@ -6,14 +6,22 @@
   const LEGACY_KEY = 'nova_intro_completed_v1';
   const COOKIE_KEY = 'nova_intro_seen_v2';
   const hasPlayed = () => {
-    try { if (localStorage.getItem(PLAYED_KEY) === '1') return true; } catch (_) {}
-    try { return document.cookie.split(';').some(item => item.trim() === COOKIE_KEY + '=1'); } catch (_) {}
+    // Accept every marker used by earlier releases so an upgrade never replays an intro.
+    for (const key of [PLAYED_KEY, LEGACY_KEY]) {
+      try { if (localStorage.getItem(key) === '1') return true; } catch (_) {}
+      try { if (sessionStorage.getItem(key) === '1') return true; } catch (_) {}
+    }
+    try {
+      const cookies = document.cookie.split(';').map(item => item.trim());
+      return cookies.includes(COOKIE_KEY + '=1') || cookies.includes('nova_intro_seen_v1=1');
+    } catch (_) {}
     return false;
   };
   const rememberPlayed = () => {
     try { localStorage.setItem(PLAYED_KEY, '1'); } catch (_) {}
-    // Keep the previous marker for compatibility, but do not let it suppress this new intro.
     try { localStorage.setItem(LEGACY_KEY, '1'); } catch (_) {}
+    try { sessionStorage.setItem(PLAYED_KEY, '1'); } catch (_) {}
+    try { sessionStorage.setItem(LEGACY_KEY, '1'); } catch (_) {}
     try {
       document.cookie = COOKIE_KEY + '=1; Max-Age=31536000; Path=/; SameSite=Lax' +
         (location.protocol === 'https:' ? '; Secure' : '');
