@@ -16,13 +16,13 @@ try{
  await desktop.goto(BASE,{waitUntil:'domcontentloaded'});
  // A fresh browser must start in English; switching to Hindi must persist and remain reversible.
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'en','fresh NOVA sessions must default to English');
- assert.match(await desktop.locator('#hi .nr-title').innerText(),/Welcome to\\s*NOVA AI/,'fresh dashboard must greet users in English');
+ assert.match(await desktop.locator('#hi .nr-title').innerText(),/Welcome to\s*NOVA AI/,'fresh dashboard must greet users in English');
  assert.equal(await desktop.locator('#uiLangTop option').count(),2,'the top language selector must contain only English and Hindi');
  await desktop.locator('#uiLangTop').selectOption('hi');
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'hi','Hindi interface selection must update the document language');
  assert.equal(await desktop.locator('#uiLang').inputValue(),'hi','Settings and top language selectors must stay synchronized');
  assert.ok((await desktop.locator('#new').innerText()).includes('नई चैट'),'Hindi interface selection must translate visible controls');
- assert.match(await desktop.locator('#hi .nr-title').innerText(),/स्वागत है\\s*NOVA AI/,'Hindi dashboard must translate the welcome heading');
+ assert.match(await desktop.locator('#hi .nr-title').innerText(),/स्वागत है\s*NOVA AI/,'Hindi dashboard must translate the welcome heading');
  await desktop.locator('#hi .nr-card[data-group="learn"]').waitFor({state:'visible',timeout:15000});
  const hindiHome=await desktop.locator('#hi .nr-cards').innerText();
  assert.ok(hindiHome.includes('नोवा बिल्ड')&&hindiHome.includes('नोवा लर्न')&&hindiHome.includes('नोवा एजेंट्स'),'Hindi dashboard must translate all three workspace cards');
