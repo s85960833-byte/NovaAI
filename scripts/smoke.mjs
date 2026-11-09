@@ -53,7 +53,7 @@ console.log('PASS restored standard NOVA chat UI, bilingual labels, Settings, im
 
 const referenceResponse = await request('/nova-reference.js');
 const reference = await referenceResponse.text();
-if (!referenceResponse.ok || !['NOVA Build / नोवा बिल्ड','NOVA Learn / नोवा लर्न','NOVA Agents / नोवा एजेंट्स','body.nova-dashboard-home:not(.nova-image-mode) #box'].every(x=>reference.includes(x)) || reference.includes('id=\"nrAsk\"') || reference.includes('data-nr=') || reference.includes('NovaWorkspaceActions')) throw new Error('Live reference dashboard is not bilingual or exposes tools outside their workspace');
+if (!referenceResponse.ok || !["tr('NOVA Build','नोवा बिल्ड')","tr('NOVA Learn','नोवा लर्न')","tr('NOVA Agents','नोवा एजेंट्स')",'body.nova-dashboard-home:not(.nova-image-mode) #box'].every(x=>reference.includes(x)) || reference.includes('id=\"nrAsk\"') || reference.includes('data-nr=') || reference.includes('NovaWorkspaceActions')) throw new Error('Live reference dashboard is not bilingual or exposes tools outside their workspace');
 console.log('PASS bilingual three-workspace home and strict feature placement');
 
 const tier = await request('/s-tier.js');
