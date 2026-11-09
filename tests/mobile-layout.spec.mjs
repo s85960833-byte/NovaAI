@@ -5,7 +5,7 @@ mkdirSync('artifacts', { recursive: true });
 const BASE = process.env.NOVAAI_URL || 'http://127.0.0.1:8787';
 async function skipIntroForLayoutTest(page) {
   // Layout tests are not intro-playback tests; simulate a returning visitor before app scripts run.
-  await page.addInitScript(() => localStorage.setItem('nova_intro_completed_v1', '1'));
+  await page.addInitScript(() => localStorage.setItem('nova_intro_completed_v2', '1'));
 }
 
 const sizes = [
