@@ -4,7 +4,7 @@ const SYNC_KEY='nova-cloud-sync-enabled';
 const $=id=>document.getElementById(id);
 const mount=$('novaAccountMount'),dialog=$('novaAccountDialog');
 if(!mount||!dialog)return;
-let client=null,user=null,session=null,recovery=false,suppressSync=false,timer=null,busy=false;
+let client=null,user=null,session=null,recovery=false,suppressSync=false,timer=null,busy=false,pendingSync=false;
 const say=(message,error=false)=>{const n=$('novaAccountStatus');if(n){n.textContent=message;n.dataset.error=error?'true':'false'}};
 const enabled=()=>{try{return localStorage.getItem(SYNC_KEY)==='true'}catch(e){return false}};
 const setEnabled=value=>{try{if(value)localStorage.setItem(SYNC_KEY,'true');else localStorage.removeItem(SYNC_KEY)}catch(e){throw new Error('This browser does not allow local sync preferences to be saved.')}};
@@ -29,31 +29,49 @@ function render(){
 function cleanSnapshot(){
  const raw=window.NovaWorkspaceActions?.getAccountSnapshot?.();
  if(!raw||typeof raw!=='object')throw new Error('NOVA workspace is not ready yet.');
- const payload={schema_version:1,chats:Array.isArray(raw.chats)?raw.chats.slice(-40):[],mem:String(raw.mem||'').slice(0,1500),ci:String(raw.ci||'').slice(0,800)};
+ const payload={schema_version:1,chats:Array.isArray(raw.chats)?raw.chats.slice(-40):[],deletedChatIds:Array.isArray(raw.deletedChatIds)?raw.deletedChatIds.map(String).slice(-2000):[],mem:String(raw.mem||'').slice(0,1500),ci:String(raw.ci||'').slice(0,800)};
  const bytes=new TextEncoder().encode(JSON.stringify(payload)).length;
  if(bytes>700000)throw new Error('Your cloud backup is too large. Export a local backup and remove large documents before syncing.');
  return payload;
 }
 async function syncNow(){
- if(!user||!enabled()||busy)return;
+ if(!user||!enabled())return;
+ if(busy){pendingSync=true;return}
  busy=true;say('Syncing your chats…');
  try{
-  const c=getClient();
-  const {data:remote,error:readError}=await c.from('nova_user_workspaces').select('payload,updated_at').eq('user_id',user.id).maybeSingle();
-  if(readError)throw readError;
-  if(remote?.payload){
-   suppressSync=true;
-   try{window.NovaWorkspaceActions?.applyAccountSnapshot?.(remote.payload)}finally{suppressSync=false}
+  const c=getClient(),table=()=>c.from('nova_user_workspaces');
+  let saved=false;
+  // Compare-and-swap each workspace version. A stale device must re-read and merge,
+  // never overwrite a newer snapshot fetched by another device.
+  for(let attempt=0;attempt<4&&!saved;attempt++){
+   const {data:remote,error:readError}=await table().select('payload,updated_at').eq('user_id',user.id).maybeSingle();
+   if(readError)throw readError;
+   if(remote?.payload){
+    suppressSync=true;
+    try{window.NovaWorkspaceActions?.applyAccountSnapshot?.(remote.payload)}finally{suppressSync=false}
+   }
+   const payload=cleanSnapshot();
+   const prior=remote?.updated_at?Date.parse(remote.updated_at):0;
+   const updated_at=new Date(Math.max(Date.now(),Number.isFinite(prior)?prior+1:0)).toISOString();
+   const row={user_id:user.id,payload,schema_version:1,updated_at};
+   if(remote){
+    const {data:written,error:writeError}=await table().update({payload,schema_version:1,updated_at}).eq('user_id',user.id).eq('updated_at',remote.updated_at).select('user_id').maybeSingle();
+    if(writeError)throw writeError;
+    saved=!!written;
+   }else{
+    const {error:insertError}=await table().insert(row);
+    if(!insertError)saved=true;
+    else if(insertError.code!=='23505')throw insertError;
+   }
   }
-  const payload=cleanSnapshot();
-  const {error:writeError}=await c.from('nova_user_workspaces').upsert({user_id:user.id,payload,schema_version:1,updated_at:new Date().toISOString()},{onConflict:'user_id'});
-  if(writeError)throw writeError;
+  if(!saved)throw new Error('Cloud workspace changed repeatedly on another device. Please sync again.');
   say('Synced successfully · '+new Date().toLocaleTimeString());
  }catch(e){say(e.message||'Cloud sync failed. Your local chats are still available.',true)}
- finally{busy=false}
+ finally{busy=false;if(pendingSync){pendingSync=false;queueMicrotask(()=>syncNow())}}
 }
 function scheduleSync(){
  if(suppressSync||!user||!enabled())return;
+ if(busy){pendingSync=true;return}
  clearTimeout(timer);
  timer=setTimeout(()=>syncNow(),1400);
 }
