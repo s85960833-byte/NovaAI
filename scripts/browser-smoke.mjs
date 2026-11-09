@@ -34,8 +34,18 @@ async function verifyIntroDoesNotReplay(page){
  await page.locator('#novaEntryGate').waitFor({state:'detached',timeout:5000});
  await page.locator('#hi').waitFor({state:'visible',timeout:10000});
  assert.equal(await page.locator('#novaEntryVideo').count(),0,'legacy video element must never be reintroduced');
- await page.evaluate(()=>{localStorage.removeItem('nova_intro_completed_v2');document.cookie='nova_intro_seen_v2=; Max-Age=0; Path=/';});
  console.log('PASS intro is tap-proof, one-time and persistent after reload');
+
+ const legacyContext=await browser.newContext({viewport:{width:412,height:915}});
+ const legacyPage=await legacyContext.newPage();
+ track(legacyPage);
+ await legacyPage.addInitScript(()=>localStorage.setItem('nova_intro_completed_v1','1'));
+ await legacyPage.goto(BASE,{waitUntil:'domcontentloaded'});
+ await legacyPage.locator('#novaEntryGate').waitFor({state:'detached',timeout:5000});
+ await legacyPage.locator('#hi').waitFor({state:'visible',timeout:10000});
+ assert.equal(await legacyPage.evaluate(()=>localStorage.getItem('nova_intro_completed_v2')),'1','legacy completion marker must be migrated to the current marker');
+ await legacyContext.close();
+ console.log('PASS legacy intro marker migration prevents replay after upgrades');
 }
 
 try{
