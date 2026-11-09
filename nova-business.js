@@ -114,7 +114,7 @@ const HINDI={
   "Human approval required": "मानवीय मंज़ूरी आवश्यक",
   "Not connected — this is a plan only. No external system was changed.": "कनेक्ट नहीं है — यह केवल योजना है। किसी बाहरी सिस्टम में बदलाव नहीं किया गया।"
 };
-const isHindi=()=>document.documentElement.lang==='hi'||(()=>{try{return JSON.parse(localStorage.getItem('nova')||'{}').uiLang==='hi'}catch{return false}})();
+const isHindi=()=>document.documentElement.lang==='hi';
 const bilingualValue=value=>{const raw=String(value??''),key=raw.trim(),pair=key.match(/^(.+?)\s\/\s([\u0900-\u097F][\s\S]*)$/);if(pair)return isHindi()?pair[2]:pair[1];const hi=HINDI[key];return isHindi()&&hi?raw.replace(key,hi):raw};
 function bilingualize(root){if(!root)return;const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode()))node.nodeValue=bilingualValue(node.nodeValue);root.querySelectorAll('[placeholder],[aria-label],[title]').forEach(el=>['placeholder','aria-label','title'].forEach(attr=>{if(el.hasAttribute(attr))el.setAttribute(attr,bilingualValue(el.getAttribute(attr)))}))}
 const mappings={expenses:[['amount','Amount column',true],['category','Expense category',true],['date','Date column',false]],clients:[['client','Client column',true],['revenue','Revenue column',true],['directCost','Direct cost column',true]],tasks:[['status','Task status column',true],['team','Team column',false],['createdAt','Created date column',false],['completedAt','Completed date column',false],['dueDate','Due date column',false]]};
