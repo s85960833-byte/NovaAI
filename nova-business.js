@@ -117,7 +117,8 @@ const HINDI={
   "Not connected — this is a plan only. No external system was changed.": "कनेक्ट नहीं है — यह केवल योजना है। किसी बाहरी सिस्टम में बदलाव नहीं किया गया।"
 };
 const isHindi=()=>document.documentElement.lang==='hi';
-const bilingualValue=value=>{const raw=String(value??''),key=raw.trim(),pair=key.match(/^(.+?)\\s\\/\\s([\\u0900-\\u097F][^/]*)$/);if(pair)return isHindi()?pair[2]:pair[1];if(!isHindi())return raw;const hi=HINDI[key];if(hi)return hi;let valueText=raw;for(const [en,hin] of Object.entries(HINDI)){const escaped=en.split('').map(ch=>'.*+?^${}()|[]\\'.includes(ch)?'\\\\'+ch:ch).join('');valueText=valueText.replace(new RegExp('(^|[^A-Za-z0-9])'+escaped+'(?=$|[^A-Za-z0-9])','gi'),(_,prefix)=>prefix+hin)}return valueText};
+const isEnglishWordChar=ch=>!!ch&&(/[A-Za-z0-9]/).test(ch);function replaceWholePhrase(source,phrase,replacement){let result=source,from=0;while(true){const at=result.toLowerCase().indexOf(phrase.toLowerCase(),from);if(at<0)break;const before=result[at-1]||'',after=result[at+phrase.length]||'',first=phrase[0]||'',last=phrase[phrase.length-1]||'';if((!isEnglishWordChar(first)||!isEnglishWordChar(before))&&(!isEnglishWordChar(last)||!isEnglishWordChar(after))){result=result.slice(0,at)+replacement+result.slice(at+phrase.length);from=at+replacement.length}else from=at+phrase.length}return result}
+const bilingualValue=value=>{const raw=String(value??''),key=raw.trim(),split=key.indexOf(' / '),suffix=split>=0?key.slice(split+3):'',first=suffix.codePointAt(0);if(split>=0&&first>=0x0900&&first<=0x097F)return isHindi()?suffix:key.slice(0,split);if(!isHindi())return raw;const hi=HINDI[key];if(hi)return hi;let valueText=raw;for(const [en,hin] of Object.entries(HINDI))valueText=replaceWholePhrase(valueText,en,hin);return valueText};
 const translatedTextNodes=new WeakMap(),translatedAttributes=new WeakMap();
 function bilingualize(root){
  if(!root)return;
