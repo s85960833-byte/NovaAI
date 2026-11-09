@@ -8,3 +8,12 @@ test('preserves legitimate repeated identical messages',()=>{assert.deepEqual(me
 test('keeps divergent histories rather than globally deduplicating',()=>{assert.deepEqual(mergeMessages([m('user','a'),m('assistant','remote')],[m('user','a'),m('assistant','local')]),[m('user','a'),m('assistant','remote'),m('assistant','local')])});
 test('handles missing and malformed inputs',()=>{assert.deepEqual(mergeMessages(null,[m('user','local')]),[m('user','local')]);assert.deepEqual(mergeMessages([null,{},m('user','ok')],null),[m('assistant',''),m('user','ok')])});
 test('caps merged history at 150 messages',()=>{const remote=Array.from({length:100},(_,i)=>m(i%2?'assistant':'user',String(i)));const local=[...remote,...Array.from({length:80},(_,i)=>m(i%2?'assistant':'user','new'+i))];assert.equal(mergeMessages(remote,local).length,150)});
+
+test('merges deletion tombstones from both devices without duplicates',()=>{
+ const {mergeDeletedIds}=require('../nova-sync-merge.js');
+ assert.deepEqual(mergeDeletedIds(['chat-a','chat-b'],['chat-b','chat-c']),['chat-a','chat-b','chat-c']);
+});
+test('bounds deletion tombstones and normalizes malformed identifiers',()=>{
+ const {mergeDeletedIds}=require('../nova-sync-merge.js');
+ assert.deepEqual(mergeDeletedIds([null,'','x'.repeat(200)],['local'],2),['x'.repeat(120),'local']);
+});
