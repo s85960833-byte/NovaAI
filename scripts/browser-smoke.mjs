@@ -11,6 +11,7 @@ const track=page=>{
 
 
 async function enterNOVA(page,{checkAsset=false}={}){
+ await page.evaluate(()=>localStorage.removeItem('nova_intro_completed_v1'));
  const gate=page.locator('#novaEntryGate'),video=page.locator('#novaEntryVideo');
  await gate.waitFor({state:'visible',timeout:15000});
  const attrs=await video.evaluate(v=>({autoplay:v.autoplay,muted:v.muted,loop:v.loop,playsInline:v.playsInline,source:v.querySelector('source')?.getAttribute('src')||''}));
@@ -32,6 +33,17 @@ async function enterNOVA(page,{checkAsset=false}={}){
  await video.evaluate(v=>v.dispatchEvent(new Event('ended')));
  await gate.waitFor({state:'detached',timeout:3000});
  await page.locator('#hi').waitFor({state:'visible',timeout:5000});
+ assert.equal(await page.evaluate(()=>localStorage.getItem('nova_intro_completed_v1')),'1','intro completion must persist');
+}
+
+async function verifyIntroDoesNotReplay(page){
+ await page.evaluate(()=>localStorage.setItem('nova_intro_completed_v1','1'));
+ await page.reload({waitUntil:'domcontentloaded'});
+ await page.locator('#novaEntryGate').waitFor({state:'detached',timeout:5000});
+ await page.locator('#hi').waitFor({state:'visible',timeout:10000});
+ assert.equal(await page.locator('#novaEntryVideo').count(),0,'completed intro must not replay after reload');
+ await page.evaluate(()=>localStorage.removeItem('nova_intro_completed_v1'));
+ console.log('PASS intro plays once and stays dismissed after reload');
 }
 
 try{
@@ -55,6 +67,7 @@ try{
  assert.ok(!hindiHome.includes('NOVA Build /')&&!hindiHome.includes('NOVA Learn /')&&!hindiHome.includes('NOVA Agents /'),'Hindi dashboard must not show mixed English/Hindi card labels');
  await desktop.reload({waitUntil:'domcontentloaded'});
   await enterNOVA(desktop);
+ await verifyIntroDoesNotReplay(desktop);
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'hi','selected Hindi interface language must persist after reload');
  assert.ok((await desktop.locator('#new').innerText()).includes('नई चैट'),'persisted Hindi must render translated controls after reload');
  await desktop.locator('#uiLangTop').selectOption('en');
