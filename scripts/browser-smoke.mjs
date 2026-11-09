@@ -16,21 +16,18 @@ try{
  await desktop.goto(BASE,{waitUntil:'domcontentloaded'});
  // A fresh browser must start in English; switching to Hindi must persist and remain reversible.
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'en','fresh NOVA sessions must default to English');
- await desktop.locator('#setb').click();
- await desktop.locator('#dset').waitFor({state:'visible'});
- await desktop.locator('#uiLang').selectOption('hi');
+ assert.equal(await desktop.locator('#uiLangTop option').count(),2,'the top language selector must contain only English and Hindi');
+ await desktop.locator('#uiLangTop').selectOption('hi');
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'hi','Hindi interface selection must update the document language');
+ assert.equal(await desktop.locator('#uiLang').inputValue(),'hi','Settings and top language selectors must stay synchronized');
  assert.ok((await desktop.locator('#new').innerText()).includes('नई चैट'),'Hindi interface selection must translate visible controls');
  await desktop.locator('#sclose').click();
  await desktop.reload({waitUntil:'domcontentloaded'});
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'hi','selected Hindi interface language must persist after reload');
  assert.ok((await desktop.locator('#new').innerText()).includes('नई चैट'),'persisted Hindi must render translated controls after reload');
- await desktop.locator('#setb').click();
- await desktop.locator('#dset').waitFor({state:'visible'});
- await desktop.locator('#uiLang').selectOption('en');
+ await desktop.locator('#uiLangTop').selectOption('en');
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'en','interface language must switch back to English');
- await desktop.locator('#sclose').click();
- console.log('PASS English first-run default, Hindi switch, persistence across reload and switch back to English');
+ console.log('PASS English first-run default, top-bar Hindi switch, persistence across reload and switch back to English');
  const syncAsset=await desktop.evaluate(async()=>{const response=await fetch('/nova-sync-merge.js');return {status:response.status,type:response.headers.get('content-type')||'',body:await response.text(),loaded:typeof window.NovaSyncMerge?.mergeMessages==='function'}});
  assert.equal(syncAsset.status,200,'cloud-sync merge helper route must be served');
  assert.match(syncAsset.type,/javascript/i,'cloud-sync merge helper must have a JavaScript MIME type');
@@ -90,12 +87,13 @@ try{
  assert.ok(desktopState.scrollWidth<=desktopState.width+1,'desktop horizontal overflow');
  assert.equal(desktopState.columns,3,'desktop should show three workspace cards');
  assert.equal(desktopState.composer,'none','global composer must be hidden on workspace home');
- for(const label of ['NOVA Build / नोवा बिल्ड','NOVA Learn / नोवा लर्न','NOVA Agents / नोवा एजेंट्स'])assert.ok(desktopState.bilingual.includes(label),'missing bilingual card '+label);
+ for(const label of ['NOVA Build','NOVA Learn','NOVA Agents'])assert.ok(desktopState.bilingual.includes(label),'missing English workspace card '+label);
+ assert.ok(!desktopState.bilingual.includes(' / '),'English workspace cards must not show mixed bilingual labels');
  assert.equal(await desktop.locator('#hi [data-nr]').count(),0,'home must not expose direct photo/voice agent shortcuts');
  assert.equal(await desktop.locator('#hi #nrAsk').count(),0,'home must not expose a global AI prompt');
  const searchPlaceholder=await desktop.locator('#nrGlobalSearch').getAttribute('placeholder');
- assert.ok(searchPlaceholder.includes('सेव की गई चैट खोजें'),'saved-chat search placeholder must be bilingual');
- console.log('PASS desktop workspace home, bilingual cards, no global assistant shortcuts, no overflow');
+ assert.ok(searchPlaceholder.includes('Search saved chats'),'English interface must show an English search placeholder');
+ console.log('PASS desktop workspace home, English-only cards, no global assistant shortcuts, no overflow');
 
  // A legacy key remains usable in this tab after migration, but must be scrubbed from durable storage.
  await desktop.evaluate(()=>{const state=JSON.parse(localStorage.getItem('nova')||'{}');state.cfg={...(state.cfg||{}),base:'https://api.example.test/v1',model:'test-model',key:'legacy-test-key'};localStorage.setItem('nova',JSON.stringify(state));});
