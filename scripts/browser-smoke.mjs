@@ -14,6 +14,23 @@ try{
  track(desktop);
  await desktop.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{onAuthStateChange(){},getSession:async()=>({data:{session:null}})}})};'}));
  await desktop.goto(BASE,{waitUntil:'domcontentloaded'});
+ // A fresh browser must start in English; switching to Hindi must persist and remain reversible.
+ assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'en','fresh NOVA sessions must default to English');
+ await desktop.locator('#setb').click();
+ await desktop.locator('#dset').waitFor({state:'visible'});
+ await desktop.locator('#uiLang').selectOption('hi');
+ assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'hi','Hindi interface selection must update the document language');
+ assert.ok((await desktop.locator('#new').innerText()).includes('नई चैट'),'Hindi interface selection must translate visible controls');
+ await desktop.locator('#sclose').click();
+ await desktop.reload({waitUntil:'domcontentloaded'});
+ assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'hi','selected Hindi interface language must persist after reload');
+ assert.ok((await desktop.locator('#new').innerText()).includes('नई चैट'),'persisted Hindi must render translated controls after reload');
+ await desktop.locator('#setb').click();
+ await desktop.locator('#dset').waitFor({state:'visible'});
+ await desktop.locator('#uiLang').selectOption('en');
+ assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'en','interface language must switch back to English');
+ await desktop.locator('#sclose').click();
+ console.log('PASS English first-run default, Hindi switch, persistence across reload and switch back to English');
  const syncAsset=await desktop.evaluate(async()=>{const response=await fetch('/nova-sync-merge.js');return {status:response.status,type:response.headers.get('content-type')||'',body:await response.text(),loaded:typeof window.NovaSyncMerge?.mergeMessages==='function'}});
  assert.equal(syncAsset.status,200,'cloud-sync merge helper route must be served');
  assert.match(syncAsset.type,/javascript/i,'cloud-sync merge helper must have a JavaScript MIME type');
