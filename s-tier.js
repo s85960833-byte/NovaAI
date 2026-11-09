@@ -2,7 +2,7 @@
 const K='nova_s_tier_v1',D='nova_diya_streak_v1',defaults={dataSaver:false,sound:false,festivals:false,accent:'saffron'};
 let prefs={...defaults};try{prefs={...prefs,...JSON.parse(localStorage.getItem(K)||'{}')}}catch{}
 
-const $=id=>document.getElementById(id),hi=()=>$('#lang')?.value==='Hindi',tr=(a,b)=>`${a} / ${b}`;
+const $=id=>document.getElementById(id),hi=()=>document.documentElement.lang==='hi'||(()=>{try{return JSON.parse(localStorage.getItem('nova')||'{}').uiLang==='hi'}catch{return false}})(),tr=(a,b)=>hi()?b:a;
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(prefs))}catch{}};
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const lite=()=>prefs.dataSaver||navigator.connection?.saveData||/2g|3g/.test(navigator.connection?.effectiveType||'')||(navigator.deviceMemory&&navigator.deviceMemory<=2)||reduced();
@@ -96,8 +96,8 @@ function livingCore(){
 function home(){
  const hiEl=$('hi');if(!hiEl||$('novaSHome'))return;
  const hour=+new Intl.DateTimeFormat('en-IN',{hour:'2-digit',hour12:false,timeZone:'Asia/Kolkata'}).format(new Date());
- const greet=hour<12?'सुप्रभात':hour<17?'नमस्ते':hour<21?'शुभ संध्या':'शुभ रात्रि';
- const g=greet+' / '+({'सुप्रभात':'Good morning','नमस्ते':'Hello','शुभ संध्या':'Good evening','शुभ रात्रि':'Good night'}[greet]);
+ const greetings=hour<12?['Good morning','सुप्रभात']:hour<17?['Hello','नमस्ते']:hour<21?['Good evening','शुभ संध्या']:['Good night','शुभ रात्रि'];
+ const g=hi()?greetings[1]:greetings[0];
  let journeyCounts={chats:0,apps:0,projects:0};try{const saved=JSON.parse(localStorage.getItem('nova')||'{}');journeyCounts.chats=Array.isArray(saved.chats)?saved.chats.length:0;const suite=JSON.parse(localStorage.getItem('nova_suite_v1')||'{}');journeyCounts.projects=Array.isArray(suite.projects)?suite.projects.length:0;journeyCounts.apps=Array.isArray(suite.snapshots)?suite.snapshots.length:0}catch{}
  const e=document.createElement('section');e.id='novaSHome';
  e.innerHTML=`<div class="nhero">
@@ -122,6 +122,6 @@ function home(){
  streak();settings();
 }function feedback(kind,txt){let a=[];try{a=JSON.parse(localStorage.getItem('nova_feedback_v1')||'[]')}catch{}a.push({kind,text:txt.slice(0,1600),at:new Date().toISOString()});try{localStorage.setItem('nova_feedback_v1',JSON.stringify(a.slice(-100)))}catch{}}
 function answerTools(){document.querySelectorAll('.m.a').forEach(m=>{if(m.querySelector('.nova-answer-tools'))return;const b=m.querySelector('.b');if(!b)return;const t=b.innerText||'',w=document.createElement('div');w.className='nova-answer-tools';const add=(label,fn)=>{const x=document.createElement('button');x.type='button';x.textContent=label;x.onclick=fn;w.append(x)};add('👍',()=>feedback('up',t));add('👎',()=>feedback('down',t));add('Report incorrect answer',()=>feedback('report',t));add('WhatsApp',()=>window.open('https://wa.me/?text='+encodeURIComponent(t.slice(0,3000)),'_blank','noopener'));add('Copy',()=>navigator.clipboard?.writeText(t));m.append(w)})}
-function boot(){ambientAtmosphere();accent();settings();const m=$('msgs');if(m)new MutationObserver(answerTools).observe(m,{childList:true,subtree:true});wake().catch(()=>{})}
+function boot(){ambientAtmosphere();accent();settings();const m=$('msgs');if(m)new MutationObserver(answerTools).observe(m,{childList:true,subtree:true});window.addEventListener('nova:ui-language-changed',()=>{if($('novaSHome')){$('novaSHome').remove();home();}streak();});wake().catch(()=>{})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
