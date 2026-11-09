@@ -44,8 +44,8 @@ assert.ok(cloud.includes('function bilingualize(root)')&&cloud.includes('bilingu
 for(const action of ['openPhoto,openArchive:openArch','startVoice:startLive','openAgentsSuite(){window.NovaSuite?.open()}','openBusinessIntelligence(){window.NovaBusiness?.open()}','openCompanyCloud(){window.NovaBusinessCloud?.open()}','openImageStudio(){'])assert.ok(app.includes(action),'legacy feature action bridge missing: '+action);
 assert.ok(html.includes('id="nPhoto" data-i="nPhoto" hidden')&&html.includes('id="nArch" data-i="nArch" hidden'),'learning-only legacy shortcuts must not remain in global sidebar');
 
-assert.ok(workspace.includes("g.name+' / '+g.nameHi"),'workspace group labels must always show Hindi and English');
-assert.ok(workspace.includes("name:`${m.name} / ${m.nameHi}`")&&workspace.includes("desc:`${m.desc} / ${m.descHi}`"),'mode names and descriptions must always show Hindi and English');
+assert.ok(workspace.includes("isHi()?(g.nameHi||g.name):g.name"),'workspace group labels must follow the selected interface language');
+assert.ok(workspace.includes("name:isHi()?(m.nameHi||m.name):m.name")&&workspace.includes("desc:isHi()?(m.descHi||m.desc):m.desc"),'mode names and descriptions must follow the selected interface language');
 assert.ok(!workspace.includes("add(top,'novaModesTop'"),'legacy all-modes launchers must be removed');
 const ids=r.modes.map(x=>x.id);
 for(const id of ['general','voice','document','schemes','shopkeeper','math','photo','ncert','board','ssc','upsc','english','builder'])assert.ok(ids.includes(id),'missing '+id);
