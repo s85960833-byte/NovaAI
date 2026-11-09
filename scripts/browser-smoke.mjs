@@ -10,11 +10,12 @@ const track=page=>{
 };
 
 
-async function enterNOVA(page,{method='click',checkAsset=false}={}){
+async function enterNOVA(page,{checkAsset=false}={}){
  const gate=page.locator('#novaEntryGate'),video=page.locator('#novaEntryVideo');
  await gate.waitFor({state:'visible',timeout:15000});
  const attrs=await video.evaluate(v=>({autoplay:v.autoplay,muted:v.muted,loop:v.loop,playsInline:v.playsInline,source:v.querySelector('source')?.getAttribute('src')||''}));
- assert.deepEqual(attrs,{autoplay:true,muted:true,loop:true,playsInline:true,source:'/assets/nova-entry.mp4'},'entry video must autoplay muted, loop and stay inline on mobile');
+ assert.deepEqual(attrs,{autoplay:true,muted:true,loop:false,playsInline:true,source:'/assets/nova-entry.mp4'},'entry video must autoplay muted exactly once, never loop and stay inline on mobile');
+ assert.equal(await page.locator('#novaEntryHint').count(),0,'intro must not require or advertise a manual tap');
  if(checkAsset){
   const url=new URL('/assets/nova-entry.mp4',BASE).toString();
   const whole=await page.request.get(url);
@@ -28,13 +29,9 @@ async function enterNOVA(page,{method='click',checkAsset=false}={}){
   assert.equal((await range.body()).length,32,'entry movie byte-range response length');
   assert.match(range.headers()['content-range']||'',/^bytes 0-31\/39788$/,'entry movie Content-Range must be correct');
  }
- const hindi=await page.evaluate(()=>{try{return JSON.parse(localStorage.getItem('nova')||'{}').uiLang==='hi'}catch{return false}});
- await page.locator('#novaEntryHint').waitFor({state:'visible',timeout:3000});
- assert.equal(await page.locator('#novaEntryHint').innerText(),hindi?'प्रवेश करने के लिए कहीं भी टैप करें':'TAP ANYWHERE TO ENTER','entry hint must follow the saved interface language after its intentional 2-second delay');
- if(method==='keyboard'){await gate.focus();await page.keyboard.press('Enter')}
- else if(method==='tap'){await gate.tap({position:{x:Math.floor((await gate.boundingBox()).width/2),y:Math.floor((await gate.boundingBox()).height/2)}})}
- else await gate.click({position:{x:20,y:20}});
- await gate.waitFor({state:'hidden',timeout:3000});
+ await video.evaluate(v=>v.dispatchEvent(new Event('ended')));
+ await gate.waitFor({state:'detached',timeout:3000});
+ await page.locator('#hi').waitFor({state:'visible',timeout:5000});
 }
 
 try{
