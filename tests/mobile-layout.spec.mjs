@@ -3,9 +3,9 @@ import { test, expect } from '@playwright/test';
 
 mkdirSync('artifacts', { recursive: true });
 const BASE = process.env.NOVAAI_URL || 'http://127.0.0.1:8787';
-async function enterNOVA(page) {
-  await page.locator('#novaEntryGate').evaluate(element => element.click());
-  await page.locator('#novaEntryGate').waitFor({ state: 'hidden', timeout: 3000 });
+async function skipIntroForLayoutTest(page) {
+  // Layout tests are not intro-playback tests; simulate a returning visitor before app scripts run.
+  await page.addInitScript(() => localStorage.setItem('nova_intro_completed_v1', '1'));
 }
 
 const sizes = [
@@ -21,8 +21,8 @@ for (const size of sizes) {
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
     await page.setViewportSize(size);
+    await skipIntroForLayoutTest(page);
     await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
-    await enterNOVA(page);
     await expect(page.locator('#main')).toBeVisible();
     await expect(page.locator('#hi .nr-cards')).toBeVisible();
     await expect(page.locator('#hi .nr-card[data-group="learn"]')).toBeVisible();
@@ -61,8 +61,8 @@ for (const size of sizes) {
 
 test('mobile drawer, Settings and workspace composer boundaries',async({page})=>{
   await page.setViewportSize({width:390,height:844});
+  await skipIntroForLayoutTest(page);
   await page.goto(BASE+'/',{waitUntil:'domcontentloaded'});
-  await enterNOVA(page);
   await page.locator('#menu').click();
   await expect(page.locator('#side')).toHaveClass(/open/);
   await page.locator('#scrim').click({position:{x:380,y:420}});
@@ -90,6 +90,7 @@ test('mobile drawer, Settings and workspace composer boundaries',async({page})=>
 
 test('English is the first-run default and the global UI switch supports only English and Hindi', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await skipIntroForLayoutTest(page);
   await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
   const top = page.locator('#uiLangTop');
   await expect(top).toBeVisible();

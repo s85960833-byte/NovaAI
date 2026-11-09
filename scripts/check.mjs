@@ -162,10 +162,12 @@ if (entryVideoBase64.length !== 53052 || entryVideoBytes.length !== 39788 ||
   throw new Error('NOVA intro video chunks are incomplete or corrupted');
 }
 if (!html.includes('id="novaEntryGate"') || !html.includes('id="novaEntryVideo"') ||
-    !html.includes('autoplay muted loop playsinline') || !html.includes('/assets/nova-entry.mp4') ||
-    !html.includes('/nova-entry.js') || !entryClient.includes("TAP ANYWHERE TO ENTER") ||
-    !entryClient.includes("प्रवेश करने के लिए कहीं भी टैप करें")) {
-  throw new Error('Full-screen video-first entry gate or bilingual tap-to-enter interaction is missing');
+    !html.includes('autoplay muted playsinline') || html.includes('autoplay muted loop') ||
+    !html.includes('/assets/nova-entry.mp4') || !html.includes('/nova-entry.js') ||
+    !entryClient.includes("video.loop = false") ||
+    !entryClient.includes("localStorage.setItem(PLAYED_KEY, '1')") ||
+    !entryClient.includes("video.addEventListener('ended', enter")) {
+  throw new Error('Full-screen one-shot autoplay intro with persistent completion is missing');
 }
 if (!server.includes("Buffer.from(ENTRY_VIDEO_BASE64, 'base64')") ||
     !server.includes("app.get('/assets/nova-entry.mp4'") ||
