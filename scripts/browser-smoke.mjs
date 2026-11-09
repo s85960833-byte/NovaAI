@@ -21,7 +21,6 @@ try{
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'hi','Hindi interface selection must update the document language');
  assert.equal(await desktop.locator('#uiLang').inputValue(),'hi','Settings and top language selectors must stay synchronized');
  assert.ok((await desktop.locator('#new').innerText()).includes('नई चैट'),'Hindi interface selection must translate visible controls');
- await desktop.locator('#sclose').click();
  await desktop.reload({waitUntil:'domcontentloaded'});
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'hi','selected Hindi interface language must persist after reload');
  assert.ok((await desktop.locator('#new').innerText()).includes('नई चैट'),'persisted Hindi must render translated controls after reload');
