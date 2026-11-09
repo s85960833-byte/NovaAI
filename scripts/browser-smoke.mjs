@@ -9,11 +9,39 @@ const track=page=>{
  page.on('console',msg=>{if(msg.type()==='error'&&/content security policy|refused to (?:load|execute|apply)/i.test(msg.text()))cspErrors.push(msg.text())});
 };
 
+
+async function enterNOVA(page,{method='click',checkAsset=false}={}){
+ const gate=page.locator('#novaEntryGate'),video=page.locator('#novaEntryVideo');
+ await gate.waitFor({state:'visible',timeout:15000});
+ const attrs=await video.evaluate(v=>({autoplay:v.autoplay,muted:v.muted,loop:v.loop,playsInline:v.playsInline,source:v.querySelector('source')?.getAttribute('src')||''}));
+ assert.deepEqual(attrs,{autoplay:true,muted:true,loop:true,playsInline:true,source:'/assets/nova-entry.mp4'},'entry video must autoplay muted, loop and stay inline on mobile');
+ if(checkAsset){
+  const url=new URL('/assets/nova-entry.mp4',BASE).toString();
+  const whole=await page.request.get(url);
+  assert.equal(whole.status(),200,'entry video endpoint must serve the movie');
+  assert.match(whole.headers()['content-type']||'',/video\\/mp4/i,'entry movie must use the MP4 MIME type');
+  assert.equal(Number(whole.headers()['content-length']),39788,'entry movie payload must remain intact and compact');
+  const bytes=await whole.body();
+  assert.equal(bytes.length,39788,'entry movie response must contain the full asset');
+  const range=await page.request.get(url,{headers:{Range:'bytes=0-31'}});
+  assert.equal(range.status(),206,'entry movie must support browser byte-range requests');
+  assert.equal((await range.body()).length,32,'entry movie byte-range response length');
+  assert.match(range.headers()['content-range']||'',/^bytes 0-31\\/39788$/,'entry movie Content-Range must be correct');
+ }
+ const hindi=await page.evaluate(()=>{try{return JSON.parse(localStorage.getItem('nova')||'{}').uiLang==='hi'}catch{return false}});
+ assert.equal(await page.locator('#novaEntryHint').innerText(),hindi?'प्रवेश करने के लिए कहीं भी टैप करें':'TAP ANYWHERE TO ENTER','entry hint must follow the saved interface language');
+ if(method==='keyboard'){await gate.focus();await page.keyboard.press('Enter')}
+ else if(method==='tap'){await gate.tap({position:{x:Math.floor((await gate.boundingBox()).width/2),y:Math.floor((await gate.boundingBox()).height/2)}})}
+ else await gate.click({position:{x:20,y:20}});
+ await gate.waitFor({state:'hidden',timeout:3000});
+}
+
 try{
  const desktop=await browser.newPage({viewport:{width:1365,height:900}});
  track(desktop);
  await desktop.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{onAuthStateChange(){},getSession:async()=>({data:{session:null}})}})};'}));
  await desktop.goto(BASE,{waitUntil:'domcontentloaded'});
+  await enterNOVA(desktop,{method:'keyboard',checkAsset:true});
  // A fresh browser must start in English; switching to Hindi must persist and remain reversible.
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'en','fresh NOVA sessions must default to English');
  assert.match(await desktop.locator('#hi .nr-title').innerText(),/Welcome to\s*NOVA AI/,'fresh dashboard must greet users in English');
@@ -28,6 +56,7 @@ try{
  assert.ok(hindiHome.includes('नोवा बिल्ड')&&hindiHome.includes('नोवा लर्न')&&hindiHome.includes('नोवा एजेंट्स'),'Hindi dashboard must translate all three workspace cards');
  assert.ok(!hindiHome.includes('NOVA Build /')&&!hindiHome.includes('NOVA Learn /')&&!hindiHome.includes('NOVA Agents /'),'Hindi dashboard must not show mixed English/Hindi card labels');
  await desktop.reload({waitUntil:'domcontentloaded'});
+  await enterNOVA(desktop);
  assert.equal(await desktop.evaluate(()=>document.documentElement.lang),'hi','selected Hindi interface language must persist after reload');
  assert.ok((await desktop.locator('#new').innerText()).includes('नई चैट'),'persisted Hindi must render translated controls after reload');
  await desktop.locator('#uiLangTop').selectOption('en');
@@ -103,6 +132,7 @@ try{
  // A legacy key remains usable in this tab after migration, but must be scrubbed from durable storage.
  await desktop.evaluate(()=>{const state=JSON.parse(localStorage.getItem('nova')||'{}');state.cfg={...(state.cfg||{}),base:'https://api.example.test/v1',model:'test-model',key:'legacy-test-key'};localStorage.setItem('nova',JSON.stringify(state));});
  await desktop.reload({waitUntil:'domcontentloaded'});
+  await enterNOVA(desktop);
  const migrated=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg?.key||'');
  assert.equal(migrated,'','legacy BYOK key must be removed from localStorage during migration');
  await desktop.evaluate(()=>document.querySelector('#cfg').onclick());
@@ -111,6 +141,7 @@ try{
  const savedKey=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg?.key||'');
  assert.equal(savedKey,'','saving provider settings must not persist the API key');
  await desktop.reload({waitUntil:'domcontentloaded'});
+  await enterNOVA(desktop);
  await desktop.evaluate(()=>document.querySelector('#cfg').onclick());
  assert.equal(await desktop.locator('#key').inputValue(),'','BYOK key must not survive a page reload');
  await desktop.locator('#dcfg').evaluate(el=>el.close());
@@ -264,6 +295,7 @@ try{
  const mobile=await mobileContext.newPage();
  track(mobile);
  await mobile.goto(BASE,{waitUntil:'domcontentloaded'});
+  await enterNOVA(mobile,{method:'tap'});
  await mobile.locator('#hi .nr-card[data-group="build"]').waitFor({state:'visible',timeout:15000});
  const mobileState=await mobile.evaluate(()=>({
   width:innerWidth,scrollWidth:document.documentElement.scrollWidth,
@@ -308,6 +340,7 @@ try{
  const reduced=await reducedContext.newPage();
  track(reduced);
  await reduced.goto(BASE,{waitUntil:'domcontentloaded'});
+  await enterNOVA(reduced);
  await reduced.locator('#hi .nr-card').first().waitFor({state:'visible',timeout:15000});
  const motion=await reduced.evaluate(()=>({
   lite:document.documentElement.classList.contains('nova-lite-motion'),
