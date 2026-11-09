@@ -2,8 +2,9 @@
   'use strict';
   const gate = document.getElementById('novaEntryGate');
   if (!gate) return;
-  const PLAYED_KEY = 'nova_intro_completed_v1';
-  const COOKIE_KEY = 'nova_intro_seen';
+  const PLAYED_KEY = 'nova_intro_completed_v2';
+  const LEGACY_KEY = 'nova_intro_completed_v1';
+  const COOKIE_KEY = 'nova_intro_seen_v2';
   const hasPlayed = () => {
     try { if (localStorage.getItem(PLAYED_KEY) === '1') return true; } catch (_) {}
     try { return document.cookie.split(';').some(item => item.trim() === COOKIE_KEY + '=1'); } catch (_) {}
@@ -11,6 +12,8 @@
   };
   const rememberPlayed = () => {
     try { localStorage.setItem(PLAYED_KEY, '1'); } catch (_) {}
+    // Keep the previous marker for compatibility, but do not let it suppress this new intro.
+    try { localStorage.setItem(LEGACY_KEY, '1'); } catch (_) {}
     try {
       document.cookie = COOKIE_KEY + '=1; Max-Age=31536000; Path=/; SameSite=Lax' +
         (location.protocol === 'https:' ? '; Secure' : '');
