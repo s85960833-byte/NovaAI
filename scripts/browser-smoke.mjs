@@ -13,7 +13,7 @@ const track=page=>{
 async function enterNOVA(page){
  const gate=page.locator('#novaEntryGate');
  if(await gate.count()===0){
-  assert.equal(await page.evaluate(()=>localStorage.getItem('nova_intro_completed_v1')),'1','a previously completed intro must stay dismissed');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('nova_intro_completed_v2')),'1','a previously completed intro must stay dismissed');
   await page.locator('#hi').waitFor({state:'visible',timeout:10000});
   return;
  }
@@ -22,19 +22,19 @@ async function enterNOVA(page){
  assert.equal(await gate.locator('.nova-entry-word').innerText(),'NOVA','crisp NOVA wordmark must be visible');
  await gate.click({position:{x:30,y:30}});
  await gate.waitFor({state:'visible',timeout:500});
- assert.equal(await page.evaluate(()=>localStorage.getItem('nova_intro_completed_v1')),'1','intro must persist before user interaction');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('nova_intro_completed_v2')),'1','intro must persist before user interaction');
  await gate.waitFor({state:'detached',timeout:6000});
  await page.locator('#hi').waitFor({state:'visible',timeout:10000});
- assert.equal(await page.evaluate(()=>localStorage.getItem('nova_intro_completed_v1')),'1','intro completion must persist');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('nova_intro_completed_v2')),'1','intro completion must persist');
 }
 
 async function verifyIntroDoesNotReplay(page){
- await page.evaluate(()=>localStorage.setItem('nova_intro_completed_v1','1'));
+ await page.evaluate(()=>localStorage.setItem('nova_intro_completed_v2','1'));
  await page.reload({waitUntil:'domcontentloaded'});
  await page.locator('#novaEntryGate').waitFor({state:'detached',timeout:5000});
  await page.locator('#hi').waitFor({state:'visible',timeout:10000});
  assert.equal(await page.locator('#novaEntryVideo').count(),0,'legacy video element must never be reintroduced');
- await page.evaluate(()=>{localStorage.removeItem('nova_intro_completed_v1');document.cookie='nova_intro_seen=; Max-Age=0; Path=/';});
+ await page.evaluate(()=>{localStorage.removeItem('nova_intro_completed_v2');document.cookie='nova_intro_seen_v2=; Max-Age=0; Path=/';});
  console.log('PASS intro is tap-proof, one-time and persistent after reload');
 }
 
