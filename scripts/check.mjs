@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 
@@ -148,4 +149,31 @@ if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'") || !server.includes("app.get('/nova-account.js'")) throw new Error('Existing optional feature asset routes missing');
 if (!server.includes("const CACHE='nova-shell-v18-account-sync'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
 // Frontend entry points are external files and are syntax-checked above.
+
+const entryClient = readFileSync('nova-entry.js', 'utf8');
+syntaxCheck('nova-entry.js', entryClient);
+const entryVideoBase64 = Array.from({ length: 10 }, (_, index) =>
+  readFileSync('assets/entry-video/part-' + String(index + 1).padStart(2, '0') + '.b64.txt', 'utf8').replace(/\s+/g, '')
+).join('');
+const entryVideoBytes = Buffer.from(entryVideoBase64, 'base64');
+const entryVideoHash = createHash('sha256').update(entryVideoBytes).digest('hex');
+if (entryVideoBase64.length !== 53052 || entryVideoBytes.length !== 39788 ||
+    entryVideoHash !== 'a0cdb3526faa4e868cf1c6b79b853bb6884a15fac52bc68a2688a04e1e59f36c') {
+  throw new Error('NOVA intro video chunks are incomplete or corrupted');
+}
+if (!html.includes('id="novaEntryGate"') || !html.includes('id="novaEntryVideo"') ||
+    !html.includes('autoplay muted loop playsinline') || !html.includes('/assets/nova-entry.mp4') ||
+    !html.includes('/nova-entry.js') || !entryClient.includes("TAP ANYWHERE TO ENTER") ||
+    !entryClient.includes("प्रवेश करने के लिए कहीं भी टैप करें")) {
+  throw new Error('Full-screen video-first entry gate or bilingual tap-to-enter interaction is missing');
+}
+if (!server.includes("Buffer.from(ENTRY_VIDEO_BASE64, 'base64')") ||
+    !server.includes("app.get('/assets/nova-entry.mp4'") ||
+    !server.includes("app.get('/nova-entry.js'") ||
+    !server.includes("'Accept-Ranges': 'bytes'") ||
+    !server.includes("r.status(206)")) {
+  throw new Error('NOVA entry video delivery route must support byte-range streaming');
+}
+
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
+process.stdout.write('PASS NOVA video-first entry gate markup, interaction, asset integrity, and streaming route\n');
