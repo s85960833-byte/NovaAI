@@ -1,62 +1,46 @@
 (() => {
   'use strict';
   const gate = document.getElementById('novaEntryGate');
-  const video = document.getElementById('novaEntryVideo');
   if (!gate) return;
-
   const PLAYED_KEY = 'nova_intro_completed_v1';
+  const COOKIE_KEY = 'nova_intro_seen';
   const hasPlayed = () => {
-    try { return localStorage.getItem(PLAYED_KEY) === '1'; }
-    catch (_) { return false; }
+    try { if (localStorage.getItem(PLAYED_KEY) === '1') return true; } catch (_) {}
+    try { return document.cookie.split(';').some(item => item.trim() === COOKIE_KEY + '=1'); } catch (_) {}
+    return false;
   };
   const rememberPlayed = () => {
-    try { localStorage.setItem(PLAYED_KEY, '1'); }
-    catch (_) {}
+    try { localStorage.setItem(PLAYED_KEY, '1'); } catch (_) {}
+    try {
+      document.cookie = COOKIE_KEY + '=1; Max-Age=31536000; Path=/; SameSite=Lax' +
+        (location.protocol === 'https:' ? '; Secure' : '');
+    } catch (_) {}
   };
-
-  // Once the intro has begun/completed, never replay it on reloads or revisits.
   if (hasPlayed()) {
-    if (video) video.pause();
     gate.remove();
     return;
   }
-
-  let entered = false;
-  let fallbackTimer = 0;
-  const enter = () => {
-    if (entered) return;
-    entered = true;
-    rememberPlayed();
-    if (fallbackTimer) window.clearTimeout(fallbackTimer);
+  // Persist at first paint, before any tap or navigation can interrupt the intro.
+  rememberPlayed();
+  let dismissed = false;
+  const finish = () => {
+    if (dismissed) return;
+    dismissed = true;
     gate.classList.add('is-leaving');
     gate.setAttribute('aria-hidden', 'true');
-    if (video) video.pause();
-    window.setTimeout(() => gate.remove(), 360);
+    window.setTimeout(() => gate.remove(), 430);
   };
-
-  if (!video) {
-    enter();
-    return;
+  // This is a visual-only splash: taps and clicks are intentionally ignored.
+  for (const type of ['click', 'pointerdown', 'touchstart']) {
+    gate.addEventListener(type, event => {
+      event.preventDefault();
+      event.stopPropagation();
+    }, { passive: false });
   }
-
-  video.loop = false;
-  video.muted = true;
-  video.autoplay = true;
-  video.playsInline = true;
-  video.preload = 'auto';
-  video.addEventListener('playing', rememberPlayed, { once: true });
-  video.addEventListener('ended', enter, { once: true });
-  video.addEventListener('error', enter, { once: true });
-
-  // Autoplay failure must not leave a blocking screen or demand a manual tap.
-  fallbackTimer = window.setTimeout(() => {
-    if (video.paused && video.currentTime === 0) enter();
-  }, 2500);
-
-  try {
-    const playback = video.play();
-    if (playback && typeof playback.catch === 'function') playback.catch(enter);
-  } catch (_) {
-    enter();
-  }
+  gate.addEventListener('keydown', event => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+  const duration = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 250 : 2300;
+  window.setTimeout(finish, duration);
 })();
