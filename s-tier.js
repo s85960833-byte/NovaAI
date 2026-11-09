@@ -122,14 +122,14 @@ function home(){
  const homeAsk=()=>{const q=$('#novaHomePrompt')?.value.trim();if(!q)return;const input=$('in');if(input){input.value=q;$('#send')?.click()}};$('#novaHomeSend')?.addEventListener('click',homeAsk);$('#novaHomePrompt')?.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();homeAsk()}});e.querySelectorAll('[data-home-action]').forEach(b=>b.onclick=()=>{const fn=b.dataset.homeAction==='photo'?'openPhoto':'startVoice';window.NovaWorkspaceActions?.[fn]?.()});
  e.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{
   const c=b.dataset.cat;
-  if(c==='learn'){if(!window.NovaModeWorkspace?.openGroup('learn'))toast('NOVA Learn / नोवा लर्न उपलब्ध नहीं है। Reload / रीलोड करके फिर कोशिश करें।')}
-   else if(c==='build'){if(!window.NovaModeWorkspace?.openGroup('build'))toast('NOVA Build / नोवा बिल्ड उपलब्ध नहीं है। Reload / रीलोड करके फिर कोशिश करें।')}
-   else if(c==='agents'){if(!window.NovaModeWorkspace?.openGroup('agents'))toast('NOVA Agents / नोवा एजेंट्स उपलब्ध नहीं है। Reload / रीलोड करके फिर कोशिश करें।')}
+  if(c==='learn'){if(!window.NovaModeWorkspace?.openGroup('learn'))toast(tr('NOVA Learn is unavailable. Reload and try again.','NOVA Learn उपलब्ध नहीं है। रीलोड करके फिर कोशिश करें।'))}
+   else if(c==='build'){if(!window.NovaModeWorkspace?.openGroup('build'))toast(tr('NOVA Build is unavailable. Reload and try again.','NOVA Build उपलब्ध नहीं है। रीलोड करके फिर कोशिश करें।'))}
+   else if(c==='agents'){if(!window.NovaModeWorkspace?.openGroup('agents'))toast(tr('NOVA Agents is unavailable. Reload and try again.','NOVA Agents उपलब्ध नहीं है। रीलोड करके फिर कोशिश करें।'))}
  });
  if(prefs.festivals){const d=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',day:'2-digit',month:'2-digit'}).format(new Date());const fixed={'26/01':'Happy Republic Day / गणतंत्र दिवस की शुभकामनाएँ','15/08':'Happy Independence Day / स्वतंत्रता दिवस की शुभकामनाएँ','02/10':'Gandhi Jayanti / गांधी जयंती'};if(fixed[d]){const f=document.createElement('p');f.className='nsub';f.textContent=fixed[d];e.querySelector('.nhero').append(f)}}
- streak();settings();
+ streak();localizeBilingual(e);settings();
 }function feedback(kind,txt){let a=[];try{a=JSON.parse(localStorage.getItem('nova_feedback_v1')||'[]')}catch{}a.push({kind,text:txt.slice(0,1600),at:new Date().toISOString()});try{localStorage.setItem('nova_feedback_v1',JSON.stringify(a.slice(-100)))}catch{}}
 function answerTools(){document.querySelectorAll('.m.a').forEach(m=>{if(m.querySelector('.nova-answer-tools'))return;const b=m.querySelector('.b');if(!b)return;const t=b.innerText||'',w=document.createElement('div');w.className='nova-answer-tools';const add=(label,fn)=>{const x=document.createElement('button');x.type='button';x.textContent=label;x.onclick=fn;w.append(x)};add('👍',()=>feedback('up',t));add('👎',()=>feedback('down',t));add('Report incorrect answer',()=>feedback('report',t));add('WhatsApp',()=>window.open('https://wa.me/?text='+encodeURIComponent(t.slice(0,3000)),'_blank','noopener'));add('Copy',()=>navigator.clipboard?.writeText(t));m.append(w)})}
-function boot(){ambientAtmosphere();accent();settings();const m=$('msgs');if(m)new MutationObserver(answerTools).observe(m,{childList:true,subtree:true});window.addEventListener('nova:ui-language-changed',()=>{if($('novaSHome')){$('novaSHome').remove();home();}localizeBilingual($('novaSSettings'));streak();});wake().catch(()=>{})}
+function boot(){ambientAtmosphere();accent();settings();const m=$('msgs');if(m)new MutationObserver(answerTools).observe(m,{childList:true,subtree:true});window.addEventListener('nova:ui-language-changed',()=>{if($('novaSHome')){$('novaSHome').remove();home();}localizeBilingual($('novaSSettings'));streak();localizeBilingual($('novaSHome'));});wake().catch(()=>{})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
