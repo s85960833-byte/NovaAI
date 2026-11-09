@@ -75,6 +75,10 @@ if (!cloudClientExportAvailable()) throw new Error('NOVA account must reuse the 
 if (!accountClient.includes('signInWithPassword') || !accountClient.includes('.auth.signUp') || !accountClient.includes('resetPasswordForEmail') || !accountClient.includes('.auth.resend')) throw new Error('NOVA account auth flows are incomplete');
 if (!accountClient.includes("localStorage.getItem(SYNC_KEY)==='true'") || !accountClient.includes('Sync my chats') || !accountClient.includes('nova_user_workspaces')) throw new Error('Optional account cloud sync controls are missing');
 if (!accountClient.includes('Delete cloud backup') || !accountClient.includes("from('nova_user_workspaces').delete()")) throw new Error('User cloud-backup deletion control is missing');
+if (!accountClient.includes("table().update({payload,schema_version:1,updated_at})") || !accountClient.includes(".eq('updated_at',remote.updated_at).select('user_id').maybeSingle()") || !accountClient.includes("insertError.code!=='23505'") || accountClient.includes("table().upsert(")) throw new Error('Cloud sync must use compare-and-swap updates and retry first-insert races rather than last-write-wins upserts');
+if (!accountClient.includes('pendingSync=true') || !accountClient.includes('if(pendingSync){pendingSync=false;queueMicrotask(()=>syncNow())}')) throw new Error('Local edits made during an active sync must be queued for a follow-up sync');
+if (!accountClient.includes('deletedChatIds:Array.isArray(raw.deletedChatIds)')) throw new Error('Cloud sync snapshot must include chat deletion tombstones');
+
 for (const fragment of ['enable row level security','to authenticated','(select auth.uid())','with check (user_id = (select auth.uid()))','payload_size']) {
   if (!workspaceMigration.toLowerCase().includes(fragment)) throw new Error('Per-user workspace migration is missing security control: '+fragment);
 }
