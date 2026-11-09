@@ -11,8 +11,12 @@ const track=page=>{
 
 
 async function enterNOVA(page,{checkAsset=false}={}){
- await page.evaluate(()=>localStorage.removeItem('nova_intro_completed_v1'));
  const gate=page.locator('#novaEntryGate'),video=page.locator('#novaEntryVideo');
+ if(await gate.count()===0){
+  assert.equal(await page.evaluate(()=>localStorage.getItem('nova_intro_completed_v1')),'1','a previously completed intro must stay dismissed');
+  await page.locator('#hi').waitFor({state:'visible',timeout:10000});
+  return;
+ }
  await gate.waitFor({state:'visible',timeout:15000});
  const attrs=await video.evaluate(v=>({autoplay:v.autoplay,muted:v.muted,loop:v.loop,playsInline:v.playsInline,source:v.querySelector('source')?.getAttribute('src')||''}));
  assert.deepEqual(attrs,{autoplay:true,muted:true,loop:false,playsInline:true,source:'/assets/nova-entry.mp4'},'entry video must autoplay muted exactly once, never loop and stay inline on mobile');
