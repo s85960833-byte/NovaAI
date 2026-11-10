@@ -940,6 +940,12 @@ declare
   v_proof uuid;
   v_attestation uuid;
   v_envelope jsonb;
+  v_action uuid;
+  v_action_again uuid;
+  v_uncertain_action uuid;
+  v_reserved_action uuid;
+  v_action_status text;
+  v_replayed boolean;
 begin
   v_mission := public.nova_create_mission(
     '11111111-1111-4111-8111-111111111111',
@@ -1064,6 +1070,52 @@ begin
   exception when insufficient_privilege then null;
   end;
 
+  select action_id,action_status,replayed
+    into v_action,v_action_status,v_replayed
+    from public.nova_reserve_mission_action(v_run,v_token,'action-complete-fixture-001',repeat('d',64));
+  if v_action is null or v_action_status <> 'reserved' or v_replayed then
+    raise exception 'First action reservation did not create a fresh reserved receipt';
+  end if;
+  select action_id,action_status,replayed
+    into v_action_again,v_action_status,v_replayed
+    from public.nova_reserve_mission_action(v_run,v_token,'action-complete-fixture-001',repeat('d',64));
+  if v_action_again is distinct from v_action or v_action_status <> 'reserved' or not v_replayed then
+    raise exception 'Same-key action reservation was not idempotent';
+  end if;
+  begin
+    perform * from public.nova_reserve_mission_action(v_run,v_token,'action-complete-fixture-001',repeat('x',64));
+    raise exception 'Action idempotency key accepted a different request digest';
+  exception when unique_violation then null;
+  end;
+  v_action_status := public.nova_complete_mission_action(v_action,v_token,repeat('e',64),'internal-test-receipt-001');
+  if v_action_status <> 'completed' then raise exception 'Reserved action did not complete'; end if;
+  v_action_status := public.nova_complete_mission_action(v_action,v_token,repeat('e',64),'internal-test-receipt-001');
+  if v_action_status <> 'completed' then raise exception 'Same-result action completion replay was not idempotent'; end if;
+  begin
+    perform public.nova_complete_mission_action(v_action,v_token,repeat('f',64),'different-result');
+    raise exception 'Completed action accepted a conflicting result replay';
+  exception when unique_violation then null;
+  end;
+  select action_id into v_uncertain_action
+    from public.nova_reserve_mission_action(v_run,v_token,'action-uncertain-fixture-001',repeat('a',64));
+  v_action_status := public.nova_mark_mission_action_uncertain(
+    v_uncertain_action,v_token,'External operation timed out; outcome unknown'
+  );
+  if v_action_status <> 'uncertain' then raise exception 'Uncertain action marker was not stored'; end if;
+  select action_id,action_status,replayed
+    into v_action_again,v_action_status,v_replayed
+    from public.nova_reserve_mission_action(v_run,v_token,'action-uncertain-fixture-001',repeat('a',64));
+  if v_action_again is distinct from v_uncertain_action or v_action_status <> 'uncertain' or not v_replayed then
+    raise exception 'Uncertain action was not safely returned without re-reserving';
+  end if;
+  begin
+    perform public.nova_complete_mission_action(v_uncertain_action,v_token,repeat('b',64),'must-not-complete');
+    raise exception 'Uncertain action was unexpectedly completed';
+  exception when sqlstate '55000' then null;
+  end;
+  select action_id into v_reserved_action
+    from public.nova_reserve_mission_action(v_run,v_token,'action-reserved-fixture-001',repeat('c',64));
+
   begin
     perform * from public.nova_claim_mission_task(v_run,'duplicate-worker',120);
     raise exception 'An active worker lease was unexpectedly double-claimed';
@@ -1092,6 +1144,22 @@ begin
     raise exception 'Stale worker token unexpectedly changed a reclaimed run';
   exception when sqlstate '55000' then null;
   end;
+  begin
+    perform public.nova_complete_mission_action(v_action,v_token,repeat('e',64),'internal-test-receipt-001');
+    raise exception 'Stale lease unexpectedly replayed action completion';
+  exception when sqlstate '55000' then null;
+  end;
+  begin
+    perform * from public.nova_reserve_mission_action(v_run,v_new_token,'action-reserved-fixture-001',repeat('c',64));
+    raise exception 'New lease unexpectedly reused a reserved action from an expired lease';
+  exception when sqlstate '55P03' then null;
+  end;
+  select action_id,action_status,replayed
+    into v_action_again,v_action_status,v_replayed
+    from public.nova_reserve_mission_action(v_run,v_new_token,'action-uncertain-fixture-001',repeat('a',64));
+  if v_action_again is distinct from v_uncertain_action or v_action_status <> 'uncertain' or not v_replayed then
+    raise exception 'Reclaimed worker did not receive the uncertain action reconciliation state';
+  end if;
 
   v_status := public.nova_fail_mission_task(v_run,v_new_token,'temporary','Retryable controlled failure',0);
   if v_status <> 'authorized'
