@@ -114,6 +114,7 @@ const authenticatedHandler = withSupabase(
           p_idempotency_key: mission.idempotencyKey,
           p_plan_json: mission.plan,
         });
+        if (error?.code === "23505") return fail("This mission idempotency key is already used for different mission details", 409);
         if (error) throw error;
         if (!uuid(missionId)) throw new Error("Mission creation returned an invalid identifier");
 
