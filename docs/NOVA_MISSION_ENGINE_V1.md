@@ -41,7 +41,7 @@ The Edge Function is named `nova-mission-api`. It requires an authenticated Supa
 |---|---|---|
 | POST | `/functions/v1/nova-mission-api/missions` | Create a mission |
 | GET | `/functions/v1/nova-mission-api/missions` | List up to 50 of the user's missions |
-| GET | `/functions/v1/nova-mission-api/missions/{id}` | Read one mission, tasks, events and proofs |
+| GET | `/functions/v1/nova-mission-api/missions/{id}` | Read one mission, tasks, events, proofs, approval decisions and execution-run records |
 | POST | `/functions/v1/nova-mission-api/missions/{id}/plan` | Generate and persist a one-time, deterministic five-task starter checklist for a draft mission |
 | POST | `/functions/v1/nova-mission-api/missions/{id}/tasks/{task_id}/approval` | Queue a bounded action summary for explicit owner approval; creates no external side effect |
 | POST | `/functions/v1/nova-mission-api/approvals/{id}/decision` | Record an owner-bound approve/reject decision using the authenticated JWT subject |
