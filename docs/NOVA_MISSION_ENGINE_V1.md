@@ -17,7 +17,7 @@
 - Deterministic, no-cost starter planner templates for Learn, Build, Agents and Intelligence; plan persistence atomically creates tasks and advances draft missions to planned.
 - Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing, task/event/proof inspection, task-level approval requests, explicit owner approval/rejection across multiple tasks and mission cancellation.
 - Exact-origin CORS, bounded request bodies, input validation and server-enforced per-user rate limiting.
-- Database-level rule that prevents `completed` unless at least one passing proof record exists.
+- Database-level task and mission completion guards: each task needs its own passing proof before it can be marked completed, and every task must be completed with task-scoped passing proof before the mission can be completed.
 - Browser-authenticated clients have read-only access; event and proof records are append-only from the browser's perspective.
 
 ## Data model
@@ -57,7 +57,7 @@ The CI workflow now runs:
 
 - `npm run test:mission-core`
 - `node scripts/mission-ui-smoke.mjs` with a mocked Mission API, covering create/list/detail, starter planning, task approval request, owner approve/reject decisions across multiple tasks, verify approval does not falsely mark a mission running, cancellation, Hindi labels and a 390px mobile viewport
-- PostgreSQL migration and RLS integration tests, including cross-account isolation
+- PostgreSQL migration and RLS integration tests, including cross-account isolation and negative/positive task-scoped proof completion cases
 - Atomic creation/idempotency, same-payload replay, mismatched-payload conflict and RPC privilege tests
 - Approval queue SQL integration: idempotent request, same-request key replay, changed-summary and cross-task key-reuse rejection, atomic task/mission gating, owner approval/rejection, duplicate-decision rejection and cross-account isolation
 - Cancellation SQL integration: atomic task cancellation, pending approval expiry, authorized-run cancellation, terminal-state guard and server-only RPC permissions
@@ -85,7 +85,7 @@ This foundation does **not** yet provide:
 - Full retry/resume orchestration, executor-side idempotency and external tool adapters (database lease recovery and retry scheduling only)
 - Live production Supabase migration or Edge Function deployment
 
-The starter planner creates a checklist only; it does not execute tasks or call paid AI providers. Do not label a mission as executed or verified until a real executor has produced inspectable evidence and the verification checks have passed.
+The starter planner creates a checklist only; it does not execute tasks or call paid AI providers. The database completion guards ensure every completed task and mission has a task-scoped passing proof row written by the trusted server role. They do not independently validate evidence contents, compute a cryptographic digest, or prove that an external action occurred. Do not label a mission as executed or independently verified until a reviewed verifier has checked inspectable evidence and the verification checks have passed.
 
 ## Release gates
 
@@ -96,6 +96,6 @@ Before production use:
 3. Deploy the Edge Function only after its environment, JWT verification and exact-origin CORS are checked.
 4. Add end-to-end authenticated API tests with two distinct live user accounts.
 5. Implement execution workers with per-user permissions, bounded retries, idempotency, approvals and recovery.
-6. Keep service-role credentials server-side; never expose them to the browser.
+6. Implement a separately reviewed evidence verifier with canonical evidence serialization, cryptographic digesting, verifier identity/version, run-to-task binding and executor-side idempotency/fencing before enabling any worker.\n7. Keep service-role credentials server-side; never expose them to the browser.
 
 No production branch merge, Render deployment, live Supabase schema change or paid provider spend is part of this PR.
