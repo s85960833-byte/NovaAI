@@ -92,12 +92,14 @@ begin
          'intelligence.define_metrics','intelligence.inspect_data','intelligence.analyze_drivers',
          'intelligence.recommend_actions','intelligence.verify_evidence'
        )
-       or coalesce(item.value->>'input_schema_version','') !~ '^[1-9][0-9]{0,2}$'
-       or case
-            when coalesce(item.value->>'input_schema_version','') ~ '^[1-9][0-9]{0,2}$'
-              then (item.value->>'input_schema_version')::integer not between 1 and 1000
-            else true
-          end
+       or coalesce(item.value->>'input_schema_version','') <> '1'
+       or pg_catalog.jsonb_typeof(item.value->'input') is distinct from 'object'
+       or pg_catalog.jsonb_typeof(item.value->'input'->'description') is distinct from 'string'
+       or (item.value->'input') <> pg_catalog.jsonb_build_object(
+            'description', item.value->'input'->'description'
+          )
+       or pg_catalog.char_length(coalesce(item.value->'input'->>'description','')) > 2000
+       or pg_catalog.octet_length(coalesce(item.value->'input','{}'::jsonb)::text) > 10000
   ) then
     raise exception 'Mission task type, schema version, title, description or input is invalid'
       using errcode = '23514';
