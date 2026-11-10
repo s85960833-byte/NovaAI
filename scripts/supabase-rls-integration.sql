@@ -608,3 +608,100 @@ begin
   end if;
 end $mission_outsider_read$;
 reset role;
+
+
+-- NOVA approval queue: idempotent requests, owner-only decisions and no execution before approval.
+set role service_role;
+do $mission_approval_queue$
+declare
+  v_mission uuid;
+  v_task uuid;
+  v_approval uuid;
+  v_duplicate uuid;
+begin
+  v_mission := public.nova_create_mission(
+    '11111111-1111-4111-8111-111111111111',
+    'Approval queue fixture', 'A gated internal task', 'agents',
+    'mission-approval-fixture-001', '{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    '11111111-1111-4111-8111-111111111111', v_mission,
+    '{"kind":"starter_template","workspace":"agents"}'::jsonb,
+    '[{"title":"Prepare approved action","description":"No external action is executed in this test"}]'::jsonb
+  );
+  select id into v_task from public.nova_mission_tasks
+   where mission_id=v_mission and owner_id='11111111-1111-4111-8111-111111111111';
+  v_approval := public.nova_request_task_approval(
+    '11111111-1111-4111-8111-111111111111', v_mission, v_task,
+    'approval-request-fixture-001', 'Review a proposed internal action'
+  );
+  v_duplicate := public.nova_request_task_approval(
+    '11111111-1111-4111-8111-111111111111', v_mission, v_task,
+    'approval-request-fixture-001', 'Review a proposed internal action'
+  );
+  if v_approval is distinct from v_duplicate then
+    raise exception 'Repeated approval request key created a second approval';
+  end if;
+  if (select status from public.nova_mission_approvals where id=v_approval) <> 'pending'
+     or (select status from public.nova_mission_execution_runs where approval_id=v_approval) <> 'awaiting_approval'
+     or (select state from public.nova_missions where id=v_mission) <> 'waiting_approval'
+     or (select status from public.nova_mission_tasks where id=v_task) <> 'waiting_approval' then
+    raise exception 'Approval request did not atomically gate mission, task and execution run';
+  end if;
+  perform public.nova_decide_task_approval(
+    '11111111-1111-4111-8111-111111111111', v_approval, 'approve',
+    '11111111-1111-4111-8111-111111111111', 'Reviewed and approved'
+  );
+  if (select status from public.nova_mission_approvals where id=v_approval) <> 'approved'
+     or (select status from public.nova_mission_execution_runs where approval_id=v_approval) <> 'authorized'
+     or (select state from public.nova_missions where id=v_mission) <> 'running'
+     or (select status from public.nova_mission_tasks where id=v_task) <> 'planned' then
+    raise exception 'Approval decision did not atomically authorize the run';
+  end if;
+  begin
+    perform public.nova_decide_task_approval(
+      '11111111-1111-4111-8111-111111111111', v_approval, 'approve',
+      '11111111-1111-4111-8111-111111111111', ''
+    );
+    raise exception 'A second decision was unexpectedly accepted';
+  exception when sqlstate '55000' then null;
+  end;
+end $mission_approval_queue$;
+reset role;
+
+do $mission_approval_privileges$
+begin
+  if has_table_privilege('authenticated','public.nova_mission_approvals','insert')
+     or has_table_privilege('authenticated','public.nova_mission_approvals','update')
+     or has_table_privilege('authenticated','public.nova_mission_execution_runs','insert')
+     or has_table_privilege('authenticated','public.nova_mission_execution_runs','update') then
+    raise exception 'Browser clients must not mutate approvals or execution runs';
+  end if;
+  if has_function_privilege('authenticated',
+    'public.nova_request_task_approval(uuid,uuid,uuid,text,text)','execute')
+     or has_function_privilege('authenticated',
+    'public.nova_decide_task_approval(uuid,uuid,text,uuid,text)','execute') then
+    raise exception 'Browser clients must not invoke trusted approval RPCs';
+  end if;
+  if not has_function_privilege('service_role',
+    'public.nova_request_task_approval(uuid,uuid,uuid,text,text)','execute')
+     or not has_function_privilege('service_role',
+    'public.nova_decide_task_approval(uuid,uuid,text,uuid,text)','execute') then
+    raise exception 'Trusted server role must execute approval RPCs';
+  end if;
+end $mission_approval_privileges$;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+do $mission_approval_isolation$
+begin
+  if exists(select 1 from public.nova_mission_approvals
+    where request_key='approval-request-fixture-001') then
+    raise exception 'Cross-account approval leak detected';
+  end if;
+  if exists(select 1 from public.nova_mission_execution_runs
+    where idempotency_key='approval-request-fixture-001') then
+    raise exception 'Cross-account execution-run leak detected';
+  end if;
+end $mission_approval_isolation$;
+reset role;
