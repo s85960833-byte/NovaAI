@@ -14,6 +14,8 @@ create table if not exists public.nova_mission_action_receipts (
   lease_token uuid not null,
   reconciled_by_lease_token uuid,
   reconciled_at timestamptz,
+  reconciliation_note text not null default ''
+    check (char_length(reconciliation_note) <= 1000),
   status text not null default 'reserved'
     check (status in ('reserved','completed','uncertain')),
   result_digest text
@@ -435,6 +437,7 @@ declare
   v_original_token uuid;
   v_reconciled_token uuid;
   v_old_reason text;
+  v_reconciliation_note text;
 begin
   if coalesce(pg_catalog.current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
     raise exception 'Action reconciliation is restricted to the trusted server role'
@@ -477,18 +480,34 @@ begin
       using errcode = '55000';
   end if;
 
-  select a.status, a.lease_token, a.reconciled_by_lease_token, a.uncertain_reason
-    into v_action_status, v_original_token, v_reconciled_token, v_old_reason
+  select a.status, a.lease_token, a.reconciled_by_lease_token, a.uncertain_reason,
+         a.reconciliation_note
+    into v_action_status, v_original_token, v_reconciled_token, v_old_reason,
+         v_reconciliation_note
     from public.nova_mission_action_receipts a where a.id = p_action_id for update;
   if not found then raise exception 'Action receipt not found' using errcode = 'P0002'; end if;
 
-  if v_action_status = 'uncertain'
-     and v_reconciled_token = p_current_lease_token
-     and v_old_reason = pg_catalog.btrim(p_reason) then
+  if v_action_status = 'uncertain' then
+    if v_reconciled_token = p_current_lease_token
+       and v_reconciliation_note = pg_catalog.btrim(p_reason) then
+      return 'uncertain';
+    end if;
+    if v_reconciled_token is not null
+       or v_original_token is not distinct from p_current_lease_token then
+      raise exception 'Uncertain action is already reconciled or still belongs to this lease'
+        using errcode = '55000';
+    end if;
+    update public.nova_mission_action_receipts
+       set reconciled_by_lease_token = p_current_lease_token,
+           reconciled_at = pg_catalog.now(),
+           reconciliation_note = pg_catalog.btrim(p_reason),
+           updated_at = pg_catalog.now()
+     where id = p_action_id and status = 'uncertain'
+       and reconciled_by_lease_token is null;
     return 'uncertain';
   end if;
   if v_action_status <> 'reserved' then
-    raise exception 'Only an unfinished reserved action can be reconciled'
+    raise exception 'Only an unfinished reserved or automatically uncertain action can be reconciled'
       using errcode = '55000';
   end if;
   if v_original_token is not distinct from p_current_lease_token then
@@ -500,7 +519,7 @@ begin
      set status = 'uncertain',
          reconciled_by_lease_token = p_current_lease_token,
          reconciled_at = pg_catalog.now(),
-         uncertain_reason = pg_catalog.btrim(p_reason),
+         reconciliation_note = pg_catalog.btrim(p_reason),
          updated_at = pg_catalog.now()
    where id = p_action_id and status = 'reserved'
      and lease_token = v_original_token;
