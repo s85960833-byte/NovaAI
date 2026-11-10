@@ -310,6 +310,7 @@ const authenticatedHandler = withSupabase(
     } catch (error) {
       const message = String((error as Error)?.message || "");
       if (error instanceof RequestInputError) return fail(message, error.status);
+      if (error instanceof TypeError) return fail(message, 400);
       if (message.includes("Authentication required")) return fail("Authentication required", 401);
       console.error("NOVA Mission API request failed", String((error as { code?: string })?.code || "unknown"));
       return fail("NOVA Mission API request failed", 500);
