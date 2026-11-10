@@ -127,10 +127,12 @@ begin
   on conflict (owner_id, request_key) do nothing
   returning id into v_approval_id;
   if v_approval_id is null then
-    select id, mission_id, task_id into v_approval_id, v_existing_mission_id, v_existing_task_id
+    select id, mission_id, task_id, action_summary into v_approval_id, v_existing_mission_id, v_existing_task_id, v_existing_action_summary
       from public.nova_mission_approvals
      where owner_id = p_owner_id and request_key = p_request_key;
-    if v_existing_mission_id is distinct from p_mission_id or v_existing_task_id is distinct from p_task_id then
+    if v_existing_mission_id is distinct from p_mission_id
+       or v_existing_task_id is distinct from p_task_id
+       or v_existing_action_summary is distinct from pg_catalog.btrim(p_action_summary) then
       raise exception 'Approval idempotency key is already used for a different task'
         using errcode = '23505';
     end if;
