@@ -4,6 +4,7 @@ import { chromium } from 'playwright';
 const BASE = process.env.NOVAAI_URL || 'http://127.0.0.1:8787';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1365, height: 900 } });
+page.on('console', message => console.log('PAGE', message.type(), message.text()));
 
 const missionId = '123e4567-e89b-42d3-a456-426614174000';
 await page.addInitScript(() => localStorage.setItem('nova_intro_completed_v2', '1'));
@@ -25,8 +26,9 @@ await page.route('**/nova-business-cloud.js', route => route.fulfill({
       window.NovaBusinessCloud = Object.freeze({
         open() {}, close() {}, getClient() { return client; },
         async missionApi(path, method = 'GET', payload) {
-          if (path === 'missions' && method === 'GET') return { missions };
+          if (path === 'missions' && method === 'GET') { console.log('MOCK GET missions', missions.length); return { missions }; }
           if (path === 'missions' && method === 'POST') {
+            console.log('MOCK POST mission', payload.title);
             const mission = {
               id, title: payload.title, description: payload.description,
               workspace: payload.workspace, state: 'draft', version: 0,
@@ -61,6 +63,9 @@ await page.locator('#missionTitle').fill('Test website mission');
 await page.locator('#missionDescription').fill('Build a simple landing page and verify it loads.');
 await page.locator('#missionWorkspace').selectOption('build');
 await page.locator('#missionForm').evaluate(form => form.requestSubmit());
+await page.waitForTimeout(300);
+console.log('DEBUG mission list:', await page.locator('#missionList').innerText());
+console.log('DEBUG toast:', await page.locator('#toast').innerText());
 await page.locator('[data-mission-id="' + missionId + '"]').waitFor({ state: 'visible', timeout: 5000 });
 assert.ok((await page.locator('#missionList').innerText()).includes('Test website mission'));
 
