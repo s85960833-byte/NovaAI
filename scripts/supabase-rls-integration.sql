@@ -683,7 +683,7 @@ begin
   );
   if (select status from public.nova_mission_approvals where id=v_approval) <> 'approved'
      or (select status from public.nova_mission_execution_runs where approval_id=v_approval) <> 'authorized'
-     or (select state from public.nova_missions where id=v_mission) <> 'running'
+     or (select state from public.nova_missions where id=v_mission) <> 'planned'
      or (select status from public.nova_mission_tasks where id=v_task) <> 'planned' then
     raise exception 'Approval decision state mismatch: approval=%, run=%, mission=%, task=%',
       (select status from public.nova_mission_approvals where id=v_approval),
