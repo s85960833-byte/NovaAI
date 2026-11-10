@@ -1332,6 +1332,8 @@ begin
      or has_table_privilege('service_role','public.nova_mission_action_receipts','delete')
      or has_table_privilege('service_role','public.nova_mission_action_receipts','truncate')
      or has_column_privilege('authenticated','public.nova_mission_action_receipts','lease_token','select')
+     or has_column_privilege('authenticated','public.nova_mission_action_receipts','reconciled_by_lease_token','select')
+     or not has_column_privilege('authenticated','public.nova_mission_action_receipts','reconciliation_note','select')
      or not has_column_privilege('authenticated','public.nova_mission_action_receipts','owner_id','select') then
     raise exception 'Action receipts must be browser-read-only, hide lease tokens and remain non-deletable';
   end if;
