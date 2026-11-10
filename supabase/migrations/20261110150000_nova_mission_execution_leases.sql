@@ -171,14 +171,17 @@ begin
    where execution_run.id = p_run_id and execution_run.owner_id = v_owner_id
   returning execution_run.attempt into v_attempt;
 
-  update public.nova_mission_tasks
-     set status = 'running', attempts = greatest(attempts, v_attempt), updated_at = pg_catalog.now()
-   where id = v_task_id and mission_id = v_mission_id and owner_id = v_owner_id;
+  update public.nova_mission_tasks as mission_task
+     set status = 'running', attempts = greatest(mission_task.attempts, v_attempt), updated_at = pg_catalog.now()
+   where mission_task.id = v_task_id
+     and mission_task.mission_id = v_mission_id
+     and mission_task.owner_id = v_owner_id;
 
-  update public.nova_missions
-     set state = 'running', attempts = attempts + 1, version = version + 1, updated_at = pg_catalog.now()
-   where id = v_mission_id and owner_id = v_owner_id
-     and state = 'planned';
+  update public.nova_missions as mission
+     set state = 'running', attempts = mission.attempts + 1, version = mission.version + 1,
+         updated_at = pg_catalog.now()
+   where mission.id = v_mission_id and mission.owner_id = v_owner_id
+     and mission.state = 'planned';
 
   select coalesce(max(e.sequence), 0) + 1 into v_sequence
     from public.nova_mission_events e where e.mission_id = v_mission_id;
