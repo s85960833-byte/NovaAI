@@ -89,6 +89,7 @@ await page.locator('#missionPlanBtn').click();
 await page.locator('#missionDetail').getByText('Confirm requirements').waitFor({ state: 'visible', timeout: 5000 });
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mission.planned'));
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Planned'));
+assert.equal(await page.locator('#missionPlanBtn').count(), 0, 'A planned mission must not offer duplicate plan generation');
 console.log('PASS Mission Control creates a no-cost starter plan and shows planned tasks/events');
 
 await page.evaluate(() => {
