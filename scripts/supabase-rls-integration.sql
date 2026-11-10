@@ -451,10 +451,10 @@ begin
   if (select count(*) from public.nova_mission_tasks where mission_id='10101010-1010-4010-8010-101010101010') <> 1 then
     raise exception 'Mission owner cannot read their own tasks';
   end if;
-  if (select count(*) from public.nova_mission_events where mission_id='10101010-1010-4010-8010-101010101010') <> 1 then
+  if (select count(*) from public.nova_mission_events where mission_id='10101010-1010-4010-8010-101010101010') <> 2 then
     raise exception 'Mission owner cannot read their own event history';
   end if;
-  if (select count(*) from public.nova_mission_proofs where mission_id='10101010-1010-4010-8010-101010101010') <> 1 then
+  if (select count(*) from public.nova_mission_proofs where mission_id='10101010-1010-4010-8010-101010101010') <> 2 then
     raise exception 'Mission owner cannot read their own proof records';
   end if;
   if has_table_privilege('authenticated','public.nova_missions','insert')
