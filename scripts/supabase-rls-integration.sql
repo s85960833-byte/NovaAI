@@ -1242,6 +1242,14 @@ begin
       from public.nova_claim_mission_task(v_run,'worker-retry-'||v_i,120) c;
     if v_attempt <> v_i then raise exception 'Unexpected attempt number: expected %, got %',v_i,v_attempt; end if;
     v_status := public.nova_fail_mission_task(v_run,v_token,'repeat','Bounded retry exhaustion',0);
+    if v_i < 5 and (
+      v_status <> 'authorized'
+      or (select status from public.nova_mission_execution_runs where id=v_run) <> 'authorized'
+      or (select lease_token from public.nova_mission_execution_runs where id=v_run) is not null
+      or (select lease_expires_at from public.nova_mission_execution_runs where id=v_run) is not null
+    ) then
+      raise exception 'Retry attempt % did not release its lease before the next claim',v_i;
+    end if;
   end loop;
   if v_status <> 'failed'
      or (select status from public.nova_mission_execution_runs where id=v_run) <> 'failed'
