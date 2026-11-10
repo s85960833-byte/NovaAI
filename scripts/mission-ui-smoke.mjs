@@ -9,6 +9,7 @@ page.on('console', message => console.log('PAGE', message.type(), message.text()
 
 const missionId = '123e4567-e89b-42d3-a456-426614174000';
 const approvalId = '223e4567-e89b-42d3-a456-426614174000';
+const taskId = '323e4567-e89b-42d3-a456-426614174000';
 page.on('dialog', dialog => dialog.accept());
 await page.addInitScript(() => localStorage.setItem('nova_intro_completed_v2', '1'));
 await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js', route =>
@@ -47,15 +48,20 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
           if (path === 'missions/' + id + '/plan' && method === 'POST') {
             missions = [{ ...missions[0], state: 'planned', version: 1 }];
             tasks = [
-              { id: 'task-1', sequence: 1, title: 'Confirm requirements', status: 'planned' },
-              { id: 'task-2', sequence: 2, title: 'Run checks', status: 'planned' }
+              { id: ${JSON.stringify(taskId)}, sequence: 1, title: 'Confirm requirements', status: 'planned' },
+              { id: '423e4567-e89b-42d3-a456-426614174000', sequence: 2, title: 'Run checks', status: 'planned' }
             ];
             events = [
               { id: 'event-1', event_type: 'mission.created', from_state: null, to_state: 'draft' },
               { id: 'event-2', event_type: 'mission.planned', from_state: 'draft', to_state: 'planned' }
             ];
-            approvals = [{ id: '223e4567-e89b-42d3-a456-426614174000', task_id: 'task-1', action_summary: 'Review the generated deployment plan', status: 'pending', requested_at: '2026-11-10T10:00:00.000Z' }];
             return { mission: missions[0], tasks, events, proofs, plan_type: 'starter_template' };
+          }
+          if (path === 'missions/' + id + '/tasks/' + ${JSON.stringify(taskId)} + '/approval' && method === 'POST') {
+            approvals = [{ id: ${JSON.stringify(approvalId)}, task_id: ${JSON.stringify(taskId)}, action_summary: payload.action_summary, status: 'pending', requested_at: '2026-11-10T10:00:00.000Z' }];
+            tasks = tasks.map(task => task.id === ${JSON.stringify(taskId)} ? { ...task, status: 'waiting_approval' } : task);
+            missions = [{ ...missions[0], state: 'waiting_approval', version: missions[0].version + 1 }];
+            return { approval: approvals[0], execution_run: { status: 'awaiting_approval' } };
           }
           if (path === 'missions/' + id + '/cancel' && method === 'POST') {
             missions = [{ ...missions[0], state: 'cancelled', version: missions[0].version + 1 }];
@@ -65,7 +71,9 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
             return { mission: missions[0] };
           }
           if (path === 'approvals/' + '223e4567-e89b-42d3-a456-426614174000' + '/decision' && method === 'POST') {
-            approvals = [{ id: '223e4567-e89b-42d3-a456-426614174000', task_id: 'task-1', action_summary: 'Review the generated deployment plan', status: payload.decision === 'approve' ? 'approved' : 'rejected', decision_note: '' }];
+            approvals = approvals.map(approval => ({ ...approval, status: payload.decision === 'approve' ? 'approved' : 'rejected' }));
+            tasks = tasks.map(task => task.id === ${JSON.stringify(taskId)} ? { ...task, status: payload.decision === 'approve' ? 'planned' : 'failed' } : task);
+            missions = [{ ...missions[0], state: payload.decision === 'approve' ? 'running' : 'failed', version: missions[0].version + 1 }];
             return { approval: approvals[0], execution_run: { status: payload.decision === 'approve' ? 'authorized' : 'blocked' } };
           }
           if (path === 'missions/' + id && method === 'GET') {
@@ -103,6 +111,7 @@ await page.locator('#missionDetail').getByText('Confirm requirements').waitFor({
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mission.planned'));
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Planned'));
 assert.equal(await page.locator('#missionPlanBtn').count(), 0, 'A planned mission must not offer duplicate plan generation');
+await page.locator('[data-task-approval="' + taskId + '"]').click();
 await page.locator('[data-approval-decision="approve"]').waitFor({ state: 'visible', timeout: 5000 });
 await page.locator('[data-approval-decision="approve"]').click();
 await page.locator('#missionDetail').getByText('approved', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
@@ -113,7 +122,7 @@ await page.waitForFunction(() => document.querySelector('#toast')?.textContent =
 await page.waitForTimeout(150);
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Cancelled'), 'Cancelled mission state must appear in detail');
 assert.equal(await page.locator('#missionCancelBtn').count(), 0, 'A cancelled mission must not offer cancellation again');
-console.log('PASS Mission Control creates a no-cost starter plan, displays approval requests and records owner approval');
+console.log('PASS Mission Control creates a no-cost starter plan, requests task approval, records owner decision and cancels the mission');
 
 await page.evaluate(() => {
   document.documentElement.lang = 'hi';
