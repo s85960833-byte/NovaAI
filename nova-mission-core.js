@@ -29,7 +29,7 @@ const TRANSITIONS = Object.freeze({
     complete: STATES.COMPLETED,
     fail: STATES.FAILED
   }),
-  [STATES.FAILED]: Object.freeze({ retry: STATES.PLANNED }),
+  [STATES.FAILED]: Object.freeze({ retry: STATES.PLANNED, cancel: STATES.CANCELLED }),
   [STATES.COMPLETED]: Object.freeze({}),
   [STATES.CANCELLED]: Object.freeze({})
 });
