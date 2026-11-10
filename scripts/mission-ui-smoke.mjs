@@ -10,6 +10,8 @@ page.on('console', message => console.log('PAGE', message.type(), message.text()
 const missionId = '123e4567-e89b-42d3-a456-426614174000';
 const approvalId = '223e4567-e89b-42d3-a456-426614174000';
 const taskId = '323e4567-e89b-42d3-a456-426614174000';
+const taskId2 = '423e4567-e89b-42d3-a456-426614174000';
+const approvalId2 = '523e4567-e89b-42d3-a456-426614174000';
 page.on('dialog', dialog => dialog.accept());
 await page.addInitScript(() => localStorage.setItem('nova_intro_completed_v2', '1'));
 await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js', route =>
@@ -49,7 +51,7 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
             missions = [{ ...missions[0], state: 'planned', version: 1 }];
             tasks = [
               { id: ${JSON.stringify(taskId)}, sequence: 1, title: 'Confirm requirements', status: 'planned' },
-              { id: '423e4567-e89b-42d3-a456-426614174000', sequence: 2, title: 'Run checks', status: 'planned' }
+              { id: ${JSON.stringify(taskId2)}, sequence: 2, title: 'Run checks', status: 'planned' }
             ];
             events = [
               { id: 'event-1', event_type: 'mission.created', from_state: null, to_state: 'draft' },
@@ -63,6 +65,12 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
             missions = [{ ...missions[0], state: 'waiting_approval', version: missions[0].version + 1 }];
             return { approval: approvals[0], execution_run: { status: 'awaiting_approval' } };
           }
+          if (path === 'missions/' + id + '/tasks/' + ${JSON.stringify(taskId2)} + '/approval' && method === 'POST') {
+            approvals = [...approvals, { id: ${JSON.stringify(approvalId2)}, task_id: ${JSON.stringify(taskId2)}, action_summary: payload.action_summary, status: 'pending', requested_at: '2026-11-10T10:01:00.000Z' }];
+            tasks = tasks.map(task => task.id === ${JSON.stringify(taskId2)} ? { ...task, status: 'waiting_approval' } : task);
+            missions = [{ ...missions[0], state: 'waiting_approval', version: missions[0].version + 1 }];
+            return { approval: approvals[1], execution_run: { status: 'awaiting_approval' } };
+          }
           if (path === 'missions/' + id + '/cancel' && method === 'POST') {
             missions = [{ ...missions[0], state: 'cancelled', version: missions[0].version + 1 }];
             tasks = tasks.map(task => ({ ...task, status: 'cancelled' }));
@@ -70,11 +78,13 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
             approvals = approvals.map(approval => approval.status === 'pending' ? { ...approval, status: 'expired' } : approval);
             return { mission: missions[0] };
           }
-          if (path === 'approvals/' + '223e4567-e89b-42d3-a456-426614174000' + '/decision' && method === 'POST') {
-            approvals = approvals.map(approval => ({ ...approval, status: payload.decision === 'approve' ? 'approved' : 'rejected' }));
-            tasks = tasks.map(task => task.id === ${JSON.stringify(taskId)} ? { ...task, status: payload.decision === 'approve' ? 'planned' : 'failed' } : task);
+          if (path.startsWith('approvals/') && path.endsWith('/decision') && method === 'POST') {
+            const selectedApprovalId = path.split('/')[1];
+            const selectedApproval = approvals.find(approval => approval.id === selectedApprovalId);
+            approvals = approvals.map(approval => approval.id === selectedApprovalId ? { ...approval, status: payload.decision === 'approve' ? 'approved' : 'rejected' } : approval);
+            tasks = tasks.map(task => task.id === selectedApproval?.task_id ? { ...task, status: payload.decision === 'approve' ? 'planned' : 'failed' } : task);
             missions = [{ ...missions[0], state: payload.decision === 'approve' ? 'running' : 'failed', version: missions[0].version + 1 }];
-            return { approval: approvals[0], execution_run: { status: payload.decision === 'approve' ? 'authorized' : 'blocked' } };
+            return { approval: approvals.find(approval => approval.id === selectedApprovalId), execution_run: { status: payload.decision === 'approve' ? 'authorized' : 'blocked' } };
           }
           if (path === 'missions/' + id && method === 'GET') {
             if (!events.length) events = [{ id: 'event-1', event_type: 'mission.created', from_state: null, to_state: 'draft' }];
@@ -116,6 +126,11 @@ await page.locator('[data-approval-decision="approve"]').waitFor({ state: 'visib
 await page.locator('[data-approval-decision="approve"]').click();
 await page.locator('#missionDetail').getByText('approved', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
 assert.equal(await page.locator('[data-task-approval="423e4567-e89b-42d3-a456-426614174000"]').count(), 1, 'Remaining planned tasks must keep approval requests available while a mission is running');
+await page.locator('[data-task-approval="' + taskId2 + '"]').click();
+await page.locator('[data-approval-decision="reject"]').waitFor({ state: 'visible', timeout: 5000 });
+await page.locator('[data-approval-decision="reject"]').click();
+await page.locator('#missionDetail').getByText('rejected', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
+assert.ok((await page.locator('#missionDetail').innerText()).includes('Failed'), 'Rejecting an approval must fail the gated task and mission');
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Execution is not started automatically after approval.'));
 await page.locator('#missionCancelBtn').waitFor({ state: 'visible', timeout: 5000 });
 await page.locator('#missionCancelBtn').click();
@@ -123,7 +138,7 @@ await page.waitForFunction(() => document.querySelector('#toast')?.textContent =
 await page.waitForTimeout(150);
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Cancelled'), 'Cancelled mission state must appear in detail');
 assert.equal(await page.locator('#missionCancelBtn').count(), 0, 'A cancelled mission must not offer cancellation again');
-console.log('PASS Mission Control creates a no-cost starter plan, requests task approval, records owner decision and cancels the mission');
+console.log('PASS Mission Control creates a no-cost starter plan, requests and approves one task, rejects another, then cancels the mission');
 
 await page.evaluate(() => {
   document.documentElement.lang = 'hi';
