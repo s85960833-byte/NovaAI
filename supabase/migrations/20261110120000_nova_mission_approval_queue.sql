@@ -222,6 +222,9 @@ begin
   if v_status <> 'pending' then
     raise exception 'Approval has already been decided' using errcode = '55000';
   end if;
+  if v_mission_state <> 'waiting_approval' then
+    raise exception 'Mission is not waiting for this approval decision' using errcode = '55000';
+  end if;
 
   update public.nova_mission_approvals
      set status = case when p_decision = 'approve' then 'approved' else 'rejected' end,
