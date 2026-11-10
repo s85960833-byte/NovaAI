@@ -390,6 +390,22 @@ insert into public.nova_missions(
   'Mission isolation fixture', 'Verify mission storage isolation', 'build', 'planned',
   'mission-isolation-fixture-001', '{"steps":["build","verify"]}'::jsonb
 );
+do $mission_insert_completion_guard$
+begin
+  begin
+    insert into public.nova_missions(
+      id, owner_id, title, description, workspace, state, idempotency_key, plan_json
+    ) values (
+      '40404040-4040-4040-8040-404040404040',
+      '11111111-1111-4111-8111-111111111111',
+      'Invalid completed mission insert', '', 'build', 'completed',
+      'mission-completed-insert-invalid', '{}'::jsonb
+    );
+    raise exception 'Completed mission insert bypassed proof guard';
+  exception when check_violation then
+    null;
+  end;
+end $mission_insert_completion_guard$;
 insert into public.nova_mission_tasks(
   id, mission_id, owner_id, sequence, title, status
 ) values (
@@ -404,6 +420,21 @@ insert into public.nova_mission_tasks(
   '10101010-1010-4010-8010-101010101010',
   '11111111-1111-4111-8111-111111111111', 2, 'Verify page', 'planned'
 );
+do $task_insert_completion_guard$
+begin
+  begin
+    insert into public.nova_mission_tasks(
+      id, mission_id, owner_id, sequence, title, status
+    ) values (
+      '50505050-5050-4050-8050-505050505050',
+      '10101010-1010-4010-8010-101010101010',
+      '11111111-1111-4111-8111-111111111111', 3, 'Invalid completed task insert', 'completed'
+    );
+    raise exception 'Completed task insert bypassed task-scoped proof guard';
+  exception when check_violation then
+    null;
+  end;
+end $task_insert_completion_guard$;
 insert into public.nova_mission_events(
   mission_id, owner_id, sequence, event_type, from_state, to_state, actor_id, payload_json
 ) values (
