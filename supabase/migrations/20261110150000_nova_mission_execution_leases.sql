@@ -164,12 +164,12 @@ begin
 
   v_lease_token := gen_random_uuid();
   v_expiry := pg_catalog.now() + pg_catalog.make_interval(secs => p_lease_seconds);
-  update public.nova_mission_execution_runs
-     set status = 'running', attempt = attempt + 1, worker_id = pg_catalog.btrim(p_worker_id),
+  update public.nova_mission_execution_runs as execution_run
+     set status = 'running', attempt = execution_run.attempt + 1, worker_id = pg_catalog.btrim(p_worker_id),
          lease_token = v_lease_token, lease_expires_at = v_expiry,
          heartbeat_at = pg_catalog.now(), retry_after = null, updated_at = pg_catalog.now()
-   where id = p_run_id and owner_id = v_owner_id
-  returning attempt into v_attempt;
+   where execution_run.id = p_run_id and execution_run.owner_id = v_owner_id
+  returning execution_run.attempt into v_attempt;
 
   update public.nova_mission_tasks
      set status = 'running', attempts = greatest(attempts, v_attempt), updated_at = pg_catalog.now()
