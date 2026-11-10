@@ -13,9 +13,9 @@
 - Atomic, idempotent mission creation RPC restricted to the trusted `service_role`.
 - Authenticated read API for mission lists and details.
 - Authenticated owner-scoped approval request and decision API routes; decision actor is taken from the verified JWT subject, never from request JSON.
-- Atomic owner cancellation endpoint expires pending approvals, cancels not-yet-running authorization records and cancels remaining non-terminal tasks; it does not attempt to stop external systems.
+- Atomic owner cancellation endpoint expires pending approvals, cancels active authorization records and cancels remaining non-terminal tasks; it does not attempt to stop external systems.
 - Deterministic, no-cost starter planner templates for Learn, Build, Agents and Intelligence; plan persistence atomically creates tasks and advances draft missions to planned.
-- Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing and inspection of tasks, events and proofs.
+- Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing, task/event/proof inspection, explicit owner approval/rejection and mission cancellation.
 - Exact-origin CORS, bounded request bodies, input validation and server-enforced per-user rate limiting.
 - Database-level rule that prevents `completed` unless at least one passing proof record exists.
 - Browser-authenticated clients have read-only access; event and proof records are append-only from the browser's perspective.
@@ -31,7 +31,7 @@
 | `nova_mission_approvals` | Pending/approved/rejected owner decisions and action summaries |
 | `nova_mission_execution_runs` | Idempotent execution authorization records and bounded attempt counter |
 
-All four tables have RLS enabled. Each row carries `owner_id`; the database enforces mission/child ownership consistency with composite foreign keys. Authenticated clients can select only their own rows. Writes are reserved for trusted server-side code.
+All six tables have RLS enabled. Each row carries `owner_id`; the database enforces mission/child ownership consistency with composite foreign keys. Authenticated clients can select only their own rows. Writes are reserved for trusted server-side code.
 
 ## API contract
 
@@ -49,14 +49,14 @@ The Edge Function is named `nova-mission-api`. It requires an authenticated Supa
 
 Mission creation accepts `title` (1–200 chars), optional `description` (up to 10,000 chars), one of `learn`, `build`, `agents`, `intelligence`, optional `idempotency_key` (up to 160 chars), and an optional JSON-object `plan` (up to 100 KB). An `Idempotency-Key` header is also accepted; if both header and body specify a key, they must match.
 
-The API derives `owner_id` from the verified JWT. It never trusts a caller-supplied owner ID. It uses the service-role client only for the atomic creation RPC; all reads use the authenticated user's client and owner filter.
+The API derives `owner_id` from the verified JWT. It never trusts a caller-supplied owner ID. It uses the service-role client only for narrowly scoped server-only RPCs; all reads use the authenticated user's client and owner filter.
 
 ## Verification
 
 The CI workflow now runs:
 
 - `npm run test:mission-core`
-- `node scripts/mission-ui-smoke.mjs` with a mocked Mission API, covering create/list/detail, Hindi labels and a 390px mobile viewport
+- `node scripts/mission-ui-smoke.mjs` with a mocked Mission API, covering create/list/detail, starter planning, owner approval, cancellation, Hindi labels and a 390px mobile viewport
 - PostgreSQL migration and RLS integration tests, including cross-account isolation
 - Atomic creation/idempotency and RPC privilege tests
 - Approval queue SQL integration: idempotent request, atomic task/mission gating, owner decision, duplicate-decision rejection and cross-account isolation
@@ -73,7 +73,7 @@ This foundation does **not** yet provide:
 
 - LLM-powered adaptive mission planning or task decomposition (the current starter planner is deterministic and template-based)
 - Task execution workers or agent/tool adapters
-- Approval UI and execution controls
+- Task execution controls and worker lifecycle (approval and cancellation controls are implemented)
 - Retry/resume worker orchestration and idempotent external tool calls
 - Live production Supabase migration or Edge Function deployment
 
