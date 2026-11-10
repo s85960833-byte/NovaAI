@@ -1,6 +1,6 @@
 # NOVA Mission Engine V1 — Foundation
 
-**Implementation status:** Mission Engine V1 foundation code is present on `feature/nova-mission-engine-v1`; all three latest exact-head GitHub Actions runs for commit `9c3d4b1dfb396cbd1c70708fb9352f2de5f20630` completed successfully. This is not deployed or enabled in production, and no task worker is registered.
+**Implementation status:** Mission Engine V1 foundation code is present on `feature/nova-mission-engine-v1`; the three GitHub Actions workflows for the latest implementation head `0b3ef448eb02a1dcaefee5051394fb2a261dc8e0` completed successfully. A documentation-only refresh may trigger a new CI run. This is not deployed or enabled in production, and no task worker is registered.
 
 ## What is included
 
@@ -75,7 +75,7 @@ The CI workflow now runs:
 - Deno input-validation, four-workspace starter-planner and approval request/decision validation tests
 - Existing backend, security, local runtime and browser regression suites
 
-The latest exact code head `9c3d4b1dfb396cbd1c70708fb9352f2de5f20630` passed all three latest GitHub Actions runs: NovaAI verification `42826464434`, NOVA account/browser verification `42826464505`, and NovaAI push verification `42826448123`. All completed successfully with no failed steps. Coverage includes PostgreSQL migration/RLS integration; lease-expiry and stale-token fencing; mismatched proof/attestation rejection; unresolved-action blocking; successful proof-bound completion and service-role-only RPC privileges; Mission API type-check/tests; fail-closed Deno worker-registry tests; Mission Control mocked-API browser checks; responsive Chromium workspace/PDF.js checks; Company Cloud mobile browser workflows; five-viewport mobile/drawer regression; account/privacy/cloud-sync browser checks; and graceful shutdown. Live Supabase deployment, live Edge Function invocation, live Render/provider smoke and live image-generation smoke were skipped because this PR is not merged or deployed.
+The latest implementation head `0b3ef448eb02a1dcaefee5051394fb2a261dc8e0` passed all three GitHub Actions workflows: NovaAI verification `42828529201`, NOVA account/browser verification `42828539300`, and NovaAI push verification `42828539353`. All three completed successfully with no failed steps. Coverage includes PostgreSQL migration/RLS integration; lease-expiry and stale-token fencing; mismatched proof/attestation rejection; unresolved-action blocking; successful proof-bound completion and service-role-only RPC privileges; Mission API type-check/tests; fail-closed Deno worker-registry tests; Mission Control mocked-API browser checks; responsive Chromium workspace/PDF.js checks; Company Cloud mobile browser workflows; five-viewport mobile/drawer regression; account/privacy/cloud-sync browser checks; and graceful shutdown. Live Supabase deployment, live Edge Function invocation, live Render/provider smoke and live image-generation smoke were skipped because this PR is not merged or deployed.
 
 ## Worker lease foundation (not an active worker)
 
