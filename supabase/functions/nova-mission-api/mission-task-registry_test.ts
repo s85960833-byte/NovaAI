@@ -136,3 +136,45 @@ Deno.test("rejects malformed, duplicate or non-ISO verifier checks", async () =>
     if (!(error instanceof TypeError) || !error.message.includes("invalid or inconsistent")) throw error;
   }
 });
+
+
+Deno.test("rejects malformed task, mission, run and owner identifiers before handler execution", async () => {
+  const registry = new MissionTaskRegistry();
+  let handlerCalls = 0;
+  registry.register("test.safe-check", {
+    async execute() {
+      handlerCalls++;
+      return { output: {}, evidence: {} };
+    },
+  }, {
+    id: "test.uuid-verifier",
+    version: "1.0.0",
+    async verify() {
+      return {
+        passed: true,
+        verifierId: "test.uuid-verifier",
+        verifierVersion: "1.0.0",
+        checks: [{ id: "valid", passed: true }],
+        observedAt: "2026-11-10T12:00:00.000Z",
+      };
+    },
+  });
+
+  const malformed: MissionTaskDescriptor[] = [
+    { ...task, id: "not-a-uuid" },
+    { ...task, missionId: "not-a-uuid" },
+    { ...task, runId: "not-a-uuid" },
+    { ...task, ownerId: "not-a-uuid" },
+  ];
+  for (const descriptor of malformed) {
+    try {
+      await registry.executeAndVerify(descriptor);
+      throw new Error("Malformed task binding was accepted");
+    } catch (error) {
+      if (!(error instanceof TypeError) || !error.message.includes("descriptor is invalid")) throw error;
+    }
+  }
+  if (handlerCalls !== 0) {
+    throw new Error("Handler ran before malformed UUID bindings were rejected");
+  }
+});
