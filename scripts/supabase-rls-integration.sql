@@ -506,6 +506,35 @@ update public.nova_mission_tasks set status='completed', updated_at=now()
 where id='30303030-3030-4030-8030-303030303030';
 update public.nova_missions set state='completed', version=version+1, updated_at=now()
 where id='10101010-1010-4010-8010-101010101010';
+do $completed_mission_terminal_guard$
+begin
+  begin
+    update public.nova_mission_tasks set status='planned'
+    where id='20202020-2020-4020-8020-202020202020';
+    raise exception 'Completed task was allowed to leave its terminal state';
+  exception when check_violation then
+    null;
+  end;
+  begin
+    insert into public.nova_mission_tasks(
+      id, mission_id, owner_id, sequence, title, status
+    ) values (
+      '60606060-6060-4060-8060-606060606060',
+      '10101010-1010-4010-8010-101010101010',
+      '11111111-1111-4111-8111-111111111111', 3, 'Late task', 'planned'
+    );
+    raise exception 'Task was added to a completed mission';
+  exception when check_violation then
+    null;
+  end;
+  begin
+    update public.nova_missions set state='planned'
+    where id='10101010-1010-4010-8010-101010101010';
+    raise exception 'Completed mission was allowed to leave its terminal state';
+  exception when check_violation then
+    null;
+  end;
+end $completed_mission_terminal_guard$;
 insert into public.nova_mission_events(
   mission_id, owner_id, sequence, event_type, from_state, to_state, actor_id, payload_json
 ) values (
