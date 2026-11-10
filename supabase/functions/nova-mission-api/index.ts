@@ -16,6 +16,42 @@ const uuid = (value: unknown) =>
   typeof value === "string" &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
+async function readBoundedBody(request: Request, maxBytes = 120000): Promise<string> {
+  const declaredLength = Number(request.headers.get("content-length") || "0");
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    throw new RequestInputError("Request body is too large", 413);
+  }
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        try { await reader.cancel(); } catch { /* preserve the size-limit error */ }
+        throw new RequestInputError("Request body is too large", 413);
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const merged = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(merged);
+  } catch {
+    throw new RequestInputError("Request body must be valid UTF-8", 400);
+  }
+}
+
 const authenticatedHandler = withSupabase(
   { auth: "user", cors: "disabled" },
   async (req, ctx) => {
@@ -24,9 +60,9 @@ const authenticatedHandler = withSupabase(
 
     const url = new URL(req.url);
     const path = url.pathname
-      .replace(/^\\/+|\\/+$/g, "")
-      .replace(/^functions\\/v1\\/nova-mission-api\\/?/i, "")
-      .replace(/^nova-mission-api\\/?/i, "");
+      .replace(/^\/+|\/+$/g, "")
+      .replace(/^functions\/v1\/nova-mission-api\/?/i, "")
+      .replace(/^nova-mission-api\/?/i, "");
     const db = ctx.supabase;
 
     // Reuse the server-enforced per-user database limiter; no client-side trust.
@@ -59,7 +95,7 @@ const authenticatedHandler = withSupabase(
       }
 
       if (req.method === "POST" && path === "missions") {
-        const input = parseJsonObject(await req.text());
+        const input = parseJsonObject(await readBoundedBody(req));
         const headerKey = req.headers.get("Idempotency-Key");
         if (headerKey && input.idempotency_key && headerKey !== input.idempotency_key) {
           return fail("Body and header idempotency keys must match");
@@ -89,7 +125,7 @@ const authenticatedHandler = withSupabase(
         return json({ mission: data }, 201);
       }
 
-      const detailMatch = path.match(/^missions\\/([0-9a-f-]{36})$/i);
+      const detailMatch = path.match(/^missions\/([0-9a-f-]{36})$/i);
       if (req.method === "GET" && detailMatch && uuid(detailMatch[1])) {
         const missionId = detailMatch[1];
         const { data: mission, error } = await db.from("nova_missions")
