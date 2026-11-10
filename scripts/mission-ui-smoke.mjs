@@ -30,6 +30,7 @@ await page.route('**/nova-business-cloud.js', route => route.fulfill({
       let tasks = [];
       let events = [];
       const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed' }];
+      const actionReceipts = [{ id: 'receipt-1', action_key: 'mock-proof-action', status: 'uncertain', request_digest: 'a'.repeat(64), uncertain_reason: 'Previous worker lease expired', reconciliation_note: 'Manual external-state review required' }];
       let approvals = [];
       const client = { auth: { onAuthStateChange() {}, getSession: async () => ({ data: { session: null } }) } };
       window.NovaBusinessCloud = Object.freeze({
@@ -87,7 +88,7 @@ await page.route('**/nova-business-cloud.js', route => route.fulfill({
           }
           if (path === 'missions/' + id && method === 'GET') {
             if (!events.length) events = [{ id: 'event-1', event_type: 'mission.created', from_state: null, to_state: 'draft' }];
-            return { mission: missions[0], tasks, events, proofs, approvals, execution_runs: [] };
+            return { mission: missions[0], tasks, events, proofs, approvals, execution_runs: [], action_receipts: actionReceipts };
           }
           throw new Error('Unexpected mocked Mission API route: ' + method + ' ' + path);
         }
@@ -115,6 +116,9 @@ assert.ok((await page.locator('#missionList').innerText()).includes('Test websit
 await page.locator('[data-mission-id="' + missionId + '"]').click();
 await page.locator('#missionDetail').getByText('Homepage smoke test passed').waitFor({ state: 'visible', timeout: 5000 });
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mission.created'));
+assert.ok((await page.locator('#missionDetail').innerText()).includes('mock-proof-action'));
+assert.ok((await page.locator('#missionDetail').innerText()).includes('Manual external-state review required'));
+assert.ok((await page.locator('#missionDetail').innerText()).includes('Uncertain'));
 await page.locator('#missionPlanBtn').click();
 await page.locator('#missionDetail').getByText('Confirm requirements').waitFor({ state: 'visible', timeout: 5000 });
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mission.planned'));
@@ -146,6 +150,7 @@ await page.evaluate(() => {
 await page.locator('#missionTitle').waitFor({ state: 'visible' });
 assert.ok((await page.locator('#nsNav').innerText()).includes('मिशन कंट्रोल'));
 assert.ok((await page.locator('#missionForm').innerText()).includes('मिशन बनाएँ'));
+assert.ok((await page.locator('#missionDetail').innerText()).includes('कार्रवाई रसीदें'));
 console.log('PASS Mission Control bilingual labels switch to Hindi');
 
 await page.setViewportSize({ width: 390, height: 844 });
