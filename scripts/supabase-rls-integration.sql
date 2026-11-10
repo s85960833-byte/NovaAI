@@ -460,6 +460,15 @@ begin
   if v_first is distinct from v_second then
     raise exception 'Repeated idempotency key created different missions';
   end if;
+  begin
+    perform public.nova_create_mission(
+      '11111111-1111-4111-8111-111111111111',
+      'Different payload', '', 'build',
+      'mission-idempotency-fixture-001', '{}'::jsonb
+    );
+    raise exception 'Mission idempotency key was reused with different request content';
+  exception when unique_violation then null;
+  end;
   if (select count(*) from public.nova_missions
       where owner_id='11111111-1111-4111-8111-111111111111'
         and idempotency_key='mission-idempotency-fixture-001') <> 1 then
