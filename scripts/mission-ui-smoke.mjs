@@ -54,7 +54,7 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
 }); });
 
 await page.goto(BASE, { waitUntil: 'domcontentloaded' });
-await page.waitForFunction(() => window.NovaBusinessCloud?.version === 'mock', { timeout: 5000 });
+await page.waitForFunction(() => window.NovaBusinessCloud?.version === 'mock', undefined, { timeout: 5000 });
 await page.evaluate(() => window.NovaSuite?.open());
 await page.locator('#novaSuite').waitFor({ state: 'visible', timeout: 10000 });
 await page.locator('#nsNav [data-id="missions"]').click();
