@@ -2,6 +2,7 @@ import {
   MissionTaskNotExecutableError,
   MissionTaskRegistry,
   type MissionTaskDescriptor,
+  type MissionVerificationResult,
 } from "./mission-task-registry.ts";
 
 const task: MissionTaskDescriptor = {
@@ -100,7 +101,7 @@ Deno.test("rejects malformed, duplicate or non-ISO verifier checks", async () =>
           passed: true,
           verifierId: "test.strict-verifier",
           verifierVersion: "1.0.0",
-          checks,
+          checks: checks as unknown as MissionVerificationResult["checks"],
           observedAt: "2026-11-10T12:00:00.000Z",
         };
       },
