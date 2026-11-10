@@ -945,6 +945,7 @@ declare
   v_action_again uuid;
   v_uncertain_action uuid;
   v_reserved_action uuid;
+  v_fail_action uuid;
   v_action_status text;
   v_replayed boolean;
 begin
@@ -1191,7 +1192,12 @@ begin
     raise exception 'Reclaimed worker did not receive the uncertain action reconciliation state';
   end if;
 
+  select action_id into v_fail_action
+    from public.nova_reserve_mission_action(v_run,v_new_token,'action-fail-transition-fixture-001',repeat('7',64));
   v_status := public.nova_fail_mission_task(v_run,v_new_token,'temporary','Retryable controlled failure',0);
+  if (select status from public.nova_mission_action_receipts where id=v_fail_action) <> 'uncertain' then
+    raise exception 'Ending a worker lease did not mark its unfinished action uncertain';
+  end if;
   if v_status <> 'authorized'
      or (select status from public.nova_mission_tasks where id=v_task) <> 'planned'
      or (select state from public.nova_missions where id=v_mission) <> 'planned'
