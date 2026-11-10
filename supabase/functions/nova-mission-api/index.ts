@@ -180,6 +180,31 @@ const authenticatedHandler = withSupabase(
         return json({ mission: updated.data, tasks: tasks.data || [], events: events.data || [], proofs: proofs.data || [], plan_type: "starter_template" });
       }
 
+      const cancelMatch = path.match(/^missions\/([0-9a-f-]{36})\/cancel$/i);
+      if (req.method === "POST" && cancelMatch && uuid(cancelMatch[1])) {
+        const input = parseJsonObject(await readBoundedBody(req));
+        const reason = input.reason === undefined ? "" :
+          typeof input.reason === "string" ? input.reason : null;
+        if (reason === null || reason.length > 1000) return fail("Cancellation reason must be a string up to 1000 characters");
+        const missionId = cancelMatch[1];
+        const { data: cancelledId, error } = await ctx.supabaseAdmin.rpc("nova_cancel_mission", {
+          p_owner_id: userId, p_mission_id: missionId, p_reason: reason,
+        });
+        if (error) {
+          if (error.code === "P0002") return fail("Mission not found", 404);
+          if (error.code === "55000") return fail("Mission is already in a terminal state", 409);
+          if (error.code === "23514") return fail("Cancellation reason did not pass validation", 400);
+          throw error;
+        }
+        if (cancelledId !== missionId) throw new Error("Mission cancellation returned an unexpected identifier");
+        const { data: mission, error: readError } = await db.from("nova_missions")
+          .select("id,title,description,workspace,state,version,attempts,plan_json,created_at,updated_at")
+          .eq("id", missionId).eq("owner_id", userId).maybeSingle();
+        if (readError) throw readError;
+        if (!mission) return fail("Cancelled mission could not be loaded", 500);
+        return json({ mission });
+      }
+
       const approvalRequestMatch = path.match(/^missions\/([0-9a-f-]{36})\/tasks\/([0-9a-f-]{36})\/approval$/i);
       if (req.method === "POST" && approvalRequestMatch &&
           uuid(approvalRequestMatch[1]) && uuid(approvalRequestMatch[2])) {
