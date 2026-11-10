@@ -32,7 +32,7 @@ create or replace function public.nova_clear_execution_lease_on_terminal_status(
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $trigger$
 begin
   if new.status <> 'running' then
     new.worker_id := null;
@@ -42,7 +42,7 @@ begin
   end if;
   return new;
 end;
-$;
+$trigger$;
 revoke all on function public.nova_clear_execution_lease_on_terminal_status() from public, anon, authenticated;
 drop trigger if exists nova_execution_run_clear_lease on public.nova_mission_execution_runs;
 create trigger nova_execution_run_clear_lease
