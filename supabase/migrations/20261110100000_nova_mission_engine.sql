@@ -110,6 +110,60 @@ create trigger nova_mission_completion_requires_proof
 before update of state on public.nova_missions
 for each row execute function public.nova_require_verified_mission_completion();
 
+create or replace function public.nova_create_mission(
+  p_owner_id uuid,
+  p_title text,
+  p_description text default '',
+  p_workspace text default 'agents',
+  p_idempotency_key text default null,
+  p_plan_json jsonb default '{}'::jsonb
+)
+returns uuid
+language plpgsql
+security invoker
+set search_path = ''
+as $
+declare
+  v_mission_id uuid;
+begin
+  if current_user <> 'service_role' then
+    raise exception 'Mission creation is restricted to the trusted server role'
+      using errcode = '42501';
+  end if;
+
+  if p_idempotency_key is not null then
+    select id into v_mission_id
+    from public.nova_missions
+    where owner_id = p_owner_id and idempotency_key = p_idempotency_key;
+    if v_mission_id is not null then return v_mission_id; end if;
+  end if;
+
+  insert into public.nova_missions(
+    owner_id, title, description, workspace, idempotency_key, plan_json
+  ) values (
+    p_owner_id, pg_catalog.btrim(p_title), coalesce(p_description, ''),
+    coalesce(p_workspace, 'agents'), p_idempotency_key, coalesce(p_plan_json, '{}'::jsonb)
+  )
+  on conflict (owner_id, idempotency_key) do nothing
+  returning id into v_mission_id;
+
+  if v_mission_id is null then
+    select id into v_mission_id
+    from public.nova_missions
+    where owner_id = p_owner_id and idempotency_key = p_idempotency_key;
+    return v_mission_id;
+  end if;
+
+  insert into public.nova_mission_events(
+    mission_id, owner_id, sequence, event_type, from_state, to_state, actor_id, payload_json
+  ) values (
+    v_mission_id, p_owner_id, 1, 'mission.created', null, 'draft', p_owner_id, '{}'::jsonb
+  );
+  return v_mission_id;
+end;
+$;
+revoke all on function public.nova_create_mission(uuid,text,text,text,text,jsonb) from public, anon, authenticated;
+grant execute on function public.nova_create_mission(uuid,text,text,text,text,jsonb) to service_role;
 create index if not exists nova_missions_owner_updated_idx
   on public.nova_missions(owner_id, updated_at desc);
 create index if not exists nova_mission_tasks_mission_status_idx
