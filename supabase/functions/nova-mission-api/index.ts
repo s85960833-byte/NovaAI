@@ -248,7 +248,7 @@ const authenticatedHandler = withSupabase(
         if (error) throw error;
         if (!mission) return fail("Mission not found", 404);
 
-        const [tasks, events, proofs] = await Promise.all([
+        const [tasks, events, proofs, approvals, executionRuns] = await Promise.all([
           db.from("nova_mission_tasks")
             .select("id,sequence,title,status,attempts,created_at,updated_at")
             .eq("mission_id", missionId).eq("owner_id", userId)
@@ -261,11 +261,24 @@ const authenticatedHandler = withSupabase(
             .select("id,task_id,proof_type,summary,verification_status,evidence_json,verified_at,created_at")
             .eq("mission_id", missionId).eq("owner_id", userId)
             .order("created_at", { ascending: false }).limit(100),
+          db.from("nova_mission_approvals")
+            .select("id,task_id,action_summary,status,requested_at,decided_at,decided_by,decision_note")
+            .eq("mission_id", missionId).eq("owner_id", userId)
+            .order("requested_at", { ascending: false }).limit(100),
+          db.from("nova_mission_execution_runs")
+            .select("id,approval_id,task_id,status,attempt,created_at,updated_at")
+            .eq("mission_id", missionId).eq("owner_id", userId)
+            .order("created_at", { ascending: false }).limit(100),
         ]);
         if (tasks.error) throw tasks.error;
         if (events.error) throw events.error;
         if (proofs.error) throw proofs.error;
-        return json({ mission, tasks: tasks.data || [], events: events.data || [], proofs: proofs.data || [] });
+        if (approvals.error) throw approvals.error;
+        if (executionRuns.error) throw executionRuns.error;
+        return json({
+          mission, tasks: tasks.data || [], events: events.data || [], proofs: proofs.data || [],
+          approvals: approvals.data || [], execution_runs: executionRuns.data || [],
+        });
       }
 
       return fail("Route not found", 404);
