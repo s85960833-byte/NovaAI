@@ -1040,6 +1040,20 @@ begin
   end;
 
   begin
+    insert into public.nova_mission_proof_attestations(
+      proof_id, mission_id, task_id, run_id, owner_id, verifier_id,
+      verifier_version, evidence_digest, envelope_json, outcome, check_count, observed_at
+    ) values (
+      v_proof, v_mission, v_task, v_run, '11111111-1111-4111-8111-111111111111',
+      'nova.integration-verifier', '1.0.0', repeat('c',64),
+      jsonb_set(v_envelope, '{verifier_version}', to_jsonb('9.9.9'::text)),
+      'passed', 1, now()
+    );
+    raise exception 'Mismatched verifier metadata was unexpectedly accepted';
+  exception when check_violation then null;
+  end;
+
+  begin
     update public.nova_mission_proof_attestations set outcome='failed' where id=v_attestation;
     raise exception 'Proof attestation update was unexpectedly permitted';
   exception when insufficient_privilege then null;
