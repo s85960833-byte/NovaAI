@@ -150,7 +150,10 @@ await page.evaluate(() => {
 await page.locator('#missionTitle').waitFor({ state: 'visible' });
 assert.ok((await page.locator('#nsNav').innerText()).includes('मिशन कंट्रोल'));
 assert.ok((await page.locator('#missionForm').innerText()).includes('मिशन बनाएँ'));
-assert.ok((await page.locator('#missionDetail').innerText()).includes('कार्रवाई रसीदें'));
+await page.locator('[data-mission-id="' + missionId + '"]').waitFor({ state: 'visible', timeout: 5000 });
+await page.locator('[data-mission-id="' + missionId + '"]').click();
+await page.locator('#missionDetail').getByText('कार्रवाई रसीदें').waitFor({ state: 'visible', timeout: 5000 });
+assert.ok((await page.locator('#missionDetail').innerText()).includes('अनिश्चित'));
 console.log('PASS Mission Control bilingual labels switch to Hindi');
 
 await page.setViewportSize({ width: 390, height: 844 });
