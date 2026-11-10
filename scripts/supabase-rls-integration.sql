@@ -1083,7 +1083,7 @@ begin
     raise exception 'Same-key action reservation was not idempotent';
   end if;
   begin
-    perform * from public.nova_reserve_mission_action(v_run,v_token,'action-complete-fixture-001',repeat('x',64));
+    perform * from public.nova_reserve_mission_action(v_run,v_token,'action-complete-fixture-001',repeat('b',64));
     raise exception 'Action idempotency key accepted a different request digest';
   exception when unique_violation then null;
   end;
