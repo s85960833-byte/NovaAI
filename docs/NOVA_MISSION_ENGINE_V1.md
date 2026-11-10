@@ -37,6 +37,7 @@ The Edge Function is named `nova-mission-api`. It requires an authenticated Supa
 | POST | `/functions/v1/nova-mission-api/missions` | Create a mission |
 | GET | `/functions/v1/nova-mission-api/missions` | List up to 50 of the user's missions |
 | GET | `/functions/v1/nova-mission-api/missions/{id}` | Read one mission, tasks, events and proofs |
+| POST | `/functions/v1/nova-mission-api/missions/{id}/plan` | Generate and persist a one-time, deterministic five-task starter checklist for a draft mission |
 
 Mission creation accepts `title` (1–200 chars), optional `description` (up to 10,000 chars), one of `learn`, `build`, `agents`, `intelligence`, optional `idempotency_key` (up to 160 chars), and an optional JSON-object `plan` (up to 100 KB). An `Idempotency-Key` header is also accepted; if both header and body specify a key, they must match.
 
@@ -51,10 +52,10 @@ The CI workflow now runs:
 - PostgreSQL migration and RLS integration tests, including cross-account isolation
 - Atomic creation/idempotency and RPC privilege tests
 - Deno type-check for `nova-mission-api`
-- Deno input-validation tests
+- Deno input-validation and four-workspace starter-planner tests
 - Existing backend, security, local runtime and browser regression suites
 
-The CI run on the current PR head completed successfully. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
+The full CI run on the tested implementation commit completed successfully. A later documentation-only commit updated this file. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
 
 ## Not yet implemented
 
@@ -75,9 +76,8 @@ Before production use:
 1. Review the migration and run a remote dry-run against the intended Supabase project.
 2. Obtain explicit project-owner approval before applying the migration.
 3. Deploy the Edge Function only after its environment, JWT verification and exact-origin CORS are checked.
-4. Deploy the Edge Function only after the migration and environment have been approved.
-5. Add end-to-end authenticated API tests with two distinct live user accounts.
-6. Implement execution workers with per-user permissions, bounded retries, idempotency, approvals and recovery.
-7. Keep service-role credentials server-side; never expose them to the browser.
+4. Add end-to-end authenticated API tests with two distinct live user accounts.
+5. Implement execution workers with per-user permissions, bounded retries, idempotency, approvals and recovery.
+6. Keep service-role credentials server-side; never expose them to the browser.
 
 No production branch merge, Render deployment, live Supabase schema change or paid provider spend is part of this PR.
