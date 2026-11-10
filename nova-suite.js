@@ -74,7 +74,8 @@ async function showMissionDetail(id){
   const m=result.mission||{};
   const tasks=Array.isArray(result.tasks)?result.tasks:[];
   const events=Array.isArray(result.events)?result.events:[];
-  const proofs=Array.isArray(result.proofs)?result.proofs:[];\n  const approvals=Array.isArray(result.approvals)?result.approvals:[];
+  const proofs=Array.isArray(result.proofs)?result.proofs:[];
+  const approvals=Array.isArray(result.approvals)?result.approvals:[];
   detail.innerHTML='<h3>'+esc(bi('Mission details'))+'</h3><div><b>'+esc(m.title||'')+'</b></div><p class="ns-muted">'+esc(missionWorkspaceLabel(m.workspace))+' · '+esc(missionStateLabel(m.state))+'</p><p>'+esc(m.description||'')+'</p>'+
    '<h4>'+esc(bi('Tasks'))+'</h4>'+(tasks.length?'<ul>'+tasks.map(t=>'<li>'+esc(t.title)+' · '+esc(missionStateLabel(t.status))+'</li>').join('')+'</ul>':'<p class="ns-muted">—</p>')+
    '<h4>'+esc(bi('Activity'))+'</h4>'+(events.length?'<ul>'+events.map(e=>'<li>'+esc(e.event_type)+' · '+esc(e.from_state||'—')+' → '+esc(e.to_state)+'</li>').join('')+'</ul>':'<p class="ns-muted">—</p>')+
