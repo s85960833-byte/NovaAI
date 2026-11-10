@@ -213,6 +213,10 @@ try{
  assert.ok(businessHindiText.includes('बिज़नेस इंटेलिजेंस डैशबोर्ड'),'Business Intelligence must re-render in Hindi');
  for(const untranslated of ['No data loaded','Run an analysis to populate this card','Explainable heuristic, not a probability','illustrative scenario only'])assert.ok(!businessHindiText.includes(untranslated),'Business Intelligence Hindi overview contains untranslated text: '+untranslated);
  await desktop.locator('#uiLangTop').selectOption('en');
+ await desktop.waitForFunction(()=>document.querySelector('#nbBody')?.innerText.includes('No data loaded'));
+ const businessEnglishText=await desktop.locator('#nbBody').innerText();
+ for(const translated of ['कोई डेटा लोड नहीं हुआ','विश्लेषण चलाएँ','संभावना नहीं','उदाहरणात्मक परिदृश्य'])assert.ok(!businessEnglishText.includes(translated),'Business Intelligence English overview retained Hindi text: '+translated);
+ assert.ok(businessEnglishText.includes('Explainable heuristic, not a probability'),'Business Intelligence must switch back to English');
  await desktop.keyboard.press('Escape');
  await desktop.waitForFunction(()=>!document.querySelector('#novaBusiness').classList.contains('show'));
  assert.equal(await desktop.locator('#novaModes').evaluate(el=>el.classList.contains('open')),true,'Agents workspace should remain open after closing Business Intelligence');
