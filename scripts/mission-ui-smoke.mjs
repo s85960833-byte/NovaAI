@@ -7,7 +7,7 @@ const context = await browser.newContext({ viewport: { width: 1365, height: 900 
 const page = await context.newPage();
 page.on('console', message => console.log('PAGE', message.type(), message.text()));
 
-const missionId = '123e4567-e89b-42d3-a456-426614174000';
+const missionId = '123e4567-e89b-42d3-a456-426614174000';\nconst approvalId = '223e4567-e89b-42d3-a456-426614174000';\npage.on('dialog', dialog => dialog.accept());
 await page.addInitScript(() => localStorage.setItem('nova_intro_completed_v2', '1'));
 await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js', route =>
   route.fulfill({
@@ -25,7 +25,7 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
       let missions = [];
       let tasks = [];
       let events = [];
-      const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed' }];
+      const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed' }];\n      let approvals = [];
       const client = { auth: { onAuthStateChange() {}, getSession: async () => ({ data: { session: null } }) } };
       window.NovaBusinessCloud = Object.freeze({
         open() {}, close() {}, getClient() { return client; }, version: 'mock',
