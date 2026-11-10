@@ -21,7 +21,7 @@ const TRANSITIONS = Object.freeze({
     cancel: STATES.CANCELLED
   }),
   [STATES.WAITING_APPROVAL]: Object.freeze({
-    approve: STATES.RUNNING,
+    approve: STATES.PLANNED,
     reject: STATES.FAILED,
     cancel: STATES.CANCELLED
   }),
