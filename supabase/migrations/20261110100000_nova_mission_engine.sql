@@ -122,7 +122,7 @@ returns uuid
 language plpgsql
 security invoker
 set search_path = ''
-as $
+as $$
 declare
   v_mission_id uuid;
 begin
@@ -161,7 +161,7 @@ begin
   );
   return v_mission_id;
 end;
-$;
+$$;
 revoke all on function public.nova_create_mission(uuid,text,text,text,text,jsonb) from public, anon, authenticated;
 grant execute on function public.nova_create_mission(uuid,text,text,text,text,jsonb) to service_role;
 create index if not exists nova_missions_owner_updated_idx
