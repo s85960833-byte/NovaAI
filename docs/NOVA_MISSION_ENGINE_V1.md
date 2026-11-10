@@ -17,7 +17,7 @@
 - Deterministic, no-cost starter planner templates for Learn, Build, Agents and Intelligence; plan persistence atomically creates tasks and advances draft missions to planned.
 - Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing, task/event/proof inspection, task-level approval requests, explicit owner approval/rejection across multiple tasks and mission cancellation.
 - Exact-origin CORS, bounded request bodies, input validation and server-enforced per-user rate limiting.
-- Database-level task and mission completion guards: each task needs its own passing proof before it can be marked completed, and every task must be completed with task-scoped passing proof before the mission can be completed.
+- Database-level task and mission completion guards: task and mission inserts cannot bypass proof checks; each task needs its own passing proof before completion; every task must be completed with task-scoped passing proof before mission completion; completed missions and their tasks are terminal.
 - Browser-authenticated clients have read-only access; event and proof records are append-only from the browser's perspective.
 
 ## Data model
@@ -67,7 +67,7 @@ The CI workflow now runs:
 - Deno input-validation, four-workspace starter-planner and approval request/decision validation tests
 - Existing backend, security, local runtime and browser regression suites
 
-Both required CI workflows passed on commit `4d93bcd00c40311ead1cd10e406a61630c9e151a` (NovaAI verification run `42802783068`; account/browser verification run `42802783118`). This includes PostgreSQL migration/RLS integration, worker lease claim/heartbeat/recovery/retry/cancellation tests, Mission Control browser smoke, responsive workspace and PDF.js checks, Company Cloud mobile browser workflows, five-viewport mobile/drawer regression, and graceful shutdown. The documentation-only follow-up commit will rerun CI. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
+Both required CI workflows passed on code commit `d50f9b00c8cc29c718fcd7adae922ea43765c145` (NovaAI verification run `42805230265`; account/browser verification run `42805230138`). This includes PostgreSQL migration/RLS integration, worker lease claim/heartbeat/recovery/retry/cancellation tests, task-scoped proof enforcement including insert bypass and terminal-state negative cases, Mission Control browser smoke, responsive workspace and PDF.js checks, Company Cloud mobile browser workflows, five-viewport mobile/drawer regression, and graceful shutdown. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
 
 ## Worker lease foundation (not an active worker)
 
