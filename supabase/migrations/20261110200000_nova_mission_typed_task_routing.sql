@@ -76,6 +76,14 @@ begin
     raise exception 'Mission plan must contain between 1 and 20 tasks' using errcode = '23514';
   end if;
 
+  select state, workspace into v_state, v_workspace
+  from public.nova_missions
+  where id = p_mission_id and owner_id = p_owner_id
+  for update;
+  if not found then
+    raise exception 'Mission not found' using errcode = 'P0002';
+  end if;
+
   -- Reject free-form task types, schema versions, and non-object input before writing.
   if exists (
     select 1
@@ -105,13 +113,6 @@ begin
       using errcode = '23514';
   end if;
 
-  select state, workspace into v_state, v_workspace
-  from public.nova_missions
-  where id = p_mission_id and owner_id = p_owner_id
-  for update;
-  if not found then
-    raise exception 'Mission not found' using errcode = 'P0002';
-  end if;
   if v_state <> 'draft' then
     raise exception 'Only draft missions can receive a starter plan' using errcode = '55000';
   end if;
