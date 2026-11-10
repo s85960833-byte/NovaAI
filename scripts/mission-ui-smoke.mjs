@@ -7,7 +7,9 @@ const context = await browser.newContext({ viewport: { width: 1365, height: 900 
 const page = await context.newPage();
 page.on('console', message => console.log('PAGE', message.type(), message.text()));
 
-const missionId = '123e4567-e89b-42d3-a456-426614174000';\nconst approvalId = '223e4567-e89b-42d3-a456-426614174000';\npage.on('dialog', dialog => dialog.accept());
+const missionId = '123e4567-e89b-42d3-a456-426614174000';
+const approvalId = '223e4567-e89b-42d3-a456-426614174000';
+page.on('dialog', dialog => dialog.accept());
 await page.addInitScript(() => localStorage.setItem('nova_intro_completed_v2', '1'));
 await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js', route =>
   route.fulfill({
@@ -51,6 +53,7 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
               { id: 'event-1', event_type: 'mission.created', from_state: null, to_state: 'draft' },
               { id: 'event-2', event_type: 'mission.planned', from_state: 'draft', to_state: 'planned' }
             ];
+            approvals = [{ id: '223e4567-e89b-42d3-a456-426614174000', task_id: 'task-1', action_summary: 'Review the generated deployment plan', status: 'pending', requested_at: '2026-11-10T10:00:00.000Z' }];
             return { mission: missions[0], tasks, events, proofs, plan_type: 'starter_template' };
           }
           if (path === 'missions/' + id && method === 'GET') {
