@@ -60,7 +60,7 @@ The CI workflow now runs:
 - PostgreSQL migration and RLS integration tests, including cross-account isolation
 - Atomic creation/idempotency and RPC privilege tests
 - Approval queue SQL integration: idempotent request, atomic task/mission gating, owner decision, duplicate-decision rejection and cross-account isolation
-- Cancellation SQL integration: atomic task cancellation, pending approval expiry, authorized-run cancellation, terminal-state guard and server-only RPC permissions
+- Cancellation SQL integration: atomic task cancellation, pending approval expiry, authorized-run cancellation, terminal-state guard and server-only RPC permissions\n- Approval decision lock-order migration serializes owner decisions with mission cancellation, preventing stale approvals and concurrent event-sequence collisions
 - Deno type-check for `nova-mission-api`
 - Deno input-validation, four-workspace starter-planner and approval request/decision validation tests
 - Existing backend, security, local runtime and browser regression suites
