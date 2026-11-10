@@ -1071,6 +1071,14 @@ begin
   exception when insufficient_privilege then null;
   end;
 
+  perform pg_catalog.set_config('request.jwt.claim.role','anon',false);
+  begin
+    perform * from public.nova_reserve_mission_action(v_run,v_token,'role-claim-denial-fixture',repeat('9',64));
+    raise exception 'Action RPC accepted a non-service JWT role claim';
+  exception when insufficient_privilege then null;
+  end;
+  perform pg_catalog.set_config('request.jwt.claim.role','service_role',false);
+
   select action_id,action_status,replayed
     into v_action,v_action_status,v_replayed
     from public.nova_reserve_mission_action(v_run,v_token,'action-complete-fixture-001',repeat('d',64));
@@ -1251,6 +1259,8 @@ begin
   if has_table_privilege('authenticated','public.nova_mission_action_receipts','insert')
      or has_table_privilege('authenticated','public.nova_mission_action_receipts','update')
      or has_table_privilege('authenticated','public.nova_mission_action_receipts','delete')
+     or has_table_privilege('service_role','public.nova_mission_action_receipts','insert')
+     or has_table_privilege('service_role','public.nova_mission_action_receipts','update')
      or has_table_privilege('service_role','public.nova_mission_action_receipts','delete')
      or has_table_privilege('service_role','public.nova_mission_action_receipts','truncate')
      or has_column_privilege('authenticated','public.nova_mission_action_receipts','lease_token','select')
