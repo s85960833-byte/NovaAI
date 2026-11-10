@@ -18,7 +18,8 @@
 - Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing, task/event/proof inspection, task-level approval requests, explicit owner approval/rejection across multiple tasks and mission cancellation.
 - Exact-origin CORS, bounded request bodies, input validation and server-enforced per-user rate limiting.
 - Database-level task and mission completion guards: task and mission inserts cannot bypass proof checks; each task needs its own passing proof before completion; every task must be completed with task-scoped passing proof before mission completion; completed missions and their tasks are terminal.
-- Canonical proof-envelope contract with SHA-256 digest, verifier identity/version, mission/task/run binding, bounded checks, duplicate-check rejection and deterministic JSON serialization. It is a structural integrity contract only; it does not independently prove that an external action occurred, and it is not wired to any execution endpoint.
+- Canonical proof-envelope contract with SHA-256 digest, verifier identity/version, mission/task/run binding, bounded checks, duplicate-check rejection and deterministic JSON serialization.
+- Append-only proof-attestation ledger: each attestation stores the canonical envelope, digest, verifier/version, outcome and timestamp; composite foreign keys bind it to the exact proof, mission, task, owner and execution run. The database checks envelope bindings and requires a matching claimed run; authenticated owners can read their own attestations, while only the trusted server role can insert. App-facing roles have no update/delete/truncate grants.
 - Browser-authenticated clients have read-only access; event and proof records are append-only from the browser's perspective.
 
 ## Data model
@@ -31,8 +32,9 @@
 | `nova_mission_proofs` | Evidence records and verification outcomes |
 | `nova_mission_approvals` | Pending/approved/rejected owner decisions and action summaries |
 | `nova_mission_execution_runs` | Idempotent authorization, bounded attempts, worker identity, expiring lease token, heartbeat and retry schedule |
+| `nova_mission_proof_attestations` | Append-only verifier envelope, digest, outcome and exact proof/task/run binding |
 
-All six tables have RLS enabled. Each row carries `owner_id`; the database enforces mission/child ownership consistency with composite foreign keys. Authenticated clients can select only their own rows. Writes are reserved for trusted server-side code.
+All seven tables have RLS enabled. Each row carries `owner_id`; the database enforces mission/child ownership consistency with composite foreign keys. Authenticated clients can select only their own rows. Writes are reserved for trusted server-side code; proof attestations are insert-only even for the service role.
 
 ## API contract
 
@@ -64,11 +66,12 @@ The CI workflow now runs:
 - Cancellation SQL integration: atomic task cancellation, pending approval expiry, authorized-run cancellation, terminal-state guard and server-only RPC permissions
 - Approval decision lock-order migration serializes owner decisions with mission cancellation, preventing stale approvals and concurrent event-sequence collisions
 - Worker lease PostgreSQL integration: only approved runs can be claimed; active leases cannot be double-claimed; expired tokens cannot heartbeat or fail a reclaimed run; expired leases can be reclaimed with a new token; retry scheduling and five-attempt exhaustion; browser roles cannot invoke worker RPCs; cancellation revokes an active lease
+- Proof-attestation PostgreSQL integration: envelope/proof/run binding, duplicate-attestation rejection, mismatched-run rejection, service-role insert-only privileges and owner-only RLS reads
 - Deno type-check for `nova-mission-api`
 - Deno input-validation, four-workspace starter-planner and approval request/decision validation tests
 - Existing backend, security, local runtime and browser regression suites
 
-Both required CI workflows passed on code commit `d50f9b00c8cc29c718fcd7adae922ea43765c145` (NovaAI verification run `42805230265`; account/browser verification run `42805230138`). This includes PostgreSQL migration/RLS integration, worker lease claim/heartbeat/recovery/retry/cancellation tests, task-scoped proof enforcement including insert bypass and terminal-state negative cases, Mission Control browser smoke, responsive workspace and PDF.js checks, Company Cloud mobile browser workflows, five-viewport mobile/drawer regression, and graceful shutdown. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
+The canonical proof-envelope and earlier Mission Engine changes passed both required CI workflows on commit `c57b611632dc02c13b7c3071aed55a8faf7804e4` (NovaAI verification run `42806101933`; account/browser verification run `42806101907`). The SQL attestation persistence added after that commit is being re-verified in the current CI runs. The prior successful run includes PostgreSQL migration/RLS integration, worker lease claim/heartbeat/recovery/retry/cancellation tests, task-scoped proof enforcement including insert bypass and terminal-state negative cases, Mission Control browser smoke, responsive workspace and PDF.js checks, Company Cloud mobile browser workflows, five-viewport mobile/drawer regression, and graceful shutdown. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
 
 ## Worker lease foundation (not an active worker)
 
@@ -86,7 +89,7 @@ This foundation does **not** yet provide:
 - Full retry/resume orchestration, executor-side idempotency and external tool adapters (database lease recovery and retry scheduling only)
 - Live production Supabase migration or Edge Function deployment
 
-The starter planner creates a checklist only; it does not execute tasks or call paid AI providers. The database completion guards ensure every completed task and mission has a task-scoped passing proof row written by the trusted server role. The proof-envelope helper computes a deterministic SHA-256 digest and validates scope/verifier metadata, but does not authenticate an external source or prove that an external action occurred. No endpoint currently accepts proof envelopes or marks tasks complete; a trusted adapter and independent evidence verifier must be reviewed before wiring this contract to persistence. Do not label a mission as executed or independently verified until a reviewed verifier has checked inspectable evidence and the verification checks have passed.
+The starter planner creates a checklist only; it does not execute tasks or call paid AI providers. The database completion guards ensure every completed task and mission has a task-scoped passing proof row written by the trusted server role. The proof-envelope helper computes a deterministic SHA-256 digest and validates scope/verifier metadata. The attestation table persists the canonical envelope and digest for later offline recomputation, but the database does not independently recompute SHA-256 or authenticate an external source. A matching claimed run and a trusted service-role insert are required; neither proves that an external action occurred. No endpoint currently accepts proof envelopes, creates attestations or marks tasks complete; a trusted adapter and independent evidence verifier must be reviewed before wiring this contract to persistence. Do not label a mission as executed or independently verified until a reviewed verifier has checked inspectable evidence and the verification checks have passed.
 
 ## Release gates
 
@@ -97,7 +100,7 @@ Before production use:
 3. Deploy the Edge Function only after its environment, JWT verification and exact-origin CORS are checked.
 4. Add end-to-end authenticated API tests with two distinct live user accounts.
 5. Implement execution workers with per-user permissions, bounded retries, idempotency, approvals and recovery.
-6. Implement a separately reviewed evidence verifier with canonical evidence serialization, cryptographic digesting, verifier identity/version, run-to-task binding and executor-side idempotency/fencing before enabling any worker.
+6. Implement a separately reviewed evidence verifier with canonical evidence serialization, cryptographic digesting, verifier identity/version, run-to-task binding, digest recomputation and executor-side idempotency/fencing before enabling any worker.
 7. Keep service-role credentials server-side; never expose them to the browser.
 
 No production branch merge, Render deployment, live Supabase schema change or paid provider spend is part of this PR.
