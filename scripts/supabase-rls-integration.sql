@@ -1228,6 +1228,13 @@ begin
   if v_action_status <> 'uncertain' then
     raise exception 'Automatic uncertainty reconciliation replay was not idempotent';
   end if;
+  v_status := public.nova_fail_mission_task(
+    v_run,v_reconcile_token,'manual-review','Reconciliation fixture safely releases attempt three',0
+  );
+  if v_status <> 'authorized'
+     or (select lease_token from public.nova_mission_execution_runs where id=v_run) is not null then
+    raise exception 'Reconciliation fixture did not safely release its active lease';
+  end if;
 
   -- Consume the remaining bounded attempts; attempt five must become terminal.
   for v_i in 4..5 loop
