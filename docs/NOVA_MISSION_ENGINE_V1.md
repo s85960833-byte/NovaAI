@@ -5,7 +5,7 @@
 ## What is included
 
 - Deterministic mission lifecycle core with explicit transitions:
-  `draft → planned → running → waiting_approval → running → verifying → completed`.
+  `draft → planned → running → waiting_approval → planned → running → verifying → completed`; approval returns a mission to `planned`, and a separate worker start is required before `running`.
 - Failure, retry and cancellation paths.
 - Immutable in-memory event/evidence snapshots in the domain core.
 - Supabase persistence for missions, tasks, events and proof records.
