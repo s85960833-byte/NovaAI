@@ -1395,3 +1395,109 @@ begin
   end;
 end $mission_cancel_active_worker$;
 reset role;
+
+
+-- Lease-fenced completion requires a matching passing proof attestation and resolved actions.
+set role service_role;
+select set_config('request.jwt.claim.role','service_role',false);
+do $mission_lease_fenced_completion$
+declare
+  v_owner uuid := '11111111-1111-4111-8111-111111111111';
+  v_mission uuid;
+  v_task uuid;
+  v_approval uuid;
+  v_run uuid;
+  v_token uuid;
+  v_proof uuid;
+  v_attestation uuid;
+  v_envelope jsonb;
+  v_action uuid;
+  v_status text;
+begin
+  v_mission := public.nova_create_mission(
+    v_owner,'Lease-fenced completion fixture',
+    'Verify proof-bound completion and action reconciliation','agents',
+    'mission-lease-fenced-completion-001','{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    v_owner,v_mission,'{"kind":"starter_template","workspace":"agents"}'::jsonb,
+    '[{"title":"Proof-attested task","description":"Controlled database-only fixture"}]'::jsonb
+  );
+  select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
+  v_approval := public.nova_request_task_approval(
+    v_owner,v_mission,v_task,'approval-lease-fenced-completion-001',
+    'Run a controlled proof-attested completion fixture'
+  );
+  select id into v_run from public.nova_mission_execution_runs where approval_id=v_approval;
+  perform public.nova_decide_task_approval(v_owner,v_approval,'approve',v_owner,'Approved fixture');
+  select lease_token into v_token
+    from public.nova_claim_mission_task(v_run,'completion-test-worker',120);
+
+  insert into public.nova_mission_proofs(
+    mission_id,task_id,owner_id,proof_type,summary,verification_status,evidence_json,verified_at
+  ) values (
+    v_mission,v_task,v_owner,'browser-check','Completion proof fixture','passed',
+    '{"checks":[{"id":"task-verified","passed":true}]}'::jsonb,now()
+  ) returning id into v_proof;
+  v_envelope := jsonb_build_object(
+    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'verifier_id','nova.completion-integration-verifier','verifier_version','1.0.0',
+    'observed_at',now(),'outcome','passed',
+    'checks',jsonb_build_array(jsonb_build_object('id','task-verified','passed',true))
+  );
+  insert into public.nova_mission_proof_attestations(
+    proof_id,mission_id,task_id,run_id,owner_id,verifier_id,verifier_version,
+    evidence_digest,envelope_json,outcome,check_count,observed_at
+  ) values (
+    v_proof,v_mission,v_task,v_run,v_owner,'nova.completion-integration-verifier',
+    '1.0.0',repeat('c',64),v_envelope,'passed',1,now()
+  ) returning id into v_attestation;
+
+  select action_id into v_action
+    from public.nova_reserve_mission_action(v_run,v_token,'completion-pending-action-001',repeat('d',64));
+  begin
+    perform public.nova_complete_mission_task(v_run,v_token,v_proof,v_attestation);
+    raise exception 'Task completion bypassed an unresolved external action';
+  exception when sqlstate '55000' then null;
+  end;
+  v_status := public.nova_complete_mission_action(v_action,v_token,repeat('e',64),'completion-fixture-receipt');
+  if v_status <> 'completed' then
+    raise exception 'Fixture external action did not reach completed receipt state';
+  end if;
+
+  begin
+    perform public.nova_complete_mission_task(
+      v_run,v_token,'99999999-9999-4999-8999-999999999999',v_attestation
+    );
+    raise exception 'Task completion accepted a proof belonging to another task';
+  exception when check_violation then null;
+  end;
+
+  v_status := public.nova_complete_mission_task(v_run,v_token,v_proof,v_attestation);
+  if v_status <> 'succeeded'
+     or (select status from public.nova_mission_execution_runs where id=v_run) <> 'succeeded'
+     or (select lease_token from public.nova_mission_execution_runs where id=v_run) is not null
+     or (select status from public.nova_mission_tasks where id=v_task) <> 'completed'
+     or (select state from public.nova_missions where id=v_mission) <> 'completed' then
+    raise exception 'Lease-fenced completion did not atomically finish task, run and mission';
+  end if;
+
+  begin
+    perform public.nova_complete_mission_task(v_run,v_token,v_proof,v_attestation);
+    raise exception 'Duplicate task completion unexpectedly succeeded';
+  exception when sqlstate '55000' then null;
+  end;
+end $mission_lease_fenced_completion$;
+reset role;
+
+do $mission_completion_privileges$
+begin
+  if has_function_privilege('authenticated',
+       'public.nova_complete_mission_task(uuid,uuid,uuid,uuid)','execute')
+     or has_function_privilege('anon',
+       'public.nova_complete_mission_task(uuid,uuid,uuid,uuid)','execute')
+     or not has_function_privilege('service_role',
+       'public.nova_complete_mission_task(uuid,uuid,uuid,uuid)','execute') then
+    raise exception 'Lease-fenced completion RPC must be restricted to service_role';
+  end if;
+end $mission_completion_privileges$;
