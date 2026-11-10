@@ -10,7 +10,7 @@
 - Immutable in-memory event/evidence snapshots in the domain core.
 - Supabase persistence for missions, tasks, events and proof records.\n- Server-only approval queue and execution-run ledger: requests atomically move the task and mission into `waiting_approval`; owner approval records an authorized run, while rejection blocks it. Idempotency keys prevent duplicate approval records.
 - Atomic, idempotent mission creation RPC restricted to the trusted `service_role`.
-- Authenticated read API for mission lists and details.
+- Authenticated read API for mission lists and details.\n- Authenticated owner-scoped approval request and decision API routes; decision actor is taken from the verified JWT subject, never from request JSON.
 - Deterministic, no-cost starter planner templates for Learn, Build, Agents and Intelligence; plan persistence atomically creates tasks and advances draft missions to planned.
 - Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing and inspection of tasks, events and proofs.
 - Exact-origin CORS, bounded request bodies, input validation and server-enforced per-user rate limiting.
@@ -37,7 +37,7 @@ The Edge Function is named `nova-mission-api`. It requires an authenticated Supa
 | POST | `/functions/v1/nova-mission-api/missions` | Create a mission |
 | GET | `/functions/v1/nova-mission-api/missions` | List up to 50 of the user's missions |
 | GET | `/functions/v1/nova-mission-api/missions/{id}` | Read one mission, tasks, events and proofs |
-| POST | `/functions/v1/nova-mission-api/missions/{id}/plan` | Generate and persist a one-time, deterministic five-task starter checklist for a draft mission |
+| POST | `/functions/v1/nova-mission-api/missions/{id}/plan` | Generate and persist a one-time, deterministic five-task starter checklist for a draft mission |\n| POST | `/functions/v1/nova-mission-api/missions/{id}/tasks/{task_id}/approval` | Queue a bounded action summary for explicit owner approval; creates no external side effect |\n| POST | `/functions/v1/nova-mission-api/approvals/{id}/decision` | Record an owner-bound approve/reject decision using the authenticated JWT subject |
 
 Mission creation accepts `title` (1–200 chars), optional `description` (up to 10,000 chars), one of `learn`, `build`, `agents`, `intelligence`, optional `idempotency_key` (up to 160 chars), and an optional JSON-object `plan` (up to 100 KB). An `Idempotency-Key` header is also accepted; if both header and body specify a key, they must match.
 
@@ -52,7 +52,7 @@ The CI workflow now runs:
 - PostgreSQL migration and RLS integration tests, including cross-account isolation
 - Atomic creation/idempotency and RPC privilege tests\n- Approval queue SQL integration: idempotent request, atomic task/mission gating, owner decision, duplicate-decision rejection and cross-account isolation
 - Deno type-check for `nova-mission-api`
-- Deno input-validation and four-workspace starter-planner tests
+- Deno input-validation, four-workspace starter-planner and approval request/decision validation tests
 - Existing backend, security, local runtime and browser regression suites
 
 The full CI run on the tested implementation commit completed successfully. A later documentation-only commit updated this file. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
