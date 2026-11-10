@@ -934,6 +934,7 @@ declare
   v_run uuid;
   v_token uuid;
   v_new_token uuid;
+  v_reconcile_token uuid;
   v_attempt integer;
   v_status text;
   v_expiry timestamptz;
@@ -1205,8 +1206,31 @@ begin
     raise exception 'Retryable failure did not safely release lease and return work to planned';
   end if;
 
+  -- A later lease may reconcile the action that the previous lease left uncertain.
+  select c.lease_token,c.attempt into v_reconcile_token,v_attempt
+    from public.nova_claim_mission_task(v_run,'worker-action-reconciler',120) c;
+  if v_attempt <> 3 or v_reconcile_token is null then
+    raise exception 'Expected attempt three for action reconciliation';
+  end if;
+  v_action_status := public.nova_reconcile_mission_action(
+    v_fail_action,v_reconcile_token,'Independent review required after previous lease ended'
+  );
+  if v_action_status <> 'uncertain'
+     or (select reconciled_by_lease_token from public.nova_mission_action_receipts where id=v_fail_action)
+       <> v_reconcile_token
+     or (select reconciliation_note from public.nova_mission_action_receipts where id=v_fail_action)
+       <> 'Independent review required after previous lease ended' then
+    raise exception 'Automatically uncertain action could not be safely reconciled by the next lease';
+  end if;
+  v_action_status := public.nova_reconcile_mission_action(
+    v_fail_action,v_reconcile_token,'Independent review required after previous lease ended'
+  );
+  if v_action_status <> 'uncertain' then
+    raise exception 'Automatic uncertainty reconciliation replay was not idempotent';
+  end if;
+
   -- Consume the remaining bounded attempts; attempt five must become terminal.
-  for v_i in 3..5 loop
+  for v_i in 4..5 loop
     select c.lease_token,c.attempt into v_token,v_attempt
       from public.nova_claim_mission_task(v_run,'worker-retry-'||v_i,120) c;
     if v_attempt <> v_i then raise exception 'Unexpected attempt number: expected %, got %',v_i,v_attempt; end if;
