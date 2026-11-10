@@ -51,6 +51,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function isValidCheck(value: unknown): value is { id: string; passed: boolean; detail?: string } {
   if (!isRecord(value) || typeof value.id !== "string" ||
       !/^[a-z][a-z0-9_.-]{0,79}$/.test(value.id) ||
@@ -92,9 +94,9 @@ export class MissionTaskRegistry {
     verification: MissionVerificationResult;
   }> {
     if (!task || !/^[a-z][a-z0-9_.-]{1,79}$/.test(task.taskType) ||
-        !isRecord(task.input) || typeof task.id !== "string" ||
-        typeof task.missionId !== "string" || typeof task.runId !== "string" ||
-        typeof task.ownerId !== "string") {
+        !isRecord(task.input) || !UUID.test(task.id) ||
+        !UUID.test(task.missionId) || !UUID.test(task.runId) ||
+        !UUID.test(task.ownerId)) {
       throw new TypeError("Mission task descriptor is invalid");
     }
     const handler = this.#handlers.get(task.taskType);
