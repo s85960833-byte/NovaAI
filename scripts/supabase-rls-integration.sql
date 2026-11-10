@@ -397,6 +397,13 @@ insert into public.nova_mission_tasks(
   '10101010-1010-4010-8010-101010101010',
   '11111111-1111-4111-8111-111111111111', 1, 'Build page', 'planned'
 );
+insert into public.nova_mission_tasks(
+  id, mission_id, owner_id, sequence, title, status
+) values (
+  '30303030-3030-4030-8030-303030303030',
+  '10101010-1010-4010-8010-101010101010',
+  '11111111-1111-4111-8111-111111111111', 2, 'Verify page', 'planned'
+);
 insert into public.nova_mission_events(
   mission_id, owner_id, sequence, event_type, from_state, to_state, actor_id, payload_json
 ) values (
@@ -439,6 +446,33 @@ insert into public.nova_mission_proofs(
 );
 update public.nova_mission_tasks set status='completed', updated_at=now()
 where id='20202020-2020-4020-8020-202020202020';
+do $task_scoped_proof_guard$
+begin
+  begin
+    update public.nova_mission_tasks set status='completed'
+    where id='30303030-3030-4030-8030-303030303030';
+    raise exception 'Task accepted proof belonging to a different task';
+  exception when check_violation then
+    null;
+  end;
+  begin
+    update public.nova_missions set state='completed'
+    where id='10101010-1010-4010-8010-101010101010';
+    raise exception 'Mission completed while one task lacked its own proof';
+  exception when check_violation then
+    null;
+  end;
+end $task_scoped_proof_guard$;
+insert into public.nova_mission_proofs(
+  mission_id, task_id, owner_id, proof_type, summary, verification_status, evidence_json, verified_at
+) values (
+  '10101010-1010-4010-8010-101010101010',
+  '30303030-3030-4030-8030-303030303030',
+  '11111111-1111-4111-8111-111111111111',
+  'browser-test', 'Second task test passed', 'passed', '{"checks":[{"name":"verification","passed":true}]}'::jsonb, now()
+);
+update public.nova_mission_tasks set status='completed', updated_at=now()
+where id='30303030-3030-4030-8030-303030303030';
 update public.nova_missions set state='completed', version=version+1, updated_at=now()
 where id='10101010-1010-4010-8010-101010101010';
 insert into public.nova_mission_events(
@@ -587,13 +621,13 @@ begin
   if (select count(*) from public.nova_missions where id='10101010-1010-4010-8010-101010101010') <> 1 then
     raise exception 'Mission owner cannot read their own mission';
   end if;
-  if (select count(*) from public.nova_mission_tasks where mission_id='10101010-1010-4010-8010-101010101010') <> 1 then
+  if (select count(*) from public.nova_mission_tasks where mission_id='10101010-1010-4010-8010-101010101010') <> 2 then
     raise exception 'Mission owner cannot read their own tasks';
   end if;
   if (select count(*) from public.nova_mission_events where mission_id='10101010-1010-4010-8010-101010101010') <> 2 then
     raise exception 'Mission owner cannot read their own event history';
   end if;
-  if (select count(*) from public.nova_mission_proofs where mission_id='10101010-1010-4010-8010-101010101010') <> 2 then
+  if (select count(*) from public.nova_mission_proofs where mission_id='10101010-1010-4010-8010-101010101010') <> 3 then
     raise exception 'Mission owner cannot read their own proof records';
   end if;
   if has_table_privilege('authenticated','public.nova_missions','insert')
