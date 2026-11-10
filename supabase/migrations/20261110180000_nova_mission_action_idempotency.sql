@@ -46,7 +46,6 @@ grant select (
   created_at, updated_at, completed_at
 ) on public.nova_mission_action_receipts to authenticated;
 grant select on public.nova_mission_action_receipts to service_role;
-grant insert, update on public.nova_mission_action_receipts to service_role;
 
 drop policy if exists nova_mission_action_receipts_select_own
   on public.nova_mission_action_receipts;
@@ -65,7 +64,7 @@ create or replace function public.nova_reserve_mission_action(
 )
 returns table(action_id uuid, action_status text, replayed boolean)
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as $$
 declare
@@ -88,7 +87,7 @@ declare
   v_existing_status text;
   v_new_id uuid;
 begin
-  if current_user <> 'service_role' then
+  if coalesce(pg_catalog.current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
     raise exception 'Action reservations are restricted to the trusted server role'
       using errcode = '42501';
   end if;
@@ -173,7 +172,7 @@ create or replace function public.nova_complete_mission_action(
 )
 returns text
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as $$
 declare
@@ -193,7 +192,7 @@ declare
   v_old_digest text;
   v_old_reference text;
 begin
-  if current_user <> 'service_role' then
+  if coalesce(pg_catalog.current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
     raise exception 'Action completion is restricted to the trusted server role'
       using errcode = '42501';
   end if;
@@ -272,7 +271,7 @@ create or replace function public.nova_mark_mission_action_uncertain(
 )
 returns text
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as $$
 declare
@@ -291,7 +290,7 @@ declare
   v_action_token uuid;
   v_old_reason text;
 begin
-  if current_user <> 'service_role' then
+  if coalesce(pg_catalog.current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
     raise exception 'Action reconciliation markers are restricted to the trusted server role'
       using errcode = '42501';
   end if;
