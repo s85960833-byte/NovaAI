@@ -1,0 +1,134 @@
+import { withSupabase } from "@supabase/server";
+import { RequestInputError, parseJsonObject } from "../nova-bi-api/request-input.ts";
+import { configuredSiteOrigin, withSiteOrigin } from "../nova-bi-api/cors.ts";
+import { validateMissionInput } from "./mission-input.ts";
+
+const siteOrigin = configuredSiteOrigin(
+  Deno.env.get("NOVA_MISSION_SITE_URL") || Deno.env.get("NOVA_BI_SITE_URL"),
+);
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+const fail = (message: string, status = 400) => json({ error: message }, status);
+const uuid = (value: unknown) =>
+  typeof value === "string" &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+const authenticatedHandler = withSupabase(
+  { auth: "user", cors: "disabled" },
+  async (req, ctx) => {
+    const userId = String(ctx.jwtClaims?.sub || ctx.userClaims?.id || "");
+    if (!uuid(userId)) return fail("Authenticated user context is missing", 401);
+
+    const url = new URL(req.url);
+    const path = url.pathname
+      .replace(/^\\/+|\\/+$/g, "")
+      .replace(/^functions\\/v1\\/nova-mission-api\\/?/i, "")
+      .replace(/^nova-mission-api\\/?/i, "");
+    const db = ctx.supabase;
+
+    // Reuse the server-enforced per-user database limiter; no client-side trust.
+    const limit = await ctx.supabaseAdmin.rpc("nova_bi_consume_rate_limit", {
+      p_user_id: userId,
+      p_bucket: "mission-api",
+      p_limit: 60,
+      p_window_seconds: 60,
+    });
+    if (limit.error) {
+      console.error("NOVA Mission API rate-limit check unavailable");
+      return fail("NOVA Missions are temporarily unavailable. Please retry shortly.", 503);
+    }
+    if (limit.data !== true) {
+      return new Response(JSON.stringify({ error: "Too many mission requests. Retry shortly." }), {
+        status: 429,
+        headers: { "Content-Type": "application/json", "Retry-After": "60" },
+      });
+    }
+
+    try {
+      if (req.method === "GET" && path === "missions") {
+        const { data, error } = await db.from("nova_missions")
+          .select("id,title,workspace,state,version,attempts,created_at,updated_at")
+          .eq("owner_id", userId)
+          .order("updated_at", { ascending: false })
+          .limit(50);
+        if (error) throw error;
+        return json({ missions: data || [] });
+      }
+
+      if (req.method === "POST" && path === "missions") {
+        const input = parseJsonObject(await req.text());
+        const headerKey = req.headers.get("Idempotency-Key");
+        if (headerKey && input.idempotency_key && headerKey !== input.idempotency_key) {
+          return fail("Body and header idempotency keys must match");
+        }
+        const mission = validateMissionInput({
+          ...input,
+          idempotency_key: input.idempotency_key ?? headerKey ?? undefined,
+        });
+        const { data: missionId, error } = await ctx.supabaseAdmin.rpc("nova_create_mission", {
+          p_owner_id: userId,
+          p_title: mission.title,
+          p_description: mission.description,
+          p_workspace: mission.workspace,
+          p_idempotency_key: mission.idempotencyKey,
+          p_plan_json: mission.plan,
+        });
+        if (error) throw error;
+        if (!uuid(missionId)) throw new Error("Mission creation returned an invalid identifier");
+
+        const { data, error: readError } = await db.from("nova_missions")
+          .select("id,title,description,workspace,state,version,attempts,plan_json,created_at,updated_at")
+          .eq("id", missionId)
+          .eq("owner_id", userId)
+          .maybeSingle();
+        if (readError) throw readError;
+        if (!data) return fail("Created mission could not be loaded", 500);
+        return json({ mission: data }, 201);
+      }
+
+      const detailMatch = path.match(/^missions\\/([0-9a-f-]{36})$/i);
+      if (req.method === "GET" && detailMatch && uuid(detailMatch[1])) {
+        const missionId = detailMatch[1];
+        const { data: mission, error } = await db.from("nova_missions")
+          .select("id,title,description,workspace,state,version,attempts,plan_json,created_at,updated_at")
+          .eq("id", missionId)
+          .eq("owner_id", userId)
+          .maybeSingle();
+        if (error) throw error;
+        if (!mission) return fail("Mission not found", 404);
+
+        const [tasks, events, proofs] = await Promise.all([
+          db.from("nova_mission_tasks")
+            .select("id,sequence,title,status,attempts,created_at,updated_at")
+            .eq("mission_id", missionId).eq("owner_id", userId)
+            .order("sequence", { ascending: true }).limit(100),
+          db.from("nova_mission_events")
+            .select("id,sequence,event_type,from_state,to_state,actor_id,payload_json,created_at")
+            .eq("mission_id", missionId).eq("owner_id", userId)
+            .order("sequence", { ascending: true }).limit(200),
+          db.from("nova_mission_proofs")
+            .select("id,task_id,proof_type,summary,verification_status,evidence_json,verified_at,created_at")
+            .eq("mission_id", missionId).eq("owner_id", userId)
+            .order("created_at", { ascending: false }).limit(100),
+        ]);
+        if (tasks.error) throw tasks.error;
+        if (events.error) throw events.error;
+        if (proofs.error) throw proofs.error;
+        return json({ mission, tasks: tasks.data || [], events: events.data || [], proofs: proofs.data || [] });
+      }
+
+      return fail("Route not found", 404);
+    } catch (error) {
+      const message = String((error as Error)?.message || "");
+      if (error instanceof RequestInputError) return fail(message, error.status);
+      if (message.includes("Authentication required")) return fail("Authentication required", 401);
+      console.error("NOVA Mission API request failed", String((error as { code?: string })?.code || "unknown"));
+      return fail("NOVA Mission API request failed", 500);
+    }
+  },
+);
+
+Deno.serve(withSiteOrigin(authenticatedHandler, siteOrigin));
