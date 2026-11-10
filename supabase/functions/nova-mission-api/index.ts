@@ -2,6 +2,7 @@ import { withSupabase } from "@supabase/server";
 import { RequestInputError, parseJsonObject } from "../nova-bi-api/request-input.ts";
 import { configuredSiteOrigin, withSiteOrigin } from "../nova-bi-api/cors.ts";
 import { validateMissionInput } from "./mission-input.ts";
+import { buildStarterPlan, type MissionWorkspace } from "./mission-planner.ts";
 
 const siteOrigin = configuredSiteOrigin(
   Deno.env.get("NOVA_MISSION_SITE_URL") || Deno.env.get("NOVA_BI_SITE_URL"),
@@ -123,6 +124,59 @@ const authenticatedHandler = withSupabase(
         if (readError) throw readError;
         if (!data) return fail("Created mission could not be loaded", 500);
         return json({ mission: data }, 201);
+      }
+
+      const planMatch = path.match(/^missions\/([0-9a-f-]{36})\/plan$/i);
+      if (req.method === "POST" && planMatch && uuid(planMatch[1])) {
+        parseJsonObject(await readBoundedBody(req));
+        const missionId = planMatch[1];
+        const { data: currentMission, error: readError } = await db.from("nova_missions")
+          .select("id,title,description,workspace,state")
+          .eq("id", missionId).eq("owner_id", userId).maybeSingle();
+        if (readError) throw readError;
+        if (!currentMission) return fail("Mission not found", 404);
+        if (currentMission.state !== "draft") return fail("Only draft missions can receive a starter plan", 409);
+
+        const starter = buildStarterPlan({
+          title: currentMission.title,
+          description: currentMission.description,
+          workspace: currentMission.workspace as MissionWorkspace,
+        });
+        const { data: plannedId, error: planError } = await ctx.supabaseAdmin.rpc("nova_save_mission_plan", {
+          p_owner_id: userId,
+          p_mission_id: missionId,
+          p_plan_json: starter.plan,
+          p_tasks: starter.tasks,
+        });
+        if (planError) {
+          if (planError.code === "55000") return fail("Only draft missions can receive a starter plan", 409);
+          if (planError.code === "23514") return fail("The starter plan did not pass database validation", 400);
+          throw planError;
+        }
+        if (plannedId !== missionId) throw new Error("Mission planning returned an unexpected identifier");
+
+        const [updated, tasks, events, proofs] = await Promise.all([
+          db.from("nova_missions")
+            .select("id,title,description,workspace,state,version,attempts,plan_json,created_at,updated_at")
+            .eq("id", missionId).eq("owner_id", userId).maybeSingle(),
+          db.from("nova_mission_tasks")
+            .select("id,sequence,title,status,attempts,created_at,updated_at")
+            .eq("mission_id", missionId).eq("owner_id", userId)
+            .order("sequence", { ascending: true }).limit(100),
+          db.from("nova_mission_events")
+            .select("id,sequence,event_type,from_state,to_state,actor_id,payload_json,created_at")
+            .eq("mission_id", missionId).eq("owner_id", userId)
+            .order("sequence", { ascending: true }).limit(200),
+          db.from("nova_mission_proofs")
+            .select("id,task_id,proof_type,summary,verification_status,evidence_json,verified_at,created_at")
+            .eq("mission_id", missionId).eq("owner_id", userId)
+            .order("created_at", { ascending: false }).limit(100),
+        ]);
+        if (updated.error) throw updated.error;
+        if (tasks.error) throw tasks.error;
+        if (events.error) throw events.error;
+        if (proofs.error) throw proofs.error;
+        return json({ mission: updated.data, tasks: tasks.data || [], events: events.data || [], proofs: proofs.data || [], plan_type: "starter_template" });
       }
 
       const detailMatch = path.match(/^missions\/([0-9a-f-]{36})$/i);
