@@ -1,8 +1,22 @@
 export type MissionWorkspace = "learn" | "build" | "agents" | "intelligence";
 
+export type MissionTaskType =
+  | "learn.goal_clarification" | "learn.topic_sequence" | "learn.practice_material"
+  | "learn.assessment" | "learn.progress_summary"
+  | "build.requirements" | "build.design_flow" | "build.implementation"
+  | "build.quality_checks" | "build.review_proof"
+  | "agents.permissions" | "agents.tool_gates" | "agents.checklist"
+  | "agents.approved_steps" | "agents.verify_outcomes"
+  | "intelligence.define_metrics" | "intelligence.inspect_data"
+  | "intelligence.analyze_drivers" | "intelligence.recommend_actions"
+  | "intelligence.verify_evidence";
+
 export interface StarterTask {
   title: string;
   description: string;
+  task_type: MissionTaskType;
+  input_schema_version: 1;
+  input: Readonly<{ description: string }>;
 }
 
 export interface StarterPlan {
@@ -16,34 +30,44 @@ export interface StarterPlan {
   tasks: StarterTask[];
 }
 
+function task(task_type: MissionTaskType, title: string, description: string): StarterTask {
+  return {
+    title,
+    description,
+    task_type,
+    input_schema_version: 1,
+    input: { description },
+  };
+}
+
 const TASKS: Record<MissionWorkspace, StarterTask[]> = {
   learn: [
-    { title: "Clarify the learning goal", description: "Confirm the target outcome, current knowledge and time available." },
-    { title: "Organize topics into a learning sequence", description: "Break the subject into ordered, manageable topics and prerequisites." },
-    { title: "Prepare explanations and practice", description: "Create clear explanations, examples and practice activities for each topic." },
-    { title: "Check understanding", description: "Use a short assessment to identify gaps and topics that need revision." },
-    { title: "Summarize progress and next steps", description: "Prepare a concise recap and a practical next-study checklist." },
+    task("learn.goal_clarification", "Clarify the learning goal", "Confirm the target outcome, current knowledge and time available."),
+    task("learn.topic_sequence", "Organize topics into a learning sequence", "Break the subject into ordered, manageable topics and prerequisites."),
+    task("learn.practice_material", "Prepare explanations and practice", "Create clear explanations, examples and practice activities for each topic."),
+    task("learn.assessment", "Check understanding", "Use a short assessment to identify gaps and topics that need revision."),
+    task("learn.progress_summary", "Summarize progress and next steps", "Prepare a concise recap and a practical next-study checklist."),
   ],
   build: [
-    { title: "Confirm requirements and success criteria", description: "Record the intended users, essential features, constraints and acceptance checks." },
-    { title: "Design page structure and user flow", description: "Map the screens, navigation, key states and responsive behavior." },
-    { title: "Implement the responsive build", description: "Create the smallest working implementation that meets the agreed requirements." },
-    { title: "Run functional and mobile checks", description: "Check core interactions, keyboard access, narrow screens and error states." },
-    { title: "Review output and record proof", description: "Review the deliverable against acceptance criteria and attach test evidence." },
+    task("build.requirements", "Confirm requirements and success criteria", "Record the intended users, essential features, constraints and acceptance checks."),
+    task("build.design_flow", "Design page structure and user flow", "Map the screens, navigation, key states and responsive behavior."),
+    task("build.implementation", "Implement the responsive build", "Create the smallest working implementation that meets the agreed requirements."),
+    task("build.quality_checks", "Run functional and mobile checks", "Check core interactions, keyboard access, narrow screens and error states."),
+    task("build.review_proof", "Review output and record proof", "Review the deliverable against acceptance criteria and attach test evidence."),
   ],
   agents: [
-    { title: "Confirm objective, constraints and permissions", description: "Clarify the intended outcome, boundaries and actions that require approval." },
-    { title: "Identify tools and approval gates", description: "List the tools needed and mark any external or sensitive action for approval." },
-    { title: "Prepare the execution checklist", description: "Order the work into small, verifiable steps with clear completion criteria." },
-    { title: "Carry out approved steps", description: "Execute only authorized steps; record any blocked or unavailable action." },
-    { title: "Verify outcomes and record evidence", description: "Check the results independently and save evidence for each completed step." },
+    task("agents.permissions", "Confirm objective, constraints and permissions", "Clarify the intended outcome, boundaries and actions that require approval."),
+    task("agents.tool_gates", "Identify tools and approval gates", "List the tools needed and mark any external or sensitive action for approval."),
+    task("agents.checklist", "Prepare the execution checklist", "Order the work into small, verifiable steps with clear completion criteria."),
+    task("agents.approved_steps", "Carry out approved steps", "Execute only authorized steps; record any blocked or unavailable action."),
+    task("agents.verify_outcomes", "Verify outcomes and record evidence", "Check the results independently and save evidence for each completed step."),
   ],
   intelligence: [
-    { title: "Define the business question and KPIs", description: "Specify the decision to support, metric definitions and reporting period." },
-    { title: "Inspect source data and quality", description: "Check freshness, completeness, duplicates, grain and consistency before analysis." },
-    { title: "Analyze performance and key drivers", description: "Calculate the agreed metrics and investigate the largest changes and segments." },
-    { title: "Prepare findings and recommended actions", description: "Summarize supported findings, uncertainties and practical next steps." },
-    { title: "Verify calculations and evidence", description: "Recheck calculations, source references and assumptions before delivery." },
+    task("intelligence.define_metrics", "Define the business question and KPIs", "Specify the decision to support, metric definitions and reporting period."),
+    task("intelligence.inspect_data", "Inspect source data and quality", "Check freshness, completeness, duplicates, grain and consistency before analysis."),
+    task("intelligence.analyze_drivers", "Analyze performance and key drivers", "Calculate the agreed metrics and investigate the largest changes and segments."),
+    task("intelligence.recommend_actions", "Prepare findings and recommended actions", "Summarize supported findings, uncertainties and practical next steps."),
+    task("intelligence.verify_evidence", "Verify calculations and evidence", "Recheck calculations, source references and assumptions before delivery."),
   ],
 };
 
@@ -61,9 +85,12 @@ export function buildStarterPlan(mission: {
   const goal = mission.title.trim();
   const description = typeof mission.description === "string" ? mission.description.trim().slice(0, 1200) : "";
   const context = "Goal: " + goal + (description ? " Context: " + description : "");
-  const tasks = TASKS[mission.workspace].map((task) => ({
-    title: task.title,
-    description: task.description + " Mission context: " + context,
+  const tasks = TASKS[mission.workspace].map((item) => ({
+    ...item,
+    description: item.description + " Mission context: " + context,
+    input: {
+      description: item.description + " Mission context: " + context,
+    },
   }));
   return {
     plan: {
