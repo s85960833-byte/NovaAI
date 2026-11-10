@@ -195,7 +195,11 @@ grant execute on function public.nova_save_mission_plan(uuid,uuid,jsonb,jsonb) t
             else true
           end
        or pg_catalog.jsonb_typeof(item.value->'input') is distinct from 'object'
-       or pg_catalog.jsonb_object_length(item.value->'input') <> 1
+       or case
+            when pg_catalog.jsonb_typeof(item.value->'input') = 'object'
+              then pg_catalog.jsonb_object_length(item.value->'input') <> 1
+            else true
+          end
        or pg_catalog.jsonb_typeof(item.value->'input'->'description') is distinct from 'string'
        or pg_catalog.char_length(coalesce(item.value->'input'->>'description','')) > 2000
        or pg_catalog.octet_length(coalesce(item.value->'input','{}'::jsonb)::text) > 10000
