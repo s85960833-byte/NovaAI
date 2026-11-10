@@ -8,6 +8,7 @@ on:
       - index.html
       - nova-app.js
       - nova-account.js
+      - nova-suite.js
       - nova-business-cloud.js
       - nova-server.txt
       - scripts/**
@@ -47,6 +48,10 @@ jobs:
           echo $! > /tmp/nova-account-test.pid
       - name: Verify local routes and account PWA asset
         run: node scripts/runtime-smoke.mjs
+      - name: Verify NOVA Mission Control with a mocked authenticated API
+        env:
+          NOVAAI_URL: http://127.0.0.1:8787
+        run: node scripts/mission-ui-smoke.mjs
       - name: Verify account UI, privacy and opt-in cloud sync in Chromium
         env:
           NOVAAI_URL: http://127.0.0.1:8787
