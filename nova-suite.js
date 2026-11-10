@@ -77,9 +77,22 @@ async function showMissionDetail(id){
   const proofs=Array.isArray(result.proofs)?result.proofs:[];
   const approvals=Array.isArray(result.approvals)?result.approvals:[];
   detail.innerHTML='<h3>'+esc(bi('Mission details'))+'</h3><div><b>'+esc(m.title||'')+'</b></div><p class="ns-muted">'+esc(missionWorkspaceLabel(m.workspace))+' · '+esc(missionStateLabel(m.state))+'</p><p>'+esc(m.description||'')+'</p>'+
-   '<h4>'+esc(bi('Tasks'))+'</h4>'+(tasks.length?'<ul>'+tasks.map(t=>'<li>'+esc(t.title)+' · '+esc(missionStateLabel(t.status))+'</li>').join('')+'</ul>':'<p class="ns-muted">—</p>')+
+   '<h4>'+esc(bi('Tasks'))+'</h4>'+(tasks.length?'<div>'+tasks.map(t=>'<div class="ns-card"><b>'+esc(t.title)+'</b><p class="ns-muted">'+esc(missionStateLabel(t.status))+'</p>'+(t.status==='planned'&&m.state==='planned'?'<button class="ns-quiet" data-task-approval="'+esc(t.id)+'">'+esc(bi('Request approval'))+'</button>':'')+'</div>').join('')+'</div>':'<p class="ns-muted">—</p>')+
    '<h4>'+esc(bi('Activity'))+'</h4>'+(events.length?'<ul>'+events.map(e=>'<li>'+esc(e.event_type)+' · '+esc(e.from_state||'—')+' → '+esc(e.to_state)+'</li>').join('')+'</ul>':'<p class="ns-muted">—</p>')+
    '<h4>'+esc(bi('Proof Ledger'))+'</h4>'+(proofs.length?'<ul>'+proofs.map(p=>'<li>'+esc(p.proof_type)+' · '+esc(p.verification_status)+' — '+esc(p.summary)+'</li>').join('')+'</ul>':'<p class="ns-muted">—</p>');
+  detail.querySelectorAll('[data-task-approval]').forEach(button=>button.addEventListener('click',async()=>{
+   if(!window.confirm(bi('Request approval for this task?')))return;
+   button.disabled=true;
+   try{
+    await window.NovaBusinessCloud.missionApi('missions/'+id+'/tasks/'+button.dataset.taskApproval+'/approval','POST',{
+     request_key:window.crypto.randomUUID(),
+     action_summary:tasks.find(task=>task.id===button.dataset.taskApproval)?.title||'Mission task'
+    });
+    toast('Approval request created.');
+    await refreshMissions();
+    await showMissionDetail(id);
+   }catch(error){toast(String(error?.message||bi('Approval request failed.')));button.disabled=false}
+  }));
   detail.insertAdjacentHTML('beforeend','<h4>'+esc(bi('Approvals'))+'</h4>'+(approvals.length?approvals.map(a=>'<div class="ns-card"><b>'+esc(a.status)+'</b><p>'+esc(bi('Action summary'))+': '+esc(a.action_summary)+'</p>'+(a.status==='pending'?'<div class="ns-row"><button class="ns-action" data-approval-id="'+esc(a.id)+'" data-approval-decision="approve">'+esc(bi('Approve'))+'</button><button class="ns-quiet" data-approval-id="'+esc(a.id)+'" data-approval-decision="reject">'+esc(bi('Reject'))+'</button></div>':'<p class="ns-muted">'+esc(a.decision_note||'')+'</p>')+'</div>').join(''):'<p class="ns-muted">—</p>')+'<p class="ns-muted">'+esc(bi('Execution is not started automatically after approval.'))+'</p>');
   detail.querySelectorAll('[data-approval-decision]').forEach(button=>button.addEventListener('click',async()=>{
    const decision=button.dataset.approvalDecision;
