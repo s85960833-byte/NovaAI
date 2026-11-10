@@ -85,6 +85,7 @@ declare
   v_approval_id uuid;
   v_existing_mission_id uuid;
   v_existing_task_id uuid;
+  v_existing_action_summary text;
   v_sequence bigint;
 begin
   if current_user <> 'service_role' then
@@ -103,11 +104,11 @@ begin
    where id = p_task_id and mission_id = p_mission_id and owner_id = p_owner_id for update;
   if not found then raise exception 'Task not found' using errcode = 'P0002'; end if;
 
-  select id, mission_id, task_id into v_approval_id, v_existing_mission_id, v_existing_task_id
+  select id, mission_id, task_id, action_summary into v_approval_id, v_existing_mission_id, v_existing_task_id, v_existing_action_summary
     from public.nova_mission_approvals
    where owner_id = p_owner_id and request_key = p_request_key;
   if v_approval_id is not null then
-    if v_existing_mission_id is distinct from p_mission_id or v_existing_task_id is distinct from p_task_id then
+    if v_existing_mission_id is distinct from p_mission_id or v_existing_task_id is distinct from p_task_id or v_existing_action_summary is distinct from pg_catalog.btrim(p_action_summary) then
       raise exception 'Approval idempotency key is already used for a different task'
         using errcode = '23505';
     end if;
