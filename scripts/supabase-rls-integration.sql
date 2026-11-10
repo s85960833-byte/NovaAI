@@ -1408,6 +1408,7 @@ declare
   v_approval uuid;
   v_run uuid;
   v_token uuid;
+  v_old_token uuid;
   v_proof uuid;
   v_attestation uuid;
   v_envelope jsonb;
@@ -1454,6 +1455,7 @@ begin
   ) returning id into v_attestation;
 
   -- An expired lease cannot complete; reclaiming issues a fresh fencing token.
+  v_old_token := v_token;
   update public.nova_mission_execution_runs
      set lease_expires_at=now()-interval '1 second' where id=v_run;
   begin
@@ -1461,12 +1463,11 @@ begin
     raise exception 'Expired worker lease unexpectedly completed a task';
   exception when sqlstate '55000' then null;
   end;
-  select lease_token into v_status
+  select lease_token into v_token
     from public.nova_claim_mission_task(v_run,'completion-recovery-worker',120);
-  if v_status::uuid is null or v_status::uuid=v_token then
+  if v_token is null or v_token=v_old_token then
     raise exception 'Expired completion lease was not replaced by a fresh fencing token';
   end if;
-  v_token := v_status::uuid;
 
   select action_id into v_action
     from public.nova_reserve_mission_action(v_run,v_token,'completion-pending-action-001',repeat('d',64));
