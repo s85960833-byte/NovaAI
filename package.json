@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node nova-server.txt",
     "test:mobile-layout": "playwright test tests/mobile-layout.spec.mjs",
-    "test:cloud-sync": "node --test scripts/cloud-sync-merge.test.cjs"
+    "test:cloud-sync": "node --test scripts/cloud-sync-merge.test.cjs",
+    "test:mission-core": "node --test tests/mission-core.test.cjs"
   },
   "engines": {
     "node": "22.x"
