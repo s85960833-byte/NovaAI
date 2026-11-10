@@ -750,6 +750,14 @@ begin
     raise exception 'A second cancellation was unexpectedly accepted';
   exception when sqlstate '55000' then null;
   end;
+  begin
+    perform public.nova_decide_task_approval(
+      '11111111-1111-4111-8111-111111111111', v_approval, 'approve',
+      '11111111-1111-4111-8111-111111111111', 'Late decision after cancellation'
+    );
+    raise exception 'An expired approval was unexpectedly accepted after cancellation';
+  exception when sqlstate '55000' then null;
+  end;
 end $mission_cancellation$;
 reset role;
 
