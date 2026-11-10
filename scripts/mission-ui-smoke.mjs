@@ -5,7 +5,6 @@ const BASE = process.env.NOVAAI_URL || 'http://127.0.0.1:8787';
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width: 1365, height: 900 }, serviceWorkers: 'block' });
 const page = await context.newPage();
-page.on('console', message => console.log('PAGE', message.type(), message.text()));
 
 const missionId = '123e4567-e89b-42d3-a456-426614174000';
 const approvalId = '223e4567-e89b-42d3-a456-426614174000';
@@ -21,7 +20,7 @@ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dis
     body: 'window.supabase={createClient:()=>({auth:{onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}},getSession:async()=>({data:{session:null}})}})};',
   }),
 );
-await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE', route.request().url()); return route.fulfill({
+await page.route('**/nova-business-cloud.js', route => route.fulfill({
   status: 200,
   contentType: 'application/javascript',
   body: `
@@ -36,9 +35,8 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
       window.NovaBusinessCloud = Object.freeze({
         open() {}, close() {}, getClient() { return client; }, version: 'mock',
         async missionApi(path, method = 'GET', payload) {
-          if (path === 'missions' && method === 'GET') { console.log('MOCK GET missions', missions.length); return { missions }; }
+          if (path === 'missions' && method === 'GET') return { missions };
           if (path === 'missions' && method === 'POST') {
-            console.log('MOCK POST mission', payload.title);
             const mission = {
               id, title: payload.title, description: payload.description,
               workspace: payload.workspace, state: 'draft', version: 0,
@@ -96,7 +94,7 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
       });
     })();
   `,
-}); });
+}));
 
 await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => window.NovaBusinessCloud?.version === 'mock', undefined, { timeout: 5000 });
