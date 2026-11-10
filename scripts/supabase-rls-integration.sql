@@ -379,3 +379,84 @@ reset role;
 rollback;
 
 select 'PASS: migrations, tenant RLS, invitation, approval, branding, audited deletion and server-only rate limiting' as result;
+
+-- NOVA Mission Engine persistence: trusted server writes, owner-only reads, immutable browser surface.
+set role service_role;
+insert into public.nova_missions(
+  id, owner_id, title, description, workspace, state, idempotency_key, plan_json
+) values (
+  '10101010-1010-4010-8010-101010101010',
+  '11111111-1111-4111-8111-111111111111',
+  'Mission isolation fixture', 'Verify mission storage isolation', 'build', 'planned',
+  'mission-isolation-fixture-001', '{"steps":["build","verify"]}'::jsonb
+);
+insert into public.nova_mission_tasks(
+  id, mission_id, owner_id, sequence, title, status
+) values (
+  '20202020-2020-4020-8020-202020202020',
+  '10101010-1010-4010-8010-101010101010',
+  '11111111-1111-4111-8111-111111111111', 1, 'Build page', 'planned'
+);
+insert into public.nova_mission_events(
+  mission_id, owner_id, sequence, event_type, from_state, to_state, actor_id, payload_json
+) values (
+  '10101010-1010-4010-8010-101010101010',
+  '11111111-1111-4111-8111-111111111111', 1, 'mission.created', null, 'draft',
+  '11111111-1111-4111-8111-111111111111', '{}'::jsonb
+);
+insert into public.nova_mission_proofs(
+  mission_id, task_id, owner_id, proof_type, summary, verification_status, evidence_json
+) values (
+  '10101010-1010-4010-8010-101010101010',
+  '20202020-2020-4020-8020-202020202020',
+  '11111111-1111-4111-8111-111111111111',
+  'browser-test', 'Homepage loaded in the test browser', 'pending', '{"test":"homepage"}'::jsonb
+);
+reset role;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+do $mission_owner_read$
+begin
+  if (select count(*) from public.nova_missions where id='10101010-1010-4010-8010-101010101010') <> 1 then
+    raise exception 'Mission owner cannot read their own mission';
+  end if;
+  if (select count(*) from public.nova_mission_tasks where mission_id='10101010-1010-4010-8010-101010101010') <> 1 then
+    raise exception 'Mission owner cannot read their own tasks';
+  end if;
+  if (select count(*) from public.nova_mission_events where mission_id='10101010-1010-4010-8010-101010101010') <> 1 then
+    raise exception 'Mission owner cannot read their own event history';
+  end if;
+  if (select count(*) from public.nova_mission_proofs where mission_id='10101010-1010-4010-8010-101010101010') <> 1 then
+    raise exception 'Mission owner cannot read their own proof records';
+  end if;
+  if has_table_privilege('authenticated','public.nova_missions','insert')
+    or has_table_privilege('authenticated','public.nova_missions','update')
+    or has_table_privilege('authenticated','public.nova_missions','delete')
+    or has_table_privilege('authenticated','public.nova_mission_events','update')
+    or has_table_privilege('authenticated','public.nova_mission_events','delete')
+    or has_table_privilege('authenticated','public.nova_mission_proofs','update')
+    or has_table_privilege('authenticated','public.nova_mission_proofs','delete') then
+    raise exception 'Authenticated browser role has unexpected mission/proof write privileges';
+  end if;
+end $mission_owner_read$;
+reset role;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+do $mission_outsider_read$
+begin
+  if exists(select 1 from public.nova_missions where id='10101010-1010-4010-8010-101010101010') then
+    raise exception 'Cross-account mission leak detected';
+  end if;
+  if exists(select 1 from public.nova_mission_tasks where mission_id='10101010-1010-4010-8010-101010101010') then
+    raise exception 'Cross-account mission task leak detected';
+  end if;
+  if exists(select 1 from public.nova_mission_events where mission_id='10101010-1010-4010-8010-101010101010') then
+    raise exception 'Cross-account mission event leak detected';
+  end if;
+  if exists(select 1 from public.nova_mission_proofs where mission_id='10101010-1010-4010-8010-101010101010') then
+    raise exception 'Cross-account mission proof leak detected';
+  end if;
+end $mission_outsider_read$;
+reset role;
