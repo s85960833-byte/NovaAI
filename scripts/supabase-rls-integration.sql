@@ -1197,6 +1197,15 @@ begin
   if has_table_privilege('authenticated','public.nova_mission_proof_attestations','insert') then
     raise exception 'Authenticated users must not insert proof attestations';
   end if;
+  if (select count(*) from public.nova_mission_action_receipts
+      where action_key like 'action-%-fixture-001') <> 3 then
+    raise exception 'Mission owner cannot read their own action receipts';
+  end if;
+  if has_table_privilege('authenticated','public.nova_mission_action_receipts','insert')
+     or has_table_privilege('authenticated','public.nova_mission_action_receipts','update')
+     or has_table_privilege('authenticated','public.nova_mission_action_receipts','delete') then
+    raise exception 'Authenticated users must have read-only action receipt access';
+  end if;
 end $mission_attestation_owner_read$;
 reset role;
 
@@ -1208,6 +1217,10 @@ begin
       where verifier_id='nova.integration-verifier') then
     raise exception 'Cross-account proof attestation leak detected';
   end if;
+  if exists(select 1 from public.nova_mission_action_receipts
+      where action_key like 'action-%-fixture-001') then
+    raise exception 'Cross-account action receipt leak detected';
+  end if;
 end $mission_attestation_outsider_read$;
 reset role;
 
@@ -1218,6 +1231,14 @@ begin
      or has_function_privilege('authenticated','public.nova_fail_mission_task(uuid,uuid,text,text,integer)','execute') then
     raise exception 'Browser clients must not invoke worker lease RPCs';
   end if;
+  if has_function_privilege('authenticated','public.nova_reserve_mission_action(uuid,uuid,text,text)','execute')
+     or has_function_privilege('authenticated','public.nova_complete_mission_action(uuid,uuid,text,text)','execute')
+     or has_function_privilege('authenticated','public.nova_mark_mission_action_uncertain(uuid,uuid,text)','execute')
+     or not has_function_privilege('service_role','public.nova_reserve_mission_action(uuid,uuid,text,text)','execute')
+     or not has_function_privilege('service_role','public.nova_complete_mission_action(uuid,uuid,text,text)','execute')
+     or not has_function_privilege('service_role','public.nova_mark_mission_action_uncertain(uuid,uuid,text)','execute') then
+    raise exception 'Action idempotency RPC permissions are not service-role-only';
+  end if;
   if has_table_privilege('authenticated','public.nova_mission_proof_attestations','insert')
      or has_table_privilege('authenticated','public.nova_mission_proof_attestations','update')
      or has_table_privilege('authenticated','public.nova_mission_proof_attestations','delete')
@@ -1225,6 +1246,13 @@ begin
      or has_table_privilege('service_role','public.nova_mission_proof_attestations','delete')
      or has_table_privilege('service_role','public.nova_mission_proof_attestations','truncate') then
     raise exception 'Proof attestations must remain insert-only for the trusted server and read-only for clients';
+  end if;
+  if has_table_privilege('authenticated','public.nova_mission_action_receipts','insert')
+     or has_table_privilege('authenticated','public.nova_mission_action_receipts','update')
+     or has_table_privilege('authenticated','public.nova_mission_action_receipts','delete')
+     or has_table_privilege('service_role','public.nova_mission_action_receipts','delete')
+     or has_table_privilege('service_role','public.nova_mission_action_receipts','truncate') then
+    raise exception 'Action receipts must be browser-read-only and non-deletable by the trusted server';
   end if;
   if not has_function_privilege('service_role','public.nova_claim_mission_task(uuid,text,integer)','execute')
      or not has_function_privilege('service_role','public.nova_heartbeat_mission_task(uuid,uuid,integer)','execute')
