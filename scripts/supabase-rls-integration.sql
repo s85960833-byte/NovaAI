@@ -818,3 +818,118 @@ begin
     raise exception 'Mission cancellation RPC permissions are not restricted to service_role';
   end if;
 end $mission_cancel_privileges$;
+
+
+-- NOVA execution lease primitives: explicit approval, bounded attempts, stale-token rejection.
+set role service_role;
+do $mission_worker_leases$
+declare
+  v_mission uuid;
+  v_task uuid;
+  v_approval uuid;
+  v_run uuid;
+  v_token uuid;
+  v_new_token uuid;
+  v_attempt integer;
+  v_status text;
+  v_expiry timestamptz;
+  v_i integer;
+begin
+  v_mission := public.nova_create_mission(
+    '11111111-1111-4111-8111-111111111111',
+    'Worker lease fixture', 'Exercise safe server-side worker leases', 'agents',
+    'mission-worker-lease-fixture-001', '{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    '11111111-1111-4111-8111-111111111111', v_mission,
+    '{"kind":"starter_template","workspace":"agents"}'::jsonb,
+    '[{"title":"Approved worker task","description":"No external side effect is performed"}]'::jsonb
+  );
+  select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
+  v_approval := public.nova_request_task_approval(
+    '11111111-1111-4111-8111-111111111111',v_mission,v_task,
+    'approval-worker-lease-fixture-001','Run a bounded internal verification task'
+  );
+  select id into v_run from public.nova_mission_execution_runs where approval_id=v_approval;
+
+  begin
+    perform * from public.nova_claim_mission_task(v_run,'worker-test',120);
+    raise exception 'Unapproved task was unexpectedly claimable';
+  exception when insufficient_privilege then null;
+  end;
+
+  perform public.nova_decide_task_approval(
+    '11111111-1111-4111-8111-111111111111',v_approval,'approve',
+    '11111111-1111-4111-8111-111111111111','Approved for controlled test'
+  );
+  select c.lease_token,c.attempt,c.lease_expires_at
+    into v_token,v_attempt,v_expiry
+    from public.nova_claim_mission_task(v_run,'worker-test',120) c;
+  if v_attempt <> 1 or v_token is null or v_expiry <= now()
+     or (select status from public.nova_mission_execution_runs where id=v_run) <> 'running'
+     or (select status from public.nova_mission_tasks where id=v_task) <> 'running'
+     or (select state from public.nova_missions where id=v_mission) <> 'running' then
+    raise exception 'Approved worker claim did not atomically establish running state and lease';
+  end if;
+
+  v_expiry := public.nova_heartbeat_mission_task(v_run,v_token,90);
+  if v_expiry <= now() then raise exception 'Heartbeat did not extend the lease'; end if;
+
+  update public.nova_mission_execution_runs
+     set lease_expires_at=now()-interval '1 second'
+   where id=v_run;
+  begin
+    perform public.nova_heartbeat_mission_task(v_run,v_token,90);
+    raise exception 'Expired lease token unexpectedly renewed';
+  exception when sqlstate '55000' then null;
+  end;
+
+  select c.lease_token,c.attempt into v_new_token,v_attempt
+    from public.nova_claim_mission_task(v_run,'worker-recovery',120) c;
+  if v_attempt <> 2 or v_new_token is null or v_new_token = v_token then
+    raise exception 'Stale lease was not safely reclaimed with a new token';
+  end if;
+  begin
+    perform public.nova_fail_mission_task(v_run,v_token,'stale','Old worker must not fail reclaimed run',0);
+    raise exception 'Stale worker token unexpectedly changed a reclaimed run';
+  exception when sqlstate '55000' then null;
+  end;
+
+  v_status := public.nova_fail_mission_task(v_run,v_new_token,'temporary','Retryable controlled failure',0);
+  if v_status <> 'authorized'
+     or (select status from public.nova_mission_tasks where id=v_task) <> 'planned'
+     or (select state from public.nova_missions where id=v_mission) <> 'planned'
+     or (select lease_token from public.nova_mission_execution_runs where id=v_run) is not null then
+    raise exception 'Retryable failure did not safely release lease and return work to planned';
+  end if;
+
+  -- Consume the remaining bounded attempts; attempt five must become terminal.
+  for v_i in 3..5 loop
+    select c.lease_token,c.attempt into v_token,v_attempt
+      from public.nova_claim_mission_task(v_run,'worker-retry-'||v_i,120) c;
+    if v_attempt <> v_i then raise exception 'Unexpected attempt number: expected %, got %',v_i,v_attempt; end if;
+    v_status := public.nova_fail_mission_task(v_run,v_token,'repeat','Bounded retry exhaustion',0);
+  end loop;
+  if v_status <> 'failed'
+     or (select status from public.nova_mission_execution_runs where id=v_run) <> 'failed'
+     or (select status from public.nova_mission_tasks where id=v_task) <> 'failed'
+     or (select state from public.nova_missions where id=v_mission) <> 'failed'
+     or (select attempt from public.nova_mission_execution_runs where id=v_run) <> 5 then
+    raise exception 'Worker retry budget did not stop at five attempts';
+  end if;
+end $mission_worker_leases$;
+reset role;
+
+do $mission_worker_privileges$
+begin
+  if has_function_privilege('authenticated','public.nova_claim_mission_task(uuid,text,integer)','execute')
+     or has_function_privilege('authenticated','public.nova_heartbeat_mission_task(uuid,uuid,integer)','execute')
+     or has_function_privilege('authenticated','public.nova_fail_mission_task(uuid,uuid,text,text,integer)','execute') then
+    raise exception 'Browser clients must not invoke worker lease RPCs';
+  end if;
+  if not has_function_privilege('service_role','public.nova_claim_mission_task(uuid,text,integer)','execute')
+     or not has_function_privilege('service_role','public.nova_heartbeat_mission_task(uuid,uuid,integer)','execute')
+     or not has_function_privilege('service_role','public.nova_fail_mission_task(uuid,uuid,text,text,integer)','execute') then
+    raise exception 'Trusted server role must execute worker lease RPCs';
+  end if;
+end $mission_worker_privileges$;
