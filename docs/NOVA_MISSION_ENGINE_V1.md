@@ -11,7 +11,8 @@
 - Supabase persistence for missions, tasks, events and proof records.
 - Atomic, idempotent mission creation RPC restricted to the trusted `service_role`.
 - Authenticated read API for mission lists and details.
-- Bilingual Mission Control panel inside NOVA Agents for mission creation, listing and inspection of tasks, events and proofs.
+- Deterministic, no-cost starter planner templates for Learn, Build, Agents and Intelligence; plan persistence atomically creates tasks and advances draft missions to planned.
+- Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing and inspection of tasks, events and proofs.
 - Exact-origin CORS, bounded request bodies, input validation and server-enforced per-user rate limiting.
 - Database-level rule that prevents `completed` unless at least one passing proof record exists.
 - Browser-authenticated clients have read-only access; event and proof records are append-only from the browser's perspective.
@@ -59,13 +60,13 @@ The CI run on the current PR head completed successfully. Live Supabase deployme
 
 This foundation does **not** yet provide:
 
-- AI mission planning or task decomposition
+- LLM-powered adaptive mission planning or task decomposition (the current starter planner is deterministic and template-based)
 - Task execution workers or agent/tool adapters
 - Approval UI and execution controls
 - Retry/resume worker orchestration and idempotent external tool calls
 - Live production Supabase migration or Edge Function deployment
 
-Do not label a mission as executed or verified until a real executor has produced inspectable evidence and the verification checks have passed.
+The starter planner creates a checklist only; it does not execute tasks or call paid AI providers. Do not label a mission as executed or verified until a real executor has produced inspectable evidence and the verification checks have passed.
 
 ## Release gates
 
