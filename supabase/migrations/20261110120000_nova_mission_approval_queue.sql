@@ -185,6 +185,7 @@ set search_path = ''
 as $$
 declare
   v_mission_id uuid;
+  v_mission_state text;
   v_task_id uuid;
   v_status text;
   v_sequence bigint;
@@ -203,7 +204,18 @@ begin
     raise exception 'Approval decision is invalid' using errcode = '23514';
   end if;
 
-  select mission_id, task_id, status into v_mission_id, v_task_id, v_status
+  -- Lock in the same order as cancellation (mission, then approval) to avoid deadlocks.
+  select mission_id into v_mission_id
+    from public.nova_mission_approvals
+   where id = p_approval_id and owner_id = p_owner_id;
+  if not found then raise exception 'Approval not found' using errcode = 'P0002'; end if;
+
+  select state into v_mission_state
+    from public.nova_missions
+   where id = v_mission_id and owner_id = p_owner_id for update;
+  if not found then raise exception 'Mission not found' using errcode = 'P0002'; end if;
+
+  select task_id, status into v_task_id, v_status
     from public.nova_mission_approvals
    where id = p_approval_id and owner_id = p_owner_id for update;
   if not found then raise exception 'Approval not found' using errcode = 'P0002'; end if;
