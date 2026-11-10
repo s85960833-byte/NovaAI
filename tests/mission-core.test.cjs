@@ -56,8 +56,10 @@ test('requires approval before resuming a gated mission', () => {
   assert.equal(mission.state, STATES.WAITING_APPROVAL);
   assert.throws(() => transitionMission(mission, 'verify'), /Invalid mission transition/);
   mission = transitionMission(mission, 'approve', { actorId: 'approver-1' });
-  assert.equal(mission.state, STATES.RUNNING);
+  assert.equal(mission.state, STATES.PLANNED, 'Approval authorizes the task but does not start an executor');
   assert.equal(mission.events.at(-1).actorId, 'approver-1');
+  mission = transitionMission(mission, 'start');
+  assert.equal(mission.state, STATES.RUNNING, 'Execution begins only after an explicit start transition');
 });
 
 test('failed missions can retry, terminal missions cannot restart', () => {
