@@ -85,6 +85,8 @@ These RPCs are not exposed through the public Mission API and no worker process 
 
 ## Fail-closed worker registry foundation
 
+The registry also validates task, mission, run and owner identifiers as UUIDs before invoking a handler; malformed bindings are rejected before execution. Negative tests cover each identifier.
+
 The new `mission-task-registry.ts` provides a typed, explicit allowlist for future task handlers. A task type is non-executable by default; registering it requires both a trusted handler and a separately registered verifier identity/version. The registry rejects duplicate registrations, missing adapters, mismatched verifier identity/version, invalid check sets and inconsistent pass/fail outcomes. Its default exported registry is intentionally empty. Tests cover default-deny behavior, paired handler/verifier execution, duplicate registration and forged verifier identity rejection.
 
 This is a registry contract only: it does not claim database leases, perform external actions, persist proofs or complete tasks. No task handlers are registered, so no mission task becomes executable as a result of this change.
