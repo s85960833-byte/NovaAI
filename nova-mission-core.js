@@ -27,7 +27,8 @@ const TRANSITIONS = Object.freeze({
   }),
   [STATES.VERIFYING]: Object.freeze({
     complete: STATES.COMPLETED,
-    fail: STATES.FAILED
+    fail: STATES.FAILED,
+    cancel: STATES.CANCELLED
   }),
   [STATES.FAILED]: Object.freeze({ retry: STATES.PLANNED, cancel: STATES.CANCELLED }),
   [STATES.COMPLETED]: Object.freeze({}),
