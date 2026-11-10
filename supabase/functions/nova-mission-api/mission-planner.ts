@@ -59,9 +59,8 @@ export function buildStarterPlan(mission: {
     throw new TypeError("Unsupported mission workspace");
   }
   const goal = mission.title.trim();
-  const context = typeof mission.description === "string" && mission.description.trim()
-    ? mission.description.trim().slice(0, 1200)
-    : goal;
+  const description = typeof mission.description === "string" ? mission.description.trim().slice(0, 1200) : "";
+  const context = "Goal: " + goal + (description ? " Context: " + description : "");
   const tasks = TASKS[mission.workspace].map((task) => ({
     title: task.title,
     description: task.description + " Mission context: " + context,
