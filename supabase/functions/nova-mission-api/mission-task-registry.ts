@@ -116,7 +116,7 @@ export class MissionTaskRegistry {
         new Set(verification.checks.map((check) => check.id)).size !== verification.checks.length ||
         verification.passed !== verification.checks.every((check) => check.passed === true) ||
         typeof verification.observedAt !== "string" ||
-        !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$/.test(verification.observedAt) ||
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z$/.test(verification.observedAt) ||
         !Number.isFinite(Date.parse(verification.observedAt))) {
       throw new TypeError("Trusted verifier returned an invalid or inconsistent attestation");
     }
