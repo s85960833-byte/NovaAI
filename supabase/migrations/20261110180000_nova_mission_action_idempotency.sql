@@ -12,6 +12,8 @@ create table if not exists public.nova_mission_action_receipts (
   request_digest text not null
     check (request_digest ~ '^[0-9a-f]{64}$'),
   lease_token uuid not null,
+  reconciled_by_lease_token uuid,
+  reconciled_at timestamptz,
   status text not null default 'reserved'
     check (status in ('reserved','completed','uncertain')),
   result_digest text
@@ -368,6 +370,107 @@ revoke all on function public.nova_reserve_mission_action(uuid,uuid,text,text)
   from public, anon, authenticated;
 revoke all on function public.nova_complete_mission_action(uuid,uuid,text,text)
   from public, anon, authenticated;
+-- Reconcile a reservation left open by an expired worker lease.
+-- This records uncertainty only; it never retries or claims the external action succeeded.
+create or replace function public.nova_reconcile_mission_action(
+  p_action_id uuid,
+  p_current_lease_token uuid,
+  p_reason text
+)
+returns text
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_run_id uuid;
+  v_mission_id uuid;
+  v_approval_id uuid;
+  v_task_id uuid;
+  v_owner_id uuid;
+  v_mission_state text;
+  v_approval_status text;
+  v_run_status text;
+  v_run_token uuid;
+  v_lease_expiry timestamptz;
+  v_task_status text;
+  v_action_status text;
+  v_original_token uuid;
+  v_reconciled_token uuid;
+  v_old_reason text;
+begin
+  if coalesce(pg_catalog.current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
+    raise exception 'Action reconciliation is restricted to the trusted server role'
+      using errcode = '42501';
+  end if;
+  if p_action_id is null or p_current_lease_token is null
+     or p_reason is null or pg_catalog.char_length(pg_catalog.btrim(p_reason)) not between 1 and 1000 then
+    raise exception 'Action reconciliation parameters are invalid' using errcode = '23514';
+  end if;
+
+  select a.run_id, a.mission_id, a.task_id, a.owner_id
+    into v_run_id, v_mission_id, v_task_id, v_owner_id
+    from public.nova_mission_action_receipts a where a.id = p_action_id;
+  if not found then raise exception 'Action receipt not found' using errcode = 'P0002'; end if;
+  select r.approval_id into v_approval_id from public.nova_mission_execution_runs r
+   where r.id = v_run_id and r.owner_id = v_owner_id;
+  if not found then raise exception 'Execution run not found' using errcode = 'P0002'; end if;
+
+  -- Match the global lock order used by claim, fail and action RPCs.
+  select m.state into v_mission_state from public.nova_missions m
+   where m.id = v_mission_id and m.owner_id = v_owner_id for update;
+  if not found then raise exception 'Mission not found' using errcode = 'P0002'; end if;
+  select a.status into v_approval_status from public.nova_mission_approvals a
+   where a.id = v_approval_id and a.owner_id = v_owner_id for update;
+  if not found then raise exception 'Approval not found' using errcode = 'P0002'; end if;
+  select r.status, r.lease_token, r.lease_expires_at
+    into v_run_status, v_run_token, v_lease_expiry
+    from public.nova_mission_execution_runs r where r.id = v_run_id and r.owner_id = v_owner_id
+    for update;
+  if not found then raise exception 'Execution run not found' using errcode = 'P0002'; end if;
+  select t.status into v_task_status from public.nova_mission_tasks t
+   where t.id = v_task_id and t.mission_id = v_mission_id and t.owner_id = v_owner_id
+   for update;
+  if not found then raise exception 'Task not found' using errcode = 'P0002'; end if;
+  if v_approval_status <> 'approved' or v_mission_state <> 'running'
+     or v_run_status <> 'running' or v_task_status <> 'running'
+     or v_run_token is distinct from p_current_lease_token
+     or v_lease_expiry is null or v_lease_expiry <= pg_catalog.now() then
+    raise exception 'Reconciliation requires the current active approved worker lease'
+      using errcode = '55000';
+  end if;
+
+  select a.status, a.lease_token, a.reconciled_by_lease_token, a.uncertain_reason
+    into v_action_status, v_original_token, v_reconciled_token, v_old_reason
+    from public.nova_mission_action_receipts a where a.id = p_action_id for update;
+  if not found then raise exception 'Action receipt not found' using errcode = 'P0002'; end if;
+
+  if v_action_status = 'uncertain'
+     and v_reconciled_token = p_current_lease_token
+     and v_old_reason = pg_catalog.btrim(p_reason) then
+    return 'uncertain';
+  end if;
+  if v_action_status <> 'reserved' then
+    raise exception 'Only an unfinished reserved action can be reconciled'
+      using errcode = '55000';
+  end if;
+  if v_original_token is not distinct from p_current_lease_token then
+    raise exception 'The action still belongs to the current lease; use normal completion or uncertainty reporting'
+      using errcode = '55000';
+  end if;
+
+  update public.nova_mission_action_receipts
+     set status = 'uncertain',
+         reconciled_by_lease_token = p_current_lease_token,
+         reconciled_at = pg_catalog.now(),
+         uncertain_reason = pg_catalog.btrim(p_reason),
+         updated_at = pg_catalog.now()
+   where id = p_action_id and status = 'reserved'
+     and lease_token = v_original_token;
+  return 'uncertain';
+end;
+$;
+
 revoke all on function public.nova_mark_mission_action_uncertain(uuid,uuid,text)
   from public, anon, authenticated;
 grant execute on function public.nova_reserve_mission_action(uuid,uuid,text,text)
@@ -376,3 +479,8 @@ grant execute on function public.nova_complete_mission_action(uuid,uuid,text,tex
   to service_role;
 grant execute on function public.nova_mark_mission_action_uncertain(uuid,uuid,text)
   to service_role;
+revoke all on function public.nova_reconcile_mission_action(uuid,uuid,text)
+  from public, anon, authenticated;
+grant execute on function public.nova_reconcile_mission_action(uuid,uuid,text)
+  to service_role;
+
