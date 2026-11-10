@@ -48,6 +48,35 @@ create index if not exists nova_mission_action_receipts_run_status_idx
 create index if not exists nova_mission_action_receipts_owner_idx
   on public.nova_mission_action_receipts(owner_id, created_at desc);
 
+create or replace function public.nova_mark_abandoned_mission_actions_uncertain()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $abandoned_actions$
+begin
+  if old.status = 'running' and new.status <> 'running' then
+    update public.nova_mission_action_receipts
+       set status = 'uncertain',
+           uncertain_reason = 'Execution lease ended before the action receipt was finalized',
+           updated_at = pg_catalog.now()
+     where run_id = new.id
+       and lease_token = old.lease_token
+       and status = 'reserved';
+  end if;
+  return new;
+end;
+$abandoned_actions$;
+
+revoke all on function public.nova_mark_abandoned_mission_actions_uncertain()
+  from public, anon, authenticated, service_role;
+drop trigger if exists nova_execution_run_mark_abandoned_actions
+  on public.nova_mission_execution_runs;
+create trigger nova_execution_run_mark_abandoned_actions
+after update of status on public.nova_mission_execution_runs
+for each row execute function public.nova_mark_abandoned_mission_actions_uncertain();
+
+
 alter table public.nova_mission_action_receipts enable row level security;
 revoke all on public.nova_mission_action_receipts from public, anon, authenticated, service_role;
 grant select (
