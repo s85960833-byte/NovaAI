@@ -9,7 +9,7 @@ page.on('console', message => console.log('PAGE', message.type(), message.text()
 
 const missionId = '123e4567-e89b-42d3-a456-426614174000';
 const approvalId = '223e4567-e89b-42d3-a456-426614174000';
-page.on('dialog', dialog => { console.log('DIALOG', dialog.message()); return dialog.accept(); });
+page.on('dialog', dialog => dialog.accept());
 await page.addInitScript(() => localStorage.setItem('nova_intro_completed_v2', '1'));
 await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js', route =>
   route.fulfill({
@@ -56,7 +56,7 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
             approvals = [{ id: '223e4567-e89b-42d3-a456-426614174000', task_id: 'task-1', action_summary: 'Review the generated deployment plan', status: 'pending', requested_at: '2026-11-10T10:00:00.000Z' }];
             return { mission: missions[0], tasks, events, proofs, plan_type: 'starter_template' };
           }
-          if (path === 'missions/' + id + '/cancel' && method === 'POST') {\n            console.log('MOCK POST cancel', payload?.reason);
+          if (path === 'missions/' + id + '/cancel' && method === 'POST') {
             missions = [{ ...missions[0], state: 'cancelled', version: missions[0].version + 1 }];
             tasks = tasks.map(task => ({ ...task, status: 'cancelled' }));
             events = [...events, { id: 'event-cancel', event_type: 'mission.cancelled', from_state: 'planned', to_state: 'cancelled' }];
@@ -111,7 +111,7 @@ assert.ok((await page.locator('#missionDetail').innerText()).includes('Execution
 await page.locator('#missionCancelBtn').waitFor({ state: 'visible', timeout: 5000 });
 await page.locator('#missionCancelBtn').click();
 await page.waitForFunction(() => document.querySelector('#toast')?.textContent === 'Mission cancelled.', undefined, { timeout: 5000 });
-await page.waitForFunction(() => document.querySelector('#missionDetail')?.innerText.includes('Cancelled'), undefined, { timeout: 5000 });
+await page.waitForTimeout(150);\nconsole.log('DEBUG detail after cancellation:', await page.locator('#missionDetail').innerText());\nconsole.log('DEBUG cancel control count:', await page.locator('#missionCancelBtn').count());\nassert.ok((await page.locator('#missionDetail').innerText()).includes('Cancelled'), 'Cancelled mission state must appear in detail');
 assert.equal(await page.locator('#missionCancelBtn').count(), 0, 'A cancelled mission must not offer cancellation again');
 console.log('PASS Mission Control creates a no-cost starter plan, displays approval requests and records owner approval');
 
