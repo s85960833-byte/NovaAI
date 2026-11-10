@@ -1102,6 +1102,31 @@ begin
 end $mission_worker_leases$;
 reset role;
 
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+do $mission_attestation_owner_read$
+begin
+  if (select count(*) from public.nova_mission_proof_attestations
+      where verifier_id='nova.integration-verifier') <> 1 then
+    raise exception 'Mission owner cannot read their proof attestation';
+  end if;
+  if has_table_privilege('authenticated','public.nova_mission_proof_attestations','insert') then
+    raise exception 'Authenticated users must not insert proof attestations';
+  end if;
+end $mission_attestation_owner_read$;
+reset role;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+do $mission_attestation_outsider_read$
+begin
+  if exists(select 1 from public.nova_mission_proof_attestations
+      where verifier_id='nova.integration-verifier') then
+    raise exception 'Cross-account proof attestation leak detected';
+  end if;
+end $mission_attestation_outsider_read$;
+reset role;
+
 do $mission_worker_privileges$
 begin
   if has_function_privilege('authenticated','public.nova_claim_mission_task(uuid,text,integer)','execute')
