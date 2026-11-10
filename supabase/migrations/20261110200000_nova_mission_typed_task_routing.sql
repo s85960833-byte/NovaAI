@@ -55,6 +55,7 @@ set search_path = ''
 as $$
 declare
   v_state text;
+  v_workspace text;
   v_task_count integer;
   v_next_event_sequence bigint;
 begin
@@ -83,6 +84,7 @@ begin
        or pg_catalog.char_length(pg_catalog.btrim(coalesce(item.value->>'title',''))) not between 1 and 200
        or (item.value ? 'description' and pg_catalog.jsonb_typeof(item.value->'description') <> 'string')
        or pg_catalog.char_length(coalesce(item.value->>'description','')) > 2000
+       or pg_catalog.split_part(coalesce(item.value->>'task_type',''),'.',1) is distinct from v_workspace
        or coalesce(item.value->>'task_type','') not in (
          'learn.goal_clarification','learn.topic_sequence','learn.practice_material','learn.assessment','learn.progress_summary',
          'build.requirements','build.design_flow','build.implementation','build.quality_checks','build.review_proof',
@@ -101,7 +103,7 @@ begin
       using errcode = '23514';
   end if;
 
-  select state into v_state
+  select state, workspace into v_state, v_workspace
   from public.nova_missions
   where id = p_mission_id and owner_id = p_owner_id
   for update;
