@@ -182,7 +182,7 @@ function close(){if(!overlay.classList.contains('show'))return;overlay.classList
 $('ncbClose').addEventListener('click',close);overlay.addEventListener('click',e=>{if(e.target===overlay)close()});overlay.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();return}if(e.key==='Tab'){const items=[...overlay.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
 window.addEventListener('nova:ui-language-changed',()=>{if(overlay.classList.contains('show'))render()});
 async function missionApi(path,method='GET',payload,idempotencyKey){
- if(typeof path!=='string'||!/^missions(?:\\/[0-9a-f-]{36})?$/i.test(path))throw new Error('Invalid mission API path.');
+ if(typeof path!=='string'||!/^missions(?:\/[0-9a-f-]{36})?$/i.test(path))throw new Error('Invalid mission API path.');
  if(!['GET','POST'].includes(method))throw new Error('Unsupported mission API method.');
  const c=ensureClient(),{data:{session},error:sessionError}=await c.auth.getSession();
  if(sessionError)throw sessionError;
