@@ -109,7 +109,7 @@ begin
    where owner_id = p_owner_id and request_key = p_request_key;
   if v_approval_id is not null then
     if v_existing_mission_id is distinct from p_mission_id or v_existing_task_id is distinct from p_task_id or v_existing_action_summary is distinct from pg_catalog.btrim(p_action_summary) then
-      raise exception 'Approval idempotency key is already used for a different task'
+      raise exception 'Approval idempotency key is already used for a different request'
         using errcode = '23505';
     end if;
     return v_approval_id;
@@ -133,7 +133,7 @@ begin
     if v_existing_mission_id is distinct from p_mission_id
        or v_existing_task_id is distinct from p_task_id
        or v_existing_action_summary is distinct from pg_catalog.btrim(p_action_summary) then
-      raise exception 'Approval idempotency key is already used for a different task'
+      raise exception 'Approval idempotency key is already used for a different request'
         using errcode = '23505';
     end if;
     return v_approval_id;
