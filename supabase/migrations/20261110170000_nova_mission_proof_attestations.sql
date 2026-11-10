@@ -35,15 +35,15 @@ create table if not exists public.nova_mission_proof_attestations (
   foreign key (run_id, mission_id, task_id, owner_id)
     references public.nova_mission_execution_runs(id, mission_id, task_id, owner_id)
     on delete cascade,
-  check (envelope_json->>'schema_version' = 'nova.proof.v1'),
-  check (envelope_json->>'mission_id' = mission_id::text),
-  check (envelope_json->>'task_id' = task_id::text),
-  check (envelope_json->>'run_id' = run_id::text),
-  check (envelope_json->>'verifier_id' = verifier_id),
-  check (envelope_json->>'verifier_version' = verifier_version),
-  check (envelope_json->>'outcome' = outcome),
-  check (jsonb_typeof(envelope_json->'checks') = 'array'
-    and jsonb_array_length(envelope_json->'checks') = check_count)
+  check (envelope_json->>'schema_version' is not distinct from 'nova.proof.v1'),
+  check (envelope_json->>'mission_id' is not distinct from mission_id::text),
+  check (envelope_json->>'task_id' is not distinct from task_id::text),
+  check (envelope_json->>'run_id' is not distinct from run_id::text),
+  check (envelope_json->>'verifier_id' is not distinct from verifier_id),
+  check (envelope_json->>'verifier_version' is not distinct from verifier_version),
+  check (envelope_json->>'outcome' is not distinct from outcome),
+  check (case when jsonb_typeof(envelope_json->'checks') = 'array'
+    then jsonb_array_length(envelope_json->'checks') = check_count else false end)
 );
 
 create index if not exists nova_mission_proof_attestations_owner_idx
