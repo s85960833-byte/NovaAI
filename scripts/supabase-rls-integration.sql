@@ -925,6 +925,7 @@ end $mission_cancel_privileges$;
 
 -- NOVA execution lease primitives: explicit approval, bounded attempts, stale-token rejection.
 set role service_role;
+select set_config('request.jwt.claim.role','service_role',false);
 do $mission_worker_leases$
 declare
   v_mission uuid;
