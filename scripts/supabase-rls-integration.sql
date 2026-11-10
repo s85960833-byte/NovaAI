@@ -616,6 +616,7 @@ do $mission_approval_queue$
 declare
   v_mission uuid;
   v_task uuid;
+  v_other_task uuid;
   v_approval uuid;
   v_duplicate uuid;
 begin
@@ -627,7 +628,7 @@ begin
   perform public.nova_save_mission_plan(
     '11111111-1111-4111-8111-111111111111', v_mission,
     '{"kind":"starter_template","workspace":"agents"}'::jsonb,
-    '[{"title":"Prepare approved action","description":"No external action is executed in this test"}]'::jsonb
+    '[{"title":"Prepare approved action","description":"No external action is executed in this test"},{"title":"Second action","description":"Used to validate idempotency key binding"}]'::jsonb
   );
   select id into v_task from public.nova_mission_tasks
    where mission_id=v_mission and owner_id='11111111-1111-4111-8111-111111111111';
@@ -642,6 +643,17 @@ begin
   if v_approval is distinct from v_duplicate then
     raise exception 'Repeated approval request key created a second approval';
   end if;
+  select id into v_other_task from public.nova_mission_tasks
+   where mission_id=v_mission and owner_id='11111111-1111-4111-8111-111111111111'
+     and id <> v_task;
+  begin
+    perform public.nova_request_task_approval(
+      '11111111-1111-4111-8111-111111111111', v_mission, v_other_task,
+      'approval-request-fixture-001', 'Attempt to reuse key for another task'
+    );
+    raise exception 'An approval idempotency key was reused for a different task';
+  exception when unique_violation then null;
+  end;
   if (select status from public.nova_mission_approvals where id=v_approval) <> 'pending'
      or (select status from public.nova_mission_execution_runs where approval_id=v_approval) <> 'awaiting_approval'
      or (select state from public.nova_missions where id=v_mission) <> 'waiting_approval'
