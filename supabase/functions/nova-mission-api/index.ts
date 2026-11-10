@@ -219,6 +219,7 @@ const authenticatedHandler = withSupabase(
           if (error.code === "P0002") return fail("Mission or task not found", 404);
           if (error.code === "55000") return fail("Mission or task is not ready for an approval request", 409);
           if (error.code === "23514") return fail("Approval request did not pass validation", 400);
+          if (error.code === "23505") return fail("This approval idempotency key is already assigned to another task", 409);
           throw error;
         }
         if (!uuid(approvalId)) throw new Error("Approval request returned an invalid identifier");
