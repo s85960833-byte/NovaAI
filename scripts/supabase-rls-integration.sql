@@ -1036,7 +1036,7 @@ begin
       'passed', 1, now()
     );
     raise exception 'Mismatched run binding was unexpectedly accepted';
-  exception when foreign_key_violation then null;
+  exception when check_violation then null;
   end;
 
   begin
