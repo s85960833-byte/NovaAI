@@ -88,7 +88,7 @@ create table if not exists public.nova_mission_proofs (
 create or replace function public.nova_require_verified_mission_completion()
 returns trigger
 language plpgsql
-as $
+as $$
 begin
   if new.state = 'completed' and old.state is distinct from 'completed'
      and not exists (
@@ -103,7 +103,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function public.nova_require_verified_mission_completion() from public, anon, authenticated;
 drop trigger if exists nova_mission_completion_requires_proof on public.nova_missions;
 create trigger nova_mission_completion_requires_proof
