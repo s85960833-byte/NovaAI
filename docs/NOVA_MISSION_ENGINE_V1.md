@@ -1,6 +1,6 @@
 # NOVA Mission Engine V1 — Foundation
 
-**Implementation status:** Code and isolated CI verification complete on `feature/nova-mission-engine-v1`. This is not yet deployed or enabled in production.
+**Implementation status:** Mission Engine V1 foundation code is present on `feature/nova-mission-engine-v1`; latest exact-head CI verification is in progress. This is not deployed or enabled in production, and no task worker is registered.
 
 ## What is included
 
