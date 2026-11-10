@@ -115,6 +115,7 @@ await page.locator('[data-task-approval="' + taskId + '"]').click();
 await page.locator('[data-approval-decision="approve"]').waitFor({ state: 'visible', timeout: 5000 });
 await page.locator('[data-approval-decision="approve"]').click();
 await page.locator('#missionDetail').getByText('approved', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
+assert.equal(await page.locator('[data-task-approval="423e4567-e89b-42d3-a456-426614174000"]').count(), 1, 'Remaining planned tasks must keep approval requests available while a mission is running');
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Execution is not started automatically after approval.'));
 await page.locator('#missionCancelBtn').waitFor({ state: 'visible', timeout: 5000 });
 await page.locator('#missionCancelBtn').click();
