@@ -20,6 +20,7 @@
 - Database-level task and mission completion guards: task and mission inserts cannot bypass proof checks; each task needs its own passing proof before completion; every task must be completed with task-scoped passing proof before mission completion; completed missions and their tasks are terminal.
 - Canonical proof-envelope contract with SHA-256 digest, verifier identity/version, mission/task/run binding, bounded checks, duplicate-check rejection and deterministic JSON serialization.
 - Append-only proof-attestation ledger: each attestation stores the canonical envelope, digest, verifier/version, outcome and timestamp; composite foreign keys bind it to the exact proof, mission, task, owner and execution run. The database checks envelope bindings and requires a matching claimed run; authenticated owners can read their own attestations, while only the trusted server role can insert. App-facing roles have no update/delete/truncate grants.
+- Lease-fenced action receipt ledger: trusted RPCs reserve idempotent action keys against a specific approved run, task, request digest and current lease token; same-request replay returns the existing receipt, conflicting payloads are rejected, and stale leases cannot complete actions. Completed receipts require a stable result digest/reference; uncertain outcomes are held for reconciliation and are never automatically re-issued. Direct table writes are revoked even from `service_role`; security-definer RPCs require the trusted JWT role claim.
 - Browser-authenticated clients have read-only access; event and proof records are append-only from the browser's perspective.
 
 ## Data model
@@ -33,8 +34,9 @@
 | `nova_mission_approvals` | Pending/approved/rejected owner decisions and action summaries |
 | `nova_mission_execution_runs` | Idempotent authorization, bounded attempts, worker identity, expiring lease token, heartbeat and retry schedule |
 | `nova_mission_proof_attestations` | Append-only verifier envelope, digest, outcome and exact proof/task/run binding |
+| `nova_mission_action_receipts` | Lease-bound idempotency keys, request/result digests and reserved/completed/uncertain action outcomes |
 
-All seven tables have RLS enabled. Each row carries `owner_id`; the database enforces mission/child ownership consistency with composite foreign keys. Authenticated clients can select only their own rows. Writes are reserved for trusted server-side code; proof attestations are insert-only even for the service role.
+All eight tables have RLS enabled. Each row carries `owner_id`; the database enforces mission/child ownership consistency with composite foreign keys. Authenticated clients can select only their own rows. Writes are reserved for trusted server-side code; proof attestations are insert-only even for the service role.
 
 ## API contract
 
@@ -67,11 +69,12 @@ The CI workflow now runs:
 - Approval decision lock-order migration serializes owner decisions with mission cancellation, preventing stale approvals and concurrent event-sequence collisions
 - Worker lease PostgreSQL integration: only approved runs can be claimed; active leases cannot be double-claimed; expired tokens cannot heartbeat or fail a reclaimed run; expired leases can be reclaimed with a new token; retry scheduling and five-attempt exhaustion; browser roles cannot invoke worker RPCs; cancellation revokes an active lease
 - Proof-attestation PostgreSQL integration: envelope/proof/run binding, duplicate-attestation rejection, mismatched-run rejection, service-role insert-only privileges and owner-only RLS reads
+- Action receipt PostgreSQL integration: active approved lease requirement, JWT-role enforcement, idempotent same-request replay, conflicting request/result rejection, uncertain-outcome handling, stale-token rejection after lease reclaim, direct table-write denial and owner-only reads with lease tokens hidden
 - Deno type-check for `nova-mission-api`
 - Deno input-validation, four-workspace starter-planner and approval request/decision validation tests
 - Existing backend, security, local runtime and browser regression suites
 
-The canonical proof-envelope and earlier Mission Engine changes passed both required CI workflows on commit `c57b611632dc02c13b7c3071aed55a8faf7804e4` (NovaAI verification run `42806101933`; account/browser verification run `42806101907`). The SQL attestation persistence added after that commit is being re-verified in the current CI runs. The prior successful run includes PostgreSQL migration/RLS integration, worker lease claim/heartbeat/recovery/retry/cancellation tests, task-scoped proof enforcement including insert bypass and terminal-state negative cases, Mission Control browser smoke, responsive workspace and PDF.js checks, Company Cloud mobile browser workflows, five-viewport mobile/drawer regression, and graceful shutdown. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
+The canonical proof-envelope and earlier Mission Engine changes passed both required CI workflows on commit `c57b611632dc02c13b7c3071aed55a8faf7804e4` (NovaAI verification run `42806101933`; account/browser verification run `42806101907`). The proof-attestation and action-receipt persistence added after that commit is being re-verified in the current CI runs. The prior successful run includes PostgreSQL migration/RLS integration, worker lease claim/heartbeat/recovery/retry/cancellation tests, task-scoped proof enforcement including insert bypass and terminal-state negative cases, Mission Control browser smoke, responsive workspace and PDF.js checks, Company Cloud mobile browser workflows, five-viewport mobile/drawer regression, and graceful shutdown. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
 
 ## Worker lease foundation (not an active worker)
 
@@ -86,10 +89,10 @@ This foundation does **not** yet provide:
 - LLM-powered adaptive mission planning or task decomposition (the current starter planner is deterministic and template-based)
 - Task execution workers or agent/tool adapters (only the database lease primitives exist)
 - Task execution controls and worker lifecycle (approval and cancellation controls are implemented)
-- Full retry/resume orchestration, executor-side idempotency and external tool adapters (database lease recovery and retry scheduling only)
+- Full retry/resume orchestration and external tool adapters (database lease recovery, retry scheduling and an action-receipt/idempotency foundation only)
 - Live production Supabase migration or Edge Function deployment
 
-The starter planner creates a checklist only; it does not execute tasks or call paid AI providers. The database completion guards ensure every completed task and mission has a task-scoped passing proof row written by the trusted server role. The proof-envelope helper computes a deterministic SHA-256 digest and validates scope/verifier metadata. The attestation table persists the canonical envelope and digest for later offline recomputation, but the database does not independently recompute SHA-256 or authenticate an external source. A matching claimed run and a trusted service-role insert are required; neither proves that an external action occurred. No endpoint currently accepts proof envelopes, creates attestations or marks tasks complete; a trusted adapter and independent evidence verifier must be reviewed before wiring this contract to persistence. Do not label a mission as executed or independently verified until a reviewed verifier has checked inspectable evidence and the verification checks have passed.
+The starter planner creates a checklist only; it does not execute tasks or call paid AI providers. Action receipts are database coordination records, not an executor: no external action is performed, no worker is running, and uncertain receipts require a separately reviewed reconciliation workflow. The database completion guards ensure every completed task and mission has a task-scoped passing proof row written by the trusted server role. The proof-envelope helper computes a deterministic SHA-256 digest and validates scope/verifier metadata. The attestation table persists the canonical envelope and digest for later offline recomputation, but the database does not independently recompute SHA-256 or authenticate an external source. A matching claimed run and a trusted service-role insert are required; neither proves that an external action occurred. No endpoint currently accepts proof envelopes, creates attestations or marks tasks complete; a trusted adapter and independent evidence verifier must be reviewed before wiring this contract to persistence. Do not label a mission as executed or independently verified until a reviewed verifier has checked inspectable evidence and the verification checks have passed.
 
 ## Release gates
 
