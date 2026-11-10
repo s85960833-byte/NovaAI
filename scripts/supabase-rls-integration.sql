@@ -401,7 +401,7 @@ insert into public.nova_mission_events(
   mission_id, owner_id, sequence, event_type, from_state, to_state, actor_id, payload_json
 ) values (
   '10101010-1010-4010-8010-101010101010',
-  '11111111-1111-4111-8111-111111111111', 1, 'mission.created', null, 'draft',
+  '11111111-1111-4111-8111-111111111111', 1, 'mission.planned', 'draft', 'planned',
   '11111111-1111-4111-8111-111111111111', '{}'::jsonb
 );
 insert into public.nova_mission_proofs(
@@ -411,6 +411,33 @@ insert into public.nova_mission_proofs(
   '20202020-2020-4020-8020-202020202020',
   '11111111-1111-4111-8111-111111111111',
   'browser-test', 'Homepage loaded in the test browser', 'pending', '{"test":"homepage"}'::jsonb
+);
+do $mission_completion_guard$
+begin
+  begin
+    update public.nova_missions set state='completed'
+    where id='10101010-1010-4010-8010-101010101010';
+    raise exception 'Mission unexpectedly completed without passing proof';
+  exception when check_violation then
+    null;
+  end;
+end $mission_completion_guard$;
+insert into public.nova_mission_proofs(
+  mission_id, task_id, owner_id, proof_type, summary, verification_status, evidence_json, verified_at
+) values (
+  '10101010-1010-4010-8010-101010101010',
+  '20202020-2020-4020-8020-202020202020',
+  '11111111-1111-4111-8111-111111111111',
+  'browser-test', 'Homepage test passed', 'passed', '{"checks":[{"name":"homepage-load","passed":true}]}'::jsonb, now()
+);
+update public.nova_missions set state='completed', version=version+1, updated_at=now()
+where id='10101010-1010-4010-8010-101010101010';
+insert into public.nova_mission_events(
+  mission_id, owner_id, sequence, event_type, from_state, to_state, actor_id, payload_json
+) values (
+  '10101010-1010-4010-8010-101010101010',
+  '11111111-1111-4111-8111-111111111111', 2, 'mission.complete', 'verifying', 'completed',
+  '11111111-1111-4111-8111-111111111111', '{"proof":"passed"}'::jsonb
 );
 reset role;
 
