@@ -127,6 +127,23 @@ begin
       using errcode = '55000';
   end if;
 
+  -- INSERT .. ON CONFLICT closes the concurrent first-reservation race: one
+  -- caller creates the receipt and the other observes that exact committed row.
+  insert into public.nova_mission_action_receipts(
+    mission_id, task_id, run_id, owner_id, action_key,
+    request_digest, lease_token, status
+  ) values (
+    v_mission_id, v_task_id, p_run_id, v_owner_id, pg_catalog.btrim(p_action_key),
+    p_request_digest, p_lease_token, 'reserved'
+  )
+  on conflict (owner_id, action_key) do nothing
+  returning id into v_new_id;
+
+  if v_new_id is not null then
+    return query select v_new_id, 'reserved'::text, false;
+    return;
+  end if;
+
   select a.id, a.mission_id, a.task_id, a.run_id, a.request_digest,
          a.lease_token, a.status
     into v_existing_id, v_existing_mission, v_existing_task, v_existing_run,
@@ -134,31 +151,22 @@ begin
     from public.nova_mission_action_receipts a
    where a.owner_id = v_owner_id and a.action_key = pg_catalog.btrim(p_action_key)
    for update;
-  if v_existing_id is not null then
-    if v_existing_mission is distinct from v_mission_id
-       or v_existing_task is distinct from v_task_id
-       or v_existing_run is distinct from p_run_id
-       or v_existing_digest is distinct from p_request_digest then
-      raise exception 'Action idempotency key is already bound to a different request'
-        using errcode = '23505';
-    end if;
-    if v_existing_status = 'reserved' and v_existing_token is distinct from p_lease_token then
-      raise exception 'Reserved action belongs to an earlier lease and requires reconciliation'
-        using errcode = '55P03';
-    end if;
-    return query select v_existing_id, v_existing_status, true;
-    return;
+  if not found then
+    raise exception 'Conflicting action reservation disappeared; retry safely'
+      using errcode = '40001';
   end if;
-
-  insert into public.nova_mission_action_receipts(
-    mission_id, task_id, run_id, owner_id, action_key,
-    request_digest, lease_token, status
-  ) values (
-    v_mission_id, v_task_id, p_run_id, v_owner_id, pg_catalog.btrim(p_action_key),
-    p_request_digest, p_lease_token, 'reserved'
-  ) returning id into v_new_id;
-
-  return query select v_new_id, 'reserved'::text, false;
+  if v_existing_mission is distinct from v_mission_id
+     or v_existing_task is distinct from v_task_id
+     or v_existing_run is distinct from p_run_id
+     or v_existing_digest is distinct from p_request_digest then
+    raise exception 'Action idempotency key is already bound to a different request'
+      using errcode = '23505';
+  end if;
+  if v_existing_status = 'reserved' and v_existing_token is distinct from p_lease_token then
+    raise exception 'Reserved action belongs to an earlier lease and requires reconciliation'
+      using errcode = '55P03';
+  end if;
+  return query select v_existing_id, v_existing_status, true;
 end;
 $$;
 
