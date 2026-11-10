@@ -82,12 +82,13 @@ Deno.test("rejects duplicate task types and inconsistent verifier results", asyn
 
 
 Deno.test("rejects malformed, duplicate or non-ISO verifier checks", async () => {
-  for (const checks of [
+  const malformedChecks: unknown[][] = [
     [{ id: "valid", passed: true }, { id: "valid", passed: true }],
     [{ id: "valid", passed: "true" }],
     [{ id: "INVALID ID", passed: true }],
     [{ id: "valid", passed: true, detail: "x".repeat(1001) }],
-  ]) {
+  ];
+  for (const checks of malformedChecks) {
     const registry = new MissionTaskRegistry();
     registry.register("test.safe-check", {
       async execute() { return { output: {}, evidence: {} }; },
