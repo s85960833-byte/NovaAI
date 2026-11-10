@@ -56,6 +56,13 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
             approvals = [{ id: '223e4567-e89b-42d3-a456-426614174000', task_id: 'task-1', action_summary: 'Review the generated deployment plan', status: 'pending', requested_at: '2026-11-10T10:00:00.000Z' }];
             return { mission: missions[0], tasks, events, proofs, plan_type: 'starter_template' };
           }
+          if (path === 'missions/' + id + '/cancel' && method === 'POST') {
+            missions = [{ ...missions[0], state: 'cancelled', version: missions[0].version + 1 }];
+            tasks = tasks.map(task => ({ ...task, status: 'cancelled' }));
+            events = [...events, { id: 'event-cancel', event_type: 'mission.cancelled', from_state: 'planned', to_state: 'cancelled' }];
+            approvals = approvals.map(approval => approval.status === 'pending' ? { ...approval, status: 'expired' } : approval);
+            return { mission: missions[0] };
+          }
           if (path === 'approvals/' + '223e4567-e89b-42d3-a456-426614174000' + '/decision' && method === 'POST') {
             approvals = [{ id: '223e4567-e89b-42d3-a456-426614174000', task_id: 'task-1', action_summary: 'Review the generated deployment plan', status: payload.decision === 'approve' ? 'approved' : 'rejected', decision_note: '' }];
             return { approval: approvals[0], execution_run: { status: payload.decision === 'approve' ? 'authorized' : 'blocked' } };
@@ -101,6 +108,10 @@ await page.locator('[data-approval-decision="approve"]').waitFor({ state: 'visib
 await page.locator('[data-approval-decision="approve"]').click();
 await page.locator('#missionDetail').getByText('approved', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Execution is not started automatically after approval.'));
+await page.locator('#missionCancelBtn').waitFor({ state: 'visible', timeout: 5000 });
+await page.locator('#missionCancelBtn').click();
+await page.locator('#missionDetail').getByText('Cancelled', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
+assert.equal(await page.locator('#missionCancelBtn').count(), 0, 'A cancelled mission must not offer cancellation again');
 console.log('PASS Mission Control creates a no-cost starter plan, displays approval requests and records owner approval');
 
 await page.evaluate(() => {
