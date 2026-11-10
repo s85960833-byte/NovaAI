@@ -872,6 +872,12 @@ begin
     raise exception 'Approved worker claim did not atomically establish running state and lease';
   end if;
 
+  begin
+    perform * from public.nova_claim_mission_task(v_run,'duplicate-worker',120);
+    raise exception 'An active worker lease was unexpectedly double-claimed';
+  exception when sqlstate '55P03' then null;
+  end;
+
   v_expiry := public.nova_heartbeat_mission_task(v_run,v_token,90);
   if v_expiry <= now() then raise exception 'Heartbeat did not extend the lease'; end if;
 
@@ -933,3 +939,55 @@ begin
     raise exception 'Trusted server role must execute worker lease RPCs';
   end if;
 end $mission_worker_privileges$;
+
+
+-- Cancelling an actively leased task invalidates its worker token and clears lease metadata.
+set role service_role;
+do $mission_cancel_active_worker$
+declare
+  v_mission uuid;
+  v_task uuid;
+  v_approval uuid;
+  v_run uuid;
+  v_token uuid;
+begin
+  v_mission := public.nova_create_mission(
+    '11111111-1111-4111-8111-111111111111',
+    'Active worker cancellation fixture', 'Cancel a claimed worker safely', 'agents',
+    'mission-active-worker-cancel-001', '{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    '11111111-1111-4111-8111-111111111111',v_mission,
+    '{"kind":"starter_template","workspace":"agents"}'::jsonb,
+    '[{"title":"Cancelable worker task","description":"Cancellation revokes its lease"}]'::jsonb
+  );
+  select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
+  v_approval := public.nova_request_task_approval(
+    '11111111-1111-4111-8111-111111111111',v_mission,v_task,
+    'approval-active-worker-cancel-001','Run a cancellable internal task'
+  );
+  select id into v_run from public.nova_mission_execution_runs where approval_id=v_approval;
+  perform public.nova_decide_task_approval(
+    '11111111-1111-4111-8111-111111111111',v_approval,'approve',
+    '11111111-1111-4111-8111-111111111111','Approved for controlled test'
+  );
+  select lease_token into v_token
+    from public.nova_claim_mission_task(v_run,'cancel-test-worker',120);
+
+  perform public.nova_cancel_mission(
+    '11111111-1111-4111-8111-111111111111',v_mission,'Stop active worker fixture'
+  );
+  if (select state from public.nova_missions where id=v_mission) <> 'cancelled'
+     or (select status from public.nova_mission_execution_runs where id=v_run) <> 'cancelled'
+     or (select status from public.nova_mission_tasks where id=v_task) <> 'cancelled'
+     or (select lease_token from public.nova_mission_execution_runs where id=v_run) is not null
+     or (select lease_expires_at from public.nova_mission_execution_runs where id=v_run) is not null then
+    raise exception 'Cancellation did not revoke active worker lease and task';
+  end if;
+  begin
+    perform public.nova_heartbeat_mission_task(v_run,v_token,90);
+    raise exception 'Cancelled worker token unexpectedly remained valid';
+  exception when sqlstate '55000' then null;
+  end;
+end $mission_cancel_active_worker$;
+reset role;
