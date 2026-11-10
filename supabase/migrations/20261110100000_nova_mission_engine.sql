@@ -84,6 +84,32 @@ create table if not exists public.nova_mission_proofs (
   )
 );
 
+-- A mission cannot enter the completed state unless a passing proof record exists.
+create or replace function public.nova_require_verified_mission_completion()
+returns trigger
+language plpgsql
+as $
+begin
+  if new.state = 'completed' and old.state is distinct from 'completed'
+     and not exists (
+       select 1 from public.nova_mission_proofs p
+       where p.mission_id = new.id
+         and p.owner_id = new.owner_id
+         and p.verification_status = 'passed'
+         and p.verified_at is not null
+     ) then
+    raise exception 'Mission completion requires at least one passing proof record'
+      using errcode = '23514';
+  end if;
+  return new;
+end;
+$;
+revoke all on function public.nova_require_verified_mission_completion() from public, anon, authenticated;
+drop trigger if exists nova_mission_completion_requires_proof on public.nova_missions;
+create trigger nova_mission_completion_requires_proof
+before update of state on public.nova_missions
+for each row execute function public.nova_require_verified_mission_completion();
+
 create index if not exists nova_missions_owner_updated_idx
   on public.nova_missions(owner_id, updated_at desc);
 create index if not exists nova_mission_tasks_mission_status_idx
@@ -102,8 +128,8 @@ revoke all on public.nova_missions, public.nova_mission_tasks,
   public.nova_mission_events, public.nova_mission_proofs from anon, public, authenticated;
 grant select on public.nova_missions, public.nova_mission_tasks,
   public.nova_mission_events, public.nova_mission_proofs to authenticated;
-grant all on public.nova_missions, public.nova_mission_tasks,
-  public.nova_mission_events, public.nova_mission_proofs to service_role;
+grant select, insert, update on public.nova_missions, public.nova_mission_tasks to service_role;
+grant select, insert on public.nova_mission_events, public.nova_mission_proofs to service_role;
 
 drop policy if exists nova_missions_select_own on public.nova_missions;
 create policy nova_missions_select_own on public.nova_missions
