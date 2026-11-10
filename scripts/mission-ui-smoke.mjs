@@ -82,7 +82,7 @@ await page.route('**/nova-business-cloud.js', route => route.fulfill({
             const selectedApproval = approvals.find(approval => approval.id === selectedApprovalId);
             approvals = approvals.map(approval => approval.id === selectedApprovalId ? { ...approval, status: payload.decision === 'approve' ? 'approved' : 'rejected' } : approval);
             tasks = tasks.map(task => task.id === selectedApproval?.task_id ? { ...task, status: payload.decision === 'approve' ? 'planned' : 'failed' } : task);
-            missions = [{ ...missions[0], state: payload.decision === 'approve' ? 'running' : 'failed', version: missions[0].version + 1 }];
+            missions = [{ ...missions[0], state: payload.decision === 'approve' ? 'planned' : 'failed', version: missions[0].version + 1 }];
             return { approval: approvals.find(approval => approval.id === selectedApprovalId), execution_run: { status: payload.decision === 'approve' ? 'authorized' : 'blocked' } };
           }
           if (path === 'missions/' + id && method === 'GET') {
@@ -124,7 +124,7 @@ await page.locator('[data-task-approval="' + taskId + '"]').click();
 await page.locator('[data-approval-decision="approve"]').waitFor({ state: 'visible', timeout: 5000 });
 await page.locator('[data-approval-decision="approve"]').click();
 await page.locator('#missionDetail').getByText('approved', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
-assert.equal(await page.locator('[data-task-approval="423e4567-e89b-42d3-a456-426614174000"]').count(), 1, 'Remaining planned tasks must keep approval requests available while a mission is running');
+assert.equal(await page.locator('[data-task-approval="423e4567-e89b-42d3-a456-426614174000"]').count(), 1, 'Remaining planned tasks must keep approval requests available after approval while no executor is running');
 await page.locator('[data-task-approval="' + taskId2 + '"]').click();
 await page.locator('[data-approval-decision="reject"]').waitFor({ state: 'visible', timeout: 5000 });
 await page.locator('[data-approval-decision="reject"]').click();
