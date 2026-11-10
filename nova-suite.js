@@ -77,7 +77,7 @@ async function showMissionDetail(id){
   const proofs=Array.isArray(result.proofs)?result.proofs:[];
   const approvals=Array.isArray(result.approvals)?result.approvals:[];
   detail.innerHTML='<h3>'+esc(bi('Mission details'))+'</h3><div><b>'+esc(m.title||'')+'</b></div><p class="ns-muted">'+esc(missionWorkspaceLabel(m.workspace))+' · '+esc(missionStateLabel(m.state))+'</p><p>'+esc(m.description||'')+'</p>'+
-   '<h4>'+esc(bi('Tasks'))+'</h4>'+(tasks.length?'<div>'+tasks.map(t=>'<div class="ns-card"><b>'+esc(t.title)+'</b><p class="ns-muted">'+esc(missionStateLabel(t.status))+'</p>'+(t.status==='planned'&&m.state==='planned'?'<button class="ns-quiet" data-task-approval="'+esc(t.id)+'">'+esc(bi('Request approval'))+'</button>':'')+'</div>').join('')+'</div>':'<p class="ns-muted">—</p>')+
+   '<h4>'+esc(bi('Tasks'))+'</h4>'+(tasks.length?'<div>'+tasks.map(t=>'<div class="ns-card"><b>'+esc(t.title)+'</b><p class="ns-muted">'+esc(missionStateLabel(t.status))+'</p>'+(t.status==='planned'&&['planned','running'].includes(m.state)?'<button class="ns-quiet" data-task-approval="'+esc(t.id)+'">'+esc(bi('Request approval'))+'</button>':'')+'</div>').join('')+'</div>':'<p class="ns-muted">—</p>')+
    '<h4>'+esc(bi('Activity'))+'</h4>'+(events.length?'<ul>'+events.map(e=>'<li>'+esc(e.event_type)+' · '+esc(e.from_state||'—')+' → '+esc(e.to_state)+'</li>').join('')+'</ul>':'<p class="ns-muted">—</p>')+
    '<h4>'+esc(bi('Proof Ledger'))+'</h4>'+(proofs.length?'<ul>'+proofs.map(p=>'<li>'+esc(p.proof_type)+' · '+esc(p.verification_status)+' — '+esc(p.summary)+'</li>').join('')+'</ul>':'<p class="ns-muted">—</p>');
   detail.querySelectorAll('[data-task-approval]').forEach(button=>button.addEventListener('click',async()=>{
