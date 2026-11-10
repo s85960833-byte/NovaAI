@@ -1574,6 +1574,19 @@ begin
   end;
 
   v_mission := public.nova_create_mission(
+    v_owner,'Workspace mismatch fixture','Reject cross-workspace task types','build',
+    'mission-typed-task-workspace-001','{}'::jsonb
+  );
+  begin
+    perform public.nova_save_mission_plan(
+      v_owner,v_mission,'{"kind":"starter_template","workspace":"build"}'::jsonb,
+      '[{"title":"Wrong workspace route","description":"Must reject","task_type":"agents.checklist","input_schema_version":1,"input":{"description":"Must reject"}}]'::jsonb
+    );
+    raise exception 'Task type from another workspace was unexpectedly accepted';
+  exception when check_violation then null;
+  end;
+
+  v_mission := public.nova_create_mission(
     v_owner,'Invalid schema version fixture','Reject malformed schema versions','build',
     'mission-typed-task-version-001','{}'::jsonb
   );
