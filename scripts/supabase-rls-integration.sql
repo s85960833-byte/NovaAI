@@ -937,6 +937,9 @@ declare
   v_status text;
   v_expiry timestamptz;
   v_i integer;
+  v_proof uuid;
+  v_attestation uuid;
+  v_envelope jsonb;
 begin
   v_mission := public.nova_create_mission(
     '11111111-1111-4111-8111-111111111111',
@@ -974,6 +977,76 @@ begin
      or (select state from public.nova_missions where id=v_mission) <> 'running' then
     raise exception 'Approved worker claim did not atomically establish running state and lease';
   end if;
+
+  insert into public.nova_mission_proofs(
+    mission_id, task_id, owner_id, proof_type, summary, verification_status,
+    evidence_json, verified_at
+  ) values (
+    v_mission, v_task, '11111111-1111-4111-8111-111111111111',
+    'browser-check', 'Verifier attestation integration fixture', 'passed',
+    '{"checks":[{"id":"task-claimed","passed":true}]}'::jsonb, now()
+  ) returning id into v_proof;
+  v_envelope := jsonb_build_object(
+    'schema_version','nova.proof.v1',
+    'mission_id',v_mission,
+    'task_id',v_task,
+    'run_id',v_run,
+    'verifier_id','nova.integration-verifier',
+    'verifier_version','1.0.0',
+    'observed_at',now(),
+    'outcome','passed',
+    'checks',jsonb_build_array(jsonb_build_object('id','task-claimed','passed',true))
+  );
+  insert into public.nova_mission_proof_attestations(
+    proof_id, mission_id, task_id, run_id, owner_id, verifier_id,
+    verifier_version, evidence_digest, envelope_json, outcome, check_count, observed_at
+  ) values (
+    v_proof, v_mission, v_task, v_run, '11111111-1111-4111-8111-111111111111',
+    'nova.integration-verifier', '1.0.0', repeat('a',64), v_envelope, 'passed', 1, now()
+  ) returning id into v_attestation;
+  if v_attestation is null or not exists (
+    select 1 from public.nova_mission_proof_attestations
+    where id=v_attestation and proof_id=v_proof and run_id=v_run
+      and evidence_digest=repeat('a',64)
+  ) then
+    raise exception 'Task/run-bound proof attestation was not persisted';
+  end if;
+
+  begin
+    insert into public.nova_mission_proof_attestations(
+      proof_id, mission_id, task_id, run_id, owner_id, verifier_id,
+      verifier_version, evidence_digest, envelope_json, outcome, check_count, observed_at
+    ) values (
+      v_proof, v_mission, v_task, v_run, '11111111-1111-4111-8111-111111111111',
+      'nova.integration-verifier', '1.0.0', repeat('a',64), v_envelope, 'passed', 1, now()
+    );
+    raise exception 'Duplicate proof attestation was unexpectedly accepted';
+  exception when unique_violation then null;
+  end;
+
+  begin
+    insert into public.nova_mission_proof_attestations(
+      proof_id, mission_id, task_id, run_id, owner_id, verifier_id,
+      verifier_version, evidence_digest, envelope_json, outcome, check_count, observed_at
+    ) values (
+      v_proof, v_mission, v_task, '99999999-9999-4999-8999-999999999999',
+      '11111111-1111-4111-8111-111111111111', 'nova.integration-verifier',
+      '1.0.0', repeat('b',64), v_envelope, 'passed', 1, now()
+    );
+    raise exception 'Mismatched run binding was unexpectedly accepted';
+  exception when foreign_key_violation then null;
+  end;
+
+  begin
+    update public.nova_mission_proof_attestations set outcome='failed' where id=v_attestation;
+    raise exception 'Proof attestation update was unexpectedly permitted';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    delete from public.nova_mission_proof_attestations where id=v_attestation;
+    raise exception 'Proof attestation deletion was unexpectedly permitted';
+  exception when insufficient_privilege then null;
+  end;
 
   begin
     perform * from public.nova_claim_mission_task(v_run,'duplicate-worker',120);
@@ -1035,6 +1108,14 @@ begin
      or has_function_privilege('authenticated','public.nova_heartbeat_mission_task(uuid,uuid,integer)','execute')
      or has_function_privilege('authenticated','public.nova_fail_mission_task(uuid,uuid,text,text,integer)','execute') then
     raise exception 'Browser clients must not invoke worker lease RPCs';
+  end if;
+  if has_table_privilege('authenticated','public.nova_mission_proof_attestations','insert')
+     or has_table_privilege('authenticated','public.nova_mission_proof_attestations','update')
+     or has_table_privilege('authenticated','public.nova_mission_proof_attestations','delete')
+     or has_table_privilege('service_role','public.nova_mission_proof_attestations','update')
+     or has_table_privilege('service_role','public.nova_mission_proof_attestations','delete')
+     or has_table_privilege('service_role','public.nova_mission_proof_attestations','truncate') then
+    raise exception 'Proof attestations must remain insert-only for the trusted server and read-only for clients';
   end if;
   if not has_function_privilege('service_role','public.nova_claim_mission_task(uuid,text,integer)','execute')
      or not has_function_privilege('service_role','public.nova_heartbeat_mission_task(uuid,uuid,integer)','execute')
