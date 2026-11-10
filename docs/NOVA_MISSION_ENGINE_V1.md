@@ -62,12 +62,12 @@ The CI workflow now runs:
 - Approval queue SQL integration: idempotent request, same-request key replay, changed-summary and cross-task key-reuse rejection, atomic task/mission gating, owner approval/rejection, duplicate-decision rejection and cross-account isolation
 - Cancellation SQL integration: atomic task cancellation, pending approval expiry, authorized-run cancellation, terminal-state guard and server-only RPC permissions
 - Approval decision lock-order migration serializes owner decisions with mission cancellation, preventing stale approvals and concurrent event-sequence collisions
-- Worker lease integration: only approved runs can be claimed; active leases cannot be double-claimed; expired tokens cannot heartbeat or fail a reclaimed run; expired leases can be reclaimed with a new token; retry scheduling and five-attempt exhaustion; browser roles cannot invoke worker RPCs
+- Worker lease integration (new tests awaiting CI): only approved runs can be claimed; active leases cannot be double-claimed; expired tokens cannot heartbeat or fail a reclaimed run; expired leases can be reclaimed with a new token; retry scheduling and five-attempt exhaustion; browser roles cannot invoke worker RPCs; cancellation revokes an active lease
 - Deno type-check for `nova-mission-api`
 - Deno input-validation, four-workspace starter-planner and approval request/decision validation tests
 - Existing backend, security, local runtime and browser regression suites
 
-The full CI run on the tested implementation commit completed successfully. A later documentation-only commit updated this file. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
+The pre-worker Mission Engine CI suite completed successfully on commit `9ef5be0`. The worker-lease migration and its expanded PostgreSQL integration tests were added afterward; CI is queued for the current head and must pass before this lease layer is considered verified. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
 
 ## Worker lease foundation (not an active worker)
 
