@@ -695,6 +695,21 @@ begin
     raise exception 'A second decision was unexpectedly accepted';
   exception when sqlstate '55000' then null;
   end;
+
+  v_duplicate := public.nova_request_task_approval(
+    '11111111-1111-4111-8111-111111111111', v_mission, v_other_task,
+    'approval-request-reject-fixture-001', 'Review a second proposed action'
+  );
+  perform public.nova_decide_task_approval(
+    '11111111-1111-4111-8111-111111111111', v_duplicate, 'reject',
+    '11111111-1111-4111-8111-111111111111', 'Rejected in integration test'
+  );
+  if (select status from public.nova_mission_approvals where id=v_duplicate) <> 'rejected'
+     or (select status from public.nova_mission_execution_runs where approval_id=v_duplicate) <> 'blocked'
+     or (select status from public.nova_mission_tasks where id=v_other_task) <> 'failed'
+     or (select state from public.nova_missions where id=v_mission) <> 'failed' then
+    raise exception 'Approval rejection did not atomically block the run and fail its task';
+  end if;
 end $mission_approval_queue$;
 reset role;
 
