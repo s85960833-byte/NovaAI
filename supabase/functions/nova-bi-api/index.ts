@@ -1,5 +1,5 @@
 import { withSupabase } from "@supabase/server";
-import { findAuthUserByEmail } from "./invitations.ts";
+import { findAuthUserByEmail, hasConfirmedEmail } from "./invitations.ts";
 import { parseJsonObject, RequestInputError } from "./request-input.ts";
 import { configuredSiteOrigin, createCorsHeaders, withSiteOrigin } from "./cors.ts";
 
@@ -157,11 +157,18 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
 
       // Existing confirmed accounts cannot be invited again through Supabase's invite endpoint.
       // Resolve them using the server-only Admin API and create an in-app pending invitation.
-      const existingUser = await findAuthUserByEmail(ctx.supabaseAdmin, email);
+      let existingUser: Awaited<ReturnType<typeof findAuthUserByEmail>>;
+      try {
+        existingUser = await findAuthUserByEmail(ctx.supabaseAdmin, email);
+      } catch {
+        console.error("NOVA BI existing-account lookup unavailable");
+        return fail("Could not safely verify the invitee's NOVA account. Please retry later.", 503);
+      }
       let invitedUserId: string;
       let authUserCreated = false;
       let notificationSent = false;
       if (existingUser) {
+        if (!hasConfirmedEmail(existingUser)) return fail("This NOVA account has not confirmed its email address yet. Ask the user to confirm their email, then resend the company invitation.", 409);
         if (existingUser.id === userId) return fail("You cannot invite your own account to this company.", 400);
         invitedUserId = existingUser.id;
       } else {

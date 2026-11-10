@@ -1,8 +1,8 @@
-import { findAuthUserByEmail } from "./invitations.ts";
+import { findAuthUserByEmail, hasConfirmedEmail } from "./invitations.ts";
 
 Deno.test("finds existing users case-insensitively", async () => {
   const admin = { auth: { admin: { listUsers: async () => ({
-    data: { users: [{ id: "user-1", email: "Person@Example.com" }] }, error: null
+    data: { users: [{ id: "user-1", email: "Person@Example.com", email_confirmed_at: "2026-01-01T00:00:00Z" }] }, error: null
   }) } } };
   const found = await findAuthUserByEmail(admin, " person@example.com ");
   if (found?.id !== "user-1") throw new Error("existing user was not found");
@@ -35,4 +35,16 @@ Deno.test("fails closed when the Admin API lookup fails", async () => {
   let rejected = false;
   try { await findAuthUserByEmail(admin, "person@example.com"); } catch { rejected = true; }
   if (!rejected) throw new Error("lookup errors must not be treated as a new account");
+});
+
+Deno.test("requires an existing invitee to have a confirmed email", () => {
+  if (hasConfirmedEmail({ id: "user-unconfirmed", email: "person@example.com" })) {
+    throw new Error("missing email confirmation must be rejected");
+  }
+  if (hasConfirmedEmail({ id: "user-unconfirmed", email: "person@example.com", email_confirmed_at: null })) {
+    throw new Error("null email confirmation must be rejected");
+  }
+  if (!hasConfirmedEmail({ id: "user-confirmed", email: "person@example.com", email_confirmed_at: "2026-01-01T00:00:00Z" })) {
+    throw new Error("confirmed email must be accepted");
+  }
 });
