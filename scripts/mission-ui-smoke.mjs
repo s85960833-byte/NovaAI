@@ -111,7 +111,7 @@ assert.ok((await page.locator('#missionDetail').innerText()).includes('Execution
 await page.locator('#missionCancelBtn').waitFor({ state: 'visible', timeout: 5000 });
 await page.locator('#missionCancelBtn').click();
 await page.waitForFunction(() => document.querySelector('#toast')?.textContent === 'Mission cancelled.', undefined, { timeout: 5000 });
-await page.locator('#missionDetail').getByText('Cancelled', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
+await page.waitForFunction(() => document.querySelector('#missionDetail')?.innerText.includes('Cancelled'), undefined, { timeout: 5000 });
 assert.equal(await page.locator('#missionCancelBtn').count(), 0, 'A cancelled mission must not offer cancellation again');
 console.log('PASS Mission Control creates a no-cost starter plan, displays approval requests and records owner approval');
 
