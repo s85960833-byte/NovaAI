@@ -27,6 +27,28 @@ alter table public.nova_mission_execution_runs
     and char_length(last_error_summary) <= 1000
   );
 
+-- Keep lease metadata internally consistent when approval/cancellation changes a run.
+create or replace function public.nova_clear_execution_lease_on_terminal_status()
+returns trigger
+language plpgsql
+set search_path = ''
+as $
+begin
+  if new.status <> 'running' then
+    new.worker_id := null;
+    new.lease_token := null;
+    new.lease_expires_at := null;
+    new.heartbeat_at := null;
+  end if;
+  return new;
+end;
+$;
+revoke all on function public.nova_clear_execution_lease_on_terminal_status() from public, anon, authenticated;
+drop trigger if exists nova_execution_run_clear_lease on public.nova_mission_execution_runs;
+create trigger nova_execution_run_clear_lease
+before update of status on public.nova_mission_execution_runs
+for each row execute function public.nova_clear_execution_lease_on_terminal_status();
+
 create index if not exists nova_mission_execution_runs_claim_idx
   on public.nova_mission_execution_runs(status, retry_after, lease_expires_at, created_at);
 
