@@ -1163,6 +1163,27 @@ begin
     raise exception 'New lease unexpectedly reused a reserved action from an expired lease';
   exception when sqlstate '55P03' then null;
   end;
+  begin
+    perform public.nova_reconcile_mission_action(
+      v_reserved_action,v_token,'Stale lease cannot reconcile this action'
+    );
+    raise exception 'Expired worker token unexpectedly reconciled an abandoned action';
+  exception when sqlstate '55000' then null;
+  end;
+  v_action_status := public.nova_reconcile_mission_action(
+    v_reserved_action,v_new_token,'Previous lease expired; external outcome requires manual verification'
+  );
+  if v_action_status <> 'uncertain'
+     or (select status from public.nova_mission_action_receipts where id=v_reserved_action) <> 'uncertain'
+     or (select reconciled_by_lease_token from public.nova_mission_action_receipts where id=v_reserved_action) <> v_new_token then
+    raise exception 'Abandoned reservation was not safely moved to uncertain reconciliation state';
+  end if;
+  v_action_status := public.nova_reconcile_mission_action(
+    v_reserved_action,v_new_token,'Previous lease expired; external outcome requires manual verification'
+  );
+  if v_action_status <> 'uncertain' then
+    raise exception 'Same-reason action reconciliation replay was not idempotent';
+  end if;
   select action_id,action_status,replayed
     into v_action_again,v_action_status,v_replayed
     from public.nova_reserve_mission_action(v_run,v_new_token,'action-uncertain-fixture-001',repeat('a',64));
@@ -1243,9 +1264,11 @@ begin
   if has_function_privilege('authenticated','public.nova_reserve_mission_action(uuid,uuid,text,text)','execute')
      or has_function_privilege('authenticated','public.nova_complete_mission_action(uuid,uuid,text,text)','execute')
      or has_function_privilege('authenticated','public.nova_mark_mission_action_uncertain(uuid,uuid,text)','execute')
+     or has_function_privilege('authenticated','public.nova_reconcile_mission_action(uuid,uuid,text)','execute')
      or not has_function_privilege('service_role','public.nova_reserve_mission_action(uuid,uuid,text,text)','execute')
      or not has_function_privilege('service_role','public.nova_complete_mission_action(uuid,uuid,text,text)','execute')
-     or not has_function_privilege('service_role','public.nova_mark_mission_action_uncertain(uuid,uuid,text)','execute') then
+     or not has_function_privilege('service_role','public.nova_mark_mission_action_uncertain(uuid,uuid,text)','execute')
+     or not has_function_privilege('service_role','public.nova_reconcile_mission_action(uuid,uuid,text)','execute') then
     raise exception 'Action idempotency RPC permissions are not service-role-only';
   end if;
   if has_table_privilege('authenticated','public.nova_mission_proof_attestations','insert')
