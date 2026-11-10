@@ -42,6 +42,8 @@ jobs:
         run: node scripts/modes-check.mjs
       - name: Test cloud sync message merge and conflict overlap
         run: npm run test:cloud-sync
+      - name: Test NOVA Mission Engine lifecycle and proof verification
+        run: npm run test:mission-core
       - name: Test bounded per-IP rate window
         run: node --test scripts/rate-limit.test.cjs
       - name: Test HTTPS-only secret-bearing provider endpoints
@@ -64,10 +66,16 @@ jobs:
           deno --version | grep -F 'deno 2.9.6'
       - name: Install authenticated NOVA BI Edge Function dependencies
         run: deno install --config supabase/functions/nova-bi-api/deno.json
+      - name: Install NOVA Mission API dependencies
+        run: deno install --config supabase/functions/nova-mission-api/deno.json
       - name: Type-check authenticated NOVA BI Edge Function
         run: deno check --config supabase/functions/nova-bi-api/deno.json --no-lock supabase/functions/nova-bi-api/index.ts
+      - name: Type-check authenticated NOVA Mission API
+        run: deno check --config supabase/functions/nova-mission-api/deno.json --no-lock supabase/functions/nova-mission-api/index.ts
       - name: Test existing-account company invitation lookup
         run: deno test --config supabase/functions/nova-bi-api/deno.json supabase/functions/nova-bi-api/invitations_test.ts supabase/functions/nova-bi-api/cors_test.ts supabase/functions/nova-bi-api/request-input_test.ts
+      - name: Test NOVA Mission API input validation
+        run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-input_test.ts
       - name: Smoke-test deployed NOVA BI Edge Function auth and CORS
         if: github.ref == 'refs/heads/main'
         run: node scripts/supabase-edge-smoke.mjs
