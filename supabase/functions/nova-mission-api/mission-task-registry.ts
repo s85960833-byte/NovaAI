@@ -47,6 +47,18 @@ export class MissionTaskNotExecutableError extends Error {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isValidCheck(value: unknown): value is { id: string; passed: boolean; detail?: string } {
+  if (!isRecord(value) || typeof value.id !== "string" ||
+      !/^[a-z][a-z0-9_.-]{0,79}$/.test(value.id) ||
+      typeof value.passed !== "boolean") return false;
+  return value.detail === undefined ||
+    (typeof value.detail === "string" && value.detail.length <= 1000);
+}
+
 export class MissionTaskRegistry {
   readonly #handlers = new Map<string, MissionTaskHandler>();
   readonly #verifiers = new Map<string, MissionTaskVerifier>();
@@ -79,6 +91,12 @@ export class MissionTaskRegistry {
     result: MissionExecutionResult;
     verification: MissionVerificationResult;
   }> {
+    if (!task || !/^[a-z][a-z0-9_.-]{1,79}$/.test(task.taskType) ||
+        !isRecord(task.input) || typeof task.id !== "string" ||
+        typeof task.missionId !== "string" || typeof task.runId !== "string" ||
+        typeof task.ownerId !== "string") {
+      throw new TypeError("Mission task descriptor is invalid");
+    }
     const handler = this.#handlers.get(task.taskType);
     const verifier = this.#verifiers.get(task.taskType);
     if (!handler || !verifier) {
@@ -86,8 +104,7 @@ export class MissionTaskRegistry {
     }
     const result = await handler.execute(task);
     if (!result || typeof result !== "object" ||
-        !result.output || typeof result.output !== "object" ||
-        !result.evidence || typeof result.evidence !== "object") {
+        !isRecord(result.output) || !isRecord(result.evidence)) {
       throw new TypeError("Task handler returned an invalid result envelope");
     }
     const verification = await verifier.verify(task, result);
@@ -95,7 +112,11 @@ export class MissionTaskRegistry {
         verification.verifierVersion !== verifier.version ||
         !Array.isArray(verification.checks) || verification.checks.length < 1 ||
         verification.checks.length > 50 ||
+        !verification.checks.every(isValidCheck) ||
+        new Set(verification.checks.map((check) => check.id)).size !== verification.checks.length ||
         verification.passed !== verification.checks.every((check) => check.passed === true) ||
+        typeof verification.observedAt !== "string" ||
+        !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$/.test(verification.observedAt) ||
         !Number.isFinite(Date.parse(verification.observedAt))) {
       throw new TypeError("Trusted verifier returned an invalid or inconsistent attestation");
     }
