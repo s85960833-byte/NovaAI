@@ -18,6 +18,7 @@
 - Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing, task/event/proof inspection, task-level approval requests, explicit owner approval/rejection across multiple tasks and mission cancellation.
 - Exact-origin CORS, bounded request bodies, input validation and server-enforced per-user rate limiting.
 - Database-level task and mission completion guards: task and mission inserts cannot bypass proof checks; each task needs its own passing proof before completion; every task must be completed with task-scoped passing proof before mission completion; completed missions and their tasks are terminal.
+- Canonical proof-envelope contract with SHA-256 digest, verifier identity/version, mission/task/run binding, bounded checks, duplicate-check rejection and deterministic JSON serialization. It is a structural integrity contract only; it does not independently prove that an external action occurred, and it is not wired to any execution endpoint.
 - Browser-authenticated clients have read-only access; event and proof records are append-only from the browser's perspective.
 
 ## Data model
@@ -85,7 +86,7 @@ This foundation does **not** yet provide:
 - Full retry/resume orchestration, executor-side idempotency and external tool adapters (database lease recovery and retry scheduling only)
 - Live production Supabase migration or Edge Function deployment
 
-The starter planner creates a checklist only; it does not execute tasks or call paid AI providers. The database completion guards ensure every completed task and mission has a task-scoped passing proof row written by the trusted server role. They do not independently validate evidence contents, compute a cryptographic digest, or prove that an external action occurred. Do not label a mission as executed or independently verified until a reviewed verifier has checked inspectable evidence and the verification checks have passed.
+The starter planner creates a checklist only; it does not execute tasks or call paid AI providers. The database completion guards ensure every completed task and mission has a task-scoped passing proof row written by the trusted server role. The proof-envelope helper computes a deterministic SHA-256 digest and validates scope/verifier metadata, but does not authenticate an external source or prove that an external action occurred. No endpoint currently accepts proof envelopes or marks tasks complete; a trusted adapter and independent evidence verifier must be reviewed before wiring this contract to persistence. Do not label a mission as executed or independently verified until a reviewed verifier has checked inspectable evidence and the verification checks have passed.
 
 ## Release gates
 
