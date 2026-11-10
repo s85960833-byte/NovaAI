@@ -74,3 +74,19 @@ test('rejects malformed missions and evidence outside verification', () => {
   assert.throws(() => createMission({ id: 'x', ownerId: 'u' }), /title/);
   assert.throws(() => appendEvidence(base(), { kind: 'test', summary: 'not allowed yet' }), /only be added while verifying/);
 });
+
+test('allows owner cancellation from verification and failed states', () => {
+  let verifying = base();
+  verifying = transitionMission(verifying, 'plan');
+  verifying = transitionMission(verifying, 'start');
+  verifying = transitionMission(verifying, 'verify');
+  verifying = transitionMission(verifying, 'cancel');
+  assert.equal(verifying.state, STATES.CANCELLED);
+
+  let failed = base();
+  failed = transitionMission(failed, 'plan');
+  failed = transitionMission(failed, 'start');
+  failed = transitionMission(failed, 'fail');
+  failed = transitionMission(failed, 'cancel');
+  assert.equal(failed.state, STATES.CANCELLED);
+});
