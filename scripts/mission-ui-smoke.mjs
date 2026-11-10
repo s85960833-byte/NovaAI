@@ -56,9 +56,13 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
             approvals = [{ id: '223e4567-e89b-42d3-a456-426614174000', task_id: 'task-1', action_summary: 'Review the generated deployment plan', status: 'pending', requested_at: '2026-11-10T10:00:00.000Z' }];
             return { mission: missions[0], tasks, events, proofs, plan_type: 'starter_template' };
           }
+          if (path === 'approvals/' + '223e4567-e89b-42d3-a456-426614174000' + '/decision' && method === 'POST') {
+            approvals = [{ id: '223e4567-e89b-42d3-a456-426614174000', task_id: 'task-1', action_summary: 'Review the generated deployment plan', status: payload.decision === 'approve' ? 'approved' : 'rejected', decision_note: '' }];
+            return { approval: approvals[0], execution_run: { status: payload.decision === 'approve' ? 'authorized' : 'blocked' } };
+          }
           if (path === 'missions/' + id && method === 'GET') {
             if (!events.length) events = [{ id: 'event-1', event_type: 'mission.created', from_state: null, to_state: 'draft' }];
-            return { mission: missions[0], tasks, events, proofs };
+            return { mission: missions[0], tasks, events, proofs, approvals, execution_runs: [] };
           }
           throw new Error('Unexpected mocked Mission API route: ' + method + ' ' + path);
         }
@@ -93,7 +97,11 @@ await page.locator('#missionDetail').getByText('Confirm requirements').waitFor({
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mission.planned'));
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Planned'));
 assert.equal(await page.locator('#missionPlanBtn').count(), 0, 'A planned mission must not offer duplicate plan generation');
-console.log('PASS Mission Control creates a no-cost starter plan and shows planned tasks/events');
+await page.locator('[data-approval-decision="approve"]').waitFor({ state: 'visible', timeout: 5000 });
+await page.locator('[data-approval-decision="approve"]').click();
+await page.locator('#missionDetail').getByText('approved', { exact: true }).waitFor({ state: 'visible', timeout: 5000 });
+assert.ok((await page.locator('#missionDetail').innerText()).includes('Execution is not started automatically after approval.'));
+console.log('PASS Mission Control creates a no-cost starter plan, displays approval requests and records owner approval');
 
 await page.evaluate(() => {
   document.documentElement.lang = 'hi';
