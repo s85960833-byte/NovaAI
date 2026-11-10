@@ -72,9 +72,10 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
             return { approval: approvals[1], execution_run: { status: 'awaiting_approval' } };
           }
           if (path === 'missions/' + id + '/cancel' && method === 'POST') {
+            const previousState = missions[0].state;
             missions = [{ ...missions[0], state: 'cancelled', version: missions[0].version + 1 }];
             tasks = tasks.map(task => ['completed','failed','cancelled'].includes(task.status) ? task : { ...task, status: 'cancelled' });
-            events = [...events, { id: 'event-cancel', event_type: 'mission.cancelled', from_state: missions[0].state, to_state: 'cancelled' }];
+            events = [...events, { id: 'event-cancel', event_type: 'mission.cancelled', from_state: previousState, to_state: 'cancelled' }];
             approvals = approvals.map(approval => approval.status === 'pending' ? { ...approval, status: 'expired' } : approval);
             return { mission: missions[0] };
           }
