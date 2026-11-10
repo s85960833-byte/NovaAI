@@ -596,7 +596,7 @@ begin
     '11111111-1111-4111-8111-111111111111',
     v_mission_id,
     '{"kind":"starter_template","version":1,"workspace":"build"}'::jsonb,
-    '[{"title":"Confirm requirements","description":"Capture acceptance criteria"},{"title":"Run checks","description":"Verify the result"}]'::jsonb
+    '[{"title":"Confirm requirements","description":"Capture acceptance criteria","task_type":"build.requirements","input_schema_version":1,"input":{"description":"Capture acceptance criteria"}},{"title":"Run checks","description":"Verify the result","task_type":"build.quality_checks","input_schema_version":1,"input":{"description":"Verify the result"}}]'::jsonb
   );
   if (select state from public.nova_missions where id=v_mission_id) <> 'planned' then
     raise exception 'Starter plan did not move mission to planned';
@@ -615,7 +615,7 @@ begin
     perform public.nova_save_mission_plan(
       '11111111-1111-4111-8111-111111111111', v_mission_id,
       '{"kind":"starter_template"}'::jsonb,
-      '[{"title":"Duplicate plan"}]'::jsonb
+      '[{"title":"Duplicate plan","description":"Valid typed task fixture","task_type":"build.requirements","input_schema_version":1,"input":{"description":"Valid typed task fixture"}}]'::jsonb
     );
     raise exception 'A second plan was unexpectedly accepted';
   exception when sqlstate '55000' then
@@ -740,7 +740,7 @@ begin
   perform public.nova_save_mission_plan(
     '11111111-1111-4111-8111-111111111111', v_mission,
     '{"kind":"starter_template","workspace":"agents"}'::jsonb,
-    '[{"title":"Prepare approved action","description":"No external action is executed in this test"},{"title":"Second action","description":"Used to validate idempotency key binding"}]'::jsonb
+    '[{"title":"Prepare approved action","description":"No external action is executed in this test","task_type":"build.requirements","input_schema_version":1,"input":{"description":"No external action is executed in this test"}},{"title":"Second action","description":"Used to validate idempotency key binding","task_type":"build.quality_checks","input_schema_version":1,"input":{"description":"Used to validate idempotency key binding"}}]'::jsonb
   );
   select id into v_task from public.nova_mission_tasks
    where mission_id=v_mission and owner_id='11111111-1111-4111-8111-111111111111';
@@ -875,7 +875,7 @@ begin
   perform public.nova_save_mission_plan(
     '11111111-1111-4111-8111-111111111111', v_mission,
     '{"kind":"starter_template","workspace":"agents"}'::jsonb,
-    '[{"title":"Action awaiting approval","description":"Must not execute after cancellation"}]'::jsonb
+    '[{"title":"Action awaiting approval","description":"Must not execute after cancellation","task_type":"build.requirements","input_schema_version":1,"input":{"description":"Must not execute after cancellation"}}]'::jsonb
   );
   select id into v_task from public.nova_mission_tasks
    where mission_id=v_mission and owner_id='11111111-1111-4111-8111-111111111111';
@@ -958,7 +958,7 @@ begin
   perform public.nova_save_mission_plan(
     '11111111-1111-4111-8111-111111111111', v_mission,
     '{"kind":"starter_template","workspace":"agents"}'::jsonb,
-    '[{"title":"Approved worker task","description":"No external side effect is performed"}]'::jsonb
+    '[{"title":"Approved worker task","description":"No external side effect is performed","task_type":"build.requirements","input_schema_version":1,"input":{"description":"No external side effect is performed"}}]'::jsonb
   );
   select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
   v_approval := public.nova_request_task_approval(
@@ -1363,7 +1363,7 @@ begin
   perform public.nova_save_mission_plan(
     '11111111-1111-4111-8111-111111111111',v_mission,
     '{"kind":"starter_template","workspace":"agents"}'::jsonb,
-    '[{"title":"Cancelable worker task","description":"Cancellation revokes its lease"}]'::jsonb
+    '[{"title":"Cancelable worker task","description":"Cancellation revokes its lease","task_type":"build.requirements","input_schema_version":1,"input":{"description":"Cancellation revokes its lease"}}]'::jsonb
   );
   select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
   v_approval := public.nova_request_task_approval(
@@ -1422,7 +1422,7 @@ begin
   );
   perform public.nova_save_mission_plan(
     v_owner,v_mission,'{"kind":"starter_template","workspace":"agents"}'::jsonb,
-    '[{"title":"Proof-attested task","description":"Controlled database-only fixture"}]'::jsonb
+    '[{"title":"Proof-attested task","description":"Controlled database-only fixture","task_type":"build.requirements","input_schema_version":1,"input":{"description":"Controlled database-only fixture"}}]'::jsonb
   );
   select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
   v_approval := public.nova_request_task_approval(
