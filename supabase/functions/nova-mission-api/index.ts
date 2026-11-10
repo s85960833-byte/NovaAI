@@ -275,7 +275,7 @@ const authenticatedHandler = withSupabase(
         if (error) throw error;
         if (!mission) return fail("Mission not found", 404);
 
-        const [tasks, events, proofs, approvals, executionRuns] = await Promise.all([
+        const [tasks, events, proofs, approvals, executionRuns, actionReceipts] = await Promise.all([
           db.from("nova_mission_tasks")
             .select("id,sequence,title,status,attempts,created_at,updated_at")
             .eq("mission_id", missionId).eq("owner_id", userId)
@@ -296,15 +296,21 @@ const authenticatedHandler = withSupabase(
             .select("id,approval_id,task_id,status,attempt,created_at,updated_at")
             .eq("mission_id", missionId).eq("owner_id", userId)
             .order("created_at", { ascending: false }).limit(100),
+          db.from("nova_mission_action_receipts")
+            .select("id,task_id,run_id,action_key,request_digest,status,result_digest,external_reference,uncertain_reason,reconciliation_note,created_at,updated_at,completed_at")
+            .eq("mission_id", missionId).eq("owner_id", userId)
+            .order("created_at", { ascending: false }).limit(100),
         ]);
         if (tasks.error) throw tasks.error;
         if (events.error) throw events.error;
         if (proofs.error) throw proofs.error;
         if (approvals.error) throw approvals.error;
         if (executionRuns.error) throw executionRuns.error;
+        if (actionReceipts.error) throw actionReceipts.error;
         return json({
           mission, tasks: tasks.data || [], events: events.data || [], proofs: proofs.data || [],
           approvals: approvals.data || [], execution_runs: executionRuns.data || [],
+          action_receipts: actionReceipts.data || [],
         });
       }
 
