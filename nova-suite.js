@@ -93,6 +93,19 @@ async function showMissionDetail(id){
     await showMissionDetail(id);
    }catch(error){toast(String(error?.message||bi('Approval decision could not be recorded.')));button.disabled=false}
   }));
+  if(!['completed','cancelled'].includes(m.state)){
+   detail.insertAdjacentHTML('beforeend','<div class="ns-row"><button class="ns-quiet" id="missionCancelBtn">'+esc(bi('Cancel mission'))+'</button></div>');
+   $('missionCancelBtn').addEventListener('click',async()=>{
+    if(!window.confirm(bi('Cancel this mission?')))return;
+    const button=$('missionCancelBtn');button.disabled=true;
+    try{
+     await window.NovaBusinessCloud.missionApi('missions/'+id+'/cancel','POST',{reason:'Cancelled by mission owner'});
+     toast('Mission cancelled.');
+     await refreshMissions();
+     await showMissionDetail(id);
+    }catch(error){toast(String(error?.message||bi('Mission cancellation failed.')));button.disabled=false}
+   });
+  }
   if(m.state==='draft'){
    detail.insertAdjacentHTML('beforeend','<div class="ns-row"><button class="ns-action" id="missionPlanBtn">'+esc(bi('Generate starter plan'))+'</button></div><p class="ns-muted">'+esc(bi('This is a template checklist; it does not execute tasks.'))+'</p>');
    $('missionPlanBtn').addEventListener('click',async()=>{
