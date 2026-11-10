@@ -125,6 +125,10 @@ set search_path = ''
 as $$
 declare
   v_mission_id uuid;
+  v_existing_title text;
+  v_existing_description text;
+  v_existing_workspace text;
+  v_existing_plan jsonb;
 begin
   if current_user <> 'service_role' then
     raise exception 'Mission creation is restricted to the trusted server role'
@@ -132,10 +136,20 @@ begin
   end if;
 
   if p_idempotency_key is not null then
-    select id into v_mission_id
+    select id, title, description, workspace, plan_json
+      into v_mission_id, v_existing_title, v_existing_description, v_existing_workspace, v_existing_plan
     from public.nova_missions
     where owner_id = p_owner_id and idempotency_key = p_idempotency_key;
-    if v_mission_id is not null then return v_mission_id; end if;
+    if v_mission_id is not null then
+      if v_existing_title is distinct from pg_catalog.btrim(p_title)
+         or v_existing_description is distinct from coalesce(p_description, '')
+         or v_existing_workspace is distinct from coalesce(p_workspace, 'agents')
+         or v_existing_plan is distinct from coalesce(p_plan_json, '{}'::jsonb) then
+        raise exception 'Mission idempotency key is already used for a different request'
+          using errcode = '23505';
+      end if;
+      return v_mission_id;
+    end if;
   end if;
 
   insert into public.nova_missions(
@@ -148,9 +162,17 @@ begin
   returning id into v_mission_id;
 
   if v_mission_id is null then
-    select id into v_mission_id
+    select id, title, description, workspace, plan_json
+      into v_mission_id, v_existing_title, v_existing_description, v_existing_workspace, v_existing_plan
     from public.nova_missions
     where owner_id = p_owner_id and idempotency_key = p_idempotency_key;
+    if v_existing_title is distinct from pg_catalog.btrim(p_title)
+       or v_existing_description is distinct from coalesce(p_description, '')
+       or v_existing_workspace is distinct from coalesce(p_workspace, 'agents')
+       or v_existing_plan is distinct from coalesce(p_plan_json, '{}'::jsonb) then
+      raise exception 'Mission idempotency key is already used for a different request'
+        using errcode = '23505';
+    end if;
     return v_mission_id;
   end if;
 
