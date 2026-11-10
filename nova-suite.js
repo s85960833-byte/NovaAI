@@ -45,6 +45,7 @@ function missionStateLabel(state){
  const labels={draft:'Draft',planned:'Planned',running:'Running',waiting_approval:'Waiting approval',verifying:'Verifying',completed:'Completed',failed:'Failed',cancelled:'Cancelled'};
  return bi(labels[state]||state||'Unknown');
 }
+function missionActionStatusLabel(status){const labels={reserved:'Reserved',completed:'Completed',uncertain:'Uncertain'};return bi(labels[status]||status||'Unknown')}
 function renderMissionList(items){
  const list=$('missionList');if(!list)return;
  if(!items.length){list.innerHTML='<p class="ns-muted">'+esc(bi('No missions yet. Create your first mission.'))+'</p>';return}
@@ -76,10 +77,12 @@ async function showMissionDetail(id){
   const events=Array.isArray(result.events)?result.events:[];
   const proofs=Array.isArray(result.proofs)?result.proofs:[];
   const approvals=Array.isArray(result.approvals)?result.approvals:[];
+  const actionReceipts=Array.isArray(result.action_receipts)?result.action_receipts:[];
   detail.innerHTML='<h3>'+esc(bi('Mission details'))+'</h3><div><b>'+esc(m.title||'')+'</b></div><p class="ns-muted">'+esc(missionWorkspaceLabel(m.workspace))+' · '+esc(missionStateLabel(m.state))+'</p><p>'+esc(m.description||'')+'</p>'+
    '<h4>'+esc(bi('Tasks'))+'</h4>'+(tasks.length?'<div>'+tasks.map(t=>'<div class="ns-card"><b>'+esc(t.title)+'</b><p class="ns-muted">'+esc(missionStateLabel(t.status))+'</p>'+(t.status==='planned'&&['planned','running'].includes(m.state)?'<button class="ns-quiet" data-task-approval="'+esc(t.id)+'">'+esc(bi('Request approval'))+'</button>':'')+'</div>').join('')+'</div>':'<p class="ns-muted">—</p>')+
    '<h4>'+esc(bi('Activity'))+'</h4>'+(events.length?'<ul>'+events.map(e=>'<li>'+esc(e.event_type)+' · '+esc(e.from_state||'—')+' → '+esc(e.to_state)+'</li>').join('')+'</ul>':'<p class="ns-muted">—</p>')+
-   '<h4>'+esc(bi('Proof Ledger'))+'</h4>'+(proofs.length?'<ul>'+proofs.map(p=>'<li>'+esc(p.proof_type)+' · '+esc(p.verification_status)+' — '+esc(p.summary)+'</li>').join('')+'</ul>':'<p class="ns-muted">—</p>');
+   '<h4>'+esc(bi('Proof Ledger'))+'</h4>'+(proofs.length?'<ul>'+proofs.map(p=>'<li>'+esc(p.proof_type)+' · '+esc(p.verification_status)+' — '+esc(p.summary)+'</li>').join('')+'</ul>':'<p class="ns-muted">—</p>')+
+   '<h4>'+esc(bi('Action receipts'))+'</h4>'+(actionReceipts.length?actionReceipts.map(receipt=>'<div class="ns-card"><b>'+esc(receipt.action_key)+'</b><p class="ns-muted">'+esc(missionActionStatusLabel(receipt.status))+'</p>'+(receipt.request_digest?'<p class="ns-muted">'+esc(bi('Request digest'))+': <code>'+esc(String(receipt.request_digest).slice(0,16))+'…</code></p>':'')+(receipt.result_digest?'<p class="ns-muted">'+esc(bi('Result digest'))+': <code>'+esc(String(receipt.result_digest).slice(0,16))+'…</code></p>':'')+(receipt.external_reference?'<p>'+esc(bi('External reference'))+': '+esc(receipt.external_reference)+'</p>':'')+(receipt.uncertain_reason?'<p>'+esc(bi('Uncertainty reason'))+': '+esc(receipt.uncertain_reason)+'</p>':'')+(receipt.reconciliation_note?'<p>'+esc(bi('Reconciliation note'))+': '+esc(receipt.reconciliation_note)+'</p>':'')+'</div>').join(''):'<p class="ns-muted">'+esc(bi('No action receipts yet.'))+'</p>');
   detail.querySelectorAll('[data-task-approval]').forEach(button=>button.addEventListener('click',async()=>{
    if(!window.confirm(bi('Request approval for this task?')))return;
    button.disabled=true;
