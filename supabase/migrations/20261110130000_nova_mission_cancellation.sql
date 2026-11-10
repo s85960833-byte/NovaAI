@@ -40,7 +40,7 @@ begin
   update public.nova_mission_execution_runs
      set status = 'cancelled', updated_at = pg_catalog.now()
    where mission_id = p_mission_id and owner_id = p_owner_id
-     and status in ('awaiting_approval','authorized');
+     and status in ('awaiting_approval','authorized','running');
 
   update public.nova_mission_tasks
      set status = 'cancelled', updated_at = pg_catalog.now()
