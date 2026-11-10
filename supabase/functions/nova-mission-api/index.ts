@@ -3,6 +3,7 @@ import { RequestInputError, parseJsonObject } from "../nova-bi-api/request-input
 import { configuredSiteOrigin, withSiteOrigin } from "../nova-bi-api/cors.ts";
 import { validateMissionInput } from "./mission-input.ts";
 import { buildStarterPlan, type MissionWorkspace } from "./mission-planner.ts";
+import { validateApprovalDecision, validateApprovalRequest } from "./mission-approval.ts";
 
 const siteOrigin = configuredSiteOrigin(
   Deno.env.get("NOVA_MISSION_SITE_URL") || Deno.env.get("NOVA_BI_SITE_URL"),
@@ -177,6 +178,63 @@ const authenticatedHandler = withSupabase(
         if (events.error) throw events.error;
         if (proofs.error) throw proofs.error;
         return json({ mission: updated.data, tasks: tasks.data || [], events: events.data || [], proofs: proofs.data || [], plan_type: "starter_template" });
+      }
+
+      const approvalRequestMatch = path.match(/^missions\/([0-9a-f-]{36})\/tasks\/([0-9a-f-]{36})\/approval$/i);
+      if (req.method === "POST" && approvalRequestMatch &&
+          uuid(approvalRequestMatch[1]) && uuid(approvalRequestMatch[2])) {
+        const input = validateApprovalRequest(parseJsonObject(await readBoundedBody(req)));
+        const missionId = approvalRequestMatch[1];
+        const taskId = approvalRequestMatch[2];
+        const { data: approvalId, error } = await ctx.supabaseAdmin.rpc("nova_request_task_approval", {
+          p_owner_id: userId, p_mission_id: missionId, p_task_id: taskId,
+          p_request_key: input.requestKey, p_action_summary: input.actionSummary,
+        });
+        if (error) {
+          if (error.code === "P0002") return fail("Mission or task not found", 404);
+          if (error.code === "55000") return fail("Mission or task is not ready for an approval request", 409);
+          if (error.code === "23514") return fail("Approval request did not pass validation", 400);
+          throw error;
+        }
+        if (!uuid(approvalId)) throw new Error("Approval request returned an invalid identifier");
+        const [approval, run] = await Promise.all([
+          db.from("nova_mission_approvals").select("id,mission_id,task_id,action_summary,status,requested_at,decided_at")
+            .eq("id", approvalId).eq("owner_id", userId).maybeSingle(),
+          db.from("nova_mission_execution_runs").select("id,approval_id,status,attempt,created_at,updated_at")
+            .eq("approval_id", approvalId).eq("owner_id", userId).maybeSingle(),
+        ]);
+        if (approval.error) throw approval.error;
+        if (run.error) throw run.error;
+        if (!approval.data || !run.data) return fail("Approval request could not be loaded", 500);
+        return json({ approval: approval.data, execution_run: run.data }, 202);
+      }
+
+      const approvalDecisionMatch = path.match(/^approvals\/([0-9a-f-]{36})\/decision$/i);
+      if (req.method === "POST" && approvalDecisionMatch && uuid(approvalDecisionMatch[1])) {
+        const input = validateApprovalDecision(parseJsonObject(await readBoundedBody(req)));
+        const approvalId = approvalDecisionMatch[1];
+        const { data: decidedId, error } = await ctx.supabaseAdmin.rpc("nova_decide_task_approval", {
+          p_owner_id: userId, p_approval_id: approvalId, p_decision: input.decision,
+          p_actor_id: userId, p_decision_note: input.decisionNote,
+        });
+        if (error) {
+          if (error.code === "P0002") return fail("Approval not found", 404);
+          if (error.code === "55000") return fail("This approval has already been decided", 409);
+          if (error.code === "42501") return fail("Only the mission owner may decide this approval", 403);
+          if (error.code === "23514") return fail("Approval decision did not pass validation", 400);
+          throw error;
+        }
+        if (decidedId !== approvalId) throw new Error("Approval decision returned an unexpected identifier");
+        const [approval, run] = await Promise.all([
+          db.from("nova_mission_approvals").select("id,mission_id,task_id,action_summary,status,requested_at,decided_at,decided_by,decision_note")
+            .eq("id", approvalId).eq("owner_id", userId).maybeSingle(),
+          db.from("nova_mission_execution_runs").select("id,approval_id,status,attempt,created_at,updated_at")
+            .eq("approval_id", approvalId).eq("owner_id", userId).maybeSingle(),
+        ]);
+        if (approval.error) throw approval.error;
+        if (run.error) throw run.error;
+        if (!approval.data || !run.data) return fail("Approval decision could not be loaded", 500);
+        return json({ approval: approval.data, execution_run: run.data });
       }
 
       const detailMatch = path.match(/^missions\/([0-9a-f-]{36})$/i);
