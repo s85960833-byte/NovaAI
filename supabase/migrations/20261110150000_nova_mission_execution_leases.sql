@@ -141,6 +141,17 @@ begin
   if v_run_status = 'running' and v_expiry > pg_catalog.now() then
     raise exception 'Execution run already has an active lease' using errcode = '55P03';
   end if;
+  -- Keep execution serial per mission. An expired process may still be finishing an
+  -- external side effect, so do not start a different task until that run is reconciled.
+  if exists (
+    select 1 from public.nova_mission_execution_runs other_run
+     where other_run.mission_id = v_mission_id
+       and other_run.id <> p_run_id
+       and other_run.status = 'running'
+  ) then
+    raise exception 'Another task in this mission still owns an execution lease'
+      using errcode = '55P03';
+  end if;
   if v_retry_after is not null and v_retry_after > pg_catalog.now() then
     raise exception 'Execution retry is not due yet' using errcode = '55P03';
   end if;
