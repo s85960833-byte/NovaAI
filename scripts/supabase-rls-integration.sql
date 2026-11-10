@@ -441,6 +441,54 @@ insert into public.nova_mission_events(
 );
 reset role;
 
+set role service_role;
+do $mission_idempotency$
+declare
+  v_first uuid;
+  v_second uuid;
+begin
+  v_first := public.nova_create_mission(
+    '11111111-1111-4111-8111-111111111111',
+    'Idempotent mission fixture', '', 'build',
+    'mission-idempotency-fixture-001', '{}'::jsonb
+  );
+  v_second := public.nova_create_mission(
+    '11111111-1111-4111-8111-111111111111',
+    'Idempotent mission fixture', '', 'build',
+    'mission-idempotency-fixture-001', '{}'::jsonb
+  );
+  if v_first is distinct from v_second then
+    raise exception 'Repeated idempotency key created different missions';
+  end if;
+  if (select count(*) from public.nova_missions
+      where owner_id='11111111-1111-4111-8111-111111111111'
+        and idempotency_key='mission-idempotency-fixture-001') <> 1 then
+    raise exception 'Idempotency key created duplicate mission rows';
+  end if;
+  if (select count(*) from public.nova_mission_events where mission_id=v_first) <> 1 then
+    raise exception 'Idempotent mission creation must create exactly one initial event';
+  end if;
+end $mission_idempotency$;
+reset role;
+
+do $mission_rpc_privileges$
+begin
+  if has_function_privilege('authenticated',
+    'public.nova_create_mission(uuid,text,text,text,text,jsonb)','execute') then
+    raise exception 'Browser-authenticated users must not execute the trusted mission creation RPC';
+  end if;
+  if not has_function_privilege('service_role',
+    'public.nova_create_mission(uuid,text,text,text,text,jsonb)','execute') then
+    raise exception 'Trusted service role must execute the mission creation RPC';
+  end if;
+  if exists (
+    select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.proname='nova_create_mission' and p.prosecdef
+  ) then
+    raise exception 'Mission creation RPC must remain SECURITY INVOKER';
+  end if;
+end $mission_rpc_privileges$;
+
 set role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
 do $mission_owner_read$
