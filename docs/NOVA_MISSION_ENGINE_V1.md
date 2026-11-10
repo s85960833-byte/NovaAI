@@ -83,6 +83,14 @@ The migration `20261110150000_nova_mission_execution_leases.sql` adds three serv
 
 These RPCs are not exposed through the public Mission API and no worker process calls them yet. They are primitives for a later reviewed worker service, not evidence that NOVA currently executes tasks.
 
+## Worker readiness audit
+
+A source review found two concrete integration gaps that must be closed before any worker is enabled:
+
+- **Typed task routing is not persisted yet.** The task table currently stores only a title and an `input_json.description`; the starter planner does not assign a `task_type`, while the in-memory registry requires one. A reviewed schema/API contract must add an explicit allowlisted task type and validated, versioned input schema. The worker must reject unknown or malformed types rather than infer an executable action from free text.
+- **Proof persistence is not wired to execution yet.** The proof helper validates and hashes an envelope, and the database has append-only attestation storage plus a lease-fenced completion RPC, but no trusted endpoint currently accepts a verifier result, persists the proof/attestation pair, and then invokes completion. This path must recompute the digest server-side, bind every identifier to the active lease, and fail closed on any mismatch.
+
+Therefore the current approval, lease, action-receipt and registry primitives are not enough to run tasks. Do not register a handler or enable a worker until these contracts have dedicated negative/positive integration tests and an independently reviewed verifier.
 ## Fail-closed worker registry foundation
 
 The registry also validates task, mission, run and owner identifiers as UUIDs before invoking a handler; malformed bindings are rejected before execution. Negative tests cover each identifier.
