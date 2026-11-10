@@ -88,7 +88,7 @@ These RPCs are not exposed through the public Mission API and no worker process 
 A source review found two concrete integration gaps that must be closed before any worker is enabled:
 
 - **Typed task routing is not persisted yet.** The task table currently stores only a title and an `input_json.description`; the starter planner does not assign a `task_type`. The in-memory registry now requires each future registration to provide an explicit versioned input schema and rejects a task before its handler runs when the version or input does not match. A reviewed schema/API contract and migration must still persist the allowlisted task type, schema version and validated input. The worker must reject unknown or malformed types rather than infer an executable action from free text.
-- **Proof persistence is not wired to execution yet.** The proof helper validates and hashes an envelope, and the database has append-only attestation storage plus a lease-fenced completion RPC, but no trusted endpoint currently accepts a verifier result, persists the proof/attestation pair, and then invokes completion. This path must recompute the digest server-side, bind every identifier to the active lease, and fail closed on any mismatch.
+- **Proof persistence is not wired to execution yet.** The proof helper validates and hashes an envelope, and the database has append-only attestation storage plus a lease-fenced completion RPC, but no trusted endpoint currently accepts a verifier result, persists the proof/attestation pair, and then invokes completion. This path must recompute the digest server-side, bind every identifier to the active lease, and fail closed on any mismatch. A single service-role-only database RPC must validate the active lease, append the proof and attestation, and invoke the completion RPC in the same database transaction; separate REST writes could leave a proof persisted without its attestation or completion.
 
 Therefore the current approval, lease, action-receipt and registry primitives are not enough to run tasks. Do not register a handler or enable a worker until these contracts have dedicated negative/positive integration tests and an independently reviewed verifier.
 ## Fail-closed worker registry foundation
@@ -120,7 +120,7 @@ Before production use:
 3. Deploy the Edge Function only after its environment, JWT verification and exact-origin CORS are checked.
 4. Add end-to-end authenticated API tests with two distinct live user accounts.
 5. Implement execution workers with per-user permissions, bounded retries, idempotency, approvals and recovery.
-6. Implement a separately reviewed evidence verifier with canonical evidence serialization, cryptographic digesting, verifier identity/version, run-to-task binding, digest recomputation and executor-side idempotency/fencing before enabling any worker.
+6. Implement a separately reviewed evidence verifier with canonical evidence serialization, cryptographic digesting, verifier identity/version, run-to-task binding, digest recomputation and executor-side idempotency/fencing. Persist proof + attestation and call lease-fenced completion through one service-role-only database transaction before enabling any worker.
 7. Keep service-role credentials server-side; never expose them to the browser.
 
 No production branch merge, Render deployment, live Supabase schema change or paid provider spend is part of this PR.
