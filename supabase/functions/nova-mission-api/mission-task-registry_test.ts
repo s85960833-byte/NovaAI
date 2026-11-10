@@ -79,3 +79,58 @@ Deno.test("rejects duplicate task types and inconsistent verifier results", asyn
     if (!(error instanceof TypeError) || !error.message.includes("invalid or inconsistent")) throw error;
   }
 });
+
+
+Deno.test("rejects malformed, duplicate or non-ISO verifier checks", async () => {
+  for (const checks of [
+    [{ id: "valid", passed: true }, { id: "valid", passed: true }],
+    [{ id: "valid", passed: "true" }],
+    [{ id: "INVALID ID", passed: true }],
+    [{ id: "valid", passed: true, detail: "x".repeat(1001) }],
+  ]) {
+    const registry = new MissionTaskRegistry();
+    registry.register("test.safe-check", {
+      async execute() { return { output: {}, evidence: {} }; },
+    }, {
+      id: "test.strict-verifier",
+      version: "1.0.0",
+      async verify() {
+        return {
+          passed: true,
+          verifierId: "test.strict-verifier",
+          verifierVersion: "1.0.0",
+          checks,
+          observedAt: "2026-11-10T12:00:00.000Z",
+        };
+      },
+    });
+    try {
+      await registry.executeAndVerify(task);
+      throw new Error("Malformed verifier checks were unexpectedly accepted");
+    } catch (error) {
+      if (!(error instanceof TypeError) || !error.message.includes("invalid or inconsistent")) throw error;
+    }
+  }
+  const registry = new MissionTaskRegistry();
+  registry.register("test.safe-check", {
+    async execute() { return { output: {}, evidence: {} }; },
+  }, {
+    id: "test.strict-verifier",
+    version: "1.0.0",
+    async verify() {
+      return {
+        passed: true,
+        verifierId: "test.strict-verifier",
+        verifierVersion: "1.0.0",
+        checks: [{ id: "valid", passed: true }],
+        observedAt: "November 10, 2026",
+      };
+    },
+  });
+  try {
+    await registry.executeAndVerify(task);
+    throw new Error("Non-ISO verifier timestamp was unexpectedly accepted");
+  } catch (error) {
+    if (!(error instanceof TypeError) || !error.message.includes("invalid or inconsistent")) throw error;
+  }
+});
