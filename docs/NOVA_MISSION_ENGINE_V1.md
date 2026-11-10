@@ -9,13 +9,13 @@
 - Failure, retry and cancellation paths.
 - Immutable in-memory event/evidence snapshots in the domain core.
 - Supabase persistence for missions, tasks, events and proof records.
-- Server-only approval queue and execution-run ledger: requests atomically move the task and mission into `waiting_approval`; owner approval records an authorized run, while rejection blocks it. Idempotency keys prevent duplicate approval records.
+- Server-only approval queue and execution-run ledger: requests atomically move the task and mission into `waiting_approval`; owner approval records an authorized run, while rejection blocks it. Idempotency keys prevent duplicate approval records and are bound to the original mission/task; cross-task reuse returns a conflict.
 - Atomic, idempotent mission creation RPC restricted to the trusted `service_role`.
 - Authenticated read API for mission lists and details.
 - Authenticated owner-scoped approval request and decision API routes; decision actor is taken from the verified JWT subject, never from request JSON.
 - Atomic owner cancellation endpoint expires pending approvals, cancels active authorization records and cancels remaining non-terminal tasks; it does not attempt to stop external systems.
 - Deterministic, no-cost starter planner templates for Learn, Build, Agents and Intelligence; plan persistence atomically creates tasks and advances draft missions to planned.
-- Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing, task/event/proof inspection, explicit owner approval/rejection and mission cancellation.
+- Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing, task/event/proof inspection, task-level approval requests, explicit owner approval/rejection and mission cancellation.
 - Exact-origin CORS, bounded request bodies, input validation and server-enforced per-user rate limiting.
 - Database-level rule that prevents `completed` unless at least one passing proof record exists.
 - Browser-authenticated clients have read-only access; event and proof records are append-only from the browser's perspective.
@@ -56,10 +56,10 @@ The API derives `owner_id` from the verified JWT. It never trusts a caller-suppl
 The CI workflow now runs:
 
 - `npm run test:mission-core`
-- `node scripts/mission-ui-smoke.mjs` with a mocked Mission API, covering create/list/detail, starter planning, owner approval, cancellation, Hindi labels and a 390px mobile viewport
+- `node scripts/mission-ui-smoke.mjs` with a mocked Mission API, covering create/list/detail, starter planning, task approval request, owner decision, cancellation, Hindi labels and a 390px mobile viewport
 - PostgreSQL migration and RLS integration tests, including cross-account isolation
 - Atomic creation/idempotency and RPC privilege tests
-- Approval queue SQL integration: idempotent request, atomic task/mission gating, owner decision, duplicate-decision rejection and cross-account isolation
+- Approval queue SQL integration: idempotent request, same-task key binding, cross-task key-reuse rejection, atomic task/mission gating, owner decision, duplicate-decision rejection and cross-account isolation
 - Cancellation SQL integration: atomic task cancellation, pending approval expiry, authorized-run cancellation, terminal-state guard and server-only RPC permissions\n- Approval decision lock-order migration serializes owner decisions with mission cancellation, preventing stale approvals and concurrent event-sequence collisions
 - Deno type-check for `nova-mission-api`
 - Deno input-validation, four-workspace starter-planner and approval request/decision validation tests
