@@ -83,6 +83,8 @@ declare
   v_mission_state text;
   v_task_status text;
   v_approval_id uuid;
+  v_existing_mission_id uuid;
+  v_existing_task_id uuid;
   v_sequence bigint;
 begin
   if current_user <> 'service_role' then
@@ -101,9 +103,16 @@ begin
    where id = p_task_id and mission_id = p_mission_id and owner_id = p_owner_id for update;
   if not found then raise exception 'Task not found' using errcode = 'P0002'; end if;
 
-  select id into v_approval_id from public.nova_mission_approvals
+  select id, mission_id, task_id into v_approval_id, v_existing_mission_id, v_existing_task_id
+    from public.nova_mission_approvals
    where owner_id = p_owner_id and request_key = p_request_key;
-  if v_approval_id is not null then return v_approval_id; end if;
+  if v_approval_id is not null then
+    if v_existing_mission_id is distinct from p_mission_id or v_existing_task_id is distinct from p_task_id then
+      raise exception 'Approval idempotency key is already used for a different task'
+        using errcode = '23505';
+    end if;
+    return v_approval_id;
+  end if;
 
   if v_mission_state not in ('planned','running')
      or v_task_status <> 'planned' then
@@ -117,8 +126,13 @@ begin
   on conflict (owner_id, request_key) do nothing
   returning id into v_approval_id;
   if v_approval_id is null then
-    select id into v_approval_id from public.nova_mission_approvals
+    select id, mission_id, task_id into v_approval_id, v_existing_mission_id, v_existing_task_id
+      from public.nova_mission_approvals
      where owner_id = p_owner_id and request_key = p_request_key;
+    if v_existing_mission_id is distinct from p_mission_id or v_existing_task_id is distinct from p_task_id then
+      raise exception 'Approval idempotency key is already used for a different task'
+        using errcode = '23505';
+    end if;
     return v_approval_id;
   end if;
 
