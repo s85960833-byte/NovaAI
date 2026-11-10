@@ -11,6 +11,7 @@ alter table public.nova_mission_tasks
     (task_type is null and input_schema_version is null)
     or (
       task_type is not null
+      and input_schema_version is not null
       and task_type in (
         'learn.goal_clarification',
         'learn.topic_sequence',
