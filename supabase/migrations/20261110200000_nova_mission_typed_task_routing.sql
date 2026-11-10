@@ -84,13 +84,13 @@ begin
     raise exception 'Mission not found' using errcode = 'P0002';
   end if;
 
-  -- Reject free-form task types, schema versions, and non-object input before writing.
+  -- Accept only workspace-scoped routes and the exact v1 input shape.
   if exists (
     select 1
     from pg_catalog.jsonb_array_elements(p_tasks) as item(value)
-    where pg_catalog.jsonb_typeof(item.value) <> 'object'
+    where pg_catalog.jsonb_typeof(item.value) is distinct from 'object'
        or pg_catalog.char_length(pg_catalog.btrim(coalesce(item.value->>'title',''))) not between 1 and 200
-       or (item.value ? 'description' and pg_catalog.jsonb_typeof(item.value->'description') <> 'string')
+       or (item.value ? 'description' and pg_catalog.jsonb_typeof(item.value->'description') is distinct from 'string')
        or pg_catalog.char_length(coalesce(item.value->>'description','')) > 2000
        or pg_catalog.split_part(coalesce(item.value->>'task_type',''),'.',1) is distinct from v_workspace
        or coalesce(item.value->>'task_type','') not in (
@@ -116,119 +116,10 @@ begin
   if v_state <> 'draft' then
     raise exception 'Only draft missions can receive a starter plan' using errcode = '55000';
   end if;
-  if exists (select 1 from public.nova_mission_tasks where mission_id = p_mission_id and owner_id = p_owner_id) then
-    raise exception 'Mission already contains tasks' using errcode = '55000';
-  end if;
-
-  insert into public.nova_mission_tasks(
-    mission_id, owner_id, sequence, title, status, task_type, input_schema_version, input_json
-  )
-  select p_mission_id, p_owner_id, item.ordinality::integer,
-         pg_catalog.btrim(item.value->>'title'), 'planned',
-         item.value->>'task_type', (item.value->>'input_schema_version')::integer,
-         pg_catalog.jsonb_build_object(
-           'description', coalesce(item.value->>'description',''),
-           'input', item.value->'input'
-         )
-  from pg_catalog.jsonb_array_elements(p_tasks) with ordinality as item(value, ordinality);
-
-  update public.nova_missions
-  set state = 'planned', plan_json = p_plan_json, version = version + 1, updated_at = pg_catalog.now()
-  where id = p_mission_id and owner_id = p_owner_id;
-
-  select coalesce(max(sequence), 0) + 1 into v_next_event_sequence
-  from public.nova_mission_events where mission_id = p_mission_id;
-  insert into public.nova_mission_events(
-    mission_id, owner_id, sequence, event_type, from_state, to_state, actor_id, payload_json
-  ) values (
-    p_mission_id, p_owner_id, v_next_event_sequence, 'mission.planned', 'draft', 'planned',
-    p_owner_id, pg_catalog.jsonb_build_object('task_count', v_task_count, 'plan_type', p_plan_json->>'kind')
-  );
-  return p_mission_id;
-end;
-$$;
-revoke all on function public.nova_save_mission_plan(uuid,uuid,jsonb,jsonb) from public, anon, authenticated;
-grant execute on function public.nova_save_mission_plan(uuid,uuid,jsonb,jsonb) to service_role;
-
-       or case
-            when coalesce(item.value->>'input_schema_version','') ~ '^[1-9][0-9]{0,2}
+  if exists (
+    select 1 from public.nova_mission_tasks
+    where mission_id = p_mission_id and owner_id = p_owner_id
   ) then
-    raise exception 'Mission task type, schema version, title, description or input is invalid'
-      using errcode = '23514';
-  end if;
-
-  select state into v_state
-  from public.nova_missions
-  where id = p_mission_id and owner_id = p_owner_id
-  for update;
-  if not found then
-    raise exception 'Mission not found' using errcode = 'P0002';
-  end if;
-  if v_state <> 'draft' then
-    raise exception 'Only draft missions can receive a starter plan' using errcode = '55000';
-  end if;
-  if exists (select 1 from public.nova_mission_tasks where mission_id = p_mission_id and owner_id = p_owner_id) then
-    raise exception 'Mission already contains tasks' using errcode = '55000';
-  end if;
-
-  insert into public.nova_mission_tasks(
-    mission_id, owner_id, sequence, title, status, task_type, input_schema_version, input_json
-  )
-  select p_mission_id, p_owner_id, item.ordinality::integer,
-         pg_catalog.btrim(item.value->>'title'), 'planned',
-         item.value->>'task_type', (item.value->>'input_schema_version')::integer,
-         pg_catalog.jsonb_build_object(
-           'description', coalesce(item.value->>'description',''),
-           'input', item.value->'input'
-         )
-  from pg_catalog.jsonb_array_elements(p_tasks) with ordinality as item(value, ordinality);
-
-  update public.nova_missions
-  set state = 'planned', plan_json = p_plan_json, version = version + 1, updated_at = pg_catalog.now()
-  where id = p_mission_id and owner_id = p_owner_id;
-
-  select coalesce(max(sequence), 0) + 1 into v_next_event_sequence
-  from public.nova_mission_events where mission_id = p_mission_id;
-  insert into public.nova_mission_events(
-    mission_id, owner_id, sequence, event_type, from_state, to_state, actor_id, payload_json
-  ) values (
-    p_mission_id, p_owner_id, v_next_event_sequence, 'mission.planned', 'draft', 'planned',
-    p_owner_id, pg_catalog.jsonb_build_object('task_count', v_task_count, 'plan_type', p_plan_json->>'kind')
-  );
-  return p_mission_id;
-end;
-$$;
-revoke all on function public.nova_save_mission_plan(uuid,uuid,jsonb,jsonb) from public, anon, authenticated;
-grant execute on function public.nova_save_mission_plan(uuid,uuid,jsonb,jsonb) to service_role;
-
-              then (item.value->>'input_schema_version')::integer not between 1 and 1000
-            else true
-          end
-       or pg_catalog.jsonb_typeof(item.value->'input') is distinct from 'object'
-       or case
-            when pg_catalog.jsonb_typeof(item.value->'input') = 'object'
-              then pg_catalog.jsonb_object_length(item.value->'input') <> 1
-            else true
-          end
-       or pg_catalog.jsonb_typeof(item.value->'input'->'description') is distinct from 'string'
-       or pg_catalog.char_length(coalesce(item.value->'input'->>'description','')) > 2000
-       or pg_catalog.octet_length(coalesce(item.value->'input','{}'::jsonb)::text) > 10000
-  ) then
-    raise exception 'Mission task type, schema version, title, description or input is invalid'
-      using errcode = '23514';
-  end if;
-
-  select state into v_state
-  from public.nova_missions
-  where id = p_mission_id and owner_id = p_owner_id
-  for update;
-  if not found then
-    raise exception 'Mission not found' using errcode = 'P0002';
-  end if;
-  if v_state <> 'draft' then
-    raise exception 'Only draft missions can receive a starter plan' using errcode = '55000';
-  end if;
-  if exists (select 1 from public.nova_mission_tasks where mission_id = p_mission_id and owner_id = p_owner_id) then
     raise exception 'Mission already contains tasks' using errcode = '55000';
   end if;
 
