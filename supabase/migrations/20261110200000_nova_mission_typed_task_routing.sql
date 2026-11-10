@@ -90,7 +90,12 @@ begin
          'intelligence.define_metrics','intelligence.inspect_data','intelligence.analyze_drivers',
          'intelligence.recommend_actions','intelligence.verify_evidence'
        )
-       or coalesce(item.value->>'input_schema_version','') !~ '^[1-9][0-9]{0,2}
+       or coalesce(item.value->>'input_schema_version','') !~ '^[1-9][0-9]{0,2}$'
+       or case
+            when coalesce(item.value->>'input_schema_version','') ~ '^[1-9][0-9]{0,2}$'
+              then (item.value->>'input_schema_version')::integer not between 1 and 1000
+            else true
+          end
   ) then
     raise exception 'Mission task type, schema version, title, description or input is invalid'
       using errcode = '23514';
