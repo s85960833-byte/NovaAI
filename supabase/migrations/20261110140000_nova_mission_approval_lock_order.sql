@@ -75,7 +75,8 @@ begin
     update public.nova_mission_tasks set status = 'planned', updated_at = pg_catalog.now()
      where id = v_task_id and mission_id = v_mission_id and owner_id = p_owner_id
        and status = 'waiting_approval';
-    v_next_mission_state := 'running';
+    -- Authorization is not execution: keep the mission planned until a worker claims it.
+    v_next_mission_state := 'planned';
   else
     update public.nova_mission_tasks set status = 'failed', updated_at = pg_catalog.now()
      where id = v_task_id and mission_id = v_mission_id and owner_id = p_owner_id
