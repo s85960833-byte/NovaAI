@@ -8,7 +8,7 @@
   `draft → planned → running → waiting_approval → running → verifying → completed`.
 - Failure, retry and cancellation paths.
 - Immutable in-memory event/evidence snapshots in the domain core.
-- Supabase persistence for missions, tasks, events and proof records.
+- Supabase persistence for missions, tasks, events and proof records.\n- Server-only approval queue and execution-run ledger: requests atomically move the task and mission into `waiting_approval`; owner approval records an authorized run, while rejection blocks it. Idempotency keys prevent duplicate approval records.
 - Atomic, idempotent mission creation RPC restricted to the trusted `service_role`.
 - Authenticated read API for mission lists and details.
 - Deterministic, no-cost starter planner templates for Learn, Build, Agents and Intelligence; plan persistence atomically creates tasks and advances draft missions to planned.
@@ -24,7 +24,7 @@
 | `nova_missions` | Mission owner, title, workspace, state, version, plan and idempotency key |
 | `nova_mission_tasks` | Ordered tasks and their execution status |
 | `nova_mission_events` | Ordered mission lifecycle audit events |
-| `nova_mission_proofs` | Evidence records and verification outcomes |
+| `nova_mission_proofs` | Evidence records and verification outcomes |\n| `nova_mission_approvals` | Pending/approved/rejected owner decisions and action summaries |\n| `nova_mission_execution_runs` | Idempotent execution authorization records and bounded attempt counter |
 
 All four tables have RLS enabled. Each row carries `owner_id`; the database enforces mission/child ownership consistency with composite foreign keys. Authenticated clients can select only their own rows. Writes are reserved for trusted server-side code.
 
@@ -50,7 +50,7 @@ The CI workflow now runs:
 - `npm run test:mission-core`
 - `node scripts/mission-ui-smoke.mjs` with a mocked Mission API, covering create/list/detail, Hindi labels and a 390px mobile viewport
 - PostgreSQL migration and RLS integration tests, including cross-account isolation
-- Atomic creation/idempotency and RPC privilege tests
+- Atomic creation/idempotency and RPC privilege tests\n- Approval queue SQL integration: idempotent request, atomic task/mission gating, owner decision, duplicate-decision rejection and cross-account isolation
 - Deno type-check for `nova-mission-api`
 - Deno input-validation and four-workspace starter-planner tests
 - Existing backend, security, local runtime and browser regression suites
