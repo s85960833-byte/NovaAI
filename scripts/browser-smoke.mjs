@@ -36,16 +36,24 @@ async function verifyIntroDoesNotReplay(page){
  assert.equal(await page.locator('#novaEntryVideo').count(),0,'legacy video element must never be reintroduced');
  console.log('PASS intro is tap-proof, one-time and persistent after reload');
 
- const legacyContext=await browser.newContext({viewport:{width:412,height:915}});
- const legacyPage=await legacyContext.newPage();
- track(legacyPage);
- await legacyPage.addInitScript(()=>localStorage.setItem('nova_intro_completed_v1','1'));
- await legacyPage.goto(BASE,{waitUntil:'domcontentloaded'});
- await legacyPage.locator('#novaEntryGate').waitFor({state:'detached',timeout:5000});
- await legacyPage.locator('#hi').waitFor({state:'visible',timeout:10000});
- assert.equal(await legacyPage.evaluate(()=>localStorage.getItem('nova_intro_completed_v2')),'1','legacy completion marker must be migrated to the current marker');
- await legacyContext.close();
- console.log('PASS legacy intro marker migration prevents replay after upgrades');
+ const legacyCases=[
+  ['localStorage',()=>localStorage.setItem('nova_intro_completed_v1','1')],
+  ['sessionStorage',()=>sessionStorage.setItem('nova_intro_completed_v1','1')],
+  ['legacy cookie',()=>{document.cookie='nova_intro_seen_v1=1; Path=/; SameSite=Lax'}]
+ ];
+ for(const [name,seed] of legacyCases){
+  const legacyContext=await browser.newContext({viewport:{width:412,height:915}});
+  const legacyPage=await legacyContext.newPage();
+  track(legacyPage);
+  await legacyPage.addInitScript(seed);
+  await legacyPage.goto(BASE,{waitUntil:'domcontentloaded'});
+  await legacyPage.locator('#novaEntryGate').waitFor({state:'detached',timeout:5000});
+  await legacyPage.locator('#hi').waitFor({state:'visible',timeout:10000});
+  assert.equal(await legacyPage.evaluate(()=>localStorage.getItem('nova_intro_completed_v2')),'1',name+' legacy marker must migrate to the current durable marker');
+  assert.equal(await legacyPage.evaluate(()=>document.cookie.split(';').map(x=>x.trim()).includes('nova_intro_seen_v2=1')),true,name+' legacy marker must migrate to the current cookie');
+  await legacyContext.close();
+ }
+ console.log('PASS localStorage, sessionStorage and legacy cookie intro marker migration prevents replay after upgrades');
 }
 
 try{
