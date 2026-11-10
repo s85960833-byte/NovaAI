@@ -1469,6 +1469,12 @@ begin
     raise exception 'Expired completion lease was not replaced by a fresh fencing token';
   end if;
 
+  begin
+    perform public.nova_complete_mission_task(v_run,v_old_token,v_proof,v_attestation);
+    raise exception 'Reclaimed worker accepted the stale fencing token';
+  exception when sqlstate '55000' then null;
+  end;
+
   select action_id into v_action
     from public.nova_reserve_mission_action(v_run,v_token,'completion-pending-action-001',repeat('d',64));
   begin
@@ -1486,6 +1492,14 @@ begin
       v_run,v_token,'99999999-9999-4999-8999-999999999999',v_attestation
     );
     raise exception 'Task completion accepted a proof belonging to another task';
+  exception when check_violation then null;
+  end;
+
+  begin
+    perform public.nova_complete_mission_task(
+      v_run,v_token,v_proof,'99999999-9999-4999-8999-999999999998'
+    );
+    raise exception 'Task completion accepted a missing or mismatched attestation';
   exception when check_violation then null;
   end;
 
