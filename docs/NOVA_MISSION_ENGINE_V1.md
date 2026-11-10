@@ -9,7 +9,7 @@
 - Failure, retry and cancellation paths.
 - Immutable in-memory event/evidence snapshots in the domain core.
 - Supabase persistence for missions, tasks, events and proof records.
-- Server-only approval queue and execution-run ledger: requests atomically move the task and mission into `waiting_approval`; owner approval records an authorized run, while rejection blocks it. Idempotency keys prevent duplicate approval records and are bound to the original mission/task; cross-task reuse returns a conflict.
+- Server-only approval queue and execution-run ledger: requests atomically move the task and mission into `waiting_approval`; owner approval records an authorized run, while rejection blocks it. Idempotency keys prevent duplicate approval records and are bound to the original mission, task and action summary; conflicting reuse returns a conflict.
 - Atomic, idempotent mission creation RPC restricted to the trusted `service_role`; reusing a key with changed mission content returns a conflict.
 - Authenticated read API for mission lists and details.
 - Authenticated owner-scoped approval request and decision API routes; decision actor is taken from the verified JWT subject, never from request JSON.
@@ -59,7 +59,7 @@ The CI workflow now runs:
 - `node scripts/mission-ui-smoke.mjs` with a mocked Mission API, covering create/list/detail, starter planning, task approval request, owner decision, cancellation, Hindi labels and a 390px mobile viewport
 - PostgreSQL migration and RLS integration tests, including cross-account isolation
 - Atomic creation/idempotency, same-payload replay, mismatched-payload conflict and RPC privilege tests
-- Approval queue SQL integration: idempotent request, same-task key binding, cross-task key-reuse rejection, atomic task/mission gating, owner decision, duplicate-decision rejection and cross-account isolation
+- Approval queue SQL integration: idempotent request, same-request key replay, changed-summary and cross-task key-reuse rejection, atomic task/mission gating, owner decision, duplicate-decision rejection and cross-account isolation
 - Cancellation SQL integration: atomic task cancellation, pending approval expiry, authorized-run cancellation, terminal-state guard and server-only RPC permissions
 - Approval decision lock-order migration serializes owner decisions with mission cancellation, preventing stale approvals and concurrent event-sequence collisions
 - Deno type-check for `nova-mission-api`
