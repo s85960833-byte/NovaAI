@@ -685,7 +685,11 @@ begin
      or (select status from public.nova_mission_execution_runs where approval_id=v_approval) <> 'authorized'
      or (select state from public.nova_missions where id=v_mission) <> 'planned'
      or (select status from public.nova_mission_tasks where id=v_task) <> 'planned' then
-    raise exception 'Approval decision did not atomically authorize the run';
+    raise exception 'Approval decision state mismatch: approval=%, run=%, mission=%, task=%',
+      (select status from public.nova_mission_approvals where id=v_approval),
+      (select status from public.nova_mission_execution_runs where approval_id=v_approval),
+      (select state from public.nova_missions where id=v_mission),
+      (select status from public.nova_mission_tasks where id=v_task);
   end if;
   begin
     perform public.nova_decide_task_approval(
