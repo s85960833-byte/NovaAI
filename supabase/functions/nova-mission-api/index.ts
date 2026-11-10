@@ -162,7 +162,7 @@ const authenticatedHandler = withSupabase(
             .select("id,title,description,workspace,state,version,attempts,plan_json,created_at,updated_at")
             .eq("id", missionId).eq("owner_id", userId).maybeSingle(),
           db.from("nova_mission_tasks")
-            .select("id,sequence,title,status,attempts,created_at,updated_at")
+            .select("id,sequence,title,status,attempts,task_type,input_schema_version,created_at,updated_at")
             .eq("mission_id", missionId).eq("owner_id", userId)
             .order("sequence", { ascending: true }).limit(100),
           db.from("nova_mission_events")
@@ -277,7 +277,7 @@ const authenticatedHandler = withSupabase(
 
         const [tasks, events, proofs, approvals, executionRuns, actionReceipts] = await Promise.all([
           db.from("nova_mission_tasks")
-            .select("id,sequence,title,status,attempts,created_at,updated_at")
+            .select("id,sequence,title,status,attempts,task_type,input_schema_version,created_at,updated_at")
             .eq("mission_id", missionId).eq("owner_id", userId)
             .order("sequence", { ascending: true }).limit(100),
           db.from("nova_mission_events")
