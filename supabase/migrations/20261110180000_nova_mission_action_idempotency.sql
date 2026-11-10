@@ -32,6 +32,14 @@ create table if not exists public.nova_mission_action_receipts (
   check (
     (status = 'completed' and result_digest is not null and completed_at is not null)
     or (status in ('reserved','uncertain') and result_digest is null and completed_at is null)
+  ),
+  check (
+    (status = 'uncertain' and char_length(btrim(uncertain_reason)) between 1 and 1000)
+    or (status <> 'uncertain' and uncertain_reason = '')
+  ),
+  check (
+    (reconciled_by_lease_token is null and reconciled_at is null)
+    or (status = 'uncertain' and reconciled_by_lease_token is not null and reconciled_at is not null)
   )
 );
 
