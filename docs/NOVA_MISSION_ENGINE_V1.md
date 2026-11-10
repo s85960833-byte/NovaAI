@@ -96,6 +96,7 @@ Before production use:
 3. Deploy the Edge Function only after its environment, JWT verification and exact-origin CORS are checked.
 4. Add end-to-end authenticated API tests with two distinct live user accounts.
 5. Implement execution workers with per-user permissions, bounded retries, idempotency, approvals and recovery.
-6. Implement a separately reviewed evidence verifier with canonical evidence serialization, cryptographic digesting, verifier identity/version, run-to-task binding and executor-side idempotency/fencing before enabling any worker.\n7. Keep service-role credentials server-side; never expose them to the browser.
+6. Implement a separately reviewed evidence verifier with canonical evidence serialization, cryptographic digesting, verifier identity/version, run-to-task binding and executor-side idempotency/fencing before enabling any worker.
+7. Keep service-role credentials server-side; never expose them to the browser.
 
 No production branch merge, Render deployment, live Supabase schema change or paid provider spend is part of this PR.
