@@ -705,3 +705,60 @@ begin
   end if;
 end $mission_approval_isolation$;
 reset role;
+
+
+-- NOVA owner cancellation atomically expires pending approvals and blocks authorized runs.
+set role service_role;
+do $mission_cancellation$
+declare
+  v_mission uuid;
+  v_task uuid;
+  v_approval uuid;
+  v_cancelled uuid;
+begin
+  v_mission := public.nova_create_mission(
+    '11111111-1111-4111-8111-111111111111',
+    'Cancellation fixture', 'Cancel a mission with a pending approval', 'agents',
+    'mission-cancel-fixture-001', '{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    '11111111-1111-4111-8111-111111111111', v_mission,
+    '{"kind":"starter_template","workspace":"agents"}'::jsonb,
+    '[{"title":"Action awaiting approval","description":"Must not execute after cancellation"}]'::jsonb
+  );
+  select id into v_task from public.nova_mission_tasks
+   where mission_id=v_mission and owner_id='11111111-1111-4111-8111-111111111111';
+  v_approval := public.nova_request_task_approval(
+    '11111111-1111-4111-8111-111111111111', v_mission, v_task,
+    'approval-cancel-fixture-001', 'A pending action that must be cancelled'
+  );
+  v_cancelled := public.nova_cancel_mission(
+    '11111111-1111-4111-8111-111111111111', v_mission, 'Owner requested cancellation'
+  );
+  if v_cancelled is distinct from v_mission
+     or (select state from public.nova_missions where id=v_mission) <> 'cancelled'
+     or (select status from public.nova_mission_tasks where id=v_task) <> 'cancelled'
+     or (select status from public.nova_mission_approvals where id=v_approval) <> 'expired'
+     or (select status from public.nova_mission_execution_runs where approval_id=v_approval) <> 'cancelled'
+     or (select count(*) from public.nova_mission_events where mission_id=v_mission and event_type='mission.cancelled') <> 1 then
+    raise exception 'Mission cancellation did not atomically cancel task and authorization state';
+  end if;
+  begin
+    perform public.nova_cancel_mission(
+      '11111111-1111-4111-8111-111111111111', v_mission, ''
+    );
+    raise exception 'A second cancellation was unexpectedly accepted';
+  exception when sqlstate '55000' then null;
+  end;
+end $mission_cancellation$;
+reset role;
+
+do $mission_cancel_privileges$
+begin
+  if has_function_privilege('authenticated',
+    'public.nova_cancel_mission(uuid,uuid,text)','execute')
+     or not has_function_privilege('service_role',
+    'public.nova_cancel_mission(uuid,uuid,text)','execute') then
+    raise exception 'Mission cancellation RPC permissions are not restricted to service_role';
+  end if;
+end $mission_cancel_privileges$;
