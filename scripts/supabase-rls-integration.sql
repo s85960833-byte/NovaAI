@@ -1531,3 +1531,73 @@ begin
     raise exception 'Lease-fenced completion RPC must be restricted to service_role';
   end if;
 end $mission_completion_privileges$;
+
+-- Typed task persistence: only allowlisted task types with schema v1 and strict input persist.
+set role service_role;
+select set_config('request.jwt.claim.role','service_role',false);
+do $mission_typed_task_persistence$
+declare
+  v_owner uuid := '11111111-1111-4111-8111-111111111111';
+  v_mission uuid;
+  v_task uuid;
+begin
+  v_mission := public.nova_create_mission(
+    v_owner,'Typed task persistence fixture','Validate allowlisted task routing','build',
+    'mission-typed-task-persistence-001','{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    v_owner,v_mission,'{"kind":"starter_template","workspace":"build"}'::jsonb,
+    '[{"title":"Typed requirements task","description":"Persist strict input","task_type":"build.requirements","input_schema_version":1,"input":{"description":"Persist strict input"}}]'::jsonb
+  );
+  select id into v_task from public.nova_mission_tasks
+   where mission_id=v_mission and owner_id=v_owner;
+  if not exists (
+    select 1 from public.nova_mission_tasks
+     where id=v_task and task_type='build.requirements'
+       and input_schema_version=1
+       and input_json->'input'='{"description":"Persist strict input"}'::jsonb
+  ) then
+    raise exception 'Typed task route, schema version or structured input was not persisted';
+  end if;
+
+  v_mission := public.nova_create_mission(
+    v_owner,'Unknown typed task fixture','Reject free-form task routes','build',
+    'mission-typed-task-unknown-001','{}'::jsonb
+  );
+  begin
+    perform public.nova_save_mission_plan(
+      v_owner,v_mission,'{"kind":"starter_template","workspace":"build"}'::jsonb,
+      '[{"title":"Unknown route","description":"Must reject","task_type":"build.execute_arbitrary","input_schema_version":1,"input":{"description":"Must reject"}}]'::jsonb
+    );
+    raise exception 'Unknown task type was unexpectedly accepted';
+  exception when check_violation then null;
+  end;
+
+  v_mission := public.nova_create_mission(
+    v_owner,'Invalid schema version fixture','Reject malformed schema versions','build',
+    'mission-typed-task-version-001','{}'::jsonb
+  );
+  begin
+    perform public.nova_save_mission_plan(
+      v_owner,v_mission,'{"kind":"starter_template","workspace":"build"}'::jsonb,
+      '[{"title":"Invalid schema","description":"Must reject","task_type":"build.requirements","input_schema_version":"not-a-number","input":{"description":"Must reject"}}]'::jsonb
+    );
+    raise exception 'Malformed task schema version was unexpectedly accepted';
+  exception when check_violation then null;
+  end;
+
+  v_mission := public.nova_create_mission(
+    v_owner,'Invalid task input fixture','Reject unknown input fields','build',
+    'mission-typed-task-input-001','{}'::jsonb
+  );
+  begin
+    perform public.nova_save_mission_plan(
+      v_owner,v_mission,'{"kind":"starter_template","workspace":"build"}'::jsonb,
+      '[{"title":"Invalid input","description":"Must reject","task_type":"build.requirements","input_schema_version":1,"input":{"description":"Must reject","extra":true}}]'::jsonb
+    );
+    raise exception 'Task input with unknown fields was unexpectedly accepted';
+  exception when check_violation then null;
+  end;
+end $mission_typed_task_persistence$;
+reset role;
+
