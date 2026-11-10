@@ -469,6 +469,67 @@ begin
     raise exception 'Idempotent mission creation must create exactly one initial event';
   end if;
 end $mission_idempotency$;
+
+do $mission_plan_rpc$
+declare
+  v_mission_id uuid;
+  v_invalid_mission_id uuid;
+begin
+  v_mission_id := public.nova_create_mission(
+    '11111111-1111-4111-8111-111111111111',
+    'Starter plan fixture', 'Validate the workspace starter planner', 'build',
+    'mission-starter-plan-fixture-001', '{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    '11111111-1111-4111-8111-111111111111',
+    v_mission_id,
+    '{"kind":"starter_template","version":1,"workspace":"build"}'::jsonb,
+    '[{"title":"Confirm requirements","description":"Capture acceptance criteria"},{"title":"Run checks","description":"Verify the result"}]'::jsonb
+  );
+  if (select state from public.nova_missions where id=v_mission_id) <> 'planned' then
+    raise exception 'Starter plan did not move mission to planned';
+  end if;
+  if (select version from public.nova_missions where id=v_mission_id) <> 1 then
+    raise exception 'Starter plan did not increment mission version';
+  end if;
+  if (select count(*) from public.nova_mission_tasks where mission_id=v_mission_id) <> 2 then
+    raise exception 'Starter plan did not persist both tasks';
+  end if;
+  if (select count(*) from public.nova_mission_events where mission_id=v_mission_id) <> 2 then
+    raise exception 'Starter plan did not append a planning event';
+  end if;
+
+  begin
+    perform public.nova_save_mission_plan(
+      '11111111-1111-4111-8111-111111111111', v_mission_id,
+      '{"kind":"starter_template"}'::jsonb,
+      '[{"title":"Duplicate plan"}]'::jsonb
+    );
+    raise exception 'A second plan was unexpectedly accepted';
+  exception when sqlstate '55000' then
+    null;
+  end;
+
+  v_invalid_mission_id := public.nova_create_mission(
+    '11111111-1111-4111-8111-111111111111',
+    'Invalid starter plan fixture', '', 'learn',
+    'mission-invalid-starter-plan-fixture-001', '{}'::jsonb
+  );
+  begin
+    perform public.nova_save_mission_plan(
+      '11111111-1111-4111-8111-111111111111', v_invalid_mission_id,
+      '{"kind":"starter_template"}'::jsonb,
+      '[{"title":" "}]'::jsonb
+    );
+    raise exception 'Invalid task title was unexpectedly accepted';
+  exception when check_violation then
+    null;
+  end;
+  if (select state from public.nova_missions where id=v_invalid_mission_id) <> 'draft'
+     or exists(select 1 from public.nova_mission_tasks where mission_id=v_invalid_mission_id) then
+    raise exception 'Rejected starter plan partially changed mission state';
+  end if;
+end $mission_plan_rpc$;
 reset role;
 
 do $mission_rpc_privileges$
@@ -486,6 +547,18 @@ begin
     where n.nspname='public' and p.proname='nova_create_mission' and p.prosecdef
   ) then
     raise exception 'Mission creation RPC must remain SECURITY INVOKER';
+  end if;
+  if has_function_privilege('authenticated',
+    'public.nova_save_mission_plan(uuid,uuid,jsonb,jsonb)','execute')
+    or not has_function_privilege('service_role',
+    'public.nova_save_mission_plan(uuid,uuid,jsonb,jsonb)','execute') then
+    raise exception 'Mission plan RPC permissions are not restricted to service_role';
+  end if;
+  if exists (
+    select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.proname='nova_save_mission_plan' and p.prosecdef
+  ) then
+    raise exception 'Mission plan RPC must remain SECURITY INVOKER';
   end if;
 end $mission_rpc_privileges$;
 
