@@ -12,9 +12,16 @@ Deno.test("builds five bounded starter tasks for each NOVA workspace", () => {
     if (result.plan.kind !== "starter_template" || result.plan.workspace !== workspace) {
       throw new Error(workspace + " plan metadata is incorrect");
     }
+    const taskTypes = result.tasks.map((task) => task.task_type);
+    if (new Set(taskTypes).size !== 5 || taskTypes.some((type) => !type.startsWith(workspace + "."))) {
+      throw new Error(workspace + " tasks must have five unique, workspace-scoped task types");
+    }
     for (const task of result.tasks) {
       if (!task.title.trim() || task.title.length > 200 || !task.description.includes("customer research report")) {
         throw new Error(workspace + " task is missing bounded title or mission context");
+      }
+      if (task.input_schema_version !== 1 || task.input.description !== task.description) {
+        throw new Error(workspace + " task is missing its versioned structured input contract");
       }
     }
   }
