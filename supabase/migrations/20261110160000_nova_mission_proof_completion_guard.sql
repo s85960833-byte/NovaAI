@@ -8,7 +8,7 @@ language plpgsql
 set search_path = ''
 as $proof_task$
 begin
-  if new.status = 'completed' and old.status is distinct from 'completed'
+  if new.status = 'completed' and (tg_op = 'INSERT' or old.status is distinct from 'completed')
      and not exists (
        select 1
          from public.nova_mission_proofs p
@@ -30,7 +30,7 @@ revoke all on function public.nova_require_verified_task_completion()
 
 drop trigger if exists nova_task_completion_requires_proof on public.nova_mission_tasks;
 create trigger nova_task_completion_requires_proof
-before update of status on public.nova_mission_tasks
+before insert or update of status on public.nova_mission_tasks
 for each row execute function public.nova_require_verified_task_completion();
 
 create or replace function public.nova_require_verified_mission_completion()
@@ -39,7 +39,7 @@ language plpgsql
 set search_path = ''
 as $proof_mission$
 begin
-  if new.state = 'completed' and old.state is distinct from 'completed' then
+  if new.state = 'completed' and (tg_op = 'INSERT' or old.state is distinct from 'completed') then
     if not exists (
       select 1 from public.nova_mission_tasks t
        where t.mission_id = new.id and t.owner_id = new.owner_id
@@ -79,5 +79,5 @@ revoke all on function public.nova_require_verified_mission_completion()
 
 drop trigger if exists nova_mission_completion_requires_proof on public.nova_missions;
 create trigger nova_mission_completion_requires_proof
-before update of state on public.nova_missions
+before insert or update of state on public.nova_missions
 for each row execute function public.nova_require_verified_mission_completion();
