@@ -1,9 +1,9 @@
 /**
  * Fail-closed registry for future NOVA Mission workers.
  *
- * No task type is executable unless both a handler and an independent verifier
- * are explicitly registered by trusted server code. This module performs no I/O,
- * does not claim leases, and has no default handlers.
+ * No task type is executable unless an explicit input schema, handler and
+ * independent verifier are registered by trusted server code. This module
+ * performs no I/O, does not claim leases, and has no default handlers.
  */
 export interface MissionTaskDescriptor {
   id: string;
@@ -11,7 +11,15 @@ export interface MissionTaskDescriptor {
   runId: string;
   ownerId: string;
   taskType: string;
+  inputSchemaVersion: number;
   input: Readonly<Record<string, unknown>>;
+}
+
+export interface MissionTaskInputSchema {
+  /** Positive integer that is stored with the task input and matched at execution time. */
+  readonly version: number;
+  /** Must reject unknown fields and values outside this task type's contract. */
+  validate(input: unknown): input is Readonly<Record<string, unknown>>;
 }
 
 export interface MissionExecutionResult {
@@ -40,15 +48,23 @@ export interface MissionTaskVerifier {
   ): Promise<MissionVerificationResult>;
 }
 
+interface RegisteredTaskType {
+  inputSchema: MissionTaskInputSchema;
+  handler: MissionTaskHandler;
+  verifier: MissionTaskVerifier;
+}
+
 export class MissionTaskNotExecutableError extends Error {
   constructor(taskType: string, reason: string) {
-    super(`Mission task type "${taskType}" is not executable: ${reason}`);
+    super('Mission task type "' + taskType + '" is not executable: ' + reason);
     this.name = "MissionTaskNotExecutableError";
   }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -62,16 +78,25 @@ function isValidCheck(value: unknown): value is { id: string; passed: boolean; d
 }
 
 export class MissionTaskRegistry {
-  readonly #handlers = new Map<string, MissionTaskHandler>();
-  readonly #verifiers = new Map<string, MissionTaskVerifier>();
+  readonly #registrations = new Map<string, RegisteredTaskType>();
 
-  register(taskType: string, handler: MissionTaskHandler, verifier: MissionTaskVerifier): void {
+  register(
+    taskType: string,
+    inputSchema: MissionTaskInputSchema,
+    handler: MissionTaskHandler,
+    verifier: MissionTaskVerifier,
+  ): void {
     const key = taskType.trim();
     if (!/^[a-z][a-z0-9_.-]{1,79}$/.test(key)) {
       throw new TypeError("Task type must be a bounded lowercase identifier");
     }
-    if (this.#handlers.has(key) || this.#verifiers.has(key)) {
-      throw new Error(`Task type "${key}" is already registered`);
+    if (this.#registrations.has(key)) {
+      throw new Error('Task type "' + key + '" is already registered');
+    }
+    if (!inputSchema || !Number.isSafeInteger(inputSchema.version) ||
+        inputSchema.version < 1 || inputSchema.version > 1000 ||
+        typeof inputSchema.validate !== "function") {
+      throw new TypeError("A versioned task input schema is required");
     }
     if (!handler || typeof handler.execute !== "function") {
       throw new TypeError("A trusted task handler is required");
@@ -81,12 +106,11 @@ export class MissionTaskRegistry {
         typeof verifier.version !== "string" || !verifier.version.trim()) {
       throw new TypeError("An independent trusted verifier is required");
     }
-    this.#handlers.set(key, handler);
-    this.#verifiers.set(key, verifier);
+    this.#registrations.set(key, { inputSchema, handler, verifier });
   }
 
   has(taskType: string): boolean {
-    return this.#handlers.has(taskType) && this.#verifiers.has(taskType);
+    return this.#registrations.has(taskType);
   }
 
   async executeAndVerify(task: MissionTaskDescriptor): Promise<{
@@ -94,24 +118,43 @@ export class MissionTaskRegistry {
     verification: MissionVerificationResult;
   }> {
     if (!task || !/^[a-z][a-z0-9_.-]{1,79}$/.test(task.taskType) ||
+        !Number.isSafeInteger(task.inputSchemaVersion) ||
         !isRecord(task.input) || !UUID.test(task.id) ||
         !UUID.test(task.missionId) || !UUID.test(task.runId) ||
         !UUID.test(task.ownerId)) {
       throw new TypeError("Mission task descriptor is invalid");
     }
-    const handler = this.#handlers.get(task.taskType);
-    const verifier = this.#verifiers.get(task.taskType);
-    if (!handler || !verifier) {
-      throw new MissionTaskNotExecutableError(task.taskType, "no handler and independent verifier are registered");
+
+    const registration = this.#registrations.get(task.taskType);
+    if (!registration) {
+      throw new MissionTaskNotExecutableError(
+        task.taskType,
+        "no input schema, handler and independent verifier are registered",
+      );
     }
-    const result = await handler.execute(task);
+
+    if (task.inputSchemaVersion !== registration.inputSchema.version) {
+      throw new TypeError("Mission task input schema version is unsupported");
+    }
+
+    let inputIsValid = false;
+    try {
+      inputIsValid = registration.inputSchema.validate(task.input) === true;
+    } catch {
+      inputIsValid = false;
+    }
+    if (!inputIsValid) {
+      throw new TypeError("Mission task input does not match its registered schema");
+    }
+
+    const result = await registration.handler.execute(task);
     if (!result || typeof result !== "object" ||
         !isRecord(result.output) || !isRecord(result.evidence)) {
       throw new TypeError("Task handler returned an invalid result envelope");
     }
-    const verification = await verifier.verify(task, result);
-    if (!verification || verification.verifierId !== verifier.id ||
-        verification.verifierVersion !== verifier.version ||
+    const verification = await registration.verifier.verify(task, result);
+    if (!verification || verification.verifierId !== registration.verifier.id ||
+        verification.verifierVersion !== registration.verifier.version ||
         !Array.isArray(verification.checks) || verification.checks.length < 1 ||
         verification.checks.length > 50 ||
         !verification.checks.every(isValidCheck) ||
