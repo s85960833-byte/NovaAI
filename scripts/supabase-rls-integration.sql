@@ -1265,7 +1265,7 @@ begin
     raise exception 'Authenticated users must not insert proof attestations';
   end if;
   if (select count(*) from public.nova_mission_action_receipts
-      where action_key like 'action-%-fixture-001') <> 3 then
+      where action_key like 'action-%-fixture-001') <> 4 then
     raise exception 'Mission owner cannot read their own action receipts';
   end if;
   if has_table_privilege('authenticated','public.nova_mission_action_receipts','insert')
