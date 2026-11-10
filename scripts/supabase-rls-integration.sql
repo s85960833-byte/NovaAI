@@ -1210,6 +1210,17 @@ begin
     select c.lease_token,c.attempt into v_token,v_attempt
       from public.nova_claim_mission_task(v_run,'worker-retry-'||v_i,120) c;
     if v_attempt <> v_i then raise exception 'Unexpected attempt number: expected %, got %',v_i,v_attempt; end if;
+    if v_i = 3 then
+      v_action_status := public.nova_reconcile_mission_action(
+        v_fail_action,v_token,'Inspect external state after automatic lease-end uncertainty'
+      );
+      if v_action_status <> 'uncertain'
+         or (select reconciled_by_lease_token from public.nova_mission_action_receipts where id=v_fail_action) <> v_token
+         or (select reconciliation_note from public.nova_mission_action_receipts where id=v_fail_action)
+           <> 'Inspect external state after automatic lease-end uncertainty' then
+        raise exception 'Automatically uncertain receipt was not reconciled by the next approved lease';
+      end if;
+    end if;
     v_status := public.nova_fail_mission_task(v_run,v_token,'repeat','Bounded retry exhaustion',0);
   end loop;
   if v_status <> 'failed'
