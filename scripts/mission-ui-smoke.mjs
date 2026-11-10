@@ -27,7 +27,8 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
       let missions = [];
       let tasks = [];
       let events = [];
-      const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed' }];\n      let approvals = [];
+      const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed' }];
+      let approvals = [];
       const client = { auth: { onAuthStateChange() {}, getSession: async () => ({ data: { session: null } }) } };
       window.NovaBusinessCloud = Object.freeze({
         open() {}, close() {}, getClient() { return client; }, version: 'mock',
@@ -91,8 +92,6 @@ await page.locator('#missionDescription').fill('Build a simple landing page and 
 await page.locator('#missionWorkspace').selectOption('build');
 await page.locator('#missionForm').evaluate(form => form.requestSubmit());
 await page.waitForTimeout(300);
-console.log('DEBUG mission list:', await page.locator('#missionList').innerText());
-console.log('DEBUG toast:', await page.locator('#toast').innerText());
 await page.locator('[data-mission-id="' + missionId + '"]').waitFor({ state: 'visible', timeout: 5000 });
 assert.ok((await page.locator('#missionList').innerText()).includes('Test website mission'));
 
@@ -111,7 +110,8 @@ assert.ok((await page.locator('#missionDetail').innerText()).includes('Execution
 await page.locator('#missionCancelBtn').waitFor({ state: 'visible', timeout: 5000 });
 await page.locator('#missionCancelBtn').click();
 await page.waitForFunction(() => document.querySelector('#toast')?.textContent === 'Mission cancelled.', undefined, { timeout: 5000 });
-await page.waitForTimeout(150);\nconsole.log('DEBUG detail after cancellation:', await page.locator('#missionDetail').innerText());\nconsole.log('DEBUG cancel control count:', await page.locator('#missionCancelBtn').count());\nassert.ok((await page.locator('#missionDetail').innerText()).includes('Cancelled'), 'Cancelled mission state must appear in detail');
+await page.waitForTimeout(150);
+assert.ok((await page.locator('#missionDetail').innerText()).includes('Cancelled'), 'Cancelled mission state must appear in detail');
 assert.equal(await page.locator('#missionCancelBtn').count(), 0, 'A cancelled mission must not offer cancellation again');
 console.log('PASS Mission Control creates a no-cost starter plan, displays approval requests and records owner approval');
 
