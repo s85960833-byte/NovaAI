@@ -11,6 +11,7 @@
 - Supabase persistence for missions, tasks, events and proof records.
 - Atomic, idempotent mission creation RPC restricted to the trusted `service_role`.
 - Authenticated read API for mission lists and details.
+- Bilingual Mission Control panel inside NOVA Agents for mission creation, listing and inspection of tasks, events and proofs.
 - Exact-origin CORS, bounded request bodies, input validation and server-enforced per-user rate limiting.
 - Database-level rule that prevents `completed` unless at least one passing proof record exists.
 - Browser-authenticated clients have read-only access; event and proof records are append-only from the browser's perspective.
@@ -45,6 +46,7 @@ The API derives `owner_id` from the verified JWT. It never trusts a caller-suppl
 The CI workflow now runs:
 
 - `npm run test:mission-core`
+- `node scripts/mission-ui-smoke.mjs` with a mocked Mission API, covering create/list/detail, Hindi labels and a 390px mobile viewport
 - PostgreSQL migration and RLS integration tests, including cross-account isolation
 - Atomic creation/idempotency and RPC privilege tests
 - Deno type-check for `nova-mission-api`
@@ -61,7 +63,6 @@ This foundation does **not** yet provide:
 - Task execution workers or agent/tool adapters
 - Approval UI and execution controls
 - Retry/resume worker orchestration and idempotent external tool calls
-- A Mission Control frontend
 - Live production Supabase migration or Edge Function deployment
 
 Do not label a mission as executed or verified until a real executor has produced inspectable evidence and the verification checks have passed.
@@ -73,8 +74,8 @@ Before production use:
 1. Review the migration and run a remote dry-run against the intended Supabase project.
 2. Obtain explicit project-owner approval before applying the migration.
 3. Deploy the Edge Function only after its environment, JWT verification and exact-origin CORS are checked.
-4. Add end-to-end authenticated API tests with two distinct user accounts.
-5. Build and verify the Mission Control UI.
+4. Deploy the Edge Function only after the migration and environment have been approved.
+5. Add end-to-end authenticated API tests with two distinct live user accounts.
 6. Implement execution workers with per-user permissions, bounded retries, idempotency, approvals and recovery.
 7. Keep service-role credentials server-side; never expose them to the browser.
 
