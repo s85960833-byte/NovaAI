@@ -2,8 +2,19 @@ import {
   MissionTaskNotExecutableError,
   MissionTaskRegistry,
   type MissionTaskDescriptor,
+  type MissionTaskInputSchema,
   type MissionVerificationResult,
 } from "./mission-task-registry.ts";
+
+const emptyObjectV1: MissionTaskInputSchema = {
+  version: 1,
+  validate(value): value is Readonly<Record<string, unknown>> {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+    const prototype = Object.getPrototypeOf(value);
+    return (prototype === Object.prototype || prototype === null) &&
+      Object.keys(value).length === 0;
+  },
+};
 
 const task: MissionTaskDescriptor = {
   id: "22222222-2222-4222-8222-222222222222",
@@ -11,6 +22,7 @@ const task: MissionTaskDescriptor = {
   runId: "33333333-3333-4333-8333-333333333333",
   ownerId: "44444444-4444-4444-8444-444444444444",
   taskType: "test.safe-check",
+  inputSchemaVersion: 1,
   input: {},
 };
 
@@ -24,11 +36,11 @@ Deno.test("registry denies every task type by default", async () => {
   }
 });
 
-Deno.test("execution requires both a handler and independent verifier", async () => {
+Deno.test("execution requires a versioned schema, handler and independent verifier", async () => {
   const registry = new MissionTaskRegistry();
   let handlerCalls = 0;
   let verifierCalls = 0;
-  registry.register("test.safe-check", {
+  registry.register("test.safe-check", emptyObjectV1, {
     async execute() {
       handlerCalls++;
       return { output: { ok: true }, evidence: { observed: true } };
@@ -53,6 +65,45 @@ Deno.test("execution requires both a handler and independent verifier", async ()
   }
 });
 
+Deno.test("rejects schema-version mismatches and unknown input fields before handler execution", async () => {
+  const registry = new MissionTaskRegistry();
+  let handlerCalls = 0;
+  registry.register("test.safe-check", emptyObjectV1, {
+    async execute() {
+      handlerCalls++;
+      return { output: {}, evidence: {} };
+    },
+  }, {
+    id: "test.schema-verifier",
+    version: "1.0.0",
+    async verify() {
+      return {
+        passed: true,
+        verifierId: "test.schema-verifier",
+        verifierVersion: "1.0.0",
+        checks: [{ id: "valid", passed: true }],
+        observedAt: "2026-11-10T12:00:00.000Z",
+      };
+    },
+  });
+
+  const invalidDescriptors = [
+    { ...task, inputSchemaVersion: 2 },
+    { ...task, input: { unexpected: true } },
+  ];
+  for (const descriptor of invalidDescriptors) {
+    try {
+      await registry.executeAndVerify(descriptor);
+      throw new Error("An incompatible task input was accepted");
+    } catch (error) {
+      if (!(error instanceof TypeError)) throw error;
+    }
+  }
+  if (handlerCalls !== 0) {
+    throw new Error("The handler ran before schema version and input validation");
+  }
+});
+
 Deno.test("rejects duplicate task types and inconsistent verifier results", async () => {
   const registry = new MissionTaskRegistry();
   const handler = { async execute() { return { output: {}, evidence: {} }; } };
@@ -66,9 +117,9 @@ Deno.test("rejects duplicate task types and inconsistent verifier results", asyn
       };
     },
   };
-  registry.register("test.safe-check", handler, verifier);
+  registry.register("test.safe-check", emptyObjectV1, handler, verifier);
   try {
-    registry.register("test.safe-check", handler, verifier);
+    registry.register("test.safe-check", emptyObjectV1, handler, verifier);
     throw new Error("Duplicate task type was accepted");
   } catch (error) {
     if (!(error instanceof Error) || !error.message.includes("already registered")) throw error;
@@ -81,7 +132,6 @@ Deno.test("rejects duplicate task types and inconsistent verifier results", asyn
   }
 });
 
-
 Deno.test("rejects malformed, duplicate or non-ISO verifier checks", async () => {
   const malformedChecks: unknown[][] = [
     [{ id: "valid", passed: true }, { id: "valid", passed: true }],
@@ -91,7 +141,7 @@ Deno.test("rejects malformed, duplicate or non-ISO verifier checks", async () =>
   ];
   for (const checks of malformedChecks) {
     const registry = new MissionTaskRegistry();
-    registry.register("test.safe-check", {
+    registry.register("test.safe-check", emptyObjectV1, {
       async execute() { return { output: {}, evidence: {} }; },
     }, {
       id: "test.strict-verifier",
@@ -114,7 +164,7 @@ Deno.test("rejects malformed, duplicate or non-ISO verifier checks", async () =>
     }
   }
   const registry = new MissionTaskRegistry();
-  registry.register("test.safe-check", {
+  registry.register("test.safe-check", emptyObjectV1, {
     async execute() { return { output: {}, evidence: {} }; },
   }, {
     id: "test.strict-verifier",
@@ -137,11 +187,10 @@ Deno.test("rejects malformed, duplicate or non-ISO verifier checks", async () =>
   }
 });
 
-
 Deno.test("rejects malformed task, mission, run and owner identifiers before handler execution", async () => {
   const registry = new MissionTaskRegistry();
   let handlerCalls = 0;
-  registry.register("test.safe-check", {
+  registry.register("test.safe-check", emptyObjectV1, {
     async execute() {
       handlerCalls++;
       return { output: {}, evidence: {} };
