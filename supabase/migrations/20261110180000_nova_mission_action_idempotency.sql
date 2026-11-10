@@ -40,7 +40,12 @@ create index if not exists nova_mission_action_receipts_owner_idx
 
 alter table public.nova_mission_action_receipts enable row level security;
 revoke all on public.nova_mission_action_receipts from public, anon, authenticated, service_role;
-grant select on public.nova_mission_action_receipts to authenticated, service_role;
+grant select (
+  id, mission_id, task_id, run_id, owner_id, action_key, request_digest,
+  status, result_digest, external_reference, uncertain_reason,
+  created_at, updated_at, completed_at
+) on public.nova_mission_action_receipts to authenticated;
+grant select on public.nova_mission_action_receipts to service_role;
 grant insert, update on public.nova_mission_action_receipts to service_role;
 
 drop policy if exists nova_mission_action_receipts_select_own
