@@ -1031,7 +1031,9 @@ begin
     ) values (
       v_proof, v_mission, v_task, '99999999-9999-4999-8999-999999999999',
       '11111111-1111-4111-8111-111111111111', 'nova.integration-verifier',
-      '1.0.0', repeat('b',64), v_envelope, 'passed', 1, now()
+      '1.0.0', repeat('b',64),
+      jsonb_set(v_envelope, '{run_id}', to_jsonb('99999999-9999-4999-8999-999999999999'::text)),
+      'passed', 1, now()
     );
     raise exception 'Mismatched run binding was unexpectedly accepted';
   exception when foreign_key_violation then null;
