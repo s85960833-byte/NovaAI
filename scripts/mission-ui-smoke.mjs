@@ -23,6 +23,9 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
     (() => {
       const id = ${JSON.stringify(missionId)};
       let missions = [];
+      let tasks = [];
+      let events = [];
+      const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed' }];
       const client = { auth: { onAuthStateChange() {}, getSession: async () => ({ data: { session: null } }) } };
       window.NovaBusinessCloud = Object.freeze({
         open() {}, close() {}, getClient() { return client; }, version: 'mock',
@@ -38,13 +41,21 @@ await page.route('**/nova-business-cloud.js', route => { console.log('STUB ROUTE
             missions = [mission, ...missions];
             return { mission };
           }
+          if (path === 'missions/' + id + '/plan' && method === 'POST') {
+            missions = [{ ...missions[0], state: 'planned', version: 1 }];
+            tasks = [
+              { id: 'task-1', sequence: 1, title: 'Confirm requirements', status: 'planned' },
+              { id: 'task-2', sequence: 2, title: 'Run checks', status: 'planned' }
+            ];
+            events = [
+              { id: 'event-1', event_type: 'mission.created', from_state: null, to_state: 'draft' },
+              { id: 'event-2', event_type: 'mission.planned', from_state: 'draft', to_state: 'planned' }
+            ];
+            return { mission: missions[0], tasks, events, proofs, plan_type: 'starter_template' };
+          }
           if (path === 'missions/' + id && method === 'GET') {
-            return {
-              mission: missions[0],
-              tasks: [],
-              events: [{ id: 'event-1', event_type: 'mission.created', from_state: null, to_state: 'draft' }],
-              proofs: [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed' }]
-            };
+            if (!events.length) events = [{ id: 'event-1', event_type: 'mission.created', from_state: null, to_state: 'draft' }];
+            return { mission: missions[0], tasks, events, proofs };
           }
           throw new Error('Unexpected mocked Mission API route: ' + method + ' ' + path);
         }
@@ -74,7 +85,11 @@ assert.ok((await page.locator('#missionList').innerText()).includes('Test websit
 await page.locator('[data-mission-id="' + missionId + '"]').click();
 await page.locator('#missionDetail').getByText('Homepage smoke test passed').waitFor({ state: 'visible', timeout: 5000 });
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mission.created'));
-console.log('PASS Mission Control creates, lists and opens a mission with event/proof details');
+await page.locator('#missionPlanBtn').click();
+await page.locator('#missionDetail').getByText('Confirm requirements').waitFor({ state: 'visible', timeout: 5000 });
+assert.ok((await page.locator('#missionDetail').innerText()).includes('mission.planned'));
+assert.ok((await page.locator('#missionDetail').innerText()).includes('Planned'));
+console.log('PASS Mission Control creates a no-cost starter plan and shows planned tasks/events');
 
 await page.evaluate(() => {
   document.documentElement.lang = 'hi';
