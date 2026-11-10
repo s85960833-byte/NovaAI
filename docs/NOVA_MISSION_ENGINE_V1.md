@@ -15,7 +15,7 @@
 - Authenticated owner-scoped approval request and decision API routes; decision actor is taken from the verified JWT subject, never from request JSON.
 - Atomic owner cancellation endpoint expires pending approvals, cancels active authorization records and cancels remaining non-terminal tasks; it does not attempt to stop external systems.
 - Deterministic, no-cost starter planner templates for Learn, Build, Agents and Intelligence; plan persistence atomically creates tasks and advances draft missions to planned.
-- Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing, task/event/proof inspection, task-level approval requests, explicit owner approval/rejection across multiple tasks and mission cancellation.
+- Bilingual Mission Control panel inside NOVA Agents for mission creation, starter-plan generation, listing, task/event/proof/action-receipt inspection, task-level approval requests, explicit owner approval/rejection across multiple tasks and mission cancellation.
 - Exact-origin CORS, bounded request bodies, input validation and server-enforced per-user rate limiting.
 - Database-level task and mission completion guards: task and mission inserts cannot bypass proof checks; each task needs its own passing proof before completion; every task must be completed with task-scoped passing proof before mission completion; completed missions and their tasks are terminal.
 - Canonical proof-envelope contract with SHA-256 digest, verifier identity/version, mission/task/run binding, bounded checks, duplicate-check rejection and deterministic JSON serialization.
@@ -46,7 +46,7 @@ The Edge Function is named `nova-mission-api`. It requires an authenticated Supa
 |---|---|---|
 | POST | `/functions/v1/nova-mission-api/missions` | Create a mission |
 | GET | `/functions/v1/nova-mission-api/missions` | List up to 50 of the user's missions |
-| GET | `/functions/v1/nova-mission-api/missions/{id}` | Read one mission, tasks, events, proofs, approval decisions and execution-run records |
+| GET | `/functions/v1/nova-mission-api/missions/{id}` | Read one mission, tasks, events, proofs, action receipts, approval decisions and execution-run records; owner reads never expose worker lease tokens |
 | POST | `/functions/v1/nova-mission-api/missions/{id}/plan` | Generate and persist a one-time, deterministic five-task starter checklist for a draft mission |
 | POST | `/functions/v1/nova-mission-api/missions/{id}/tasks/{task_id}/approval` | Queue a bounded action summary for explicit owner approval; creates no external side effect |
 | POST | `/functions/v1/nova-mission-api/approvals/{id}/decision` | Record an owner-bound approve/reject decision using the authenticated JWT subject |
