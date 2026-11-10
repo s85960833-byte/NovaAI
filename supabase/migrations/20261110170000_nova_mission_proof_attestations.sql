@@ -52,7 +52,7 @@ create index if not exists nova_mission_proof_attestations_mission_idx
   on public.nova_mission_proof_attestations(mission_id, task_id, attested_at desc);
 
 alter table public.nova_mission_proof_attestations enable row level security;
-revoke all on public.nova_mission_proof_attestations from public, anon, authenticated;
+revoke all on public.nova_mission_proof_attestations from public, anon, authenticated, service_role;
 grant select on public.nova_mission_proof_attestations to authenticated;
 grant select, insert on public.nova_mission_proof_attestations to service_role;
 
