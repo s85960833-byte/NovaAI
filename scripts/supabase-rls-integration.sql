@@ -652,6 +652,14 @@ begin
   if v_approval is distinct from v_duplicate then
     raise exception 'Repeated approval request key created a second approval';
   end if;
+  begin
+    perform public.nova_request_task_approval(
+      '11111111-1111-4111-8111-111111111111', v_mission, v_task,
+      'approval-request-fixture-001', 'Changed action summary must not reuse the original key'
+    );
+    raise exception 'An approval idempotency key was reused for a different action summary';
+  exception when unique_violation then null;
+  end;
   select id into v_other_task from public.nova_mission_tasks
    where mission_id=v_mission and owner_id='11111111-1111-4111-8111-111111111111'
      and id <> v_task;
