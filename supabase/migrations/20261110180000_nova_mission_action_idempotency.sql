@@ -381,7 +381,7 @@ returns text
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $reconcile$
 declare
   v_run_id uuid;
   v_mission_id uuid;
@@ -469,7 +469,7 @@ begin
      and lease_token = v_original_token;
   return 'uncertain';
 end;
-$;
+$reconcile$;
 
 revoke all on function public.nova_mark_mission_action_uncertain(uuid,uuid,text)
   from public, anon, authenticated;
