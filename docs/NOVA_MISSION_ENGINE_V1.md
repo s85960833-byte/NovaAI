@@ -9,7 +9,7 @@
 - Failure, retry and cancellation paths.
 - Immutable in-memory event/evidence snapshots in the domain core.
 - Supabase persistence for missions, tasks, events and proof records.
-- Server-only approval queue and execution-run ledger: requests atomically move the task and mission into `waiting_approval`; owner approval records an `authorized` permission record but keeps the mission `planned` until a real worker starts, while rejection blocks the run and fails the task. Idempotency keys prevent duplicate approval records and are bound to the original mission, task and action summary; conflicting reuse returns a conflict.
+- Server-only approval queue and execution-run ledger: requests atomically move the task and mission into `waiting_approval`; owner approval records an `authorized` permission record but keeps the mission `planned` until a real worker starts, while rejection blocks the run and fails the task. Idempotency keys prevent duplicate approval records and are bound to the original mission, task and action summary; conflicting reuse returns a conflict. A new server-only lease layer atomically claims approved runs, issues replaceable lease tokens, supports bounded heartbeats, recovers expired leases, and schedules bounded retries (maximum five attempts).
 - Atomic, idempotent mission creation RPC restricted to the trusted `service_role`; reusing a key with changed mission content returns a conflict.
 - Authenticated read API for mission lists and details.
 - Authenticated owner-scoped approval request and decision API routes; decision actor is taken from the verified JWT subject, never from request JSON.
@@ -29,7 +29,7 @@
 | `nova_mission_events` | Ordered mission lifecycle audit events |
 | `nova_mission_proofs` | Evidence records and verification outcomes |
 | `nova_mission_approvals` | Pending/approved/rejected owner decisions and action summaries |
-| `nova_mission_execution_runs` | Idempotent execution authorization records and bounded attempt counter |
+| `nova_mission_execution_runs` | Idempotent authorization, bounded attempts, worker identity, expiring lease token, heartbeat and retry schedule |
 
 All six tables have RLS enabled. Each row carries `owner_id`; the database enforces mission/child ownership consistency with composite foreign keys. Authenticated clients can select only their own rows. Writes are reserved for trusted server-side code.
 
@@ -62,20 +62,27 @@ The CI workflow now runs:
 - Approval queue SQL integration: idempotent request, same-request key replay, changed-summary and cross-task key-reuse rejection, atomic task/mission gating, owner approval/rejection, duplicate-decision rejection and cross-account isolation
 - Cancellation SQL integration: atomic task cancellation, pending approval expiry, authorized-run cancellation, terminal-state guard and server-only RPC permissions
 - Approval decision lock-order migration serializes owner decisions with mission cancellation, preventing stale approvals and concurrent event-sequence collisions
+- Worker lease integration: only approved runs can be claimed; active leases cannot be double-claimed; expired tokens cannot heartbeat or fail a reclaimed run; expired leases can be reclaimed with a new token; retry scheduling and five-attempt exhaustion; browser roles cannot invoke worker RPCs
 - Deno type-check for `nova-mission-api`
 - Deno input-validation, four-workspace starter-planner and approval request/decision validation tests
 - Existing backend, security, local runtime and browser regression suites
 
 The full CI run on the tested implementation commit completed successfully. A later documentation-only commit updated this file. Live Supabase deployment and live Edge Function invocation were intentionally not performed.
 
+## Worker lease foundation (not an active worker)
+
+The migration `20261110150000_nova_mission_execution_leases.sql` adds three service-role-only RPCs: `nova_claim_mission_task`, `nova_heartbeat_mission_task`, and `nova_fail_mission_task`. Claims require an approved authorization record, use the mission → approval → run → task lock order, and issue a fresh lease token. Lease duration is bounded to 30–300 seconds. Expired leases can be reclaimed; stale tokens cannot heartbeat or report failure. Failures are returned to `authorized` with a bounded retry delay until attempt five, then become terminal. A trigger clears lease metadata whenever a run leaves `running`, including cancellation. The integration suite exercises approval gating, heartbeat, stale-token rejection, recovery, retry scheduling and the five-attempt ceiling.
+
+These RPCs are not exposed through the public Mission API and no worker process calls them yet. They are primitives for a later reviewed worker service, not evidence that NOVA currently executes tasks.
+
 ## Not yet implemented
 
 This foundation does **not** yet provide:
 
 - LLM-powered adaptive mission planning or task decomposition (the current starter planner is deterministic and template-based)
-- Task execution workers or agent/tool adapters
+- Task execution workers or agent/tool adapters (only the database lease primitives exist)
 - Task execution controls and worker lifecycle (approval and cancellation controls are implemented)
-- Retry/resume worker orchestration and idempotent external tool calls
+- Full retry/resume orchestration, executor-side idempotency and external tool adapters (database lease recovery and retry scheduling only)
 - Live production Supabase migration or Edge Function deployment
 
 The starter planner creates a checklist only; it does not execute tasks or call paid AI providers. Do not label a mission as executed or verified until a real executor has produced inspectable evidence and the verification checks have passed.
