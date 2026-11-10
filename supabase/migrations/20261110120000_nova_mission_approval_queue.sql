@@ -114,7 +114,13 @@ begin
   insert into public.nova_mission_approvals(
     mission_id, task_id, owner_id, request_key, action_summary
   ) values (p_mission_id, p_task_id, p_owner_id, p_request_key, pg_catalog.btrim(p_action_summary))
+  on conflict (owner_id, request_key) do nothing
   returning id into v_approval_id;
+  if v_approval_id is null then
+    select id into v_approval_id from public.nova_mission_approvals
+     where owner_id = p_owner_id and request_key = p_request_key;
+    return v_approval_id;
+  end if;
 
   insert into public.nova_mission_execution_runs(
     approval_id, mission_id, task_id, owner_id, status, idempotency_key
@@ -175,8 +181,8 @@ begin
     raise exception 'Only the mission owner may approve this action'
       using errcode = '42501';
   end if;
-  if p_decision not in ('approve','reject')
-     or pg_catalog.char_length(coalesce(p_decision_note,'')) > 1000 then
+  if p_decision is null or p_decision not in ('approve','reject')
+     or p_decision_note is not null and pg_catalog.char_length(p_decision_note) > 1000 then
     raise exception 'Approval decision is invalid' using errcode = '23514';
   end if;
 
@@ -204,7 +210,7 @@ begin
     update public.nova_mission_tasks set status = 'planned', updated_at = pg_catalog.now()
      where id = v_task_id and mission_id = v_mission_id and owner_id = p_owner_id
        and status = 'waiting_approval';
-    v_next_mission_state := 'planned';
+    v_next_mission_state := 'running';
   else
     update public.nova_mission_tasks set status = 'failed', updated_at = pg_catalog.now()
      where id = v_task_id and mission_id = v_mission_id and owner_id = p_owner_id
