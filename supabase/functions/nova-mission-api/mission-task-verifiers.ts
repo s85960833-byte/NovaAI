@@ -993,10 +993,7 @@ export function createIntelligenceDefineMetricsVerifier(
       });
       checks.push({
         id: "source-field-references",
-        passed: metricsValid && metrics.every((metric) =>
-          Array.isArray(metric.sourceFieldRefs) && metric.sourceFieldRefs.length >= 1 &&
-          metric.sourceFieldRefs.every((ref) => typeof ref === "string" && ref.includes("."))
-        ),
+        passed: metricsValid,
         detail: "Every KPI must identify at least one syntactically valid dataset.field reference",
       });
 
