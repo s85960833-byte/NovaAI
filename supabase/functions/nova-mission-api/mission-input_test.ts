@@ -1,4 +1,4 @@
-import { validateMissionCancellation, validateMissionInput } from "./mission-input.ts";
+import { validateMissionCancellation, validateMissionInput, validateMissionPlanRequest } from "./mission-input.ts";
 import { RequestInputError } from "../nova-bi-api/request-input.ts";
 
 Deno.test("validates mission input and applies safe defaults", () => {
@@ -98,6 +98,24 @@ Deno.test("validates mission cancellation reason and rejects unsupported fields"
     try {
       validateMissionCancellation(input);
       throw new Error("Invalid cancellation request was accepted");
+    } catch (error) {
+      if (!(error instanceof RequestInputError) || error.status !== 400) throw error;
+    }
+  }
+});
+
+Deno.test("mission starter-plan request accepts only an empty JSON object", () => {
+  validateMissionPlanRequest({});
+  for (const input of [
+    { owner_id: "untrusted" },
+    { execute_now: true },
+    [],
+    null,
+    "plan",
+  ]) {
+    try {
+      validateMissionPlanRequest(input);
+      throw new Error("Unsupported plan request was accepted");
     } catch (error) {
       if (!(error instanceof RequestInputError) || error.status !== 400) throw error;
     }
