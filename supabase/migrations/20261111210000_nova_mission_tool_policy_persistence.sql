@@ -5,7 +5,7 @@ alter table public.nova_mission_proof_attestations
   add constraint nova_mission_tool_policy_snapshot_consistency check (
     (
       verifier_id = 'agents.tool-gates-policy'
-      and pg_catalog.jsonb_typeof(envelope_json->'tool_policy') = 'object'
+      and pg_catalog.jsonb_typeof(envelope_json->'tool_policy') is not distinct from 'object'
     )
     or (
       verifier_id <> 'agents.tool-gates-policy'
@@ -34,11 +34,17 @@ begin
 
   if new.verifier_id = 'agents.tool-gates-policy' then
     if v_task_type is distinct from 'agents.tool_gates'
-       or pg_catalog.jsonb_typeof(new.envelope_json->'tool_policy') is distinct from 'object'
-       or new.envelope_json->'tool_policy'->>'version' is distinct from '1'
-       or pg_catalog.jsonb_typeof(new.envelope_json->'tool_policy'->'gates') is distinct from 'array'
-       or pg_catalog.jsonb_array_length(new.envelope_json->'tool_policy'->'gates') not between 1 and 20 then
+       or pg_catalog.jsonb_typeof(new.envelope_json->'tool_policy') is distinct from 'object' then
       raise exception 'Tool policy snapshot must belong to a valid agents.tool_gates proof'
+        using errcode = '23514';
+    end if;
+    if new.envelope_json->'tool_policy'->>'version' is distinct from '1'
+       or pg_catalog.jsonb_typeof(new.envelope_json->'tool_policy'->'gates') is distinct from 'array' then
+      raise exception 'Tool policy snapshot version or gates are invalid'
+        using errcode = '23514';
+    end if;
+    if pg_catalog.jsonb_array_length(new.envelope_json->'tool_policy'->'gates') not between 1 and 20 then
+      raise exception 'Tool policy snapshot must contain between 1 and 20 gates'
         using errcode = '23514';
     end if;
   elsif v_task_type = 'agents.tool_gates' or new.envelope_json ? 'tool_policy' then
