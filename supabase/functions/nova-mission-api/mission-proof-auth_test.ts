@@ -1,6 +1,6 @@
 import { verifyMissionVerifierSignature } from "./mission-proof-auth.ts";
 
-const workerId = "44444444-4444-4444-8444-444444444444";
+const workerId = "nova-worker-v1";
 const leaseToken = "55555555-5555-4555-8555-555555555555";
 const nonce = "66666666-6666-4666-8666-666666666666";
 const secret = "test-verifier-secret-that-is-at-least-32-bytes";
@@ -18,7 +18,7 @@ const envelope = {
 
 async function sign(timestamp: string, value = envelope): Promise<string> {
   const { canonicalizeMissionProof } = await import("./mission-proof.ts");
-  const message = [timestamp, nonce, workerId, leaseToken, canonicalizeMissionProof(value)].join(".");
+  const message = JSON.stringify([timestamp, nonce, workerId, leaseToken, canonicalizeMissionProof(value)]);
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
   return Array.from(new Uint8Array(mac), (byte) => byte.toString(16).padStart(2, "0")).join("");
