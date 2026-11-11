@@ -142,7 +142,7 @@ jobs:
       - name: Install Playwright Chromium for Company Cloud browser tests
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Verify NOVA Mission Control with a mocked authenticated API
         env:
           NOVAAI_URL: http://127.0.0.1:8787
