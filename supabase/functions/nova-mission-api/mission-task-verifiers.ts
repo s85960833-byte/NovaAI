@@ -882,3 +882,149 @@ export function createLearnPracticeMaterialVerifier(
     },
   });
 }
+
+
+/**
+ * KPI-definition verifier. It checks metric semantics are explicitly specified
+ * and source fields are traceable to the mission input. It does not query or
+ * validate an external dataset, nor certify that a proposed KPI is useful.
+ */
+const DEFINE_METRICS_VERIFIER_ID = "intelligence.metric-definition-contract";
+const DEFINE_METRICS_VERIFIER_VERSION = "1.0.0";
+const METRIC_KINDS = new Set(["count", "currency", "duration", "rate", "ratio"]);
+
+export const intelligenceDefineMetricsInputV1: MissionTaskInputSchema = Object.freeze({
+  version: 1,
+  validate(value: unknown): value is Readonly<Record<string, unknown>> {
+    return isRecord(value) && hasExactKeys(value, ["description"]) &&
+      typeof value.description === "string" &&
+      value.description.trim().length >= 1 &&
+      value.description.length <= 2000;
+  },
+});
+
+export function createIntelligenceDefineMetricsVerifier(
+  clock: () => Date = () => new Date(),
+): MissionTaskVerifier {
+  return Object.freeze({
+    id: DEFINE_METRICS_VERIFIER_ID,
+    version: DEFINE_METRICS_VERIFIER_VERSION,
+    async verify(
+      task: MissionTaskDescriptor,
+      result: MissionExecutionResult,
+    ): Promise<MissionVerificationResult> {
+      const observedAt = clock().toISOString();
+      const checks: Array<{ id: string; passed: boolean; detail?: string }> = [];
+      const inputValid = intelligenceDefineMetricsInputV1.validate(task.input);
+      checks.push({
+        id: "input-contract",
+        passed: inputValid && task.taskType === "intelligence.define_metrics" &&
+          task.inputSchemaVersion === intelligenceDefineMetricsInputV1.version,
+        detail: "Task must use the version-1 KPI-definition input contract",
+      });
+
+      const output = result.output;
+      const outputValid = isRecord(output) &&
+        hasExactKeys(output, ["metrics"]) && Array.isArray(output.metrics);
+      const metrics = outputValid ? output.metrics as unknown[] : [];
+      let metricsValid = outputValid && metrics.length >= 2 && metrics.length <= 12;
+      const ids = new Set<string>();
+      if (metricsValid) {
+        for (const metric of metrics) {
+          if (!isRecord(metric) ||
+              !hasExactKeys(metric, [
+                "id", "name", "businessQuestion", "metricKind",
+                "numeratorDefinition", "denominatorDefinition", "formula",
+                "unit", "grain", "reportingPeriod", "sourceFieldRefs",
+              ]) ||
+              typeof metric.id !== "string" || !UUID_LIKE_ID.test(metric.id) ||
+              typeof metric.name !== "string" || metric.name.trim().length < 3 ||
+              metric.name.length > 100 ||
+              typeof metric.businessQuestion !== "string" ||
+              metric.businessQuestion.trim().length < 10 ||
+              metric.businessQuestion.length > 300 ||
+              typeof metric.metricKind !== "string" || !METRIC_KINDS.has(metric.metricKind) ||
+              typeof metric.numeratorDefinition !== "string" ||
+              metric.numeratorDefinition.trim().length < 5 ||
+              metric.numeratorDefinition.length > 240 ||
+              typeof metric.denominatorDefinition !== "string" ||
+              metric.denominatorDefinition.length > 240 ||
+              typeof metric.formula !== "string" || metric.formula.length > 520 ||
+              typeof metric.unit !== "string" || metric.unit.trim().length < 1 ||
+              metric.unit.length > 40 ||
+              typeof metric.grain !== "string" || metric.grain.trim().length < 2 ||
+              metric.grain.length > 80 ||
+              typeof metric.reportingPeriod !== "string" ||
+              !/^(daily|weekly|monthly|quarterly|yearly|per_event)$/.test(metric.reportingPeriod) ||
+              !isStringArray(metric.sourceFieldRefs, 20) ||
+              metric.sourceFieldRefs.length < 1 ||
+              metric.sourceFieldRefs.some((ref) =>
+                !/^[a-z][a-z0-9_-]{0,39}\.[a-z][a-z0-9_-]{0,39}$/.test(ref)
+              ) ||
+              new Set(metric.sourceFieldRefs).size !== metric.sourceFieldRefs.length ||
+              ids.has(metric.id)) {
+            metricsValid = false;
+            break;
+          }
+          const expectedFormula = metric.metricKind === "rate" || metric.metricKind === "ratio"
+            ? "(" + metric.numeratorDefinition + ") / (" + metric.denominatorDefinition + ")"
+            : metric.numeratorDefinition;
+          if (metric.formula !== expectedFormula ||
+              ((metric.metricKind === "rate" || metric.metricKind === "ratio") &&
+                metric.denominatorDefinition.trim().length < 5) ||
+              ((metric.metricKind === "count" || metric.metricKind === "currency" ||
+                metric.metricKind === "duration") &&
+                metric.denominatorDefinition !== "not_applicable")) {
+            metricsValid = false;
+            break;
+          }
+          ids.add(metric.id);
+        }
+      }
+      checks.push({
+        id: "metric-definition-shape",
+        passed: metricsValid && ids.size === metrics.length,
+        detail: "Each KPI must have a unique ID, bounded definition, unit, grain and reporting period",
+      });
+      checks.push({
+        id: "formula-consistency",
+        passed: metricsValid,
+        detail: "Formula must match the declared numerator and denominator semantics",
+      });
+      checks.push({
+        id: "source-field-references",
+        passed: metricsValid && metrics.every((metric) =>
+          Array.isArray(metric.sourceFieldRefs) && metric.sourceFieldRefs.length >= 1 &&
+          metric.sourceFieldRefs.every((ref) => typeof ref === "string" && ref.includes("."))
+        ),
+        detail: "Every KPI must identify at least one syntactically valid dataset.field reference",
+      });
+
+      const evidence = result.evidence;
+      const bindings = isRecord(evidence) && hasExactKeys(evidence, ["sourceBindings"]) &&
+        Array.isArray(evidence.sourceBindings) ? evidence.sourceBindings : [];
+      let provenanceValid = false;
+      if (bindings.length === 1 && inputValid) {
+        const binding = bindings[0];
+        if (isRecord(binding) &&
+            hasExactKeys(binding, ["id", "kind", "locator", "sha256"]) &&
+            binding.id === "mission-input" && binding.kind === "mission_input" &&
+            binding.locator === "mission.input.description" &&
+            typeof binding.sha256 === "string" && SHA256.test(binding.sha256)) {
+          provenanceValid = binding.sha256 === await sha256(task.input.description as string);
+        }
+      }
+      checks.push({
+        id: "input-provenance-binding",
+        passed: provenanceValid,
+        detail: "Evidence must bind to the exact mission input description digest",
+      });
+      return failedResult(
+        observedAt,
+        checks,
+        DEFINE_METRICS_VERIFIER_ID,
+        DEFINE_METRICS_VERIFIER_VERSION,
+      );
+    },
+  });
+}
