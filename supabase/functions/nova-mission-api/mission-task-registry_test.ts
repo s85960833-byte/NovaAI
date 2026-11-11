@@ -429,3 +429,36 @@ Deno.test("snapshot boundary rejects getters, symbol keys and sparse or decorate
     throw new Error("Untrusted accessors executed or handler ran before JSON shape validation");
   }
 });
+
+
+Deno.test("registration rejects unbounded or malformed verifier identities", () => {
+  const invalidIdentities = [
+    { id: "Invalid Uppercase", version: "1.0.0" },
+    { id: "test.valid-verifier", version: " " },
+    { id: "x".repeat(81), version: "1.0.0" },
+    { id: "test.valid-verifier", version: "v".repeat(41) },
+  ];
+  for (const identity of invalidIdentities) {
+    const registry = new MissionTaskRegistry();
+    try {
+      registry.register("test.safe-check", emptyObjectV1, {
+        async execute() { return { output: {}, evidence: {} }; },
+      }, {
+        ...identity,
+        async verify(): Promise<MissionVerificationResult> {
+          return {
+            passed: true,
+            verifierId: identity.id,
+            verifierVersion: identity.version,
+            checks: [{ id: "valid", passed: true }],
+            observedAt: "2026-11-10T12:00:00.000Z",
+          };
+        },
+      });
+      throw new Error("Malformed verifier identity was accepted");
+    } catch (error) {
+      if (!(error instanceof TypeError) ||
+          !error.message.includes("independent trusted verifier")) throw error;
+    }
+  }
+});
