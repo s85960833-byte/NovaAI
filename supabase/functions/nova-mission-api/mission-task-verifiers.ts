@@ -1135,10 +1135,13 @@ export function createAgentsPermissionsVerifier(
       });
       checks.push({
         id: "sensitive-action-approval",
-        passed: permissionsValid && permissions.every((permission) =>
-          !permission.actions.some((action) => AGENT_SENSITIVE_ACTIONS.has(action)) ||
-          permission.approvalRequired === true
-        ),
+        passed: permissionsValid && permissions.every((permission) => {
+          if (!isRecord(permission) || !Array.isArray(permission.actions)) return false;
+          const hasSensitiveAction = permission.actions.some((action) =>
+            typeof action === "string" && AGENT_SENSITIVE_ACTIONS.has(action)
+          );
+          return !hasSensitiveAction || permission.approvalRequired === true;
+        }),
         detail: "Delete, execute, publish, send and export permissions require owner approval",
       });
 
