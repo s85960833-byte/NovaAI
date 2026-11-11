@@ -15,8 +15,8 @@ for migration in supabase/migrations/202611*.sql; do
   version=${version%%_*}
   if ! node -e '
     const value = process.argv[1];
-    if (!/^\\d{14}$/.test(value)) process.exit(1);
-    const parts = value.match(/^(\\d{4})(\\d{2})(\\d{2})(\\d{2})(\\d{2})(\\d{2})$/).slice(1).map(Number);
+    if (!/^\d{14}$/.test(value)) process.exit(1);
+    const parts = value.match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/).slice(1).map(Number);
     const [year, month, day, hour, minute, second] = parts;
     const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
     const valid = date.getUTCFullYear() === year &&
