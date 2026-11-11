@@ -1276,6 +1276,15 @@ begin
   select id into v_action from public.nova_mission_action_receipts
    where action_key='action-reserved-fixture-001';
   if v_action is null then raise exception 'Uncertain action fixture is missing'; end if;
+  perform pg_catalog.set_config('test.nova_owner_action_id',v_action::text,false);
+  if not exists (
+    select 1 from pg_catalog.pg_trigger
+     where tgname='nova_guard_unresolved_mission_action'
+       and tgrelid='public.nova_mission_action_receipts'::regclass
+       and not tgisinternal
+  ) then
+    raise exception 'Mission-wide unresolved-action reservation trigger is not attached';
+  end if;
   v_resolution := public.nova_resolve_uncertain_mission_action(
     v_action,'confirmed_not_executed','provider-audit://fixture-uncertain-001',
     'Checked the provider audit record and confirmed this request was never executed.'
@@ -1318,6 +1327,23 @@ begin
     raise exception 'Authenticated users must have read-only action receipt access';
   end if;
 end $mission_attestation_owner_read$;
+reset role;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
+do $mission_action_resolution_outsider$
+declare
+  v_action uuid := pg_catalog.current_setting('test.nova_owner_action_id')::uuid;
+begin
+  begin
+    perform public.nova_resolve_uncertain_mission_action(
+      v_action,'confirmed_not_executed','provider-audit://outsider-attempt',
+      'An unrelated account must never resolve another owners action.'
+    );
+    raise exception 'Non-owner unexpectedly resolved another mission action';
+  exception when insufficient_privilege then null;
+  end;
+end $mission_action_resolution_outsider$;
 reset role;
 
 set role authenticated;
