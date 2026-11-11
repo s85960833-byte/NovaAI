@@ -5,8 +5,27 @@ import {
   type MissionToolGatewayContext,
   type MissionToolPolicy,
 } from "./mission-tool-gateway.ts";
+import type { MissionPermissionPolicy } from "./mission-permission-policy.ts";
 
 const fixedNow = new Date("2026-11-11T12:00:00.000Z");
+const permissionPolicy: MissionPermissionPolicy = {
+  permissions: [{
+    id: "123e4567-e89b-42d3-a456-426614174000",
+    scope: { kind: "project", ref: "nova-project" },
+    actions: ["read"],
+    approvalRequired: false,
+    reason: "Read files explicitly belonging to this named project.",
+    sourceRefIds: ["mission-input"],
+  }, {
+    id: "123e4567-e89b-42d3-a456-426614174001",
+    scope: { kind: "resource", ref: "approved-recipient-list" },
+    actions: ["send"],
+    approvalRequired: true,
+    reason: "Send only content to the specifically approved recipients.",
+    sourceRefIds: ["mission-input"],
+  }],
+};
+
 const policy: MissionToolPolicy = {
   version: 1,
   gates: [{
@@ -44,7 +63,7 @@ async function makeContext(): Promise<MissionToolGatewayContext> {
     },
     approval: {
       id: "approval-2", missionId: "mission-1", taskId: "task-2", ownerId: "owner-1",
-      status: "approved", actionSummary: await buildMissionToolPolicyApprovalSummary(policy),
+      status: "approved", actionSummary: await buildMissionToolPolicyApprovalSummary(policy, permissionPolicy),
     },
     policyProof: {
       id: "proof-policy", missionId: "mission-1", taskId: "task-policy", ownerId: "owner-1",
@@ -56,6 +75,17 @@ async function makeContext(): Promise<MissionToolGatewayContext> {
       proofId: "proof-policy", missionId: "mission-1", taskId: "task-policy",
       ownerId: "owner-1", runId: "run-policy",
       verifierId: "agents.tool-gates-policy", verifierVersion: "1.0.0", outcome: "passed",
+    },
+    permissionProof: {
+      id: "proof-permissions", missionId: "mission-1", taskId: "task-permissions", ownerId: "owner-1",
+      taskType: "agents.permissions", status: "passed", outcome: "passed",
+      verifierId: "agents.permissions-least-privilege", verifierVersion: "1.0.0",
+      runId: "run-permissions", policy: structuredClone(permissionPolicy),
+    },
+    permissionAttestation: {
+      proofId: "proof-permissions", missionId: "mission-1", taskId: "task-permissions",
+      ownerId: "owner-1", runId: "run-permissions",
+      verifierId: "agents.permissions-least-privilege", verifierVersion: "1.0.0", outcome: "passed",
     },
   };
 }
@@ -189,7 +219,7 @@ Deno.test("tool policy limits keep the owner approval summary within the databas
   if (!validateMissionToolPolicy(bounded)) {
     throw new Error("Maximum supported tool policy was rejected");
   }
-  const summary = await buildMissionToolPolicyApprovalSummary(bounded);
+  const summary = await buildMissionToolPolicyApprovalSummary(bounded, permissionPolicy);
   if (summary.length > 2000) {
     throw new Error("Maximum supported policy summary exceeds approval storage limit: " + summary.length);
   }
@@ -200,4 +230,43 @@ Deno.test("tool policy limits keep the owner approval summary within the databas
   if (validateMissionToolPolicy(tooMany)) {
     throw new Error("Policy exceeding the approval summary gate limit was accepted");
   }
+});
+
+Deno.test("runtime tool gateway requires a distinct passing permission proof and exact grant", async () => {
+  const missing = await makeContext();
+  missing.permissionProof.status = "failed";
+  if ((await authorizeMissionToolAction(missing, request, async () => {
+    throw new Error("Must not reserve without a passing permission proof");
+  })).authorized) throw new Error("Missing passing permission proof was accepted");
+
+  const crossMission = await makeContext();
+  crossMission.permissionProof.missionId = "another-mission";
+  if ((await authorizeMissionToolAction(crossMission, request, async () => {
+    throw new Error("Must not reserve cross-mission permissions");
+  })).authorized) throw new Error("Cross-mission permission proof was accepted");
+
+  const sameTask = await makeContext();
+  sameTask.permissionProof.taskId = sameTask.task.id;
+  sameTask.permissionAttestation.taskId = sameTask.task.id;
+  if ((await authorizeMissionToolAction(sameTask, request, async () => {
+    throw new Error("Must not reserve self-authorized task");
+  })).authorized) throw new Error("Active task self-authorized through its permission proof");
+
+  const insufficient = await makeContext();
+  (insufficient.permissionProof.policy as MissionPermissionPolicy).permissions[1].actions = ["read"];
+  if ((await authorizeMissionToolAction(insufficient, request, async () => {
+    throw new Error("Must not reserve without send permission");
+  })).authorized) throw new Error("Tool gate bypassed missing send permission");
+
+  const scopeMismatch = await makeContext();
+  (scopeMismatch.permissionProof.policy as MissionPermissionPolicy).permissions[1].scope.ref = "other-list";
+  if ((await authorizeMissionToolAction(scopeMismatch, request, async () => {
+    throw new Error("Must not reserve wrong permission scope");
+  })).authorized) throw new Error("Permission for a different scope was accepted");
+
+  const approvalMismatch = await makeContext();
+  approvalMismatch.approval.actionSummary = "Tool gates approved without permission grants";
+  if ((await authorizeMissionToolAction(approvalMismatch, request, async () => {
+    throw new Error("Must not reserve with unbound owner approval");
+  })).authorized) throw new Error("Approval not bound to both policy snapshots was accepted");
 });
