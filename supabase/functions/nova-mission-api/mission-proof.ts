@@ -19,6 +19,95 @@ export interface MissionProofEnvelope {
   permission_policy?: MissionPermissionPolicy;
 }
 
+
+function cloneProofOutput(value: unknown, depth = 0, ancestors = new Set<object>()): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value) ||
+      (Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) {
+    throw new TypeError("Task output must be a plain JSON object");
+  }
+  if (depth > 16 || ancestors.has(value)) throw new TypeError("Task output is too deep or cyclic");
+  ancestors.add(value);
+  try {
+    const keys = Reflect.ownKeys(value);
+    if (keys.some((key) => typeof key !== "string")) throw new TypeError("Task output cannot contain symbol keys");
+    const copy: Record<string, unknown> = {};
+    for (const key of keys as string[]) {
+      if (key === "__proto__" || key === "prototype" || key === "constructor") {
+        throw new TypeError("Task output contains a prototype-sensitive key");
+      }
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+        throw new TypeError("Task output must contain enumerable data properties only");
+      }
+      const child = descriptor.value;
+      if (child === null || typeof child === "string" || typeof child === "boolean" ||
+          (typeof child === "number" && Number.isFinite(child))) {
+        copy[key] = child;
+      } else if (Array.isArray(child)) {
+        if (Object.getPrototypeOf(child) !== Array.prototype || child.length > 50000) {
+          throw new TypeError("Task output contains an invalid array");
+        }
+        const arrayKeys = Reflect.ownKeys(child);
+        if (arrayKeys.some((item) => item !== "length" &&
+            (typeof item !== "string" || !/^(0|[1-9]\\d*)$/.test(item) || Number(item) >= child.length))) {
+          throw new TypeError("Task output array contains extra properties");
+        }
+        const arrayCopy: unknown[] = [];
+        for (let index = 0; index < child.length; index++) {
+          const item = Object.getOwnPropertyDescriptor(child, String(index));
+          if (!item || !item.enumerable || !("value" in item)) {
+            throw new TypeError("Task output arrays must be dense data arrays");
+          }
+          const nested = item.value;
+          if (nested && typeof nested === "object") {
+            arrayCopy.push(cloneProofValue(nested, depth + 1, ancestors));
+          } else if (nested === null || typeof nested === "string" || typeof nested === "boolean" ||
+              (typeof nested === "number" && Number.isFinite(nested))) {
+            arrayCopy.push(nested);
+          } else {
+            throw new TypeError("Task output contains a non-JSON value");
+          }
+        }
+        copy[key] = arrayCopy;
+      } else if (child && typeof child === "object") {
+        copy[key] = cloneProofValue(child, depth + 1, ancestors);
+      } else {
+        throw new TypeError("Task output contains a non-JSON value");
+      }
+    }
+    return copy;
+  } finally {
+    ancestors.delete(value);
+  }
+}
+
+function cloneProofValue(value: unknown, depth: number, ancestors: Set<object>): unknown {
+  if (Array.isArray(value)) {
+    if (Object.getPrototypeOf(value) !== Array.prototype || value.length > 50000 ||
+        ancestors.has(value)) throw new TypeError("Task output contains an invalid array");
+    ancestors.add(value);
+    try {
+      const keys = Reflect.ownKeys(value);
+      if (keys.some((key) => key !== "length" &&
+          (typeof key !== "string" || !/^(0|[1-9]\\d*)$/.test(key) || Number(key) >= value.length))) {
+        throw new TypeError("Task output array contains extra properties");
+      }
+      const items: unknown[] = [];
+      for (let i = 0; i < value.length; i++) {
+        const d = Object.getOwnPropertyDescriptor(value, String(i));
+        if (!d || !d.enumerable || !("value" in d)) throw new TypeError("Task output arrays must be dense");
+        const v = d.value;
+        if (v && typeof v === "object") items.push(cloneProofValue(v, depth + 1, ancestors));
+        else if (v === null || typeof v === "string" || typeof v === "boolean" ||
+            (typeof v === "number" && Number.isFinite(v))) items.push(v);
+        else throw new TypeError("Task output contains a non-JSON value");
+      }
+      return items;
+    } finally { ancestors.delete(value); }
+  }
+  return cloneProofOutput(value, depth, ancestors);
+}
+
 export type MissionProofEnvelopeFields = Omit<MissionProofEnvelope, "schema_version" | "output">;
 
 /**
