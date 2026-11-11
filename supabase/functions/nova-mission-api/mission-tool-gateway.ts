@@ -88,7 +88,9 @@ export async function buildMissionToolPolicyApprovalSummary(
   return summary;
 }
 
-function requiredPermissionAction(tool: string, operation: string): string | null {
+type MissionPermissionAction = "read" | "send" | "create" | "update" | "delete" | "execute" | "publish" | "export";
+
+function requiredPermissionAction(tool: string, operation: string): MissionPermissionAction | null {
   if (operation === "read" && tool.endsWith(".read")) return "read";
   if (operation === "write" && tool.endsWith(".write")) return "update";
   if (tool === "browser.submit" && operation === "submit") return "publish";
