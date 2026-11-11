@@ -35,3 +35,4 @@ for migration in supabase/migrations/202611*.sql; do
 done
 
 psql -v ON_ERROR_STOP=1 -f scripts/supabase-rls-integration.sql
+psql -v ON_ERROR_STOP=1 -f scripts/mission-resolved-action-completion.sql
