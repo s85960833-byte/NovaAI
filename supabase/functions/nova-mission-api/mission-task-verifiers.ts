@@ -206,3 +206,148 @@ export function createLearnTopicSequenceVerifier(
     },
   });
 }
+
+
+/**
+ * Build requirements verifier: validates a bounded requirements contract,
+ * acceptance criteria and binding to the exact mission input. It does not
+ * certify that requirements are complete for a real-world product.
+ */
+const BUILD_REQUIREMENTS_VERIFIER_ID = "build.requirements-structure";
+const BUILD_REQUIREMENTS_VERIFIER_VERSION = "1.0.0";
+const PRIORITIES = new Set(["critical", "high", "medium", "low"]);
+
+type BuildRequirement = {
+  id: string;
+  title: string;
+  description: string;
+  priority: "critical" | "high" | "medium" | "low";
+  acceptanceCriteria: string[];
+  sourceRefIds: string[];
+};
+
+export const buildRequirementsInputV1: MissionTaskInputSchema = Object.freeze({
+  version: 1,
+  validate(value: unknown): value is Readonly<Record<string, unknown>> {
+    return isRecord(value) && hasExactKeys(value, ["description"]) &&
+      typeof value.description === "string" &&
+      value.description.trim().length >= 1 &&
+      value.description.length <= 2000;
+  },
+});
+
+export function createBuildRequirementsVerifier(
+  clock: () => Date = () => new Date(),
+): MissionTaskVerifier {
+  return Object.freeze({
+    id: BUILD_REQUIREMENTS_VERIFIER_ID,
+    version: BUILD_REQUIREMENTS_VERIFIER_VERSION,
+    async verify(
+      task: MissionTaskDescriptor,
+      result: MissionExecutionResult,
+    ): Promise<MissionVerificationResult> {
+      const observedAt = clock().toISOString();
+      const checks: Array<{ id: string; passed: boolean; detail?: string }> = [];
+      const inputValid = buildRequirementsInputV1.validate(task.input);
+      checks.push({
+        id: "input-contract",
+        passed: inputValid && task.taskType === "build.requirements" &&
+          task.inputSchemaVersion === buildRequirementsInputV1.version,
+        detail: "Task must use the version-1 build requirements input contract",
+      });
+
+      const output = result.output;
+      const outputValid = isRecord(output) && hasExactKeys(output, ["requirements"]) &&
+        Array.isArray(output.requirements);
+      const requirements = outputValid ? output.requirements as unknown[] : [];
+      checks.push({
+        id: "requirement-count",
+        passed: requirements.length >= 3 && requirements.length <= 15,
+        detail: "A requirements brief must contain between 3 and 15 requirements",
+      });
+
+      let shapeValid = outputValid && requirements.length >= 3 && requirements.length <= 15;
+      const seenIds = new Set<string>();
+      const parsed: BuildRequirement[] = [];
+      if (shapeValid) {
+        for (const value of requirements) {
+          if (!isRecord(value) ||
+              !hasExactKeys(value, [
+                "id", "title", "description", "priority",
+                "acceptanceCriteria", "sourceRefIds",
+              ]) ||
+              typeof value.id !== "string" || !UUID_LIKE_ID.test(value.id) ||
+              typeof value.title !== "string" || value.title.trim().length < 3 ||
+              value.title.length > 100 ||
+              typeof value.description !== "string" || value.description.trim().length < 10 ||
+              value.description.length > 500 ||
+              typeof value.priority !== "string" || !PRIORITIES.has(value.priority) ||
+              !isStringArray(value.acceptanceCriteria, 5) ||
+              value.acceptanceCriteria.length < 1 ||
+              value.acceptanceCriteria.some((criterion) =>
+                criterion.trim().length < 10 || criterion.length > 240
+              ) ||
+              !isStringArray(value.sourceRefIds, 5)) {
+            shapeValid = false;
+            break;
+          }
+          const item = value as unknown as BuildRequirement;
+          if (seenIds.has(item.id) ||
+              new Set(item.acceptanceCriteria).size !== item.acceptanceCriteria.length ||
+              new Set(item.sourceRefIds).size !== item.sourceRefIds.length) {
+            shapeValid = false;
+            break;
+          }
+          seenIds.add(item.id);
+          parsed.push(item);
+        }
+      }
+      checks.push({
+        id: "requirement-shape-and-uniqueness",
+        passed: shapeValid && parsed.length === requirements.length,
+        detail: "Requirements must have bounded fields, valid priorities and unique IDs",
+      });
+      checks.push({
+        id: "acceptance-criteria",
+        passed: shapeValid && parsed.every((item) =>
+          item.acceptanceCriteria.length >= 1 &&
+          item.acceptanceCriteria.every((criterion) => criterion.trim().length >= 10)
+        ),
+        detail: "Every requirement must include concrete, bounded acceptance criteria",
+      });
+
+      const evidence = result.evidence;
+      const sourceBindings = isRecord(evidence) && Array.isArray(evidence.sourceBindings)
+        ? evidence.sourceBindings
+        : [];
+      const evidenceValid = isRecord(evidence) &&
+        hasExactKeys(evidence, ["sourceBindings"]) &&
+        sourceBindings.length === 1;
+      let provenanceValid = false;
+      if (evidenceValid && inputValid) {
+        const binding = sourceBindings[0];
+        if (isRecord(binding) &&
+            hasExactKeys(binding, ["id", "kind", "locator", "sha256"]) &&
+            binding.id === "mission-input" &&
+            binding.kind === "mission_input" &&
+            binding.locator === "mission.input.description" &&
+            typeof binding.sha256 === "string" && SHA256.test(binding.sha256)) {
+          provenanceValid = binding.sha256 === await sha256(task.input.description as string);
+        }
+      }
+      checks.push({
+        id: "input-provenance-binding",
+        passed: provenanceValid,
+        detail: "Evidence must bind to the exact mission input description digest",
+      });
+      checks.push({
+        id: "requirement-source-coverage",
+        passed: provenanceValid && shapeValid &&
+          parsed.every((item) => item.sourceRefIds.length === 1 &&
+            item.sourceRefIds[0] === "mission-input"),
+        detail: "Every requirement must reference the verified mission-input binding",
+      });
+      return failedResult(observedAt, checks);
+    },
+  });
+}
