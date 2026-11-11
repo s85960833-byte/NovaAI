@@ -213,6 +213,9 @@ function canonical(value: unknown, depth = 0): string {
     const record = value as Record<string, unknown>;
     const entries: string[] = [];
     for (const key of (keys as string[]).sort()) {
+      if (key === "__proto__" || key === "prototype" || key === "constructor") {
+        throw new TypeError("Proof evidence contains a prototype-sensitive key");
+      }
       const descriptor = Object.getOwnPropertyDescriptor(value, key);
       if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
         throw new TypeError("Proof evidence objects must contain enumerable data properties");
