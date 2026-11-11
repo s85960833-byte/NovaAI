@@ -1614,3 +1614,164 @@ begin
 end $mission_typed_task_persistence$;
 reset role;
 
+
+
+-- Trusted proof persistence: signed-verifier RPC binds the active lease, persists
+-- proof + attestation and completes the task in one transaction.
+set role service_role;
+select set_config('request.jwt.claim.role','service_role',false);
+do $mission_trusted_proof_persistence$
+declare
+  v_owner uuid := '11111111-1111-4111-8111-111111111111';
+  v_mission uuid;
+  v_task uuid;
+  v_approval uuid;
+  v_run uuid;
+  v_token uuid;
+  v_proof uuid;
+  v_attestation uuid;
+  v_envelope jsonb;
+  v_action uuid;
+  v_status text;
+begin
+  -- Positive case plus worker mismatch, envelope scope mismatch and replay rejection.
+  v_mission := public.nova_create_mission(
+    v_owner,'Trusted proof persistence fixture','Atomic proof persistence','agents',
+    'mission-trusted-proof-success-001','{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    v_owner,v_mission,'{"kind":"starter_template","workspace":"agents"}'::jsonb,
+    '[{"title":"Verified task","description":"Atomic proof test","task_type":"agents.checklist","input_schema_version":1,"input":{"description":"Atomic proof test"}}]'::jsonb
+  );
+  select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
+  v_approval := public.nova_request_task_approval(
+    v_owner,v_mission,v_task,'approval-trusted-proof-success-001','Run trusted proof test'
+  );
+  select id into v_run from public.nova_mission_execution_runs where approval_id=v_approval;
+  perform public.nova_decide_task_approval(v_owner,v_approval,'approve',v_owner,'Approved test');
+  select lease_token into v_token
+    from public.nova_claim_mission_task(v_run,'proof-persist-worker',120);
+
+  v_envelope := jsonb_build_object(
+    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'verifier_id','nova.integration-verifier','verifier_version','1.0.0',
+    'observed_at',now(),'outcome','passed',
+    'checks',jsonb_build_array(jsonb_build_object('id','evidence-reviewed','passed',true))
+  );
+
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
+      v_run,'wrong-worker',v_token,v_envelope,repeat('a',64),'Must reject wrong worker'
+    );
+    raise exception 'Proof persistence accepted a worker identity not bound to the lease';
+  exception when sqlstate '55000' then null;
+  end;
+  if exists(select 1 from public.nova_mission_proof_attestations where run_id=v_run) then
+    raise exception 'Wrong worker attempt persisted an attestation';
+  end if;
+
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
+      v_run,'proof-persist-worker',v_token,
+      jsonb_set(v_envelope,'{task_id}','"99999999-9999-4999-8999-999999999999"'::jsonb),
+      repeat('a',64),'Must reject mismatched task'
+    );
+    raise exception 'Proof persistence accepted a mismatched task binding';
+  exception when check_violation then null;
+  end;
+  if exists(select 1 from public.nova_mission_proof_attestations where run_id=v_run) then
+    raise exception 'Mismatched task attempt persisted an attestation';
+  end if;
+
+  select proof_id,attestation_id into v_proof,v_attestation
+    from public.nova_persist_mission_proof_and_complete(
+      v_run,'proof-persist-worker',v_token,v_envelope,repeat('a',64),'Verified by integration verifier'
+    );
+  if v_proof is null or v_attestation is null
+     or (select status from public.nova_mission_execution_runs where id=v_run) <> 'succeeded'
+     or (select status from public.nova_mission_tasks where id=v_task) <> 'completed'
+     or (select state from public.nova_missions where id=v_mission) <> 'completed'
+     or not exists(select 1 from public.nova_mission_proofs where id=v_proof and verification_status='passed')
+     or not exists(select 1 from public.nova_mission_proof_attestations
+       where id=v_attestation and proof_id=v_proof and run_id=v_run and evidence_digest=repeat('a',64)) then
+    raise exception 'Atomic trusted proof persistence did not complete all bound records';
+  end if;
+
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
+      v_run,'proof-persist-worker',v_token,v_envelope,repeat('a',64),'Duplicate proof replay'
+    );
+    raise exception 'Completed run accepted a duplicate proof replay';
+  exception when sqlstate '55000' then null;
+  end;
+
+  -- A failure in lease-fenced completion must roll back both proof and attestation.
+  v_mission := public.nova_create_mission(
+    v_owner,'Trusted proof rollback fixture','Rollback partial proof writes','agents',
+    'mission-trusted-proof-rollback-001','{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    v_owner,v_mission,'{"kind":"starter_template","workspace":"agents"}'::jsonb,
+    '[{"title":"Receipt-blocked task","description":"Atomic rollback test","task_type":"agents.checklist","input_schema_version":1,"input":{"description":"Atomic rollback test"}}]'::jsonb
+  );
+  select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
+  v_approval := public.nova_request_task_approval(
+    v_owner,v_mission,v_task,'approval-trusted-proof-rollback-001','Run rollback test'
+  );
+  select id into v_run from public.nova_mission_execution_runs where approval_id=v_approval;
+  perform public.nova_decide_task_approval(v_owner,v_approval,'approve',v_owner,'Approved test');
+  select lease_token into v_token
+    from public.nova_claim_mission_task(v_run,'proof-persist-worker',120);
+  select action_id into v_action
+    from public.nova_reserve_mission_action(v_run,v_token,'proof-rollback-action-001',repeat('b',64));
+  v_envelope := jsonb_build_object(
+    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'verifier_id','nova.integration-verifier','verifier_version','1.0.0',
+    'observed_at',now(),'outcome','passed',
+    'checks',jsonb_build_array(jsonb_build_object('id','evidence-reviewed','passed',true))
+  );
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
+      v_run,'proof-persist-worker',v_token,v_envelope,repeat('b',64),'Must roll back'
+    );
+    raise exception 'Proof persistence bypassed an unresolved action receipt';
+  exception when sqlstate '55000' then null;
+  end;
+  if exists(select 1 from public.nova_mission_proof_attestations where run_id=v_run)
+     or exists(select 1 from public.nova_mission_proofs where mission_id=v_mission and task_id=v_task) then
+    raise exception 'Failed completion left a partial proof or attestation row';
+  end if;
+
+  v_status := public.nova_complete_mission_action(v_action,v_token,repeat('c',64),'proof-rollback-fixture-receipt');
+  if v_status <> 'completed' then
+    raise exception 'Could not resolve the blocking action receipt';
+  end if;
+  select proof_id,attestation_id into v_proof,v_attestation
+    from public.nova_persist_mission_proof_and_complete(
+      v_run,'proof-persist-worker',v_token,v_envelope,repeat('b',64),'Verified after receipt resolution'
+    );
+  if v_proof is null or v_attestation is null
+     or (select status from public.nova_mission_execution_runs where id=v_run) <> 'succeeded' then
+    raise exception 'Proof persistence did not recover after action reconciliation';
+  end if;
+end $mission_trusted_proof_persistence$;
+reset role;
+
+do $mission_trusted_proof_privileges$
+begin
+  if has_function_privilege('anon',
+       'public.nova_persist_mission_proof_and_complete(uuid,text,uuid,jsonb,text,text)','execute')
+     or has_function_privilege('authenticated',
+       'public.nova_persist_mission_proof_and_complete(uuid,text,uuid,jsonb,text,text)','execute')
+     or not has_function_privilege('service_role',
+       'public.nova_persist_mission_proof_and_complete(uuid,text,uuid,jsonb,text,text)','execute') then
+    raise exception 'Trusted proof persistence RPC must be restricted to service_role';
+  end if;
+  if not exists (
+    select 1 from pg_indexes
+     where schemaname='public'
+       and indexname='nova_mission_proof_attestations_run_uidx'
+  ) then
+    raise exception 'Proof attestations must enforce one attestation per execution run';
+  end if;
+end $mission_trusted_proof_privileges$;
