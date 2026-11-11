@@ -3,13 +3,13 @@ import {
   createBuildDesignFlowVerifier,
   createLearnAssessmentVerifier,
   createLearnGoalClarificationVerifier,
-  createLearnPracticeMaterialVerifier,
+  createLearnPracticeMaterialVerifier,\n  createIntelligenceDefineMetricsVerifier,
   createLearnTopicSequenceVerifier,
   buildRequirementsInputV1,
   buildDesignFlowInputV1,
   learnAssessmentInputV1,
   learnGoalClarificationInputV1,
-  learnPracticeMaterialInputV1,
+  learnPracticeMaterialInputV1,\n  intelligenceDefineMetricsInputV1,
   learnTopicSequenceInputV1,
 } from "./mission-task-verifiers.ts";
 import {
@@ -726,6 +726,120 @@ Deno.test("learning practice-material verifier rejects forged provenance and int
       execution.verification.verifierId !== "learn.practice-material-structure" ||
       execution.verification.checks.length !== 4) {
     throw new Error("Practice-material registry integration failed: " +
+      JSON.stringify(execution.verification));
+  }
+});
+
+
+const defineMetricsTask: MissionTaskDescriptor = {
+  ...task,
+  taskType: "intelligence.define_metrics",
+};
+
+function validMetricDefinitions() {
+  return [
+    {
+      id: "monthly-revenue",
+      name: "Monthly revenue",
+      businessQuestion: "How much revenue was recognized in each month?",
+      metricKind: "currency",
+      numeratorDefinition: "sum of recognized invoice amounts",
+      denominatorDefinition: "not_applicable",
+      formula: "sum of recognized invoice amounts",
+      unit: "INR",
+      grain: "one record per calendar month",
+      reportingPeriod: "monthly",
+      sourceFieldRefs: ["invoices.amount"],
+    },
+    {
+      id: "payment-rate",
+      name: "Invoice payment rate",
+      businessQuestion: "What share of issued invoices were paid in full?",
+      metricKind: "rate",
+      numeratorDefinition: "count of invoices paid in full",
+      denominatorDefinition: "count of invoices issued",
+      formula: "(count of invoices paid in full) / (count of invoices issued)",
+      unit: "percent",
+      grain: "one record per calendar month",
+      reportingPeriod: "monthly",
+      sourceFieldRefs: ["invoices.status", "invoices.issued_at"],
+    },
+  ];
+}
+
+async function makeDefineMetricsResult() {
+  return {
+    output: { metrics: validMetricDefinitions() },
+    evidence: {
+      sourceBindings: [{
+        id: "mission-input",
+        kind: "mission_input",
+        locator: "mission.input.description",
+        sha256: await digest(defineMetricsTask.input.description as string),
+      }],
+    },
+  };
+}
+
+Deno.test("intelligence metric verifier accepts explicit KPI semantics and source fields", async () => {
+  const verifier = createIntelligenceDefineMetricsVerifier(() => fixedNow);
+  const result = await verifier.verify(defineMetricsTask, await makeDefineMetricsResult());
+  if (!result.passed || result.checks.length !== 5 ||
+      result.verifierId !== "intelligence.metric-definition-contract" ||
+      result.verifierVersion !== "1.0.0") {
+    throw new Error("Valid metric definitions did not pass: " + JSON.stringify(result));
+  }
+});
+
+Deno.test("intelligence metric verifier rejects inconsistent formulas and invalid source references", async () => {
+  const verifier = createIntelligenceDefineMetricsVerifier(() => fixedNow);
+  const formula = await makeDefineMetricsResult();
+  formula.output.metrics[1].formula = "paid / all";
+  if ((await verifier.verify(defineMetricsTask, formula)).passed) {
+    throw new Error("An inconsistent metric formula was accepted");
+  }
+  const source = await makeDefineMetricsResult();
+  source.output.metrics[0].sourceFieldRefs = ["unqualified"];
+  if ((await verifier.verify(defineMetricsTask, source)).passed) {
+    throw new Error("An invalid source field reference was accepted");
+  }
+});
+
+Deno.test("intelligence metric verifier rejects duplicate IDs and incomplete definitions", async () => {
+  const verifier = createIntelligenceDefineMetricsVerifier(() => fixedNow);
+  const duplicate = await makeDefineMetricsResult();
+  duplicate.output.metrics[1].id = duplicate.output.metrics[0].id;
+  if ((await verifier.verify(defineMetricsTask, duplicate)).passed) {
+    throw new Error("Duplicate metric IDs were accepted");
+  }
+  const incomplete = await makeDefineMetricsResult();
+  incomplete.output.metrics[0].grain = " ";
+  if ((await verifier.verify(defineMetricsTask, incomplete)).passed) {
+    throw new Error("A metric without a grain was accepted");
+  }
+});
+
+Deno.test("intelligence metric verifier rejects forged provenance and integrates with registry", async () => {
+  const verifier = createIntelligenceDefineMetricsVerifier(() => fixedNow);
+  const forged = await makeDefineMetricsResult();
+  forged.evidence.sourceBindings[0].sha256 = "c".repeat(64);
+  if ((await verifier.verify(defineMetricsTask, forged)).passed) {
+    throw new Error("Forged metric-definition provenance was accepted");
+  }
+
+  const registry = new MissionTaskRegistry();
+  const result = await makeDefineMetricsResult();
+  registry.register(
+    "intelligence.define_metrics",
+    intelligenceDefineMetricsInputV1,
+    { async execute() { return result; } },
+    createIntelligenceDefineMetricsVerifier(() => fixedNow),
+  );
+  const execution = await registry.executeAndVerify(defineMetricsTask);
+  if (!execution.verification.passed ||
+      execution.verification.verifierId !== "intelligence.metric-definition-contract" ||
+      execution.verification.checks.length !== 5) {
+    throw new Error("Metric-definition registry integration failed: " +
       JSON.stringify(execution.verification));
   }
 });
