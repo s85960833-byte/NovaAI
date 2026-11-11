@@ -1,0 +1,3 @@
+[functions.nova-mission-proof-api]
+# The @supabase/server wrapper validates the secret key in the apikey header.
+verify_jwt = false
