@@ -94,13 +94,15 @@ const handler = withSupabase(
       }
 
       const summary = `Verified by ${verifierId} v${verifierVersion} (${(proof.checks as unknown[]).length} checks)`;
-      const { data, error } = await ctx.supabaseAdmin.rpc("nova_persist_mission_proof_and_complete", {
+      const { data, error } = await ctx.supabaseAdmin.rpc("nova_persist_mission_proof_and_complete_with_nonce", {
         p_run_id: binding.runId,
         p_worker_id: workerId,
         p_lease_token: leaseToken,
         p_envelope: envelope,
         p_evidence_digest: checked.digest,
         p_summary: summary,
+        p_verifier_id: verifierId,
+        p_verifier_nonce: nonce,
       });
       if (error) {
         if (error.code === "P0002") return json({ error: "Execution run not found" }, 404);
