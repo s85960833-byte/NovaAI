@@ -233,7 +233,7 @@ async function makeValidGatewayFixture() {
       { id: FIXTURE.toolRun, mission_id: FIXTURE.mission, task_id: FIXTURE.toolTask, owner_id: FIXTURE.owner, status: "succeeded" },
       { id: FIXTURE.permissionRun, mission_id: FIXTURE.mission, task_id: FIXTURE.permissionTask, owner_id: FIXTURE.owner, status: "succeeded" },
     ],
-    nova_mission_approvals: [{ id: FIXTURE.approval, mission_id: FIXTURE.mission, task_id: FIXTURE.activeTask, owner_id: FIXTURE.owner, status: "approved", action_summary: actionSummary }],
+    nova_mission_approvals: [{ id: FIXTURE.approval, mission_id: FIXTURE.mission, task_id: FIXTURE.activeTask, owner_id: FIXTURE.owner, status: "approved", action_summary: actionSummary, decided_by: FIXTURE.owner, decided_at: "2026-11-11T08:00:03.000Z" }],
     nova_mission_proofs: [
       { id: FIXTURE.toolProof, mission_id: FIXTURE.mission, task_id: FIXTURE.toolTask, owner_id: FIXTURE.owner, proof_type: "trusted_verifier", verification_status: "passed", evidence_json: toolEnvelope, verified_at: "2026-11-11T08:00:01.000Z" },
       { id: FIXTURE.permissionProof, mission_id: FIXTURE.mission, task_id: FIXTURE.permissionTask, owner_id: FIXTURE.owner, proof_type: "trusted_verifier", verification_status: "passed", evidence_json: permissionEnvelope, verified_at: "2026-11-11T08:00:01.000Z" },
@@ -260,6 +260,19 @@ Deno.test("trusted gateway adapter assembles only a digest-matched, independentl
       context.approval.actionSummary.length < 1) {
     throw new Error("Trusted policy context was not assembled with distinct, owner-bound tasks");
   }
+});
+
+Deno.test("trusted gateway adapter rejects approval not decided by the mission owner", async () => {
+  const { tables } = await makeValidGatewayFixture();
+  tables.nova_mission_approvals[0].decided_by = "99999999-9999-4999-8999-999999999999";
+  let denied = false;
+  try {
+    await loadMissionToolGatewayContext(fixtureDb(tables), {
+      missionId: FIXTURE.mission, taskId: FIXTURE.activeTask, runId: FIXTURE.activeRun,
+      ownerId: FIXTURE.owner, workerId: "worker-a", leaseToken: FIXTURE.lease,
+    });
+  } catch { denied = true; }
+  if (!denied) throw new Error("Approval by a different actor was accepted");
 });
 
 Deno.test("trusted gateway adapter rejects proof digest tampering and incomplete policy task states", async () => {
