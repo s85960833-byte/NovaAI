@@ -19,6 +19,40 @@ export interface MissionProofEnvelope {
   permission_policy?: MissionPermissionPolicy;
 }
 
+export type MissionProofEnvelopeFields = Omit<MissionProofEnvelope, "schema_version" | "output">;
+
+/**
+ * Builds a v2 envelope from the immutable execution result returned by the
+ * task registry. Callers cannot supply or substitute a separate output value.
+ */
+export function createMissionProofEnvelope(
+  fields: MissionProofEnvelopeFields,
+  result: { readonly output: Readonly<Record<string, unknown>> },
+): MissionProofEnvelope {
+  if (!fields || typeof fields !== "object" || Array.isArray(fields) ||
+      Object.prototype.hasOwnProperty.call(fields, "output")) {
+    throw new TypeError("Proof fields must not supply a task output");
+  }
+  const outputJson = canonicalizeMissionProof(result?.output);
+  const output = JSON.parse(outputJson) as Record<string, unknown>;
+  const envelope = {
+    schema_version: "nova.proof.v2" as const,
+    ...fields,
+    output,
+  };
+  // Reject accidental extra fields before a caller signs or persists the proof.
+  const allowed = new Set([
+    "schema_version", "mission_id", "task_id", "run_id", "verifier_id",
+    "verifier_version", "observed_at", "outcome", "checks", "tool_policy",
+    "permission_policy", "output",
+  ]);
+  if (Object.keys(envelope).some((key) => !allowed.has(key))) {
+    throw new TypeError("Proof fields contain unsupported properties");
+  }
+  canonicalizeMissionProof(envelope);
+  return envelope;
+}
+
 export interface MissionProofBinding {
   missionId: string;
   taskId: string;
