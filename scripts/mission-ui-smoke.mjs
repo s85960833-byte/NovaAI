@@ -29,7 +29,7 @@ await page.route('**/nova-business-cloud.js', route => route.fulfill({
       let missions = [];
       let tasks = [];
       let events = [];
-      const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed', evidence_json: { schema_version: 'nova.proof.v2', output: { pageTitle: 'NOVA verified homepage', checks: ['HTTP 200', 'No console errors'] } } }];
+      const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed', evidence_json: { schema_version: 'nova.proof.v2', output: { pageTitle: 'NOVA verified homepage', checks: ['HTTP 200', 'No console errors'] } } }, { id: 'proof-2', proof_type: 'unverified-test', verification_status: 'pending', summary: 'Pending result must remain hidden', evidence_json: { schema_version: 'nova.proof.v2', output: { pageTitle: 'UNVERIFIED RESULT MUST NOT DISPLAY' } } }];
       const actionReceipts = [{ id: 'receipt-1', action_key: 'mock-proof-action', status: 'uncertain', request_digest: 'a'.repeat(64), uncertain_reason: 'Previous worker lease expired', reconciliation_note: 'Manual external-state review required' }];
       let approvals = [];
       const client = { auth: { onAuthStateChange() {}, getSession: async () => ({ data: { session: null } }) } };
@@ -117,6 +117,8 @@ await page.locator('[data-mission-id="' + missionId + '"]').click();
 await page.locator('#missionDetail').getByText('Homepage smoke test passed').waitFor({ state: 'visible', timeout: 5000 });
 assert.ok((await page.locator('#missionDetail details pre').textContent()).includes('NOVA verified homepage'), 'Mission Control must display output from the signed proof envelope');
 assert.ok((await page.locator('#missionDetail details pre').textContent()).includes('No console errors'), 'Signed proof output must retain its exact nested values');
+assert.equal(await page.locator('#missionDetail details pre').count(), 1, 'Only passed proofs may expose task output');
+assert.ok(!(await page.locator('#missionDetail').innerText()).includes('UNVERIFIED RESULT MUST NOT DISPLAY'), 'Pending proof output must remain hidden');
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mission.created'));
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mock-proof-action'));
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Manual external-state review required'));
