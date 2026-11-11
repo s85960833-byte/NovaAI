@@ -77,11 +77,13 @@ export const learnTopicSequenceInputV1: MissionTaskInputSchema = Object.freeze({
 function failedResult(
   observedAt: string,
   checks: Array<{ id: string; passed: boolean; detail?: string }>,
+  verifierId = TOPIC_SEQUENCE_VERIFIER_ID,
+  verifierVersion = TOPIC_SEQUENCE_VERIFIER_VERSION,
 ): MissionVerificationResult {
   return {
     passed: checks.every((check) => check.passed),
-    verifierId: TOPIC_SEQUENCE_VERIFIER_ID,
-    verifierVersion: TOPIC_SEQUENCE_VERIFIER_VERSION,
+    verifierId,
+    verifierVersion,
     checks,
     observedAt,
   };
@@ -347,7 +349,12 @@ export function createBuildRequirementsVerifier(
             item.sourceRefIds[0] === "mission-input"),
         detail: "Every requirement must reference the verified mission-input binding",
       });
-      return failedResult(observedAt, checks);
+      return failedResult(
+        observedAt,
+        checks,
+        BUILD_REQUIREMENTS_VERIFIER_ID,
+        BUILD_REQUIREMENTS_VERIFIER_VERSION,
+      );
     },
   });
 }
