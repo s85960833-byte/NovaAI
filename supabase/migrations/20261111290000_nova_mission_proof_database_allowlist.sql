@@ -32,7 +32,10 @@ begin
 
   if exists (
     select 1
-      from pg_catalog.jsonb_object_keys(p_envelope) as envelope_key(key)
+      from pg_catalog.jsonb_object_keys(
+       case when pg_catalog.jsonb_typeof(p_envelope) = 'object'
+            then p_envelope else '{}'::jsonb end
+     ) as envelope_key(key)
      where envelope_key.key not in (
        'schema_version', 'mission_id', 'task_id', 'run_id', 'verifier_id', 'output',
        'verifier_version', 'observed_at', 'outcome', 'checks',
