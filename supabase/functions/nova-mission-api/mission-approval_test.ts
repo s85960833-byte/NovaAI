@@ -47,3 +47,25 @@ Deno.test("accepts only explicit approve/reject decisions and bounded notes", ()
     }
   }
 });
+
+Deno.test("rejects unknown approval request and decision fields", () => {
+  for (const run of [
+    () => validateApprovalRequest({
+      request_key: "request-123",
+      action_summary: "Review an internal task",
+      owner_id: "untrusted",
+    }),
+    () => validateApprovalDecision({
+      decision: "approve",
+      execute_now: true,
+    }),
+  ]) {
+    try {
+      run();
+      throw new Error("Unknown approval field was accepted");
+    } catch (error) {
+      if (!(error instanceof TypeError) ||
+          !error.message.includes("unsupported fields")) throw error;
+    }
+  }
+});
