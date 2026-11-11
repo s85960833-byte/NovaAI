@@ -1,6 +1,6 @@
 import { withSupabase } from "@supabase/server";
 import { verifyMissionProofEnvelope } from "../nova-mission-api/mission-proof.ts";
-import { hasExactTrustedMissionProofRequestShape } from "./mission-proof-request.ts";
+import { hasExactTrustedMissionProofRequestShape, MissionProofRequestInputError, readTrustedMissionProofRequest } from "./mission-proof-request.ts";
 import { resolveMissionVerifierConfig, verifyMissionVerifierSignature } from "../nova-mission-api/mission-proof-auth.ts";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
@@ -8,50 +8,13 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 });
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-class RequestInputError extends Error {
-  constructor(message: string, readonly status: 400 | 413) {
-    super(message);
-    this.name = "RequestInputError";
-  }
-}
-
-async function readBody(request: Request): Promise<Record<string, unknown>> {
-  const declared = Number(request.headers.get("content-length") || "0");
-  if (declared > 70000) throw new RequestInputError("Request body is too large", 413);
-  const reader = request.body?.getReader();
-  if (!reader) throw new RequestInputError("Request body is required", 400);
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      size += value.byteLength;
-      if (size > 70000) {
-        await reader.cancel();
-        throw new RequestInputError("Request body is too large", 413);
-      }
-      chunks.push(value);
-    }
-  } finally {
-    reader.releaseLock();
-  }
-  const bytes = new Uint8Array(size);
-  let offset = 0;
-  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-  let parsed: unknown;
-  try { parsed = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)); }
-  catch { throw new RequestInputError("Request body must be valid UTF-8 JSON", 400); }
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new RequestInputError("Request body must be a JSON object", 400);
-  return parsed as Record<string, unknown>;
-}
 
 const handler = withSupabase(
   { auth: "secret", cors: "disabled" },
   async (request, ctx) => {
     if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
     try {
-      const input = await readBody(request);
+      const input = await readTrustedMissionProofRequest(request);
       if (!hasExactTrustedMissionProofRequestShape(input)) {
         return json({ error: "Request contains unsupported fields" }, 400);
       }
@@ -135,7 +98,7 @@ const handler = withSupabase(
       }, 201);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Request failed";
-      if (error instanceof RequestInputError) return json({ error: message }, error.status);
+      if (error instanceof MissionProofRequestInputError) return json({ error: message }, error.status);
       if (message.includes("configuration")) return json({ error: "Trusted verifier is not configured" }, 503);
       console.error("NOVA trusted proof request failed");
       return json({ error: "Trusted proof persistence failed" }, 500);
