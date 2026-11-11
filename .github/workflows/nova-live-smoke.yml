@@ -9,6 +9,16 @@ on:
       - scripts/smoke-free-image.mjs
       - scripts/supabase-edge-smoke.mjs
       - .github/workflows/nova-live-smoke.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - scripts/smoke.mjs
+      - scripts/supabase-edge-smoke.mjs
+      - .github/workflows/nova-live-smoke.yml
+      - supabase/functions/nova-mission-proof-api/**
+      - supabase/functions/nova-mission-api/mission-proof*.ts
+      - supabase/migrations/*nova_mission*proof*.sql
+      - supabase/migrations/*nova_mission*nonce*.sql
   workflow_dispatch:
     inputs:
       run_free_image:
@@ -32,7 +42,7 @@ jobs:
       - name: Check deployed NOVA BI Edge Function authentication and CORS
         run: node scripts/supabase-edge-smoke.mjs
       - name: Check free-only image generation
-        if: github.event_name == 'push' || inputs.run_free_image
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.run_free_image)
         env:
           NOVAAI_URL: https://novaai-4auo.onrender.com
         run: node scripts/smoke-free-image.mjs
