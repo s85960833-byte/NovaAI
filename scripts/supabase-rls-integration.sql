@@ -795,6 +795,13 @@ begin
       (select status from public.nova_mission_tasks where id=v_task);
   end if;
   begin
+    update public.nova_mission_approvals
+       set decided_by='22222222-2222-4222-8222-222222222222'
+     where id=v_approval;
+    raise exception 'Approval row accepted a decision actor other than its owner';
+  exception when check_violation then null;
+  end;
+  begin
     perform public.nova_decide_task_approval(
       '11111111-1111-4111-8111-111111111111', v_approval, 'approve',
       '11111111-1111-4111-8111-111111111111', ''
