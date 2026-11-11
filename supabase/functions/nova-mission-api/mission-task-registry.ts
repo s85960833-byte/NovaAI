@@ -83,8 +83,53 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
+function assertPlainJsonData(
+  value: unknown,
+  depth = 0,
+  ancestors = new Set<object>(),
+): void {
+  if (depth > 16) throw new TypeError("JSON data nesting is too deep");
+  if (value === null || typeof value === "string" || typeof value === "boolean") return;
+  if (typeof value === "number" && Number.isFinite(value)) return;
+  if (typeof value !== "object") throw new TypeError("Value is not plain JSON data");
+  if (ancestors.has(value)) throw new TypeError("JSON data must not contain cycles");
+  ancestors.add(value);
+  try {
+    if (Array.isArray(value)) {
+      if (value.length > 50000) throw new TypeError("JSON array is too large");
+      const ownKeys = Reflect.ownKeys(value);
+      if (ownKeys.some((key) => key !== "length" &&
+          (typeof key !== "string" || !/^(0|[1-9]\\d*)$/.test(key) ||
+           Number(key) >= value.length))) {
+        throw new TypeError("JSON arrays must not contain custom properties");
+      }
+      for (let index = 0; index < value.length; index++) {
+        const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+        if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+          throw new TypeError("JSON arrays must be dense data arrays");
+        }
+        assertPlainJsonData(descriptor.value, depth + 1, ancestors);
+      }
+      return;
+    }
+    if (!isRecord(value) || Reflect.ownKeys(value).some((key) => typeof key !== "string")) {
+      throw new TypeError("JSON objects must be plain records");
+    }
+    for (const key of Object.keys(value)) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+        throw new TypeError("JSON objects must contain enumerable data properties only");
+      }
+      assertPlainJsonData(descriptor.value, depth + 1, ancestors);
+    }
+  } finally {
+    ancestors.delete(value);
+  }
+}
+
 function snapshotRecord(value: unknown, label: string): Record<string, unknown> {
   if (!isRecord(value)) throw new TypeError(label + " must be a plain JSON object");
+  assertPlainJsonData(value);
   let serialized: string;
   try {
     serialized = canonicalizeMissionProof(value);
