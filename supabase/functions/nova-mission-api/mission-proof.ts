@@ -49,7 +49,7 @@ function cloneProofOutput(value: unknown, depth = 0, ancestors = new Set<object>
         }
         const arrayKeys = Reflect.ownKeys(child);
         if (arrayKeys.some((item) => item !== "length" &&
-            (typeof item !== "string" || !/^(0|[1-9]\\d*)$/.test(item) || Number(item) >= child.length))) {
+            (typeof item !== "string" || !/^(0|[1-9]\d*)$/.test(item) || Number(item) >= child.length))) {
           throw new TypeError("Task output array contains extra properties");
         }
         const arrayCopy: unknown[] = [];
@@ -89,7 +89,7 @@ function cloneProofValue(value: unknown, depth: number, ancestors: Set<object>):
     try {
       const keys = Reflect.ownKeys(value);
       if (keys.some((key) => key !== "length" &&
-          (typeof key !== "string" || !/^(0|[1-9]\\d*)$/.test(key) || Number(key) >= value.length))) {
+          (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length))) {
         throw new TypeError("Task output array contains extra properties");
       }
       const items: unknown[] = [];
@@ -122,8 +122,8 @@ export function createMissionProofEnvelope(
       Object.prototype.hasOwnProperty.call(fields, "output")) {
     throw new TypeError("Proof fields must not supply a task output");
   }
-  const outputJson = canonicalizeMissionProof(result?.output);
-  const output = JSON.parse(outputJson) as Record<string, unknown>;
+  const output = cloneProofOutput(result?.output);
+  canonicalizeMissionProof(output);
   const envelope = {
     schema_version: "nova.proof.v2" as const,
     ...fields,
