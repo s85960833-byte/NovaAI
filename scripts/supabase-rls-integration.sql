@@ -1782,6 +1782,16 @@ begin
 
   begin
     perform public.nova_persist_mission_proof_and_complete(
+      v_run,'proof-persist-worker',v_token,
+      jsonb_set(v_envelope,'{verifier_version}','"2.0.0"'::jsonb),
+      repeat('a',64),'Must reject an unapproved verifier version'
+    );
+    raise exception 'Proof persistence accepted an unapproved verifier version';
+  exception when check_violation then null;
+  end;
+
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
       v_run,'proof-persist-worker',v_token,v_envelope,'not-a-sha256-digest','Must reject malformed digest'
     );
     raise exception 'Proof persistence accepted a malformed digest';
