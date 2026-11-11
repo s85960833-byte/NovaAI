@@ -162,3 +162,10 @@ Before production use:
 7. Keep service-role credentials server-side; never expose them to the browser.
 
 No production branch merge, Render deployment, live Supabase schema change or paid provider spend is part of this PR.
+
+
+### Trusted tool-gateway preflight boundary
+
+The feature branch now contains a fail-closed tool-gateway preflight and a service-role database adapter. The adapter loads the active mission/task/run/approval, verifies the two distinct completed policy tasks and their proof/attestation digests, and requires the owner-approved summary to match both exact policy snapshots. It also validates the worker lease token and worker identifier before database reads. The gateway then checks exact tool, operation, scope and permission-action matches before asking the lease-fenced reservation RPC for an idempotent action receipt.
+
+**This is not an active executor.** The adapter is not wired into `nova-mission-api/index.ts` or a worker entrypoint; no worker is registered, no external tool is invoked, and no production service-role credential is configured here. The service-role client must only be constructed and passed by trusted server-side code. A future worker integration still requires independent security review, end-to-end lease/approval tests, replay and uncertain-outcome reconciliation tests, and explicit release approval. Keep workers disabled until those gates are met.
