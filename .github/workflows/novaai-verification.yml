@@ -90,6 +90,8 @@ jobs:
         run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-input_test.ts supabase/functions/nova-mission-api/mission-planner_test.ts supabase/functions/nova-mission-api/mission-approval_test.ts supabase/functions/nova-mission-api/mission-proof_test.ts
       - name: Test trusted Mission verifier request authentication
         run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-proof-auth_test.ts
+      - name: Test trusted Mission proof API request shape
+        run: deno test --config supabase/functions/nova-mission-proof-api/deno.json supabase/functions/nova-mission-proof-api/mission-proof-request_test.ts
       - name: Test fail-closed Mission worker task registry
         run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-task-registry_test.ts
       - name: Test task-specific Mission evidence verifiers
