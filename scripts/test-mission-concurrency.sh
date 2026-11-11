@@ -15,6 +15,7 @@ create table public.nova_mission_concurrency_fixture (
   run_id uuid not null,
   lease_token uuid not null
 );
+grant insert on public.nova_mission_concurrency_fixture to service_role;
 insert into auth.users(id,email)
 values ('11111111-1111-4111-8111-111111111112','mission-concurrency@example.test')
 on conflict (id) do nothing;
