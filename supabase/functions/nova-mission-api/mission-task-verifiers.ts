@@ -166,13 +166,15 @@ export function createLearnTopicSequenceVerifier(
         detail: "Prerequisites must refer only to topics earlier in the sequence",
       });
 
+      const sourceBindings = isRecord(evidence) && Array.isArray(evidence.sourceBindings)
+        ? evidence.sourceBindings
+        : [];
       const evidenceValid = isRecord(evidence) &&
         hasExactKeys(evidence, ["sourceBindings"]) &&
-        Array.isArray(evidence.sourceBindings) &&
-        evidence.sourceBindings.length === 1;
+        sourceBindings.length === 1;
       let provenanceValid = false;
       if (evidenceValid && inputValid) {
-        const binding = evidence.sourceBindings[0];
+        const binding = sourceBindings[0];
         if (isRecord(binding) &&
             hasExactKeys(binding, ["id", "kind", "locator", "sha256"]) &&
             binding.id === "mission-input" &&
