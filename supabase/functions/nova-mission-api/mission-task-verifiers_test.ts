@@ -1,7 +1,9 @@
 import {
   createBuildRequirementsVerifier,
+  createLearnAssessmentVerifier,
   createLearnTopicSequenceVerifier,
   buildRequirementsInputV1,
+  learnAssessmentInputV1,
   learnTopicSequenceInputV1,
 } from "./mission-task-verifiers.ts";
 import {
@@ -294,5 +296,138 @@ Deno.test("build requirements verifier integrates with the fail-closed task regi
       execution.verification.verifierId !== "build.requirements-structure" ||
       execution.verification.checks.length !== 6) {
     throw new Error("Build requirements verifier did not pass through registry validation: " + JSON.stringify(execution.verification));
+  }
+});
+
+
+const assessmentTask: MissionTaskDescriptor = {
+  ...task,
+  taskType: "learn.assessment",
+};
+
+function makeQuestions() {
+  return [
+    {
+      id: "question-one",
+      prompt: "Which statement best describes a controlled experiment?",
+      options: [
+        { id: "option-a", text: "A test that changes several variables at once." },
+        { id: "option-b", text: "A test that changes one variable while controlling others." },
+        { id: "option-c", text: "A test that does not record observations." },
+      ],
+      correctOptionId: "option-b",
+      explanation: "A controlled experiment isolates the effect of one variable.",
+      difficulty: "introductory",
+      sourceRefIds: ["mission-input"],
+    },
+    {
+      id: "question-two",
+      prompt: "Why should observations be recorded consistently?",
+      options: [
+        { id: "option-a", text: "To make comparisons more reliable." },
+        { id: "option-b", text: "To avoid collecting any evidence." },
+      ],
+      correctOptionId: "option-a",
+      explanation: "Consistent records help compare observations using the same method.",
+      difficulty: "standard",
+      sourceRefIds: ["mission-input"],
+    },
+    {
+      id: "question-three",
+      prompt: "What is the purpose of repeating a measurement?",
+      options: [
+        { id: "option-a", text: "To guarantee the preferred result." },
+        { id: "option-b", text: "To assess variation and improve confidence." },
+      ],
+      correctOptionId: "option-b",
+      explanation: "Repeated measurements help reveal variation in collected data.",
+      difficulty: "advanced",
+      sourceRefIds: ["mission-input"],
+    },
+  ];
+}
+
+async function makeAssessmentResult() {
+  return {
+    output: { questions: makeQuestions() },
+    evidence: {
+      sourceBindings: [{
+        id: "mission-input",
+        kind: "mission_input",
+        locator: "mission.input.description",
+        sha256: await digest(assessmentTask.input.description as string),
+      }],
+    },
+  };
+}
+
+Deno.test("learning assessment verifier validates answer keys and input provenance", async () => {
+  const verifier = createLearnAssessmentVerifier(() => fixedNow);
+  const result = await verifier.verify(assessmentTask, await makeAssessmentResult());
+  if (!result.passed || result.checks.length !== 6 ||
+      result.verifierId !== "learn.assessment-structure" ||
+      result.verifierVersion !== "1.0.0") {
+    throw new Error("A valid assessment did not pass: " + JSON.stringify(result));
+  }
+});
+
+Deno.test("learning assessment input schema rejects unknown and oversized fields", () => {
+  if (!learnAssessmentInputV1.validate(assessmentTask.input) ||
+      learnAssessmentInputV1.validate({ description: "valid", ownerId: "forged" }) ||
+      learnAssessmentInputV1.validate({ description: "x".repeat(2001) })) {
+    throw new Error("Invalid assessment input was accepted");
+  }
+});
+
+Deno.test("learning assessment verifier rejects missing and ambiguous answer keys", async () => {
+  const verifier = createLearnAssessmentVerifier(() => fixedNow);
+  const missing = await makeAssessmentResult();
+  missing.output.questions[0].correctOptionId = "unknown-option";
+  if ((await verifier.verify(assessmentTask, missing)).passed) {
+    throw new Error("An answer key outside the option list was accepted");
+  }
+
+  const duplicate = await makeAssessmentResult();
+  duplicate.output.questions[0].options.push({
+    id: duplicate.output.questions[0].correctOptionId,
+    text: "A second option with the same identifier.",
+  });
+  if ((await verifier.verify(assessmentTask, duplicate)).passed) {
+    throw new Error("Duplicate option identifiers were accepted");
+  }
+});
+
+Deno.test("learning assessment verifier rejects duplicate question IDs and forged provenance", async () => {
+  const verifier = createLearnAssessmentVerifier(() => fixedNow);
+  const duplicate = await makeAssessmentResult();
+  duplicate.output.questions[2].id = duplicate.output.questions[1].id;
+  if ((await verifier.verify(assessmentTask, duplicate)).passed) {
+    throw new Error("Duplicate question identifiers were accepted");
+  }
+
+  const forged = await makeAssessmentResult();
+  forged.evidence.sourceBindings[0].sha256 = "f".repeat(64);
+  const checked = await verifier.verify(assessmentTask, forged);
+  if (checked.passed ||
+      checked.checks.find((check) => check.id === "input-provenance-binding")?.passed) {
+    throw new Error("Forged assessment provenance was accepted");
+  }
+});
+
+Deno.test("learning assessment verifier integrates with the fail-closed task registry", async () => {
+  const registry = new MissionTaskRegistry();
+  const result = await makeAssessmentResult();
+  registry.register(
+    "learn.assessment",
+    learnAssessmentInputV1,
+    { async execute() { return result; } },
+    createLearnAssessmentVerifier(() => fixedNow),
+  );
+  const execution = await registry.executeAndVerify(assessmentTask);
+  if (!execution.verification.passed ||
+      execution.verification.verifierId !== "learn.assessment-structure" ||
+      execution.verification.checks.length !== 6) {
+    throw new Error("Assessment verifier failed registry integration: " +
+      JSON.stringify(execution.verification));
   }
 });
