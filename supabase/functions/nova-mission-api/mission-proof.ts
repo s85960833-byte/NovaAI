@@ -148,7 +148,7 @@ export function createMissionProofEnvelope(
     schema_version: "nova.proof.v2" as const,
     ...safeFields,
     output,
-  };
+  } as MissionProofEnvelope;
   canonicalizeMissionProof(envelope);
   return envelope;
 }
