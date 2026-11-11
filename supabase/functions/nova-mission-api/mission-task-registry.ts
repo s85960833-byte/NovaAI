@@ -176,9 +176,11 @@ export class MissionTaskRegistry {
       throw new TypeError("A trusted task handler is required");
     }
     if (!verifier || typeof verifier.verify !== "function" ||
-        typeof verifier.id !== "string" || !verifier.id.trim() ||
-        typeof verifier.version !== "string" || !verifier.version.trim()) {
-      throw new TypeError("An independent trusted verifier is required");
+        typeof verifier.id !== "string" ||
+        !/^[a-z][a-z0-9_.-]{1,79}$/.test(verifier.id) ||
+        typeof verifier.version !== "string" ||
+        !/^[A-Za-z0-9][A-Za-z0-9._+-]{0,39}$/.test(verifier.version)) {
+      throw new TypeError("A bounded, versioned independent trusted verifier is required");
     }
     // Capture version, identity and method references at registration. A
     // later mutation of a configuration object must not swap the trusted code
