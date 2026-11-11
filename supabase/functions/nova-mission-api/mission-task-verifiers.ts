@@ -763,3 +763,122 @@ export function createBuildDesignFlowVerifier(
     },
   });
 }
+
+
+/**
+ * Checks practice-material structure and mission-input traceability.
+ * It does not independently grade pedagogical quality or factual correctness.
+ */
+const PRACTICE_MATERIAL_VERIFIER_ID = "learn.practice-material-structure";
+const PRACTICE_MATERIAL_VERIFIER_VERSION = "1.0.0";
+const PRACTICE_ACTIVITY_TYPES = new Set([
+  "worked_example", "practice", "reflection", "project",
+]);
+
+export const learnPracticeMaterialInputV1: MissionTaskInputSchema = Object.freeze({
+  version: 1,
+  validate(value: unknown): value is Readonly<Record<string, unknown>> {
+    return isRecord(value) && hasExactKeys(value, ["description"]) &&
+      typeof value.description === "string" &&
+      value.description.trim().length >= 1 &&
+      value.description.length <= 2000;
+  },
+});
+
+export function createLearnPracticeMaterialVerifier(
+  clock: () => Date = () => new Date(),
+): MissionTaskVerifier {
+  return Object.freeze({
+    id: PRACTICE_MATERIAL_VERIFIER_ID,
+    version: PRACTICE_MATERIAL_VERIFIER_VERSION,
+    async verify(
+      task: MissionTaskDescriptor,
+      result: MissionExecutionResult,
+    ): Promise<MissionVerificationResult> {
+      const observedAt = clock().toISOString();
+      const checks: Array<{ id: string; passed: boolean; detail?: string }> = [];
+      const inputValid = learnPracticeMaterialInputV1.validate(task.input);
+      checks.push({
+        id: "input-contract",
+        passed: inputValid && task.taskType === "learn.practice_material" &&
+          task.inputSchemaVersion === learnPracticeMaterialInputV1.version,
+        detail: "Task must use the version-1 practice-material input contract",
+      });
+
+      const output = result.output;
+      const outputValid = isRecord(output) &&
+        hasExactKeys(output, ["materials"]) && Array.isArray(output.materials);
+      const materials = outputValid ? output.materials as unknown[] : [];
+      let materialsValid = outputValid && materials.length >= 3 && materials.length <= 20;
+      const ids = new Set<string>();
+      let hasPractice = false;
+      let hasWorkedExample = false;
+      if (materialsValid) {
+        for (const material of materials) {
+          if (!isRecord(material) ||
+              !hasExactKeys(material, [
+                "id", "title", "instructions", "activityType",
+                "estimatedMinutes", "sourceRefIds",
+              ]) ||
+              typeof material.id !== "string" || !UUID_LIKE_ID.test(material.id) ||
+              typeof material.title !== "string" ||
+              material.title.trim().length < 3 || material.title.length > 120 ||
+              typeof material.instructions !== "string" ||
+              material.instructions.trim().length < 20 ||
+              material.instructions.length > 1000 ||
+              typeof material.activityType !== "string" ||
+              !PRACTICE_ACTIVITY_TYPES.has(material.activityType) ||
+              !Number.isSafeInteger(material.estimatedMinutes) ||
+              (material.estimatedMinutes as number) < 1 ||
+              (material.estimatedMinutes as number) > 180 ||
+              !isStringArray(material.sourceRefIds, 5) ||
+              material.sourceRefIds.length !== 1 ||
+              material.sourceRefIds[0] !== "mission-input" ||
+              ids.has(material.id)) {
+            materialsValid = false;
+            break;
+          }
+          ids.add(material.id);
+          hasPractice ||= material.activityType === "practice";
+          hasWorkedExample ||= material.activityType === "worked_example";
+        }
+      }
+      checks.push({
+        id: "material-shape-and-uniqueness",
+        passed: materialsValid && ids.size === materials.length,
+        detail: "Materials need bounded fields, valid activity types, unique IDs and source references",
+      });
+      checks.push({
+        id: "learning-activity-coverage",
+        passed: materialsValid && hasPractice && hasWorkedExample,
+        detail: "A practice set must include both a practice activity and a worked example",
+      });
+
+      const evidence = result.evidence;
+      const bindings = isRecord(evidence) && hasExactKeys(evidence, ["sourceBindings"]) &&
+        Array.isArray(evidence.sourceBindings) ? evidence.sourceBindings : [];
+      let provenanceValid = false;
+      if (bindings.length === 1 && inputValid) {
+        const binding = bindings[0];
+        if (isRecord(binding) &&
+            hasExactKeys(binding, ["id", "kind", "locator", "sha256"]) &&
+            binding.id === "mission-input" && binding.kind === "mission_input" &&
+            binding.locator === "mission.input.description" &&
+            typeof binding.sha256 === "string" && SHA256.test(binding.sha256)) {
+          provenanceValid = binding.sha256 === await sha256(task.input.description as string);
+        }
+      }
+      checks.push({
+        id: "input-provenance-binding",
+        passed: provenanceValid,
+        detail: "Evidence must bind to the exact mission input description digest",
+      });
+      return failedResult(
+        observedAt,
+        checks,
+        PRACTICE_MATERIAL_VERIFIER_ID,
+        PRACTICE_MATERIAL_VERIFIER_VERSION,
+      );
+    },
+  });
+}
