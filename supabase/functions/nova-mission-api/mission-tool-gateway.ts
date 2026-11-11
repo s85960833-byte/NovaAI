@@ -57,14 +57,18 @@ export async function missionToolPolicyDigest(policy: MissionToolPolicy): Promis
 export async function buildMissionToolPolicyApprovalSummary(policy: MissionToolPolicy): Promise<string> {
   const digest = await missionToolPolicyDigest(policy);
   const lines = policy.gates.map((gate) =>
-    `- ${gate.tool} | ${gate.operation} | ${gate.scope.kind}:${gate.scope.ref} | ${gate.risk} | owner approval: ${gate.approvalRequired ? "required" : "not required"}`
+    `${gate.tool}|${gate.operation}|${gate.scope.kind}:${gate.scope.ref}|${gate.risk}|approval=${gate.approvalRequired ? "required" : "none"}`
   );
-  return [
+  const summary = [
     "NOVA_TOOL_POLICY_V1",
     `Policy digest: ${digest}`,
     "Allowed tool actions:",
     ...lines,
   ].join("\n");
+  if (summary.length > 2000) {
+    throw new TypeError("Tool policy approval summary exceeds the database limit");
+  }
+  return summary;
 }
 
 function denied(reason: string): MissionToolGatewayResult {
