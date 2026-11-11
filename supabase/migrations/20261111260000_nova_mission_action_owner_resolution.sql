@@ -4,7 +4,7 @@
 create table if not exists public.nova_mission_action_resolutions (
   id uuid primary key default gen_random_uuid(),
   action_id uuid not null unique
-    references public.nova_mission_action_receipts(id) on delete cascade,
+    references public.nova_mission_action_receipts(id) on delete restrict,
   mission_id uuid not null,
   task_id uuid not null,
   run_id uuid not null,
@@ -22,6 +22,26 @@ create table if not exists public.nova_mission_action_resolutions (
 
 create index if not exists nova_mission_action_resolutions_owner_idx
   on public.nova_mission_action_resolutions(owner_id, resolved_at desc);
+
+-- Enforce the audit ledger's immutability at the database boundary, including
+-- privileged maintenance paths. Parent receipt/run deletion is RESTRICTed above.
+create or replace function public.nova_reject_mission_action_resolution_mutation()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $immutable$
+begin
+  raise exception 'Mission action resolutions are immutable audit records'
+    using errcode = '55000';
+end;
+$immutable$;
+
+revoke all on function public.nova_reject_mission_action_resolution_mutation()
+  from public, anon, authenticated, service_role;
+create trigger nova_mission_action_resolutions_immutable
+  before update or delete on public.nova_mission_action_resolutions
+  for each row execute function public.nova_reject_mission_action_resolution_mutation();
 
 alter table public.nova_mission_action_resolutions enable row level security;
 revoke all on public.nova_mission_action_resolutions from public, anon, authenticated, service_role;
