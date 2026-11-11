@@ -1727,12 +1727,12 @@ declare
 begin
   -- Positive case plus worker mismatch, envelope scope mismatch and replay rejection.
   v_mission := public.nova_create_mission(
-    v_owner,'Trusted proof persistence fixture','Atomic proof persistence','agents',
+    v_owner,'Trusted proof persistence fixture','Atomic proof persistence','learn',
     'mission-trusted-proof-success-001','{}'::jsonb
   );
   perform public.nova_save_mission_plan(
-    v_owner,v_mission,'{"kind":"starter_template","workspace":"agents"}'::jsonb,
-    '[{"title":"Verified task","description":"Atomic proof test","task_type":"agents.checklist","input_schema_version":1,"input":{"description":"Atomic proof test"}}]'::jsonb
+    v_owner,v_mission,'{"kind":"starter_template","workspace":"learn"}'::jsonb,
+    '[{"title":"Verified task","description":"Atomic proof test","task_type":"learn.topic_sequence","input_schema_version":1,"input":{"description":"Atomic proof test"}}]'::jsonb
   );
   select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
   v_approval := public.nova_request_task_approval(
@@ -1745,7 +1745,7 @@ begin
 
   v_envelope := jsonb_build_object(
     'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
-    'verifier_id','nova.integration-verifier','verifier_version','1.0.0',
+    'verifier_id','learn.topic-sequence-structure','verifier_version','1.0.0',
     'observed_at',now(),'outcome','passed',
     'checks',jsonb_build_array(jsonb_build_object('id','evidence-reviewed','passed',true))
   );
@@ -1768,6 +1768,16 @@ begin
     );
     raise exception 'Proof persistence accepted a stale lease token';
   exception when sqlstate '55000' then null;
+  end;
+
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
+      v_run,'proof-persist-worker',v_token,
+      jsonb_set(v_envelope,'{verifier_id}','"build.requirements-structure"'::jsonb),
+      repeat('a',64),'Must reject a verifier mapped to another task type'
+    );
+    raise exception 'Proof persistence accepted a verifier not allowlisted for the task type';
+  exception when check_violation then null;
   end;
 
   begin
