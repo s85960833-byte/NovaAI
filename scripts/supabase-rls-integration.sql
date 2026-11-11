@@ -1218,6 +1218,15 @@ begin
   exception when sqlstate '55P03' then null;
   end;
 
+  -- Release the reclaimed worker lease after its reconciliation-only pass.
+  v_status := public.nova_fail_mission_task(
+    v_run,v_new_token,'manual-review','Worker recorded uncertainty; owner resolution is still required',0
+  );
+  if v_status <> 'authorized'
+     or (select lease_token from public.nova_mission_execution_runs where id=v_run) is not null then
+    raise exception 'Reconciliation-only worker did not safely release its lease';
+  end if;
+
   -- Reconciliation records uncertainty only. An owner must resolve it separately.
   select c.lease_token,c.attempt into v_reconcile_token,v_attempt
     from public.nova_claim_mission_task(v_run,'worker-action-reconciler',120) c;
