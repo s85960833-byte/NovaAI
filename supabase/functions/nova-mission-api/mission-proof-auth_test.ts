@@ -16,9 +16,9 @@ const envelope = {
   checks: [{ id: "evidence-reviewed", passed: true }],
 };
 
-async function sign(timestamp: string, value = envelope): Promise<string> {
+async function sign(timestamp: string, value = envelope, signedNonce = nonce): Promise<string> {
   const { canonicalizeMissionProof } = await import("./mission-proof.ts");
-  const message = JSON.stringify([timestamp, nonce, workerId, leaseToken, canonicalizeMissionProof(value)]);
+  const message = JSON.stringify([timestamp, signedNonce, workerId, leaseToken, canonicalizeMissionProof(value)]);
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
   return Array.from(new Uint8Array(mac), (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -75,3 +75,18 @@ Deno.test("trusted verifier config requires an explicit own key and exact schema
     }
   }
 });
+
+Deno.test("binds the nonce to the verifier signature", async () => {
+  const timestamp = "1794355200";
+  const signature = await sign(timestamp);
+  const alternateNonce = "77777777-7777-4777-8777-777777777777";
+  const accepted = await verifyMissionVerifierSignature({
+    secret, timestamp, nonce, workerId, leaseToken, envelope, signature, nowSeconds: 1794355200,
+  });
+  const replayWithDifferentNonce = await verifyMissionVerifierSignature({
+    secret, timestamp, nonce: alternateNonce, workerId, leaseToken, envelope, signature, nowSeconds: 1794355200,
+  });
+  if (!accepted) throw new Error("Expected signature with original nonce to pass");
+  if (replayWithDifferentNonce) throw new Error("Signature was accepted after nonce substitution");
+});
+
