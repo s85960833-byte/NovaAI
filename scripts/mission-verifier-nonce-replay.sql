@@ -81,6 +81,29 @@ begin
     null;
   end;
 
+  -- A proof without the exact output it attests must fail before nonce consumption.
+  begin
+    perform public.nova_persist_mission_proof_and_complete_with_nonce(
+      v_run, 'nonce-missing-output-test-worker', gen_random_uuid(),
+      jsonb_build_object(
+        'schema_version','nova.proof.v2',
+        'mission_id',gen_random_uuid()::text,
+        'task_id',gen_random_uuid()::text,
+        'run_id',v_run::text,
+        'verifier_id','test.nonce-missing-output',
+        'verifier_version','1.0.0',
+        'observed_at',now()::text,
+        'outcome','passed',
+        'checks',jsonb_build_array(jsonb_build_object('id','shape','passed',true))
+      ),
+      repeat('a',64), 'Missing output proof test',
+      'test.nonce-missing-output', gen_random_uuid()
+    );
+    raise exception 'Proof without task output was accepted';
+  exception when check_violation then
+    null;
+  end;
+
   -- Non-array check containers must be rejected as a constraint violation,
   -- never leak jsonb_array_elements runtime errors from the database boundary.
   foreach v_checks in array array['null'::jsonb, '"not-an-array"'::jsonb, '{}'::jsonb] loop
