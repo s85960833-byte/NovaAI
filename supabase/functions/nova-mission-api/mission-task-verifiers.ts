@@ -521,3 +521,105 @@ export function createLearnAssessmentVerifier(
     },
   });
 }
+
+
+/**
+ * Goal clarification verifier: validates a bounded, traceable goal contract.
+ * It checks structure and exact input provenance, not whether the goal is
+ * objectively achievable or whether generated criteria are substantively wise.
+ */
+const GOAL_CLARIFICATION_VERIFIER_ID = "learn.goal-clarification-structure";
+const GOAL_CLARIFICATION_VERIFIER_VERSION = "1.0.0";
+
+export const learnGoalClarificationInputV1: MissionTaskInputSchema = Object.freeze({
+  version: 1,
+  validate(value: unknown): value is Readonly<Record<string, unknown>> {
+    return isRecord(value) && hasExactKeys(value, ["description"]) &&
+      typeof value.description === "string" &&
+      value.description.trim().length >= 1 &&
+      value.description.length <= 2000;
+  },
+});
+
+export function createLearnGoalClarificationVerifier(
+  clock: () => Date = () => new Date(),
+): MissionTaskVerifier {
+  return Object.freeze({
+    id: GOAL_CLARIFICATION_VERIFIER_ID,
+    version: GOAL_CLARIFICATION_VERIFIER_VERSION,
+    async verify(
+      task: MissionTaskDescriptor,
+      result: MissionExecutionResult,
+    ): Promise<MissionVerificationResult> {
+      const observedAt = clock().toISOString();
+      const checks: Array<{ id: string; passed: boolean; detail?: string }> = [];
+      const inputValid = learnGoalClarificationInputV1.validate(task.input);
+      checks.push({
+        id: "input-contract",
+        passed: inputValid && task.taskType === "learn.goal_clarification" &&
+          task.inputSchemaVersion === learnGoalClarificationInputV1.version,
+        detail: "Task must use the version-1 goal clarification input contract",
+      });
+
+      const output = result.output;
+      const outputValid = isRecord(output) &&
+        hasExactKeys(output, ["goal", "successCriteria", "constraints", "sourceRefIds"]);
+      const goal = outputValid ? output.goal : undefined;
+      const criteria = outputValid ? output.successCriteria : undefined;
+      const constraints = outputValid ? output.constraints : undefined;
+      const refs = outputValid ? output.sourceRefIds : undefined;
+      const goalValid = typeof goal === "string" &&
+        goal.trim().length >= 10 && goal.length <= 500;
+      const criteriaValid = isStringArray(criteria, 8) &&
+        criteria.length >= 2 &&
+        criteria.every((item) => item.trim().length >= 10 && item.length <= 240) &&
+        new Set(criteria).size === criteria.length;
+      const constraintsValid = isStringArray(constraints, 8) &&
+        constraints.every((item) => item.trim().length >= 5 && item.length <= 240) &&
+        new Set(constraints).size === constraints.length;
+      checks.push({
+        id: "goal-and-success-criteria",
+        passed: goalValid && criteriaValid,
+        detail: "A clarified goal needs a bounded statement and 2–8 distinct success criteria",
+      });
+      checks.push({
+        id: "constraint-contract",
+        passed: constraintsValid,
+        detail: "Constraints must be a bounded list of distinct, non-empty statements",
+      });
+
+      const evidence = result.evidence;
+      const bindings = isRecord(evidence) && hasExactKeys(evidence, ["sourceBindings"]) &&
+        Array.isArray(evidence.sourceBindings) ? evidence.sourceBindings : [];
+      let provenanceValid = false;
+      if (bindings.length === 1 && inputValid) {
+        const binding = bindings[0];
+        if (isRecord(binding) &&
+            hasExactKeys(binding, ["id", "kind", "locator", "sha256"]) &&
+            binding.id === "mission-input" &&
+            binding.kind === "mission_input" &&
+            binding.locator === "mission.input.description" &&
+            typeof binding.sha256 === "string" && SHA256.test(binding.sha256)) {
+          provenanceValid = binding.sha256 === await sha256(task.input.description as string);
+        }
+      }
+      checks.push({
+        id: "input-provenance-binding",
+        passed: provenanceValid,
+        detail: "Evidence must bind to the exact mission input description digest",
+      });
+      checks.push({
+        id: "source-coverage",
+        passed: provenanceValid && isStringArray(refs, 1) &&
+          refs.length === 1 && refs[0] === "mission-input",
+        detail: "The clarified goal contract must reference its verified mission input",
+      });
+      return failedResult(
+        observedAt,
+        checks,
+        GOAL_CLARIFICATION_VERIFIER_ID,
+        GOAL_CLARIFICATION_VERIFIER_VERSION,
+      );
+    },
+  });
+}
