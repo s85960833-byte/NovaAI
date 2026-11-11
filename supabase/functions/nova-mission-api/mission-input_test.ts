@@ -1,4 +1,4 @@
-import { validateMissionInput } from "./mission-input.ts";
+import { validateMissionCancellation, validateMissionInput } from "./mission-input.ts";
 import { RequestInputError } from "../nova-bi-api/request-input.ts";
 
 Deno.test("validates mission input and applies safe defaults", () => {
@@ -78,6 +78,28 @@ Deno.test("rejects unknown mission creation fields instead of silently ignoring 
       if (!(error instanceof RequestInputError) ||
           error.status !== 400 ||
           !error.message.includes("unsupported fields")) throw error;
+    }
+  }
+});
+
+Deno.test("validates mission cancellation reason and rejects unsupported fields", () => {
+  if (validateMissionCancellation({ reason: "Owner requested cancellation" }) !==
+      "Owner requested cancellation" ||
+      validateMissionCancellation({}) !== "") {
+    throw new Error("Valid cancellation reason or default was not preserved");
+  }
+  for (const input of [
+    { reason: "Cancelled", owner_id: "untrusted" },
+    { reason: 123 },
+    { reason: "x".repeat(1001) },
+    [],
+    null,
+  ]) {
+    try {
+      validateMissionCancellation(input);
+      throw new Error("Invalid cancellation request was accepted");
+    } catch (error) {
+      if (!(error instanceof RequestInputError) || error.status !== 400) throw error;
     }
   }
 });
