@@ -1911,6 +1911,52 @@ begin
      or exists(select 1 from public.nova_mission_proofs where mission_id=v_mission and task_id=v_task) then
     raise exception 'Rejected cross-task policy proof left partial proof records';
   end if;
+
+  -- Permission snapshots must be persisted only for the matching permissions task.
+  v_mission := public.nova_create_mission(
+    v_owner,'Permission policy persistence fixture','Bind permission policy to trusted proof','agents',
+    'mission-permission-policy-proof-001','{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    v_owner,v_mission,'{"kind":"starter_template","workspace":"agents"}'::jsonb,
+    '[{"title":"Define permissions","description":"Persist least-privilege permissions","task_type":"agents.permissions","input_schema_version":1,"input":{"description":"Persist least-privilege permissions"}}]'::jsonb
+  );
+  select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
+  v_approval := public.nova_request_task_approval(
+    v_owner,v_mission,v_task,'approval-permission-policy-proof-001','Run trusted permission verifier'
+  );
+  select id into v_run from public.nova_mission_execution_runs where approval_id=v_approval;
+  perform public.nova_decide_task_approval(v_owner,v_approval,'approve',v_owner,'Approved permission verifier');
+  select lease_token into v_token
+    from public.nova_claim_mission_task(v_run,'permission-policy-proof-worker',120);
+  v_envelope := jsonb_build_object(
+    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'verifier_id','agents.permissions-least-privilege','verifier_version','1.0.0',
+    'observed_at',now(),'outcome','passed',
+    'checks',jsonb_build_array(jsonb_build_object('id','permission-policy-reviewed','passed',true)),
+    'permission_policy',jsonb_build_object(
+      'permissions',jsonb_build_array(jsonb_build_object(
+        'id','123e4567-e89b-42d3-a456-426614174000',
+        'scope',jsonb_build_object('kind','project','ref','nova-project'),
+        'actions',jsonb_build_array('read'),
+        'approvalRequired',false,
+        'reason','Read only resources explicitly within this named project.',
+        'sourceRefIds',jsonb_build_array('mission-input')
+      ))
+    )
+  );
+  select proof_id,attestation_id into v_proof,v_attestation
+    from public.nova_persist_mission_proof_and_complete(
+      v_run,'permission-policy-proof-worker',v_token,v_envelope,repeat('d',64),'Persisted signed permission policy'
+    );
+  if v_proof is null or v_attestation is null
+     or not exists (
+       select 1 from public.nova_mission_proof_attestations
+        where id=v_attestation and verifier_id='agents.permissions-least-privilege'
+          and envelope_json->'permission_policy' = v_envelope->'permission_policy'
+     ) then
+    raise exception 'Valid permission policy snapshot was not persisted with its trusted attestation';
+  end if;
 end $mission_tool_policy_persistence$;
 reset role;
 
