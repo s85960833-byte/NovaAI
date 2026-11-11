@@ -1,3 +1,9 @@
+> **Historical snapshot — PR #73 superseded on 8 November 2026.** This file records the pre-consolidation migration-name mismatch and live-state observations from the PR #73 review. PR #73 was superseded by [PR #74](https://github.com/s85960833-byte/NovaAI/pull/74), which was merged as `e8cffdc3108d259c5bf93a4a8f657eb86f78a081`. The old statements below about 12 remote versions, two pending migrations, Edge Function v13 and wildcard CORS are historical observations, not a current production-state report. The merged PR #74 deployment record reports the migration reconciliation, forward migrations and Edge Function v14 deployment, but that record is not a substitute for a fresh read-only live check.
+>
+> **Do not use this historical file to run `supabase db push` or `migration repair`.** The current `main` copy of this document also has a stale summary, so first re-read the live migration ledger, inspect the exact SQL/version mapping, and obtain explicit owner/DBA approval before any database action. PR #73 remains a historical Draft and is not the release candidate.
+
+---
+
 # Supabase migration-history reconciliation — NOVA BI
 
 **Status: BLOCKED pending authorized migration-source verification. Do not run a production migration push.**
