@@ -1015,10 +1015,11 @@ begin
     '{"checks":[{"id":"task-claimed","passed":true}]}'::jsonb, now()
   ) returning id into v_proof;
   v_envelope := jsonb_build_object(
-    'schema_version','nova.proof.v1',
+    'schema_version','nova.proof.v2',
     'mission_id',v_mission,
     'task_id',v_task,
     'run_id',v_run,
+    'output',jsonb_build_object('fixture','integration-output'),
     'verifier_id','nova.integration-verifier',
     'verifier_version','1.0.0',
     'observed_at',now(),
@@ -1532,7 +1533,8 @@ begin
     '{"checks":[{"id":"task-verified","passed":true}]}'::jsonb,now()
   ) returning id into v_proof;
   v_envelope := jsonb_build_object(
-    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'schema_version','nova.proof.v2','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'output',jsonb_build_object('fixture','integration-output'),
     'verifier_id','nova.completion-integration-verifier','verifier_version','1.0.0',
     'observed_at',now(),'outcome','passed',
     'checks',jsonb_build_array(jsonb_build_object('id','task-verified','passed',true))
@@ -1744,7 +1746,8 @@ begin
     from public.nova_claim_mission_task(v_run,'proof-persist-worker',120);
 
   v_envelope := jsonb_build_object(
-    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'schema_version','nova.proof.v2','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'output',jsonb_build_object('fixture','integration-output'),
     'verifier_id','learn.topic-sequence-structure','verifier_version','1.0.0',
     'observed_at',now(),'outcome','passed',
     'checks',jsonb_build_array(jsonb_build_object('id','evidence-reviewed','passed',true))
@@ -1877,7 +1880,8 @@ begin
   select action_id into v_action
     from public.nova_reserve_mission_action(v_run,v_token,'proof-rollback-action-001',repeat('b',64));
   v_envelope := jsonb_build_object(
-    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'schema_version','nova.proof.v2','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'output',jsonb_build_object('fixture','integration-output'),
     'verifier_id','learn.topic-sequence-structure','verifier_version','1.0.0',
     'observed_at',now(),'outcome','passed',
     'checks',jsonb_build_array(jsonb_build_object('id','evidence-reviewed','passed',true))
@@ -1942,7 +1946,8 @@ begin
     from public.nova_claim_mission_task(v_run,'tool-policy-proof-worker',120);
 
   v_envelope := jsonb_build_object(
-    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'schema_version','nova.proof.v2','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'output',jsonb_build_object('fixture','integration-output'),
     'verifier_id','agents.tool-gates-policy','verifier_version','1.0.0',
     'observed_at',now(),'outcome','passed',
     'checks',jsonb_build_array(jsonb_build_object('id','tool-policy-reviewed','passed',true))
@@ -2004,7 +2009,8 @@ begin
   select lease_token into v_token
     from public.nova_claim_mission_task(v_run,'wrong-task-policy-worker',120);
   v_envelope := jsonb_build_object(
-    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'schema_version','nova.proof.v2','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'output',jsonb_build_object('fixture','integration-output'),
     'verifier_id','agents.tool-gates-policy','verifier_version','1.0.0',
     'observed_at',now(),'outcome','passed',
     'checks',jsonb_build_array(jsonb_build_object('id','tool-policy-reviewed','passed',true)),
@@ -2041,7 +2047,8 @@ begin
   select lease_token into v_token
     from public.nova_claim_mission_task(v_run,'permission-policy-proof-worker',120);
   v_envelope := jsonb_build_object(
-    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'schema_version','nova.proof.v2','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'output',jsonb_build_object('fixture','integration-output'),
     'verifier_id','agents.permissions-least-privilege','verifier_version','1.0.0',
     'observed_at',now(),'outcome','passed',
     'checks',jsonb_build_array(jsonb_build_object('id','permission-policy-reviewed','passed',true)),
@@ -2086,7 +2093,8 @@ begin
   select lease_token into v_token
     from public.nova_claim_mission_task(v_run,'wrong-task-permission-worker',120);
   v_envelope := jsonb_build_object(
-    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'schema_version','nova.proof.v2','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'output',jsonb_build_object('fixture','integration-output'),
     'verifier_id','agents.permissions-least-privilege','verifier_version','1.0.0',
     'observed_at',now(),'outcome','passed',
     'checks',jsonb_build_array(jsonb_build_object('id','permission-policy-reviewed','passed',true)),
