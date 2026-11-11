@@ -802,6 +802,20 @@ begin
   exception when check_violation then null;
   end;
   begin
+    update public.nova_mission_approvals
+       set action_summary='Changed after owner approval'
+     where id=v_approval;
+    raise exception 'Approved action summary was mutable';
+  exception when check_violation then null;
+  end;
+  begin
+    update public.nova_mission_approvals
+       set status='pending', decided_at=null, decided_by=null, decision_note=''
+     where id=v_approval;
+    raise exception 'Final approval decision could be reset';
+  exception when check_violation then null;
+  end;
+  begin
     perform public.nova_decide_task_approval(
       '11111111-1111-4111-8111-111111111111', v_approval, 'approve',
       '11111111-1111-4111-8111-111111111111', ''
