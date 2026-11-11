@@ -1,0 +1,38 @@
+name: NOVA live production smoke checks
+permissions:
+  contents: read
+on:
+  push:
+    branches: [feature/nova-mission-engine-v1]
+    paths:
+      - scripts/smoke.mjs
+      - scripts/smoke-free-image.mjs
+      - scripts/supabase-edge-smoke.mjs
+      - .github/workflows/nova-live-smoke.yml
+  workflow_dispatch:
+    inputs:
+      run_free_image:
+        description: Run a free-only community image-generation smoke test
+        required: true
+        type: boolean
+        default: true
+jobs:
+  live-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Check live NOVA website and safe API validation paths
+        env:
+          NOVAAI_URL: https://novaai-4auo.onrender.com
+        run: node scripts/smoke.mjs
+      - name: Check deployed NOVA BI Edge Function authentication and CORS
+        run: node scripts/supabase-edge-smoke.mjs
+      - name: Check free-only image generation
+        if: github.event_name == 'push' || inputs.run_free_image
+        env:
+          NOVAAI_URL: https://novaai-4auo.onrender.com
+        run: node scripts/smoke-free-image.mjs
