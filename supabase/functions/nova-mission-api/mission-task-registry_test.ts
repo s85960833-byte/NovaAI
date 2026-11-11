@@ -1,6 +1,7 @@
 import {
   MissionTaskNotExecutableError,
   MissionTaskRegistry,
+  missionTaskRegistry,
   type MissionTaskDescriptor,
   type MissionTaskInputSchema,
   type MissionVerificationResult,
@@ -33,6 +34,37 @@ Deno.test("registry denies every task type by default", async () => {
     throw new Error("Unregistered task was executed");
   } catch (error) {
     if (!(error instanceof MissionTaskNotExecutableError)) throw error;
+  }
+});
+
+Deno.test("all 20 routed task types remain non-executable until individually reviewed and registered", () => {
+  const routedTaskTypes = [
+    "learn.goal_clarification",
+    "learn.topic_sequence",
+    "learn.practice_material",
+    "learn.assessment",
+    "learn.progress_summary",
+    "build.requirements",
+    "build.design_flow",
+    "build.implementation",
+    "build.quality_checks",
+    "build.review_proof",
+    "agents.permissions",
+    "agents.tool_gates",
+    "agents.checklist",
+    "agents.approved_steps",
+    "agents.verify_outcomes",
+    "intelligence.define_metrics",
+    "intelligence.inspect_data",
+    "intelligence.analyze_drivers",
+    "intelligence.recommend_actions",
+    "intelligence.verify_evidence",
+  ];
+  if (routedTaskTypes.length !== 20) throw new Error("Task registry coverage fixture must list all 20 routed types");
+  for (const taskType of routedTaskTypes) {
+    if (missionTaskRegistry.has(taskType)) {
+      throw new Error("A routed task type was enabled without an explicit reviewed registration: " + taskType);
+    }
   }
 });
 
