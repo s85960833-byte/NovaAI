@@ -132,17 +132,13 @@ jobs:
           node scripts/runtime-smoke.mjs || { echo '--- NOVA server startup log ---'; cat /tmp/novaai-test.log; exit 1; }
       - name: Verify graceful server shutdown
         run: node scripts/shutdown-smoke.mjs
-      - name: Install Devanagari fonts for visual regression screenshots
-        timeout-minutes: 3
-        continue-on-error: true
-        env:
-          DEBIAN_FRONTEND: noninteractive
+      - name: Check Devanagari font availability for visual regression screenshots
         run: |
-          if ! fc-match 'Noto Sans Devanagari' | grep -q 'Noto Sans Devanagari'; then
-            sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=45 -o Acquire::https::Timeout=45 update
-            sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=45 -o Acquire::https::Timeout=45 install -y --no-install-recommends fonts-noto-core
+          if command -v fc-match >/dev/null 2>&1 && fc-match 'Noto Sans Devanagari' | grep -q 'Noto Sans Devanagari'; then
+            echo "Noto Sans Devanagari is available"
+          else
+            echo "::warning::Noto Sans Devanagari unavailable; Chromium will use its fallback font"
           fi
-          fc-match 'Noto Sans Devanagari' | grep -q 'Noto Sans Devanagari'
       - name: Install Playwright Chromium for Company Cloud browser tests
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
