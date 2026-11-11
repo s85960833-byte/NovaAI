@@ -14,7 +14,7 @@ export interface MissionPermissionPolicy {
 const ACTIONS = new Set([
   "read", "create", "update", "delete", "execute", "publish", "send", "export",
 ]);
-const SENSITIVE_ACTIONS = new Set(["delete", "execute", "publish", "send", "export"]);
+const SENSITIVE_ACTIONS = new Set(["create", "update", "delete", "execute", "publish", "send", "export"]);
 const UUID_LIKE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SAFE_SCOPE_REF = /^[a-z][a-z0-9_-]{1,47}$/;
 
