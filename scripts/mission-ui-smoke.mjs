@@ -115,8 +115,9 @@ assert.ok((await page.locator('#missionList').innerText()).includes('Test websit
 
 await page.locator('[data-mission-id="' + missionId + '"]').click();
 await page.locator('#missionDetail').getByText('Homepage smoke test passed').waitFor({ state: 'visible', timeout: 5000 });
-assert.ok((await page.locator('#missionDetail details pre').textContent()).includes('NOVA verified homepage'), 'Mission Control must display output from the signed proof envelope');
-assert.ok((await page.locator('#missionDetail details pre').textContent()).includes('No console errors'), 'Signed proof output must retain its exact nested values');
+const signedOutputText = (await page.locator('#missionDetail details pre').allTextContents()).join('\n');
+assert.ok(signedOutputText.includes('NOVA verified homepage'), 'Mission Control must display output from the signed proof envelope');
+assert.ok(signedOutputText.includes('No console errors'), 'Signed proof output must retain its exact nested values');
 assert.equal(await page.locator('#missionDetail details pre').count(), 2, 'Only passed, valid v2 proofs may expose task output');
 assert.equal(await page.locator('#missionDetail details pre').filter({ hasText: '<img src=x onerror=alert(1)>' }).count(), 1, 'HTML-like proof output must be rendered as text');
 assert.equal(await page.locator('#missionDetail details img').count(), 0, 'Proof output must never create executable HTML elements');
