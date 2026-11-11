@@ -142,6 +142,7 @@ declare
   v_task uuid;
   v_run uuid;
   v_token uuid;
+  v_action uuid;
   v_proof uuid;
   v_attestation uuid;
   v_envelope jsonb;
