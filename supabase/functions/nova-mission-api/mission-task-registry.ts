@@ -245,8 +245,13 @@ export class MissionTaskRegistry {
     }
 
     const rawResult = await registration.execute.call(registration.handler, taskSnapshot);
-    if (!rawResult || typeof rawResult !== "object" ||
-        !isRecord(rawResult.output) || !isRecord(rawResult.evidence)) {
+    if (!isRecord(rawResult)) {
+      throw new TypeError("Task handler returned an invalid result envelope");
+    }
+    // Validate the complete envelope before reading output/evidence so accessors,
+    // hidden properties and non-JSON values cannot run during property access.
+    assertPlainJsonData(rawResult);
+    if (!isRecord(rawResult.output) || !isRecord(rawResult.evidence)) {
       throw new TypeError("Task handler returned an invalid result envelope");
     }
     // Snapshot handler output before verification; the verifier cannot be shown
