@@ -1,9 +1,11 @@
 import {
   createBuildRequirementsVerifier,
+  createBuildDesignFlowVerifier,
   createLearnAssessmentVerifier,
   createLearnGoalClarificationVerifier,
   createLearnTopicSequenceVerifier,
   buildRequirementsInputV1,
+  buildDesignFlowInputV1,
   learnAssessmentInputV1,
   learnGoalClarificationInputV1,
   learnTopicSequenceInputV1,
@@ -514,6 +516,102 @@ Deno.test("learning goal clarification verifier integrates with the fail-closed 
       execution.verification.verifierId !== "learn.goal-clarification-structure" ||
       execution.verification.checks.length !== 5) {
     throw new Error("Goal clarification registry integration failed: " +
+      JSON.stringify(execution.verification));
+  }
+});
+
+
+const designFlowTask: MissionTaskDescriptor = {
+  ...task,
+  taskType: "build.design_flow",
+};
+
+const validFlowOutput = {
+  startScreenId: "home",
+  screens: [
+    { id: "home", title: "Home screen" },
+    { id: "details", title: "Details screen" },
+    { id: "complete", title: "Completion screen" },
+  ],
+  edges: [
+    { from: "home", to: "details" },
+    { from: "details", to: "complete" },
+  ],
+};
+
+async function makeDesignFlowResult() {
+  return {
+    output: structuredClone(validFlowOutput),
+    evidence: {
+      sourceBindings: [{
+        id: "mission-input",
+        kind: "mission_input",
+        locator: "mission.input.description",
+        sha256: await digest(designFlowTask.input.description as string),
+      }],
+    },
+  };
+}
+
+Deno.test("build design flow verifier accepts a connected directed navigation graph", async () => {
+  const verifier = createBuildDesignFlowVerifier(() => fixedNow);
+  const result = await verifier.verify(designFlowTask, await makeDesignFlowResult());
+  if (!result.passed || result.checks.length !== 5 ||
+      result.verifierId !== "build.design-flow-graph" ||
+      result.verifierVersion !== "1.0.0") {
+    throw new Error("A valid design flow did not pass: " + JSON.stringify(result));
+  }
+});
+
+Deno.test("build design flow verifier rejects duplicate IDs and invalid destinations", async () => {
+  const verifier = createBuildDesignFlowVerifier(() => fixedNow);
+  const duplicate = await makeDesignFlowResult();
+  duplicate.output.screens[1].id = "home";
+  if ((await verifier.verify(designFlowTask, duplicate)).passed) {
+    throw new Error("Duplicate screen IDs were accepted");
+  }
+  const dangling = await makeDesignFlowResult();
+  dangling.output.edges[0].to = "missing-screen";
+  if ((await verifier.verify(designFlowTask, dangling)).passed) {
+    throw new Error("An edge to a missing screen was accepted");
+  }
+});
+
+Deno.test("build design flow verifier rejects unreachable screens and invalid starts", async () => {
+  const verifier = createBuildDesignFlowVerifier(() => fixedNow);
+  const unreachable = await makeDesignFlowResult();
+  unreachable.output.edges = [{ from: "home", to: "details" }];
+  if ((await verifier.verify(designFlowTask, unreachable)).passed) {
+    throw new Error("An unreachable screen was accepted");
+  }
+  const invalidStart = await makeDesignFlowResult();
+  invalidStart.output.startScreenId = "unknown";
+  if ((await verifier.verify(designFlowTask, invalidStart)).passed) {
+    throw new Error("An unknown start screen was accepted");
+  }
+});
+
+Deno.test("build design flow verifier rejects forged provenance and integrates with registry", async () => {
+  const verifier = createBuildDesignFlowVerifier(() => fixedNow);
+  const forged = await makeDesignFlowResult();
+  forged.evidence.sourceBindings[0].sha256 = "a".repeat(64);
+  if ((await verifier.verify(designFlowTask, forged)).passed) {
+    throw new Error("Forged design-flow provenance was accepted");
+  }
+
+  const registry = new MissionTaskRegistry();
+  const result = await makeDesignFlowResult();
+  registry.register(
+    "build.design_flow",
+    buildDesignFlowInputV1,
+    { async execute() { return result; } },
+    createBuildDesignFlowVerifier(() => fixedNow),
+  );
+  const execution = await registry.executeAndVerify(designFlowTask);
+  if (!execution.verification.passed ||
+      execution.verification.verifierId !== "build.design-flow-graph" ||
+      execution.verification.checks.length !== 5) {
+    throw new Error("Design-flow registry integration failed: " +
       JSON.stringify(execution.verification));
   }
 });
