@@ -37,7 +37,7 @@ Deno.test("trusted gateway adapter fails closed when any owner-scoped mission ro
       ownerId: UUIDS.owner, workerId: "worker-a", leaseToken: "lease-a",
     });
   } catch (error) {
-    denied = error instanceof Error && error.message.includes("trusted nova_missions row unavailable");
+    denied = error instanceof Error && error.message.startsWith("Mission gateway context denied: trusted ") && error.message.endsWith(" row unavailable");
   }
   if (!denied) throw new Error("Missing owner-scoped mission row was not rejected");
 });
