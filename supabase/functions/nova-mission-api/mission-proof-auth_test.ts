@@ -5,7 +5,8 @@ const leaseToken = "55555555-5555-4555-8555-555555555555";
 const nonce = "66666666-6666-4666-8666-666666666666";
 const secret = "test-verifier-secret-that-is-at-least-32-bytes";
 const envelope = {
-  schema_version: "nova.proof.v1",
+  schema_version: "nova.proof.v2",
+  output: { status: "verified" },
   mission_id: "11111111-1111-4111-8111-111111111111",
   task_id: "22222222-2222-4222-8222-222222222222",
   run_id: "33333333-3333-4333-8333-333333333333",
