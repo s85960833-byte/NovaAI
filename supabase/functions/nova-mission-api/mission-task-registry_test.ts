@@ -280,3 +280,35 @@ Deno.test("handler and verifier receive detached immutable task and evidence sna
     throw new Error("Task or evidence changed across the handler/verifier trust boundary");
   }
 });
+
+
+Deno.test("returns a detached immutable verifier attestation snapshot", async () => {
+  const registry = new MissionTaskRegistry();
+  const verifierOwned = {
+    passed: true,
+    verifierId: "test.attestation-snapshot",
+    verifierVersion: "1.0.0",
+    checks: [{ id: "evidence-bound", passed: true, detail: "verified" }],
+    observedAt: "2026-11-10T12:00:00.000Z",
+  };
+  registry.register("test.safe-check", emptyObjectV1, {
+    async execute() {
+      return { output: { ok: true }, evidence: { source: "test" } };
+    },
+  }, {
+    id: verifierOwned.verifierId,
+    version: verifierOwned.verifierVersion,
+    async verify() {
+      return verifierOwned;
+    },
+  });
+
+  const result = await registry.executeAndVerify(task);
+  verifierOwned.checks[0].detail = "changed-after-return";
+  if (!Object.isFrozen(result.verification) ||
+      !Object.isFrozen(result.verification.checks) ||
+      !Object.isFrozen(result.verification.checks[0]) ||
+      result.verification.checks[0].detail !== "verified") {
+    throw new Error("Returned attestation was mutable or aliased to verifier-owned data");
+  }
+});
