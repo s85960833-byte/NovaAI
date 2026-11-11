@@ -1,5 +1,6 @@
 import { withSupabase } from "@supabase/server";
 import { verifyMissionProofEnvelope } from "../nova-mission-api/mission-proof.ts";
+import { hasExactTrustedMissionProofRequestShape } from "./mission-proof-request.ts";
 import { resolveMissionVerifierConfig, verifyMissionVerifierSignature } from "../nova-mission-api/mission-proof-auth.ts";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
@@ -44,9 +45,7 @@ const handler = withSupabase(
     if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
     try {
       const input = await readBody(request);
-      const requestKeys = Object.keys(input);
-      if (requestKeys.length !== 3 ||
-          requestKeys.some((key) => !["envelope", "worker_id", "lease_token"].includes(key))) {
+      if (!hasExactTrustedMissionProofRequestShape(input)) {
         return json({ error: "Request contains unsupported fields" }, 400);
       }
       const envelope = input.envelope;
