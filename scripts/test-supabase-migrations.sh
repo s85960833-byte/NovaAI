@@ -36,3 +36,4 @@ done
 
 psql -v ON_ERROR_STOP=1 -f scripts/supabase-rls-integration.sql
 psql -v ON_ERROR_STOP=1 -f scripts/mission-resolved-action-completion.sql
+psql -v ON_ERROR_STOP=1 -f scripts/mission-verifier-nonce-replay.sql
