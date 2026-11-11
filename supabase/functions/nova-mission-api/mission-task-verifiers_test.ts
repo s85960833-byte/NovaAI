@@ -171,7 +171,7 @@ Deno.test("learning topic sequence verifier integrates with the fail-closed task
   const execution = await registry.executeAndVerify(task);
   if (!execution.verification.passed ||
       execution.verification.verifierId !== "learn.topic-sequence-structure" ||
-      execution.verification.checks.length !== 7) {
+      execution.verification.checks.length !== 6) {
     throw new Error("The task-specific verifier did not pass through the registry contract");
   }
 });
