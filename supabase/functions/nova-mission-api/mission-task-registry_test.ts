@@ -132,6 +132,42 @@ Deno.test("rejects duplicate task types and inconsistent verifier results", asyn
   }
 });
 
+Deno.test("rejects verifier-supplied assurance escalation and unknown attestation fields", async () => {
+  for (const forged of [
+    {
+      passed: true,
+      verifierId: "test.strict-assurance",
+      verifierVersion: "1.0.0",
+      checks: [{ id: "shape", passed: true }],
+      observedAt: "2026-11-10T12:00:00.000Z",
+      assurance_level: "external_verified",
+    },
+    {
+      passed: true,
+      verifierId: "test.strict-assurance",
+      verifierVersion: "1.0.0",
+      checks: [{ id: "shape", passed: true, evidence_url: "https://example.invalid" }],
+      observedAt: "2026-11-10T12:00:00.000Z",
+    },
+  ]) {
+    const registry = new MissionTaskRegistry();
+    registry.register("test.safe-check", emptyObjectV1, {
+      async execute() { return { output: {}, evidence: {} }; },
+    }, {
+      id: "test.strict-assurance",
+      version: "1.0.0",
+      async verify() { return forged as unknown as MissionVerificationResult; },
+    });
+    try {
+      await registry.executeAndVerify(task);
+      throw new Error("Unrecognized verifier assurance or check field was accepted");
+    } catch (error) {
+      if (!(error instanceof TypeError) ||
+          !error.message.includes("invalid or inconsistent")) throw error;
+    }
+  }
+});
+
 Deno.test("rejects malformed, duplicate or non-ISO verifier checks", async () => {
   const malformedChecks: unknown[][] = [
     [{ id: "valid", passed: true }, { id: "valid", passed: true }],
