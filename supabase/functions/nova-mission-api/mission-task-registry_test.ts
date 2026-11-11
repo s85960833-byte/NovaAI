@@ -312,3 +312,58 @@ Deno.test("returns a detached immutable verifier attestation snapshot", async ()
     throw new Error("Returned attestation was mutable or aliased to verifier-owned data");
   }
 });
+
+
+Deno.test("registration pins schema version, adapter methods and verifier identity", async () => {
+  const registry = new MissionTaskRegistry();
+  const schema: MissionTaskInputSchema = {
+    version: 1,
+    validate(value): value is Readonly<Record<string, unknown>> {
+      return value !== null && typeof value === "object" &&
+        !Array.isArray(value) && Object.keys(value).length === 0;
+    },
+  };
+  let originalHandlerCalls = 0;
+  let originalVerifierCalls = 0;
+  const handler = {
+    async execute() {
+      originalHandlerCalls++;
+      return { output: { ok: true }, evidence: { source: "pinned" } };
+    },
+  };
+  const verifier = {
+    id: "test.pinned-verifier",
+    version: "1.0.0",
+    async verify(): Promise<MissionVerificationResult> {
+      originalVerifierCalls++;
+      return {
+        passed: true,
+        verifierId: "test.pinned-verifier",
+        verifierVersion: "1.0.0",
+        checks: [{ id: "pinned", passed: true }],
+        observedAt: "2026-11-10T12:00:00.000Z",
+      };
+    },
+  };
+  registry.register("test.safe-check", schema, handler, verifier);
+
+  // Simulate accidental mutation of shared configuration after registration.
+  Reflect.set(schema, "version", 2);
+  Reflect.set(schema, "validate", () => false);
+  Reflect.set(handler, "execute", async () => {
+    throw new Error("Handler method was replaced after registration");
+  });
+  Reflect.set(verifier, "id", "test.forged-verifier");
+  Reflect.set(verifier, "version", "9.9.9");
+  Reflect.set(verifier, "verify", async () => {
+    throw new Error("Verifier method was replaced after registration");
+  });
+
+  const result = await registry.executeAndVerify(task);
+  if (!result.verification.passed ||
+      result.verification.verifierId !== "test.pinned-verifier" ||
+      result.verification.verifierVersion !== "1.0.0" ||
+      originalHandlerCalls !== 1 || originalVerifierCalls !== 1) {
+    throw new Error("Registered task adapter identity changed after registration");
+  }
+});
