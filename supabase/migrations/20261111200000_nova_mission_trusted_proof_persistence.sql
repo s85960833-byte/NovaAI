@@ -107,13 +107,13 @@ begin
   v_check_count := pg_catalog.jsonb_array_length(p_envelope->'checks');
   if v_check_count not between 1 and 50
      or exists (
-       select 1 from pg_catalog.jsonb_array_elements(p_envelope->'checks') check_item
-        where pg_catalog.jsonb_typeof(check_item) <> 'object'
-           or check_item->>'passed' is distinct from 'true'
-           or pg_catalog.char_length(coalesce(check_item->>'id','')) not between 1 and 100
+       select 1 from pg_catalog.jsonb_array_elements(p_envelope->'checks') as check_item(value)
+        where pg_catalog.jsonb_typeof(check_item.value) <> 'object'
+           or check_item.value->>'passed' is distinct from 'true'
+           or pg_catalog.char_length(coalesce(check_item.value->>'id','')) not between 1 and 100
      )
      or (select count(distinct check_item->>'id')
-           from pg_catalog.jsonb_array_elements(p_envelope->'checks') check_item) <> v_check_count then
+           from pg_catalog.jsonb_array_elements(p_envelope->'checks') as check_item(value)) <> v_check_count then
     raise exception 'Only a complete passing proof with unique checks can be persisted'
       using errcode = '23514';
   end if;
