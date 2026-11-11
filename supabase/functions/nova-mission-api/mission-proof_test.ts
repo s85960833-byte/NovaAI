@@ -247,7 +247,7 @@ Deno.test("permission proofs reject missing or malformed snapshots and other ver
 });
 
 
-Deno.test("proof builder copies output only from the immutable task execution result", () => {
+Deno.test("proof builder copies output only from the immutable task execution result", async () => {
   const taskResult = Object.freeze({
     output: Object.freeze({ reportId: "report-123", findings: Object.freeze(["a", "b"]) }),
   });
