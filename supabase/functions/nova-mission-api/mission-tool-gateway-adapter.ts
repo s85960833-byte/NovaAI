@@ -179,10 +179,11 @@ export async function loadMissionToolGatewayContext(
       str(run, "worker_id") !== input.workerId || str(run, "lease_token") !== input.leaseToken ||
       !str(run, "approval_id") || !str(run, "lease_expires_at")) fail("active mission, task, run or worker lease does not match");
   const approval = await one(serviceRoleDb, "nova_mission_approvals",
-    "id,mission_id,task_id,owner_id,status,action_summary",
+    "id,mission_id,task_id,owner_id,status,action_summary,decided_by,decided_at",
     [["id", str(run, "approval_id")], ["mission_id", input.missionId], ["task_id", input.taskId], ["owner_id", input.ownerId]]);
   if (str(approval, "id") !== str(run, "approval_id") ||
-      str(approval, "status") !== "approved" || !str(approval, "action_summary")) {
+      str(approval, "status") !== "approved" || str(approval, "decided_by") !== input.ownerId ||
+      !str(approval, "decided_at") || !str(approval, "action_summary")) {
     fail("owner approval is missing, rejected or not bound to this task");
   }
   const [toolPolicies, permissionPolicies] = await Promise.all([
