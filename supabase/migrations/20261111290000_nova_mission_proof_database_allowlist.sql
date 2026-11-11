@@ -34,7 +34,7 @@ begin
     select 1
       from pg_catalog.jsonb_object_keys(p_envelope) as envelope_key(key)
      where envelope_key.key not in (
-       'schema_version', 'mission_id', 'task_id', 'run_id', 'verifier_id',
+       'schema_version', 'mission_id', 'task_id', 'run_id', 'verifier_id', 'output',
        'verifier_version', 'observed_at', 'outcome', 'checks',
        'tool_policy', 'permission_policy'
      )
@@ -51,7 +51,8 @@ begin
     raise exception 'Proof policy snapshot does not match the trusted verifier' using errcode = '23514';
   end if;
 
-  if pg_catalog.jsonb_typeof(p_envelope->'checks') is distinct from 'array'
+  if pg_catalog.jsonb_typeof(p_envelope->'output') is distinct from 'object'
+     or pg_catalog.jsonb_typeof(p_envelope->'checks') is distinct from 'array'
      or exists (
        select 1
          from pg_catalog.jsonb_array_elements(
