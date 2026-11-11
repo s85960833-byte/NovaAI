@@ -60,6 +60,14 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: nova_bi_test
         run: bash scripts/test-supabase-migrations.sh
+      - name: Stress concurrent NOVA mission action reservations
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: nova_bi_test
+        run: bash scripts/test-mission-concurrency.sh
       - name: Install pinned Deno runtime from npm
         run: |
           npm install --global deno@2.9.6
