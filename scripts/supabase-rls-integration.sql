@@ -1279,7 +1279,38 @@ reset role;
 set role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
 do $mission_attestation_owner_read$
+declare
+  v_action uuid;
+  v_resolution uuid;
 begin
+  select id into v_action from public.nova_mission_action_receipts
+   where action_key='action-uncertain-fixture-001';
+  if v_action is null then raise exception 'Uncertain action fixture is missing'; end if;
+  v_resolution := public.nova_resolve_uncertain_mission_action(
+    v_action,'confirmed_not_executed','provider-audit://fixture-uncertain-001',
+    'Checked the provider audit record and confirmed this request was never executed.'
+  );
+  if v_resolution is null
+     or (select outcome from public.nova_mission_action_resolutions where id=v_resolution)
+       <> 'confirmed_not_executed' then
+    raise exception 'Mission owner could not record an evidence-backed uncertain-action resolution';
+  end if;
+  begin
+    perform public.nova_resolve_uncertain_mission_action(
+      v_action,'confirmed_executed','provider-audit://fixture-conflict-002',
+      'Conflicting second resolution must never overwrite the original outcome.'
+    );
+    raise exception 'An immutable action resolution was overwritten';
+  exception when unique_violation then null;
+  end;
+  if (select count(*) from public.nova_mission_action_resolutions where owner_id='11111111-1111-4111-8111-111111111111') <> 1 then
+    raise exception 'Mission owner cannot read their action resolution';
+  end if;
+  if has_table_privilege('authenticated','public.nova_mission_action_resolutions','insert')
+     or has_table_privilege('authenticated','public.nova_mission_action_resolutions','update')
+     or has_table_privilege('authenticated','public.nova_mission_action_resolutions','delete') then
+    raise exception 'Authenticated users must resolve actions only through the guarded RPC';
+  end if;
   if (select count(*) from public.nova_mission_proof_attestations
       where verifier_id='nova.integration-verifier') <> 1 then
     raise exception 'Mission owner cannot read their proof attestation';
@@ -1302,7 +1333,19 @@ reset role;
 set role authenticated;
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
 do $mission_attestation_outsider_read$
+declare
+  v_action uuid;
 begin
+  select id into v_action from public.nova_mission_action_receipts
+   where action_key='action-uncertain-fixture-001';
+  begin
+    perform public.nova_resolve_uncertain_mission_action(
+      v_action,'confirmed_not_executed','provider-audit://outsider-001',
+      'An unrelated account must never resolve another owners action.'
+    );
+    raise exception 'A non-owner resolved another account action';
+  exception when insufficient_privilege then null;
+  end;
   if exists(select 1 from public.nova_mission_proof_attestations
       where verifier_id='nova.integration-verifier') then
     raise exception 'Cross-account proof attestation leak detected';
