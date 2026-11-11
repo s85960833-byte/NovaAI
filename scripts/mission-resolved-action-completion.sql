@@ -47,18 +47,56 @@ begin
   select action_id into v_action
     from public.nova_reserve_mission_action(v_run,v_token,'resolved-action-completion-001',repeat('a',64));
 
-  -- Simulate a worker ending after reserving an action: receipt must become uncertain.
-  perform public.nova_fail_mission_task(
-    v_run,v_token,'WORKER_INTERRUPTED','Worker stopped before action finalization',0
+  -- Mark the outcome uncertain while the worker lease is still active.
+  perform public.nova_mark_mission_action_uncertain(
+    v_action,v_token,'Provider outcome is ambiguous; owner review is required'
   );
   if (select status from public.nova_mission_action_receipts where id=v_action) <> 'uncertain' then
-    raise exception 'Abandoned action was not marked uncertain';
+    raise exception 'Active worker action was not marked uncertain';
   end if;
 
-  insert into mission_resolved_action_fixture(mission_id,task_id,approval_id,run_id,action_id)
-  values(v_mission,v_task,v_approval,v_run,v_action);
+  insert into mission_resolved_action_fixture(mission_id,task_id,approval_id,run_id,action_id,lease_token)
+  values(v_mission,v_task,v_approval,v_run,v_action,v_token);
 end;
 $fixture$;
+reset role;
+
+-- An owner may not unlock another action while the original worker lease is active.
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+do $active_resolution$
+begin
+  perform public.nova_resolve_uncertain_mission_action(
+    (select action_id from mission_resolved_action_fixture),
+    'confirmed_not_executed',
+    'provider-audit:case-active-lease',
+    'Checked the provider activity log and confirmed this request was not executed.'
+  );
+  raise exception 'Owner resolution unexpectedly succeeded while worker lease was active';
+exception when sqlstate '55P03' then null;
+end;
+$active_resolution$;
+reset role;
+
+-- Revoke the worker lease first; only then may the owner record the final resolution.
+set role service_role;
+select set_config('request.jwt.claim.role','service_role',false);
+do $release$
+declare
+  v_run uuid;
+  v_token uuid;
+  v_status text;
+begin
+  select run_id,lease_token into v_run,v_token from mission_resolved_action_fixture;
+  v_status := public.nova_fail_mission_task(
+    v_run,v_token,'WORKER_INTERRUPTED','Worker stopped before action finalization',0
+  );
+  if v_status <> 'authorized'
+     or (select lease_token from public.nova_mission_execution_runs where id=v_run) is not null then
+    raise exception 'Worker lease was not safely released before owner resolution';
+  end if;
+end;
+$release$;
 reset role;
 
 set role authenticated;
