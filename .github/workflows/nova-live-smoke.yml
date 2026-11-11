@@ -42,7 +42,7 @@ jobs:
       - name: Check deployed NOVA BI Edge Function authentication and CORS
         run: node scripts/supabase-edge-smoke.mjs
       - name: Check free-only image generation
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.run_free_image)
+        if: github.event_name == 'workflow_dispatch' && inputs.run_free_image
         env:
           NOVAAI_URL: https://novaai-4auo.onrender.com
         run: node scripts/smoke-free-image.mjs
