@@ -76,16 +76,35 @@ Deno.test("reservation adapter binds all fields to the trusted atomic RPC", asyn
     },
   };
   const result = await reserveMissionToolAction(db, {
-    runId: UUIDS.run, leaseToken: "lease-a", actionKey: "write-project-file",
+    runId: UUIDS.run, leaseToken: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", actionKey: "write-project-file",
     requestDigest: "a".repeat(64),
   });
   const call = captured.value as { name: string; args: Record<string, unknown> } | null;
   if (!call || call.name !== "nova_reserve_mission_action" ||
-      call.args.p_run_id !== UUIDS.run || call.args.p_lease_token !== "lease-a" ||
+      call.args.p_run_id !== UUIDS.run || call.args.p_lease_token !== "cccccccc-cccc-4ccc-8ccc-cccccccccccc" ||
       call.args.p_action_key !== "write-project-file" || call.args.p_request_digest !== "a".repeat(64) ||
       result.status !== "reserved" || result.replayed || result.actionId !== "55555555-5555-4555-8555-555555555555") {
     throw new Error("Reservation was not bound to the expected database RPC");
   }
+});
+
+Deno.test("reservation adapter rejects malformed inputs before calling the database", async () => {
+  let called = false;
+  const db: MissionServiceRoleDatabase = {
+    from() { throw new Error("No table reads expected"); },
+    rpc() { called = true; return Promise.resolve({ data: [], error: null }); },
+  };
+  for (const args of [
+    { runId: "bad", leaseToken: FIXTURE.lease, actionKey: "write-file", requestDigest: "a".repeat(64) },
+    { runId: UUIDS.run, leaseToken: "bad", actionKey: "write-file", requestDigest: "a".repeat(64) },
+    { runId: UUIDS.run, leaseToken: FIXTURE.lease, actionKey: "bad key", requestDigest: "a".repeat(64) },
+    { runId: UUIDS.run, leaseToken: FIXTURE.lease, actionKey: "write-file", requestDigest: "not-a-digest" },
+  ]) {
+    let denied = false;
+    try { await reserveMissionToolAction(db, args); } catch { denied = true; }
+    if (!denied) throw new Error("Malformed reservation input was accepted");
+  }
+  if (called) throw new Error("Malformed reservation input reached the database");
 });
 
 Deno.test("reservation adapter rejects malformed or duplicate RPC responses", async () => {
@@ -103,7 +122,7 @@ Deno.test("reservation adapter rejects malformed or duplicate RPC responses", as
     let denied = false;
     try {
       await reserveMissionToolAction(db, {
-        runId: UUIDS.run, leaseToken: "lease-a", actionKey: "write-project-file",
+        runId: UUIDS.run, leaseToken: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", actionKey: "write-project-file",
         requestDigest: "a".repeat(64),
       });
     } catch { denied = true; }
@@ -259,6 +278,26 @@ Deno.test("trusted gateway adapter assembles only a digest-matched, independentl
       context.permissionProof.taskId === context.task.id ||
       context.approval.actionSummary.length < 1) {
     throw new Error("Trusted policy context was not assembled with distinct, owner-bound tasks");
+  }
+});
+
+Deno.test("trusted gateway adapter rejects expired or inactive worker leases before policy reads", async () => {
+  for (const mutate of [
+    (tables: Record<string, Record<string, unknown>[]>) => { tables.nova_mission_execution_runs[0].lease_expires_at = "2000-01-01T00:00:00.000Z"; },
+    (tables: Record<string, Record<string, unknown>[]>) => { tables.nova_missions[0].state = "paused"; },
+    (tables: Record<string, Record<string, unknown>[]>) => { tables.nova_mission_tasks[0].status = "authorized"; },
+    (tables: Record<string, Record<string, unknown>[]>) => { tables.nova_mission_execution_runs[0].status = "queued"; },
+  ]) {
+    const { tables } = await makeValidGatewayFixture();
+    mutate(tables);
+    let denied = false;
+    try {
+      await loadMissionToolGatewayContext(fixtureDb(tables), {
+        missionId: FIXTURE.mission, taskId: FIXTURE.activeTask, runId: FIXTURE.activeRun,
+        ownerId: FIXTURE.owner, workerId: "worker-a", leaseToken: FIXTURE.lease,
+      });
+    } catch { denied = true; }
+    if (!denied) throw new Error("Expired or inactive lease context was accepted");
   }
 });
 
