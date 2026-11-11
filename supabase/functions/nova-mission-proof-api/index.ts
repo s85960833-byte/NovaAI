@@ -8,11 +8,18 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 });
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+class RequestInputError extends Error {
+  constructor(message: string, readonly status: 400 | 413) {
+    super(message);
+    this.name = "RequestInputError";
+  }
+}
+
 async function readBody(request: Request): Promise<Record<string, unknown>> {
   const declared = Number(request.headers.get("content-length") || "0");
-  if (declared > 70000) throw new Error("Request body is too large");
+  if (declared > 70000) throw new RequestInputError("Request body is too large", 413);
   const reader = request.body?.getReader();
-  if (!reader) throw new Error("Request body is required");
+  if (!reader) throw new RequestInputError("Request body is required", 400);
   const chunks: Uint8Array[] = [];
   let size = 0;
   try {
@@ -34,8 +41,8 @@ async function readBody(request: Request): Promise<Record<string, unknown>> {
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
   let parsed: unknown;
   try { parsed = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)); }
-  catch { throw new Error("Request body must be valid UTF-8 JSON"); }
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Request body must be a JSON object");
+  catch { throw new RequestInputError("Request body must be valid UTF-8 JSON", 400); }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new RequestInputError("Request body must be a JSON object", 400);
   return parsed as Record<string, unknown>;
 }
 
@@ -128,7 +135,7 @@ const handler = withSupabase(
       }, 201);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Request failed";
-      if (message.includes("too large")) return json({ error: message }, 413);
+      if (error instanceof RequestInputError) return json({ error: message }, error.status);
       if (message.includes("configuration")) return json({ error: "Trusted verifier is not configured" }, 503);
       console.error("NOVA trusted proof request failed");
       return json({ error: "Trusted proof persistence failed" }, 500);
