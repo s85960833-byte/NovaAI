@@ -92,8 +92,13 @@ begin
     v_run,v_token,'WORKER_INTERRUPTED','Worker stopped before action finalization',0
   );
   if v_status <> 'authorized'
-     or (select lease_token from public.nova_mission_execution_runs where id=v_run) is not null then
-    raise exception 'Worker lease was not safely released before owner resolution';
+     or exists (
+       select 1 from public.nova_mission_execution_runs
+        where id=v_run
+          and (worker_id is not null or lease_token is not null
+               or lease_expires_at is not null or heartbeat_at is not null)
+     ) then
+    raise exception 'Worker lease metadata was not fully cleared before owner resolution';
   end if;
 end;
 $release$;
