@@ -93,11 +93,12 @@ begin
       using errcode = '55000';
   end if;
 
-  if p_envelope->>'schema_version' is distinct from 'nova.proof.v1'
+  if p_envelope->>'schema_version' is distinct from 'nova.proof.v2'
      or p_envelope->>'mission_id' is distinct from v_mission_id::text
      or p_envelope->>'task_id' is distinct from v_task_id::text
      or p_envelope->>'run_id' is distinct from p_run_id::text
      or p_envelope->>'outcome' is distinct from 'passed'
+     or pg_catalog.jsonb_typeof(p_envelope->'output') is distinct from 'object'
      or pg_catalog.char_length(coalesce(p_envelope->>'verifier_id','')) not between 1 and 80
      or pg_catalog.char_length(coalesce(p_envelope->>'verifier_version','')) not between 1 and 40
      or pg_catalog.jsonb_typeof(p_envelope->'checks') is distinct from 'array' then
