@@ -119,26 +119,36 @@ export function createMissionProofEnvelope(
   fields: MissionProofEnvelopeFields,
   result: { readonly output: Readonly<Record<string, unknown>> },
 ): MissionProofEnvelope {
-  if (!fields || typeof fields !== "object" || Array.isArray(fields) ||
-      Object.prototype.hasOwnProperty.call(fields, "output")) {
-    throw new TypeError("Proof fields must not supply a task output");
+  // Snapshot caller-owned metadata without invoking getters or accepting hidden,
+  // inherited, symbol, or prototype-sensitive properties.
+  const safeFields = cloneProofOutput(fields as unknown);
+  const allowedFields = new Set([
+    "mission_id", "task_id", "run_id", "verifier_id", "verifier_version",
+    "observed_at", "outcome", "checks", "tool_policy", "permission_policy",
+  ]);
+  if (Object.keys(safeFields).some((key) => !allowedFields.has(key))) {
+    throw new TypeError("Proof fields contain unsupported properties");
   }
-  const output = cloneProofOutput(result?.output);
+
+  // Read the output only through an own enumerable data descriptor. A getter on
+  // the result wrapper must never execute while constructing a signed envelope.
+  if (!result || typeof result !== "object" || Array.isArray(result) ||
+      (Object.getPrototypeOf(result) !== Object.prototype && Object.getPrototypeOf(result) !== null)) {
+    throw new TypeError("Task execution result must be a plain object");
+  }
+  const resultKeys = Reflect.ownKeys(result);
+  const outputDescriptor = Object.getOwnPropertyDescriptor(result, "output");
+  if (resultKeys.length !== 1 || resultKeys[0] !== "output" ||
+      !outputDescriptor || !outputDescriptor.enumerable || !("value" in outputDescriptor)) {
+    throw new TypeError("Task execution result must contain only a data output property");
+  }
+  const output = cloneProofOutput(outputDescriptor.value);
   canonicalizeMissionProof(output);
   const envelope = {
     schema_version: "nova.proof.v2" as const,
-    ...fields,
+    ...safeFields,
     output,
   };
-  // Reject accidental extra fields before a caller signs or persists the proof.
-  const allowed = new Set([
-    "schema_version", "mission_id", "task_id", "run_id", "verifier_id",
-    "verifier_version", "observed_at", "outcome", "checks", "tool_policy",
-    "permission_policy", "output",
-  ]);
-  if (Object.keys(envelope).some((key) => !allowed.has(key))) {
-    throw new TypeError("Proof fields contain unsupported properties");
-  }
   canonicalizeMissionProof(envelope);
   return envelope;
 }
