@@ -2,7 +2,10 @@ import {
   createLearnTopicSequenceVerifier,
   learnTopicSequenceInputV1,
 } from "./mission-task-verifiers.ts";
-import type { MissionTaskDescriptor } from "./mission-task-registry.ts";
+import {
+  MissionTaskRegistry,
+  type MissionTaskDescriptor,
+} from "./mission-task-registry.ts";
 
 const fixedNow = new Date("2026-11-11T10:00:00.000Z");
 
@@ -148,5 +151,27 @@ Deno.test("learning topic sequence verifier rejects malformed and excessive topi
   if (excessiveResult.passed ||
       excessiveResult.checks.find((check) => check.id === "topic-count")?.passed) {
     throw new Error("An oversized topic sequence was accepted");
+  }
+});
+
+
+Deno.test("learning topic sequence verifier integrates with the fail-closed task registry", async () => {
+  const registry = new MissionTaskRegistry();
+  const validResult = await makeResult();
+  registry.register(
+    "learn.topic_sequence",
+    learnTopicSequenceInputV1,
+    {
+      async execute() {
+        return validResult;
+      },
+    },
+    createLearnTopicSequenceVerifier(() => fixedNow),
+  );
+  const execution = await registry.executeAndVerify(task);
+  if (!execution.verification.passed ||
+      execution.verification.verifierId !== "learn.topic-sequence-structure" ||
+      execution.verification.checks.length !== 7) {
+    throw new Error("The task-specific verifier did not pass through the registry contract");
   }
 });
