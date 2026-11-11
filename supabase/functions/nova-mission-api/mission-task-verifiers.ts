@@ -1039,7 +1039,7 @@ const AGENT_PERMISSION_ACTIONS = new Set([
   "read", "create", "update", "delete", "execute", "publish", "send", "export",
 ]);
 const AGENT_SENSITIVE_ACTIONS = new Set([
-  "delete", "execute", "publish", "send", "export",
+  "create", "update", "delete", "execute", "publish", "send", "export",
 ]);
 
 export const agentsPermissionsInputV1: MissionTaskInputSchema = Object.freeze({
