@@ -34,7 +34,8 @@ jobs:
       - name: Check syntax, privacy disclosures, account UI and RLS migration
         run: node scripts/check.mjs
       - name: Install Devanagari fonts
-        timeout-minutes: 8
+        timeout-minutes: 3
+        continue-on-error: true
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
