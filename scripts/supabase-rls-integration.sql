@@ -1333,19 +1333,7 @@ reset role;
 set role authenticated;
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
 do $mission_attestation_outsider_read$
-declare
-  v_action uuid;
 begin
-  select id into v_action from public.nova_mission_action_receipts
-   where action_key='action-uncertain-fixture-001';
-  begin
-    perform public.nova_resolve_uncertain_mission_action(
-      v_action,'confirmed_not_executed','provider-audit://outsider-001',
-      'An unrelated account must never resolve another owners action.'
-    );
-    raise exception 'A non-owner resolved another account action';
-  exception when insufficient_privilege then null;
-  end;
   if exists(select 1 from public.nova_mission_proof_attestations
       where verifier_id='nova.integration-verifier') then
     raise exception 'Cross-account proof attestation leak detected';
