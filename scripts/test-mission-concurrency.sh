@@ -13,7 +13,9 @@ psql -v ON_ERROR_STOP=1 <<'SQL'
 create table public.nova_mission_concurrency_fixture (
   mission_id uuid not null,
   run_id uuid not null,
-  lease_token uuid not null
+  lease_token uuid not null,
+  owner_id uuid,
+  action_id uuid
 );
 grant insert on public.nova_mission_concurrency_fixture to service_role;
 insert into auth.users(id,email)
@@ -50,6 +52,47 @@ begin
     from public.nova_claim_mission_task(v_run,'concurrent-reservation-worker',120);
   insert into public.nova_mission_concurrency_fixture(mission_id,run_id,lease_token)
   values(v_mission,v_run,v_token);
+  -- Prepare a second mission with an uncertain action and a fully released lease.
+  declare
+    v_race_mission uuid;
+    v_race_task uuid;
+    v_race_approval uuid;
+    v_race_run uuid;
+    v_race_token uuid;
+    v_race_action uuid;
+  begin
+    v_race_mission := public.nova_create_mission(
+      v_owner,'Concurrent owner resolution and claim regression',
+      'Owner resolution and worker claim must serialize','agents',
+      'mission-concurrent-resolution-claim-001','{}'::jsonb
+    );
+    perform public.nova_save_mission_plan(
+      v_owner,v_race_mission,'{"kind":"starter_template","workspace":"agents"}'::jsonb,
+      '[{"title":"Concurrent resolution task","description":"Race owner resolution against worker claim","task_type":"agents.checklist","input_schema_version":1,"input":{"description":"Race owner resolution against worker claim"}}]'::jsonb
+    );
+    select id into v_race_task from public.nova_mission_tasks where mission_id=v_race_mission;
+    v_race_approval := public.nova_request_task_approval(
+      v_owner,v_race_mission,v_race_task,'approval-concurrent-resolution-001',
+      'Run owner resolution versus claim regression'
+    );
+    select id into v_race_run from public.nova_mission_execution_runs where approval_id=v_race_approval;
+    perform public.nova_decide_task_approval(v_owner,v_race_approval,'approve',v_owner,'Approved race fixture');
+    select lease_token into v_race_token
+      from public.nova_claim_mission_task(v_race_run,'resolution-race-initial-worker',120);
+    select action_id into v_race_action
+      from public.nova_reserve_mission_action(v_race_run,v_race_token,'resolution-race-action',repeat('b',64));
+    perform public.nova_mark_mission_action_uncertain(
+      v_race_action,v_race_token,'Ambiguous provider result before owner review'
+    );
+    if public.nova_fail_mission_task(
+      v_race_run,v_race_token,'WORKER_INTERRUPTED','Release lease for owner resolution race',0
+    ) <> 'authorized' then
+      raise exception 'Could not release race fixture worker lease';
+    end if;
+    insert into public.nova_mission_concurrency_fixture(
+      mission_id,run_id,lease_token,owner_id,action_id
+    ) values(v_race_mission,v_race_run,v_race_token,v_owner,v_race_action);
+  end;
 end;
 $fixture$;
 reset role;
@@ -106,3 +149,66 @@ if [[ "$successes" -ne 1 || "$reserved_count" -ne 1 ]]; then
 fi
 
 echo "Concurrent mission-wide reservation race passed: exactly one action reserved; competing action rejected."
+
+# Race owner resolution against a new worker claim. Both RPCs must serialize on
+# the mission row: either resolution commits first, or claim wins and resolution
+# is rejected because the run now has an active lease.
+IFS='|' read -r race_mission race_run race_owner race_action < <(
+  psql -v ON_ERROR_STOP=1 -At -F '|' -c \
+    "select mission_id,run_id,owner_id,action_id from public.nova_mission_concurrency_fixture where action_id is not null"
+)
+if [[ -z "${race_run:-}" || -z "${race_owner:-}" || -z "${race_action:-}" ]]; then
+  echo "Could not create owner-resolution race fixture" >&2
+  exit 1
+fi
+
+claim_race() {
+  psql -v ON_ERROR_STOP=1 -At <<SQL
+set role service_role;
+select set_config('request.jwt.claim.role','service_role',false);
+select lease_token from public.nova_claim_mission_task(
+  '$race_run'::uuid,'resolution-race-worker',120
+);
+SQL
+}
+
+resolve_race() {
+  psql -v ON_ERROR_STOP=1 -At <<SQL
+set role authenticated;
+select set_config('request.jwt.claim.sub','$race_owner',false);
+select public.nova_resolve_uncertain_mission_action(
+  '$race_action'::uuid,
+  'confirmed_not_executed',
+  'provider-audit:concurrent-resolution-claim',
+  'Checked the provider activity log and confirmed this action was not executed.'
+);
+SQL
+}
+
+claim_race >"$tmp_dir/claim-race.out" 2>"$tmp_dir/claim-race.err" &
+pid_claim=$!
+resolve_race >"$tmp_dir/resolve-race.out" 2>"$tmp_dir/resolve-race.err" &
+pid_resolve=$!
+claim_ok=0
+resolve_ok=0
+if wait "$pid_claim"; then claim_ok=1; fi
+if wait "$pid_resolve"; then resolve_ok=1; fi
+
+race_state="$(psql -v ON_ERROR_STOP=1 -At -F '|' -c \
+  "select r.status, (r.lease_token is not null)::int, (select count(*) from public.nova_mission_action_resolutions x where x.action_id='$race_action'::uuid) from public.nova_mission_execution_runs r where r.id='$race_run'::uuid")"
+IFS='|' read -r final_status active_lease resolution_count <<<"$race_state"
+if [[ "$claim_ok" -ne 1 || "$final_status" != "running" || "$active_lease" != "1" || "$resolution_count" -gt 1 ]]; then
+  echo "Owner-resolution/claim race invariant failed: claim_ok=$claim_ok resolve_ok=$resolve_ok state=$race_state" >&2
+  echo "--- claim stdout ---"; cat "$tmp_dir/claim-race.out"
+  echo "--- claim stderr ---"; cat "$tmp_dir/claim-race.err"
+  echo "--- resolution stdout ---"; cat "$tmp_dir/resolve-race.out"
+  echo "--- resolution stderr ---"; cat "$tmp_dir/resolve-race.err"
+  exit 1
+fi
+if [[ "$resolve_ok" -eq 0 ]] && ! grep -q "55P03\|fully released" "$tmp_dir/resolve-race.err"; then
+  echo "Owner resolution failed for an unexpected reason" >&2
+  cat "$tmp_dir/resolve-race.err"
+  exit 1
+fi
+
+echo "Concurrent owner-resolution/worker-claim race passed: claim acquired one lease; owner resolution either committed first or was safely blocked."
