@@ -29,7 +29,7 @@ await page.route('**/nova-business-cloud.js', route => route.fulfill({
       let missions = [];
       let tasks = [];
       let events = [];
-      const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed' }];
+      const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed', evidence_json: { schema_version: 'nova.proof.v2', output: { pageTitle: 'NOVA verified homepage', checks: ['HTTP 200', 'No console errors'] } } }];
       const actionReceipts = [{ id: 'receipt-1', action_key: 'mock-proof-action', status: 'uncertain', request_digest: 'a'.repeat(64), uncertain_reason: 'Previous worker lease expired', reconciliation_note: 'Manual external-state review required' }];
       let approvals = [];
       const client = { auth: { onAuthStateChange() {}, getSession: async () => ({ data: { session: null } }) } };
@@ -115,6 +115,8 @@ assert.ok((await page.locator('#missionList').innerText()).includes('Test websit
 
 await page.locator('[data-mission-id="' + missionId + '"]').click();
 await page.locator('#missionDetail').getByText('Homepage smoke test passed').waitFor({ state: 'visible', timeout: 5000 });
+assert.ok((await page.locator('#missionDetail').innerText()).includes('NOVA verified homepage'), 'Mission Control must display output from the signed proof envelope');
+assert.ok((await page.locator('#missionDetail').innerText()).includes('No console errors'), 'Signed proof output must retain its exact nested values');
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mission.created'));
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mock-proof-action'));
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Manual external-state review required'));
