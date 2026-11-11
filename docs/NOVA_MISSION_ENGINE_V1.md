@@ -170,3 +170,33 @@ No production branch merge, Render deployment, live Supabase schema change or pa
 The feature branch now contains a fail-closed tool-gateway preflight and a service-role database adapter. The adapter loads the active mission/task/run/approval, verifies the two distinct completed policy tasks and their proof/attestation digests, and requires the owner-approved summary to match both exact policy snapshots. It also validates the worker lease token and worker identifier before database reads. The gateway then checks exact tool, operation, scope and permission-action matches before asking the lease-fenced reservation RPC for an idempotent action receipt.
 
 **This is not an active executor.** The adapter is not wired into `nova-mission-api/index.ts` or a worker entrypoint; no worker is registered, no external tool is invoked, and no production service-role credential is configured here. The service-role client must only be constructed and passed by trusted server-side code. A future worker integration still requires independent security review, end-to-end lease/approval tests, replay and uncertain-outcome reconciliation tests, and explicit release approval. Keep workers disabled until those gates are met.
+
+
+## Task verifier coverage and execution gate
+
+The current task-specific verifier module contains reviewed structural/provenance contracts for **9 of the 20** routed task types. This is not equivalent to factual, domain-expert or external-outcome verification. The other 11 task types have no task-specific verifier contract yet and must remain non-executable.
+
+| Workspace | Task type | Current verifier coverage |
+|---|---|---|
+| Learn | `learn.goal_clarification` | Structural and mission-input provenance |
+| Learn | `learn.topic_sequence` | Sequence structure and mission-input provenance |
+| Learn | `learn.practice_material` | Structural and mission-input provenance |
+| Learn | `learn.assessment` | Assessment structure and mission-input provenance |
+| Learn | `learn.progress_summary` | **Not implemented — disabled** |
+| Build | `build.requirements` | Requirements structure and mission-input provenance |
+| Build | `build.design_flow` | Navigation graph structure and mission-input provenance |
+| Build | `build.implementation` | **Not implemented — disabled** |
+| Build | `build.quality_checks` | **Not implemented — disabled** |
+| Build | `build.review_proof` | **Not implemented — disabled** |
+| Agents | `agents.permissions` | Least-privilege policy contract |
+| Agents | `agents.tool_gates` | Tool-gate policy contract |
+| Agents | `agents.checklist` | **Not implemented — disabled** |
+| Agents | `agents.approved_steps` | **Not implemented — disabled** |
+| Agents | `agents.verify_outcomes` | **Not implemented — disabled** |
+| Intelligence | `intelligence.define_metrics` | Metric-definition contract |
+| Intelligence | `intelligence.inspect_data` | **Not implemented — disabled** |
+| Intelligence | `intelligence.analyze_drivers` | **Not implemented — disabled** |
+| Intelligence | `intelligence.recommend_actions` | **Not implemented — disabled** |
+| Intelligence | `intelligence.verify_evidence` | **Not implemented — disabled** |
+
+The registry is empty by default and requires an explicit schema, handler and verifier registration for every executable task type. A verifier passing a structural contract does not establish that generated educational content is factually correct, that software was deployed, that a business metric interpretation is correct, or that an external action actually occurred. Those require separate trusted evidence sources and domain-specific verification. No worker is registered, and this coverage table does not authorize execution.
