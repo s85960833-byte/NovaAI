@@ -1,9 +1,11 @@
 import {
   createBuildRequirementsVerifier,
   createLearnAssessmentVerifier,
+  createLearnGoalClarificationVerifier,
   createLearnTopicSequenceVerifier,
   buildRequirementsInputV1,
   learnAssessmentInputV1,
+  learnGoalClarificationInputV1,
   learnTopicSequenceInputV1,
 } from "./mission-task-verifiers.ts";
 import {
@@ -492,7 +494,7 @@ Deno.test("learning goal clarification verifier rejects forged and missing prove
     throw new Error("Forged goal clarification provenance was accepted");
   }
   const missing = await makeGoalResult();
-  missing.evidence = {};
+  missing.evidence = { sourceBindings: [] };
   if ((await verifier.verify(goalTask, missing)).passed) {
     throw new Error("Missing goal clarification provenance was accepted");
   }
