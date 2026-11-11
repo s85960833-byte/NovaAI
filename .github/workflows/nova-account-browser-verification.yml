@@ -43,7 +43,7 @@ jobs:
       - name: Install Playwright Chromium
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Start local NOVA test server
         run: |
           LLM_KEY=test LLM_MODEL=test-model PORT=8787 node nova-server.txt > /tmp/nova-account-test.log 2>&1 &
