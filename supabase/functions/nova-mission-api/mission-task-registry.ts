@@ -220,7 +220,12 @@ export class MissionTaskRegistry {
   }> {
     // Detach caller-owned objects before the first await. The handler and verifier
     // receive the same frozen task snapshot, preventing descriptor TOCTOU changes.
-    if (!isRecord(task)) throw new TypeError("Mission task descriptor is invalid");
+    if (!isRecord(task) ||
+        Object.keys(task).some((key) =>
+          !["id", "missionId", "runId", "ownerId", "taskType", "inputSchemaVersion", "input"].includes(key)) ||
+        Object.keys(task).length !== 7) {
+      throw new TypeError("Mission task descriptor is invalid");
+    }
     const taskSnapshot = snapshotRecord(task, "Mission task descriptor") as unknown as MissionTaskDescriptor;
     if (!/^[a-z][a-z0-9_.-]{1,79}$/.test(taskSnapshot.taskType) ||
         !Number.isSafeInteger(taskSnapshot.inputSchemaVersion) ||
@@ -253,7 +258,9 @@ export class MissionTaskRegistry {
     }
 
     const rawResult = await registration.execute.call(registration.handler, taskSnapshot);
-    if (!isRecord(rawResult)) {
+    if (!isRecord(rawResult) ||
+        Object.keys(rawResult).length !== 2 ||
+        Object.keys(rawResult).some((key) => key !== "output" && key !== "evidence")) {
       throw new TypeError("Task handler returned an invalid result envelope");
     }
     // Validate the complete envelope before reading output/evidence so accessors,
