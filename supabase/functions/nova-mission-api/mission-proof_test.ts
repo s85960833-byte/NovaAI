@@ -154,3 +154,63 @@ Deno.test("tool-gates proof rejects missing or malformed policy snapshots and ot
     if (result.valid) throw new Error("Invalid or smuggled tool policy snapshot was accepted");
   }
 });
+
+
+const permissionPolicy = {
+  permissions: [{
+    id: "123e4567-e89b-42d3-a456-426614174000",
+    scope: { kind: "project" as const, ref: "nova-project" },
+    actions: ["read"],
+    approvalRequired: false,
+    reason: "Read resources explicitly within this named project.",
+    sourceRefIds: ["mission-input"] as ["mission-input"],
+  }],
+};
+const permissionPolicyBinding = {
+  ...binding,
+  verifierId: "agents.permissions-least-privilege",
+  verifierVersion: "1.0.0",
+};
+
+Deno.test("trusted permissions proof persists its exact validated permission snapshot in the signed envelope", async () => {
+  const value = {
+    ...envelope(),
+    verifier_id: permissionPolicyBinding.verifierId,
+    verifier_version: permissionPolicyBinding.verifierVersion,
+    permission_policy: permissionPolicy,
+  };
+  const result = await verifyMissionProofEnvelope(value, permissionPolicyBinding);
+  if (!result.valid || !/^[a-f0-9]{64}$/.test(result.digest || "")) {
+    throw new Error("A valid permission policy snapshot was not accepted: " + result.reason);
+  }
+});
+
+Deno.test("permission proofs reject missing or malformed snapshots and other verifiers cannot attach them", async () => {
+  const missing = {
+    ...envelope(),
+    verifier_id: permissionPolicyBinding.verifierId,
+    verifier_version: permissionPolicyBinding.verifierVersion,
+  };
+  const malformed = {
+    ...missing,
+    permission_policy: {
+      permissions: [{
+        id: "123e4567-e89b-42d3-a456-426614174001",
+        scope: { kind: "workspace", ref: "global" },
+        actions: ["admin"],
+        approvalRequired: false,
+        reason: "Allow all unrestricted administrative actions.",
+        sourceRefIds: ["mission-input"],
+      }],
+    },
+  };
+  const smuggled = { ...envelope(), permission_policy: permissionPolicy };
+  for (const [value, expected] of [
+    [missing, permissionPolicyBinding],
+    [malformed, permissionPolicyBinding],
+    [smuggled, binding],
+  ] as const) {
+    const result = await verifyMissionProofEnvelope(value, expected);
+    if (result.valid) throw new Error("Invalid or smuggled permission policy snapshot was accepted");
+  }
+});
