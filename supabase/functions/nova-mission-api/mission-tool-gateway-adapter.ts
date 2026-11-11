@@ -170,7 +170,7 @@ export async function loadMissionToolGatewayContext(
     one(serviceRoleDb, "nova_mission_execution_runs", "id,mission_id,task_id,owner_id,approval_id,status,worker_id,lease_token,lease_expires_at", [["id", input.runId], ["mission_id", input.missionId], ["task_id", input.taskId], ["owner_id", input.ownerId]]),
   ]);
   if (str(mission, "id") !== input.missionId || str(mission, "owner_id") !== input.ownerId ||
-      str(task, "id") !== input.taskId || str(task, "task_type") === "agents.tool_gates" ||
+      str(task, "id") !== input.taskId || (str(task, "task_type") === "agents.tool_gates" || str(task, "task_type") === "agents.permissions") ||
       str(task, "mission_id") !== input.missionId || str(task, "owner_id") !== input.ownerId ||
       str(run, "id") !== input.runId || str(run, "mission_id") !== input.missionId ||
       str(run, "task_id") !== input.taskId || str(run, "owner_id") !== input.ownerId ||
