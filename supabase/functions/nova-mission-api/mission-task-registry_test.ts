@@ -367,3 +367,65 @@ Deno.test("registration pins schema version, adapter methods and verifier identi
     throw new Error("Registered task adapter identity changed after registration");
   }
 });
+
+
+Deno.test("snapshot boundary rejects getters, symbol keys and sparse or decorated arrays", async () => {
+  const registry = new MissionTaskRegistry();
+  let handlerCalls = 0;
+  let getterCalls = 0;
+  registry.register("test.safe-check", {
+    version: 1,
+    validate(value): value is Readonly<Record<string, unknown>> {
+      return value !== null && typeof value === "object" && !Array.isArray(value);
+    },
+  }, {
+    async execute() {
+      handlerCalls++;
+      return { output: {}, evidence: {} };
+    },
+  }, {
+    id: "test.json-shape-verifier",
+    version: "1.0.0",
+    async verify(): Promise<MissionVerificationResult> {
+      return {
+        passed: true,
+        verifierId: "test.json-shape-verifier",
+        verifierVersion: "1.0.0",
+        checks: [{ id: "json-shape", passed: true }],
+        observedAt: "2026-11-10T12:00:00.000Z",
+      };
+    },
+  });
+
+  const accessorInput: Record<string, unknown> = {};
+  Object.defineProperty(accessorInput, "danger", {
+    enumerable: true,
+    get() {
+      getterCalls++;
+      return true;
+    },
+  });
+  const symbolInput = { safe: true };
+  Object.defineProperty(symbolInput, Symbol("hidden"), { value: true, enumerable: true });
+  const sparseArray = new Array(2);
+  const decoratedArray: unknown[] = [true];
+  (decoratedArray as unknown[] & { extra?: boolean }).extra = true;
+  const invalidInputs = [
+    accessorInput,
+    symbolInput,
+    { values: sparseArray },
+    { values: decoratedArray },
+  ];
+
+  for (const input of invalidInputs) {
+    try {
+      await registry.executeAndVerify({ ...task, input });
+      throw new Error("Non-JSON data shape crossed the snapshot boundary");
+    } catch (error) {
+      if (!(error instanceof TypeError)) throw error;
+    }
+  }
+  if (getterCalls !== 0 || handlerCalls !== 0) {
+    throw new Error("Untrusted accessors executed or handler ran before JSON shape validation");
+  }
+});
