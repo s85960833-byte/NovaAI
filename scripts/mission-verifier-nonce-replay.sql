@@ -70,3 +70,33 @@ begin
   end if;
 end;
 $nonce_rollback_assertion$;
+
+
+do $nonce_ledger_privileges$
+begin
+  if not exists (
+    select 1 from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public'
+      and c.relname = 'nova_mission_verifier_nonce_ledger'
+      and c.relrowsecurity
+  ) then
+    raise exception 'Verifier nonce ledger must have row-level security enabled';
+  end if;
+
+  if not has_table_privilege('service_role',
+       'public.nova_mission_verifier_nonce_ledger','INSERT')
+     or has_table_privilege('service_role',
+       'public.nova_mission_verifier_nonce_ledger','SELECT')
+     or has_table_privilege('service_role',
+       'public.nova_mission_verifier_nonce_ledger','UPDATE')
+     or has_table_privilege('service_role',
+       'public.nova_mission_verifier_nonce_ledger','DELETE')
+     or has_table_privilege('authenticated',
+       'public.nova_mission_verifier_nonce_ledger','INSERT')
+     or has_table_privilege('anon',
+       'public.nova_mission_verifier_nonce_ledger','INSERT') then
+    raise exception 'Nonce ledger must allow insert-only access to service_role and deny client access';
+  end if;
+end;
+$nonce_ledger_privileges$;
