@@ -1157,6 +1157,14 @@ begin
   v_expiry := public.nova_heartbeat_mission_task(v_run,v_token,90);
   if v_expiry <= now() then raise exception 'Heartbeat did not extend the lease'; end if;
 
+  update public.nova_mission_tasks set status='planned' where id=v_task;
+  begin
+    perform public.nova_heartbeat_mission_task(v_run,v_token,90);
+    raise exception 'Heartbeat extended a lease for a non-running task';
+  exception when sqlstate '55000' then null;
+  end;
+  update public.nova_mission_tasks set status='running' where id=v_task;
+
   update public.nova_mission_execution_runs
      set lease_expires_at=now()-interval '1 second'
    where id=v_run;
