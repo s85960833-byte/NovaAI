@@ -112,10 +112,14 @@ function assertPlainJsonData(
       }
       return;
     }
-    if (!isRecord(value) || Reflect.ownKeys(value).some((key) => typeof key !== "string")) {
+    if (!isRecord(value)) {
       throw new TypeError("JSON objects must be plain records");
     }
-    for (const key of Object.keys(value)) {
+    const ownKeys = Reflect.ownKeys(value);
+    if (ownKeys.some((key) => typeof key !== "string")) {
+      throw new TypeError("JSON objects must not contain symbol keys");
+    }
+    for (const key of ownKeys as string[]) {
       const descriptor = Object.getOwnPropertyDescriptor(value, key);
       if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
         throw new TypeError("JSON objects must contain enumerable data properties only");
