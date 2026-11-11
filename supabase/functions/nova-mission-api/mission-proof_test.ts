@@ -32,6 +32,35 @@ Deno.test("canonical proof serialization is stable across object key order", () 
   if (left !== right) throw new Error("Canonical JSON differs by object key order");
 });
 
+Deno.test("canonical proof JSON rejects sparse arrays, accessors and hidden properties", () => {
+  const sparse = new Array(1);
+  const decorated = [1];
+  Object.defineProperty(decorated, "extra", { value: true, enumerable: true });
+  const symbolObject = { safe: true };
+  Object.defineProperty(symbolObject, Symbol("hidden"), { value: true, enumerable: true });
+  const hiddenObject = { safe: true };
+  Object.defineProperty(hiddenObject, "hidden", { value: true, enumerable: false });
+  let getterCalls = 0;
+  const accessorObject: Record<string, unknown> = {};
+  Object.defineProperty(accessorObject, "value", {
+    enumerable: true,
+    get() { getterCalls++; return "unsafe"; },
+  });
+
+  for (const value of [sparse, decorated, symbolObject, hiddenObject, accessorObject]) {
+    let rejected = false;
+    try { canonicalizeMissionProof(value); } catch (error) {
+      if (!(error instanceof TypeError)) throw error;
+      rejected = true;
+    }
+    if (!rejected) throw new Error("Non-JSON object shape was accepted by canonicalization");
+  }
+  if (getterCalls !== 0) throw new Error("Canonicalization executed an accessor");
+  if (canonicalizeMissionProof([]) === canonicalizeMissionProof(sparse)) {
+    throw new Error("Sparse array canonicalized to the same digest input as an empty array");
+  }
+});
+
 Deno.test("verifies a proof envelope bound to the expected task, run and verifier", async () => {
   const result = await verifyMissionProofEnvelope(envelope(), binding);
   if (!result.valid || !/^[a-f0-9]{64}$/.test(result.digest || "")) {
