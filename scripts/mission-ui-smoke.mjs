@@ -115,8 +115,8 @@ assert.ok((await page.locator('#missionList').innerText()).includes('Test websit
 
 await page.locator('[data-mission-id="' + missionId + '"]').click();
 await page.locator('#missionDetail').getByText('Homepage smoke test passed').waitFor({ state: 'visible', timeout: 5000 });
-assert.ok((await page.locator('#missionDetail').innerText()).includes('NOVA verified homepage'), 'Mission Control must display output from the signed proof envelope');
-assert.ok((await page.locator('#missionDetail').innerText()).includes('No console errors'), 'Signed proof output must retain its exact nested values');
+assert.ok((await page.locator('#missionDetail details pre').textContent()).includes('NOVA verified homepage'), 'Mission Control must display output from the signed proof envelope');
+assert.ok((await page.locator('#missionDetail details pre').textContent()).includes('No console errors'), 'Signed proof output must retain its exact nested values');
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mission.created'));
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mock-proof-action'));
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Manual external-state review required'));
