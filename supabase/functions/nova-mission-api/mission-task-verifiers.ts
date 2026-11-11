@@ -1108,7 +1108,7 @@ export function createAgentsPermissionsVerifier(
           const scopeRef = permission.scope.ref;
           const scopeValid = scopeKind === "workspace"
             ? scopeRef === "current-workspace"
-            : /^[a-z][a-z0-9_-]{1,47}$/.test(scopeRef) &&
+            : /^[a-z][a-z0-9_-]{1,63}$/.test(scopeRef) &&
               scopeRef !== "all" && scopeRef !== "global" && scopeRef !== "*";
           const uniqueActions = new Set(permission.actions);
           const actionsValid = uniqueActions.size === permission.actions.length &&
@@ -1263,7 +1263,7 @@ export function createAgentsToolGatesVerifier(
           const scopeRef = gate.scope.ref;
           const scopeValid = scopeKind === "workspace"
             ? scopeRef === "current-workspace"
-            : /^[a-z][a-z0-9_-]{1,63}$/.test(scopeRef) &&
+            : /^[a-z][a-z0-9_-]{1,47}$/.test(scopeRef) &&
               scopeRef !== "all" && scopeRef !== "global" && scopeRef !== "*";
           const needsApproval = AGENT_SIDE_EFFECT_TOOLS.has(gate.tool) ||
             gate.risk === "elevated" || gate.risk === "high";
