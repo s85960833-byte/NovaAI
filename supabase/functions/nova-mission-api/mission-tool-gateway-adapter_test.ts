@@ -30,16 +30,18 @@ function noRowsDb(): MissionServiceRoleDatabase {
 }
 
 Deno.test("trusted gateway adapter fails closed when any owner-scoped mission row is missing", async () => {
-  let denied = false;
+  let caught = "";
   try {
     await loadMissionToolGatewayContext(noRowsDb(), {
       missionId: UUIDS.mission, taskId: UUIDS.task, runId: UUIDS.run,
       ownerId: UUIDS.owner, workerId: "worker-a", leaseToken: "lease-a",
     });
   } catch (error) {
-    denied = String(error).includes("Mission gateway context denied: trusted ") && String(error).endsWith(" row unavailable");
+    caught = String(error);
   }
-  if (!denied) throw new Error("Missing owner-scoped mission row was not rejected");
+  if (!caught.includes("Mission gateway context denied: trusted ") || !caught.endsWith(" row unavailable")) {
+    throw new Error("Missing owner-scoped mission row was not rejected with a trusted-row denial: " + caught);
+  }
 });
 
 Deno.test("trusted gateway adapter rejects malformed identifiers before querying", async () => {
