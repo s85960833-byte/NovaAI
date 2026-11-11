@@ -212,7 +212,8 @@ function fixtureDb(tables: Record<string, Record<string, unknown>[]>): MissionSe
 
 async function makeValidGatewayFixture() {
   const baseEnvelope = (taskId: string, runId: string, verifierId: string, policyKey: "tool_policy" | "permission_policy", policy: unknown) => ({
-    schema_version: "nova.proof.v1" as const,
+    schema_version: "nova.proof.v2" as const,
+    output: { policyValidated: true, taskId },
     mission_id: FIXTURE.mission,
     task_id: taskId,
     run_id: runId,
