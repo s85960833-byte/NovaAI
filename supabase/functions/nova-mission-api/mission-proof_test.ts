@@ -13,7 +13,8 @@ const binding = {
 };
 
 const envelope = (): MissionProofEnvelope => ({
-  schema_version: "nova.proof.v1",
+  schema_version: "nova.proof.v2",
+  output: { title: "Verified output", items: ["alpha", "beta"] },
   mission_id: binding.missionId,
   task_id: binding.taskId,
   run_id: binding.runId,
@@ -34,6 +35,23 @@ Deno.test("verifies a proof envelope bound to the expected task, run and verifie
   const result = await verifyMissionProofEnvelope(envelope(), binding);
   if (!result.valid || !/^[a-f0-9]{64}$/.test(result.digest || "")) {
     throw new Error("Expected a valid SHA-256 proof digest");
+  }
+});
+
+Deno.test("requires the exact task output inside the signed proof envelope", async () => {
+  const missing = envelope() as unknown as Record<string, unknown>;
+  delete missing.output;
+  const malformed = { ...envelope(), output: [] };
+  for (const value of [missing, malformed]) {
+    const result = await verifyMissionProofEnvelope(value, binding);
+    if (result.valid) throw new Error("Missing or non-object task output was accepted");
+  }
+  const original = envelope();
+  const changed = { ...original, output: { title: "Substituted output" } };
+  const first = await verifyMissionProofEnvelope(original, binding);
+  const second = await verifyMissionProofEnvelope(changed, binding);
+  if (!first.valid || !second.valid || first.digest === second.digest) {
+    throw new Error("Proof digest did not bind the exact task output");
   }
 });
 
