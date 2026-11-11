@@ -1713,7 +1713,7 @@ begin
 
   begin
     perform public.nova_persist_mission_proof_and_complete(
-      v_run,'proof-persist-worker',v_token,v_envelope,
+      v_run,'proof-persist-worker',v_token,
       jsonb_set(v_envelope,'{task_id}','"99999999-9999-4999-8999-999999999999"'::jsonb),
       repeat('a',64),'Must reject mismatched task'
     );
