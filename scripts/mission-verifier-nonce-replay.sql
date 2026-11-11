@@ -10,6 +10,7 @@ declare
   v_duplicate_nonce uuid := gen_random_uuid();
   v_run uuid := gen_random_uuid();
   v_rejected boolean := false;
+  v_checks jsonb;
 begin
   -- A failed proof persistence must roll back the nonce reservation in the same RPC transaction.
   begin
@@ -76,6 +77,32 @@ begin
   exception when check_violation then
     null;
   end;
+
+  -- Non-array check containers must be rejected as a constraint violation,
+  -- never leak jsonb_array_elements runtime errors from the database boundary.
+  foreach v_checks in array array['null'::jsonb, '"not-an-array"'::jsonb, '{}'::jsonb] loop
+    begin
+      perform public.nova_persist_mission_proof_and_complete_with_nonce(
+        v_run, 'nonce-non-array-check-test-worker', gen_random_uuid(),
+        jsonb_build_object(
+          'schema_version','nova.proof.v1',
+          'mission_id',gen_random_uuid()::text,
+          'task_id',gen_random_uuid()::text,
+          'run_id',v_run::text,
+          'verifier_id','test.nonce-non-array-checks',
+          'verifier_version','1.0.0',
+          'observed_at',now()::text,
+          'outcome','passed',
+          'checks',v_checks
+        ),
+        repeat('a',64), 'Non-array proof checks test',
+        'test.nonce-non-array-checks', gen_random_uuid()
+      );
+      raise exception 'Non-array proof checks were accepted';
+    exception when check_violation then
+      null;
+    end;
+  end loop;
 
   -- A committed nonce cannot be consumed a second time, even under another run.
   insert into public.nova_mission_verifier_nonce_ledger(verifier_id, verifier_nonce, run_id)
