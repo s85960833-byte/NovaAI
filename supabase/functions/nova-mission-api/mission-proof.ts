@@ -5,7 +5,8 @@ import {
 } from "./mission-permission-policy.ts";
 
 export interface MissionProofEnvelope {
-  schema_version: "nova.proof.v1";
+  schema_version: "nova.proof.v2";
+  output: Record<string, unknown>;
   mission_id: string;
   task_id: string;
   run_id: string;
@@ -93,14 +94,14 @@ export async function verifyMissionProofEnvelope(
   if (!input || typeof input !== "object" || Array.isArray(input)) return invalid("Evidence envelope must be an object");
   const value = input as Record<string, unknown>;
   const allowedEnvelopeKeys = new Set([
-    "schema_version", "mission_id", "task_id", "run_id", "verifier_id",
+    "schema_version", "mission_id", "task_id", "run_id", "verifier_id", "output",
     "verifier_version", "observed_at", "outcome", "checks", "tool_policy",
     "permission_policy",
   ]);
   if (Object.keys(value).some((key) => !allowedEnvelopeKeys.has(key))) {
     return invalid("Proof envelope contains unsupported fields");
   }
-  if (value.schema_version !== "nova.proof.v1") return invalid("Unsupported proof schema");
+  if (value.schema_version !== "nova.proof.v2") return invalid("Unsupported proof schema");
   if (typeof value.mission_id !== "string" || !UUID.test(value.mission_id) ||
       typeof value.task_id !== "string" || !UUID.test(value.task_id) ||
       typeof value.run_id !== "string" || !UUID.test(value.run_id)) {
@@ -108,6 +109,9 @@ export async function verifyMissionProofEnvelope(
   }
   if (value.mission_id !== expected.missionId || value.task_id !== expected.taskId ||
       value.run_id !== expected.runId) return invalid("Proof is not bound to the expected mission, task and run");
+  if (!value.output || typeof value.output !== "object" || Array.isArray(value.output)) {
+    return invalid("Proof must include the exact verified task output");
+  }
   if (typeof value.verifier_id !== "string" || value.verifier_id.length < 1 || value.verifier_id.length > 80 ||
       value.verifier_id !== expected.verifierId) return invalid("Proof verifier identity does not match the trusted verifier");
   if (typeof value.verifier_version !== "string" || value.verifier_version.length < 1 || value.verifier_version.length > 40 ||
