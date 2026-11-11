@@ -40,6 +40,7 @@ Deno.test("canonical proof JSON rejects sparse arrays, accessors and hidden prop
   Object.defineProperty(symbolObject, Symbol("hidden"), { value: true, enumerable: true });
   const hiddenObject = { safe: true };
   Object.defineProperty(hiddenObject, "hidden", { value: true, enumerable: false });
+  const prototypeKeyObject = JSON.parse('{"safe":true,"constructor":"blocked"}');
   let getterCalls = 0;
   const accessorObject: Record<string, unknown> = {};
   Object.defineProperty(accessorObject, "value", {
@@ -47,7 +48,7 @@ Deno.test("canonical proof JSON rejects sparse arrays, accessors and hidden prop
     get() { getterCalls++; return "unsafe"; },
   });
 
-  for (const value of [sparse, decorated, symbolObject, hiddenObject, accessorObject]) {
+  for (const value of [sparse, decorated, symbolObject, hiddenObject, prototypeKeyObject, accessorObject]) {
     let rejected = false;
     try { canonicalizeMissionProof(value); } catch (error) {
       if (!(error instanceof TypeError)) throw error;
