@@ -69,7 +69,8 @@ async function refreshMissions(){
  }
 }
 function signedProofOutput(proof){
- const envelope=proof&&proof.evidence_json;
+ if(!proof||proof.verification_status!=='passed')return '';
+ const envelope=proof.evidence_json;
  if(!envelope||typeof envelope!=='object'||Array.isArray(envelope)||
     envelope.schema_version!=='nova.proof.v2'||
     !envelope.output||typeof envelope.output!=='object'||Array.isArray(envelope.output))return '';
