@@ -119,7 +119,7 @@ const signedOutputText = (await page.locator('#missionDetail details pre').allTe
 assert.ok(signedOutputText.includes('NOVA verified homepage'), 'Mission Control must display output from the signed proof envelope');
 const signedOutputDetails = await page.locator('#missionDetail details').allTextContents();
 assert.equal(signedOutputDetails.length, 2, 'Only passed, valid v2 proofs may expose task output');
-assert.ok(signedOutputDetails.every(text => /external facts are not independently verified|बाहरी तथ्यों की स्वतंत्र जाँच नहीं हुई है/.test(text)), 'Every signed output must disclose that structural verification is not external fact-checking in the active UI language');
+assert.ok(signedOutputDetails.every(text => /external facts are not independently verified|बाहरी तथ्यों की स्वतंत्र जाँच नहीं हुई है/.test(text)), 'Every signed output must disclose the structural-only assurance limit; rendered details: ' + JSON.stringify(signedOutputDetails));
 assert.ok(signedOutputText.includes('No console errors'), 'Signed proof output must retain its exact nested values');
 assert.equal(await page.locator('#missionDetail details pre').count(), 2, 'Only passed, valid v2 proofs may expose task output');
 assert.equal(await page.locator('#missionDetail details pre').filter({ hasText: '<img src=x onerror=alert(1)>' }).count(), 1, 'HTML-like proof output must be rendered as text');
