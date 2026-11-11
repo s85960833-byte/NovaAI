@@ -1173,3 +1173,162 @@ export function createAgentsPermissionsVerifier(
     },
   });
 }
+
+
+/**
+ * Agent tool-gate verifier. It checks a strict tool allowlist, explicit scope,
+ * credential boundaries and approval for every side-effecting tool. This is
+ * a declaration validator only; a runtime gateway must enforce every gate.
+ */
+const AGENT_TOOL_GATES_VERIFIER_ID = "agents.tool-gates-policy";
+const AGENT_TOOL_GATES_VERIFIER_VERSION = "1.0.0";
+const AGENT_ALLOWED_TOOLS = new Set([
+  "files.read", "files.write", "repo.read", "repo.write", "browser.read",
+  "browser.submit", "database.read", "database.write", "email.send",
+  "payments.create", "deployment.deploy",
+]);
+const AGENT_SIDE_EFFECT_TOOLS = new Set([
+  "files.write", "repo.write", "browser.submit", "database.write",
+  "email.send", "payments.create", "deployment.deploy",
+]);
+
+export const agentsToolGatesInputV1: MissionTaskInputSchema = Object.freeze({
+  version: 1,
+  validate(value: unknown): value is Readonly<Record<string, unknown>> {
+    return isRecord(value) && hasExactKeys(value, ["description"]) &&
+      typeof value.description === "string" &&
+      value.description.trim().length >= 1 &&
+      value.description.length <= 2000;
+  },
+});
+
+export function createAgentsToolGatesVerifier(
+  clock: () => Date = () => new Date(),
+): MissionTaskVerifier {
+  return Object.freeze({
+    id: AGENT_TOOL_GATES_VERIFIER_ID,
+    version: AGENT_TOOL_GATES_VERIFIER_VERSION,
+    async verify(
+      task: MissionTaskDescriptor,
+      result: MissionExecutionResult,
+    ): Promise<MissionVerificationResult> {
+      const observedAt = clock().toISOString();
+      const checks: Array<{ id: string; passed: boolean; detail?: string }> = [];
+      const inputValid = agentsToolGatesInputV1.validate(task.input);
+      checks.push({
+        id: "input-contract",
+        passed: inputValid && task.taskType === "agents.tool_gates" &&
+          task.inputSchemaVersion === agentsToolGatesInputV1.version,
+        detail: "Task must use the version-1 agent tool-gates input contract",
+      });
+
+      const output = result.output;
+      const outputValid = isRecord(output) &&
+        hasExactKeys(output, ["toolGates"]) && Array.isArray(output.toolGates);
+      const gates = outputValid ? output.toolGates as unknown[] : [];
+      let gatesValid = outputValid && gates.length >= 1 && gates.length <= 20;
+      const ids = new Set<string>();
+      if (gatesValid) {
+        for (const gate of gates) {
+          if (!isRecord(gate) ||
+              !hasExactKeys(gate, [
+                "id", "tool", "operation", "scope", "risk",
+                "approvalRequired", "credentialBoundary", "reason", "sourceRefIds",
+              ]) ||
+              typeof gate.id !== "string" || !UUID_LIKE_ID.test(gate.id) ||
+              typeof gate.tool !== "string" || !AGENT_ALLOWED_TOOLS.has(gate.tool) ||
+              typeof gate.operation !== "string" ||
+              !/^(read|write|submit|send|create|deploy)$/.test(gate.operation) ||
+              !isRecord(gate.scope) ||
+              !hasExactKeys(gate.scope, ["kind", "ref"]) ||
+              typeof gate.scope.kind !== "string" ||
+              !["workspace", "project", "resource"].includes(gate.scope.kind) ||
+              typeof gate.scope.ref !== "string" ||
+              typeof gate.risk !== "string" ||
+              !["low", "elevated", "high"].includes(gate.risk) ||
+              typeof gate.approvalRequired !== "boolean" ||
+              typeof gate.credentialBoundary !== "string" ||
+              !["none", "user_session"].includes(gate.credentialBoundary) ||
+              typeof gate.reason !== "string" ||
+              gate.reason.trim().length < 10 || gate.reason.length > 300 ||
+              !isStringArray(gate.sourceRefIds, 1) ||
+              gate.sourceRefIds.length !== 1 ||
+              gate.sourceRefIds[0] !== "mission-input" ||
+              ids.has(gate.id)) {
+            gatesValid = false;
+            break;
+          }
+
+          const scopeKind = gate.scope.kind;
+          const scopeRef = gate.scope.ref;
+          const scopeValid = scopeKind === "workspace"
+            ? scopeRef === "current-workspace"
+            : /^[a-z][a-z0-9_-]{1,63}$/.test(scopeRef) &&
+              scopeRef !== "all" && scopeRef !== "global" && scopeRef !== "*";
+          const needsApproval = AGENT_SIDE_EFFECT_TOOLS.has(gate.tool) ||
+            gate.risk === "elevated" || gate.risk === "high";
+          const operationMatchesTool =
+            (gate.tool.endsWith(".read") && gate.operation === "read") ||
+            (gate.tool.endsWith(".write") && gate.operation === "write") ||
+            (gate.tool === "browser.submit" && gate.operation === "submit") ||
+            (gate.tool === "email.send" && gate.operation === "send") ||
+            (gate.tool === "payments.create" && gate.operation === "create") ||
+            (gate.tool === "deployment.deploy" && gate.operation === "deploy");
+          if (!scopeValid || !operationMatchesTool ||
+              (needsApproval && gate.approvalRequired !== true)) {
+            gatesValid = false;
+            break;
+          }
+          ids.add(gate.id);
+        }
+      }
+      checks.push({
+        id: "tool-gate-shape-and-uniqueness",
+        passed: gatesValid && ids.size === gates.length,
+        detail: "Tool gates require bounded fields, unique IDs, explicit scopes and allowlisted tools",
+      });
+      checks.push({
+        id: "tool-operation-and-credential-boundary",
+        passed: gatesValid,
+        detail: "Unknown tools, mismatched operations, wildcard scopes and server-secret access are rejected",
+      });
+      checks.push({
+        id: "side-effect-approval",
+        passed: gatesValid && gates.every((gate) => {
+          if (!isRecord(gate) || typeof gate.tool !== "string" ||
+              typeof gate.risk !== "string") return false;
+          const needsApproval = AGENT_SIDE_EFFECT_TOOLS.has(gate.tool) ||
+            gate.risk === "elevated" || gate.risk === "high";
+          return !needsApproval || gate.approvalRequired === true;
+        }),
+        detail: "Every write, submit, send, create or deploy gate and every elevated/high-risk gate requires owner approval",
+      });
+
+      const evidence = result.evidence;
+      const bindings = isRecord(evidence) && hasExactKeys(evidence, ["sourceBindings"]) &&
+        Array.isArray(evidence.sourceBindings) ? evidence.sourceBindings : [];
+      let provenanceValid = false;
+      if (bindings.length === 1 && inputValid) {
+        const binding = bindings[0];
+        if (isRecord(binding) &&
+            hasExactKeys(binding, ["id", "kind", "locator", "sha256"]) &&
+            binding.id === "mission-input" && binding.kind === "mission_input" &&
+            binding.locator === "mission.input.description" &&
+            typeof binding.sha256 === "string" && SHA256.test(binding.sha256)) {
+          provenanceValid = binding.sha256 === await sha256(task.input.description as string);
+        }
+      }
+      checks.push({
+        id: "input-provenance-binding",
+        passed: provenanceValid,
+        detail: "Evidence must bind to the exact mission input description digest",
+      });
+      return failedResult(
+        observedAt,
+        checks,
+        AGENT_TOOL_GATES_VERIFIER_ID,
+        AGENT_TOOL_GATES_VERIFIER_VERSION,
+      );
+    },
+  });
+}
