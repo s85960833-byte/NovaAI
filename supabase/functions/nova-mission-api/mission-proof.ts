@@ -188,7 +188,7 @@ function canonical(value: unknown, depth = 0): string {
     }
     const keys = Reflect.ownKeys(value);
     if (keys.some((key) => key !== "length" &&
-        (typeof key !== "string" || !/^(0|[1-9]\\d*)$/.test(key) || Number(key) >= value.length))) {
+        (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length))) {
       throw new TypeError("Proof evidence arrays cannot contain custom properties");
     }
     const items: string[] = [];
