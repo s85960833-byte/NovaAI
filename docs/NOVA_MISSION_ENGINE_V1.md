@@ -78,6 +78,19 @@ The CI workflow now runs:
 
 CI results are attached to the current PR head. The last fully inspected run pair completed successfully: NOVA account/browser verification and NovaAI verification. Coverage included PostgreSQL migration/RLS integration; lease-expiry and stale-token fencing; mismatched proof/attestation rejection; unresolved-action blocking; successful proof-bound completion and service-role-only RPC privileges; Mission API type-check/tests; fail-closed Deno worker-registry tests; Mission Control mocked-API browser checks; responsive Chromium workspace/PDF.js checks; Company Cloud mobile browser workflows; five-viewport mobile/drawer regression; account/privacy/cloud-sync browser checks; and graceful shutdown. Live Supabase deployment, live Edge Function invocation, live Render/provider smoke and live image-generation smoke were skipped because this PR is not merged or deployed. Read the current PR checks for the exact latest commit status.
 
+## Runtime tool-gateway authorization core (preflight only)
+
+The feature branch now includes `supabase/functions/nova-mission-api/mission-tool-gateway.ts` and focused Deno tests. This is a fail-closed authorization core, not an enabled tool executor or deployed endpoint.
+
+- Requires a matching passed `agents.tool_gates` proof and verifier attestation, with mission/owner/proof/run bindings checked.
+- Requires the current mission, task, run and owner approval to be active, and the lease to be unexpired.
+- Computes a canonical digest for the exact policy and produces a human-readable owner-approval summary containing that digest and each allowed tool, operation, scope, risk and approval requirement. The executing task's approval summary must match byte-for-byte.
+- Matches the requested tool, operation and scope to one explicit gate. Unknown tools, broader scopes, invalid policy declarations and credential-boundary mismatches are denied.
+- Calls only an injected reservation callback after all checks. The production adapter must bind this callback to the service-role-only `nova_reserve_mission_action` RPC and calculate the request digest from the exact outbound payload.
+- A replayed reservation, completed action or uncertain action is never authorized for another execution.
+
+**Important boundary:** the module does not load database records, create approvals, call the reservation RPC itself, or invoke external tools. Its context must be assembled from trusted service-role reads; an API/worker adapter must connect it to the approval UI and reservation RPC before it can protect any real tool. The current SQL reservation RPC independently enforces the active approved lease and idempotency but does not itself evaluate the tool policy. No worker is registered, and no external action can be performed by this module.
+
 ## Worker lease foundation (not an active worker)
 
 The migration `20261110150000_nova_mission_execution_leases.sql` adds three service-role-only RPCs: `nova_claim_mission_task`, `nova_heartbeat_mission_task`, and `nova_fail_mission_task`. Claims require an approved authorization record, use the mission → approval → run → task lock order, serialize execution to one active task per mission, and issue a fresh lease token. Lease duration is bounded to 30–300 seconds. Expired leases can be reclaimed; stale tokens cannot heartbeat or report failure. Failures are returned to `authorized` with a bounded retry delay until attempt five, then become terminal. A trigger clears lease metadata whenever a run leaves `running`, including cancellation. The integration suite exercises approval gating, heartbeat, stale-token rejection, recovery, retry scheduling and the five-attempt ceiling.
