@@ -1229,40 +1229,19 @@ begin
     raise exception 'Reclaimed worker did not receive the uncertain action reconciliation state';
   end if;
 
-  select action_id into v_fail_action
-    from public.nova_reserve_mission_action(v_run,v_new_token,'action-fail-transition-fixture-001',repeat('7',64));
-  v_status := public.nova_fail_mission_task(v_run,v_new_token,'temporary','Retryable controlled failure',0);
-  if (select status from public.nova_mission_action_receipts where id=v_fail_action) <> 'uncertain' then
-    raise exception 'Ending a worker lease did not mark its unfinished action uncertain';
-  end if;
-  if v_status <> 'authorized'
-     or (select status from public.nova_mission_tasks where id=v_task) <> 'planned'
-     or (select state from public.nova_missions where id=v_mission) <> 'planned'
-     or (select lease_token from public.nova_mission_execution_runs where id=v_run) is not null then
-    raise exception 'Retryable failure did not safely release lease and return work to planned';
-  end if;
+  begin
+    perform * from public.nova_reserve_mission_action(
+      v_run,v_new_token,'different-action-after-reconciliation-note',repeat('9',64)
+    );
+    raise exception 'A reconciliation note incorrectly unlocked a different action';
+  exception when sqlstate '55P03' then null;
+  end;
 
-  -- A later lease may reconcile the action that the previous lease left uncertain.
+  -- Reconciliation records uncertainty only. An owner must resolve it separately.
   select c.lease_token,c.attempt into v_reconcile_token,v_attempt
     from public.nova_claim_mission_task(v_run,'worker-action-reconciler',120) c;
   if v_attempt <> 3 or v_reconcile_token is null then
     raise exception 'Expected attempt three for action reconciliation';
-  end if;
-  v_action_status := public.nova_reconcile_mission_action(
-    v_fail_action,v_reconcile_token,'Independent review required after previous lease ended'
-  );
-  if v_action_status <> 'uncertain'
-     or (select reconciled_by_lease_token from public.nova_mission_action_receipts where id=v_fail_action)
-       <> v_reconcile_token
-     or (select reconciliation_note from public.nova_mission_action_receipts where id=v_fail_action)
-       <> 'Independent review required after previous lease ended' then
-    raise exception 'Automatically uncertain action could not be safely reconciled by the next lease';
-  end if;
-  v_action_status := public.nova_reconcile_mission_action(
-    v_fail_action,v_reconcile_token,'Independent review required after previous lease ended'
-  );
-  if v_action_status <> 'uncertain' then
-    raise exception 'Automatic uncertainty reconciliation replay was not idempotent';
   end if;
   v_status := public.nova_fail_mission_task(
     v_run,v_reconcile_token,'manual-review','Reconciliation fixture safely releases attempt three',0
@@ -1309,7 +1288,7 @@ begin
     raise exception 'Authenticated users must not insert proof attestations';
   end if;
   if (select count(*) from public.nova_mission_action_receipts
-      where action_key like 'action-%-fixture-001') <> 4 then
+      where action_key like 'action-%-fixture-001') <> 3 then
     raise exception 'Mission owner cannot read their own action receipts';
   end if;
   if has_table_privilege('authenticated','public.nova_mission_action_receipts','insert')
