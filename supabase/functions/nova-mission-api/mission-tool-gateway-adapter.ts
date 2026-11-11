@@ -162,8 +162,10 @@ export async function loadMissionToolGatewayContext(
   serviceRoleDb: MissionServiceRoleDatabase,
   input: MissionGatewayLoadInput,
 ): Promise<MissionToolGatewayContext> {
-  if (![input.missionId, input.taskId, input.runId, input.ownerId].every((value) => UUID.test(value)) ||
-      !input.workerId.trim() || !input.leaseToken) fail("request identifiers or worker lease are malformed");
+  if (![input.missionId, input.taskId, input.runId, input.ownerId, input.leaseToken].every((value) => UUID.test(value)) ||
+      !/^[A-Za-z0-9._:-]{1,120}$/.test(input.workerId)) {
+    fail("request identifiers or worker lease are malformed");
+  }
   const [mission, task, run] = await Promise.all([
     one(serviceRoleDb, "nova_missions", "id,owner_id,state", [["id", input.missionId], ["owner_id", input.ownerId]]),
     one(serviceRoleDb, "nova_mission_tasks", "id,mission_id,owner_id,task_type,status", [["id", input.taskId], ["mission_id", input.missionId], ["owner_id", input.ownerId]]),
