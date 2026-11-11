@@ -5,6 +5,7 @@ import {
   createLearnGoalClarificationVerifier,
   createLearnPracticeMaterialVerifier,
   createIntelligenceDefineMetricsVerifier,
+  createAgentsPermissionsVerifier,
   createLearnTopicSequenceVerifier,
   buildRequirementsInputV1,
   buildDesignFlowInputV1,
@@ -12,6 +13,7 @@ import {
   learnGoalClarificationInputV1,
   learnPracticeMaterialInputV1,
   intelligenceDefineMetricsInputV1,
+  agentsPermissionsInputV1,
   learnTopicSequenceInputV1,
 } from "./mission-task-verifiers.ts";
 import {
@@ -842,6 +844,110 @@ Deno.test("intelligence metric verifier rejects forged provenance and integrates
       execution.verification.verifierId !== "intelligence.metric-definition-contract" ||
       execution.verification.checks.length !== 5) {
     throw new Error("Metric-definition registry integration failed: " +
+      JSON.stringify(execution.verification));
+  }
+});
+
+
+const agentsPermissionsTask: MissionTaskDescriptor = {
+  ...task,
+  taskType: "agents.permissions",
+};
+
+function validAgentPermissions() {
+  return [
+    {
+      id: "read-project",
+      scope: { kind: "project", ref: "nova-project" },
+      actions: ["read", "update"],
+      approvalRequired: false,
+      reason: "Read project state and update explicitly assigned draft files.",
+      sourceRefIds: ["mission-input"],
+    },
+    {
+      id: "publish-project",
+      scope: { kind: "project", ref: "nova-project" },
+      actions: ["publish"],
+      approvalRequired: true,
+      reason: "Publishing changes can affect external users and needs owner review.",
+      sourceRefIds: ["mission-input"],
+    },
+  ];
+}
+
+async function makeAgentsPermissionsResult() {
+  return {
+    output: { permissions: validAgentPermissions() },
+    evidence: {
+      sourceBindings: [{
+        id: "mission-input",
+        kind: "mission_input",
+        locator: "mission.input.description",
+        sha256: await digest(agentsPermissionsTask.input.description as string),
+      }],
+    },
+  };
+}
+
+Deno.test("agents permissions verifier accepts explicit least-privilege scopes and approval gates", async () => {
+  const verifier = createAgentsPermissionsVerifier(() => fixedNow);
+  const result = await verifier.verify(agentsPermissionsTask, await makeAgentsPermissionsResult());
+  if (!result.passed || result.checks.length !== 5 ||
+      result.verifierId !== "agents.permissions-least-privilege" ||
+      result.verifierVersion !== "1.0.0") {
+    throw new Error("Valid agent permissions did not pass: " + JSON.stringify(result));
+  }
+});
+
+Deno.test("agents permissions verifier rejects wildcard scopes and unknown actions", async () => {
+  const verifier = createAgentsPermissionsVerifier(() => fixedNow);
+  const wildcard = await makeAgentsPermissionsResult();
+  wildcard.output.permissions[0].scope.ref = "*";
+  if ((await verifier.verify(agentsPermissionsTask, wildcard)).passed) {
+    throw new Error("Wildcard permission scope was accepted");
+  }
+  const unknown = await makeAgentsPermissionsResult();
+  unknown.output.permissions[0].actions = ["read", "admin"];
+  if ((await verifier.verify(agentsPermissionsTask, unknown)).passed) {
+    throw new Error("Unknown permission action was accepted");
+  }
+});
+
+Deno.test("agents permissions verifier rejects missing approval for sensitive actions and duplicate IDs", async () => {
+  const verifier = createAgentsPermissionsVerifier(() => fixedNow);
+  const missingApproval = await makeAgentsPermissionsResult();
+  missingApproval.output.permissions[1].approvalRequired = false;
+  if ((await verifier.verify(agentsPermissionsTask, missingApproval)).passed) {
+    throw new Error("A sensitive action without owner approval was accepted");
+  }
+  const duplicate = await makeAgentsPermissionsResult();
+  duplicate.output.permissions[1].id = duplicate.output.permissions[0].id;
+  if ((await verifier.verify(agentsPermissionsTask, duplicate)).passed) {
+    throw new Error("Duplicate permission IDs were accepted");
+  }
+});
+
+Deno.test("agents permissions verifier rejects forged provenance and integrates with registry", async () => {
+  const verifier = createAgentsPermissionsVerifier(() => fixedNow);
+  const forged = await makeAgentsPermissionsResult();
+  forged.evidence.sourceBindings[0].sha256 = "d".repeat(64);
+  if ((await verifier.verify(agentsPermissionsTask, forged)).passed) {
+    throw new Error("Forged permission provenance was accepted");
+  }
+
+  const registry = new MissionTaskRegistry();
+  const result = await makeAgentsPermissionsResult();
+  registry.register(
+    "agents.permissions",
+    agentsPermissionsInputV1,
+    { async execute() { return result; } },
+    createAgentsPermissionsVerifier(() => fixedNow),
+  );
+  const execution = await registry.executeAndVerify(agentsPermissionsTask);
+  if (!execution.verification.passed ||
+      execution.verification.verifierId !== "agents.permissions-least-privilege" ||
+      execution.verification.checks.length !== 5) {
+    throw new Error("Agent permissions registry integration failed: " +
       JSON.stringify(execution.verification));
   }
 });
