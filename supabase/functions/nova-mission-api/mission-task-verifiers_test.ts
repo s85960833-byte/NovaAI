@@ -3,11 +3,13 @@ import {
   createBuildDesignFlowVerifier,
   createLearnAssessmentVerifier,
   createLearnGoalClarificationVerifier,
+  createLearnPracticeMaterialVerifier,
   createLearnTopicSequenceVerifier,
   buildRequirementsInputV1,
   buildDesignFlowInputV1,
   learnAssessmentInputV1,
   learnGoalClarificationInputV1,
+  learnPracticeMaterialInputV1,
   learnTopicSequenceInputV1,
 } from "./mission-task-verifiers.ts";
 import {
@@ -612,6 +614,118 @@ Deno.test("build design flow verifier rejects forged provenance and integrates w
       execution.verification.verifierId !== "build.design-flow-graph" ||
       execution.verification.checks.length !== 5) {
     throw new Error("Design-flow registry integration failed: " +
+      JSON.stringify(execution.verification));
+  }
+});
+
+
+const practiceMaterialTask: MissionTaskDescriptor = {
+  ...task,
+  taskType: "learn.practice_material",
+};
+
+function validPracticeMaterials() {
+  return [
+    {
+      id: "example-one",
+      title: "Worked algebra example",
+      instructions: "Read the worked example and identify each inverse operation used.",
+      activityType: "worked_example",
+      estimatedMinutes: 12,
+      sourceRefIds: ["mission-input"],
+    },
+    {
+      id: "practice-one",
+      title: "Solve short equations",
+      instructions: "Solve five one-step equations and check each answer by substitution.",
+      activityType: "practice",
+      estimatedMinutes: 20,
+      sourceRefIds: ["mission-input"],
+    },
+    {
+      id: "reflection-one",
+      title: "Reflect on the method",
+      instructions: "Explain which step was most difficult and how you checked your result.",
+      activityType: "reflection",
+      estimatedMinutes: 8,
+      sourceRefIds: ["mission-input"],
+    },
+  ];
+}
+
+async function makePracticeMaterialResult() {
+  return {
+    output: { materials: validPracticeMaterials() },
+    evidence: {
+      sourceBindings: [{
+        id: "mission-input",
+        kind: "mission_input",
+        locator: "mission.input.description",
+        sha256: await digest(practiceMaterialTask.input.description as string),
+      }],
+    },
+  };
+}
+
+Deno.test("learning practice-material verifier accepts bounded activities with required coverage", async () => {
+  const verifier = createLearnPracticeMaterialVerifier(() => fixedNow);
+  const result = await verifier.verify(practiceMaterialTask, await makePracticeMaterialResult());
+  if (!result.passed || result.checks.length !== 4 ||
+      result.verifierId !== "learn.practice-material-structure" ||
+      result.verifierVersion !== "1.0.0") {
+    throw new Error("Valid practice materials did not pass: " + JSON.stringify(result));
+  }
+});
+
+Deno.test("learning practice-material verifier rejects duplicate IDs and malformed activities", async () => {
+  const verifier = createLearnPracticeMaterialVerifier(() => fixedNow);
+  const duplicate = await makePracticeMaterialResult();
+  duplicate.output.materials[1].id = duplicate.output.materials[0].id;
+  if ((await verifier.verify(practiceMaterialTask, duplicate)).passed) {
+    throw new Error("Duplicate material IDs were accepted");
+  }
+  const malformed = await makePracticeMaterialResult();
+  malformed.output.materials[1].activityType = "untrusted_type";
+  if ((await verifier.verify(practiceMaterialTask, malformed)).passed) {
+    throw new Error("Unknown activity type was accepted");
+  }
+});
+
+Deno.test("learning practice-material verifier requires both practice and worked example", async () => {
+  const verifier = createLearnPracticeMaterialVerifier(() => fixedNow);
+  const missingPractice = await makePracticeMaterialResult();
+  missingPractice.output.materials[1].activityType = "reflection";
+  if ((await verifier.verify(practiceMaterialTask, missingPractice)).passed) {
+    throw new Error("A material set without a practice activity was accepted");
+  }
+  const missingExample = await makePracticeMaterialResult();
+  missingExample.output.materials[0].activityType = "project";
+  if ((await verifier.verify(practiceMaterialTask, missingExample)).passed) {
+    throw new Error("A material set without a worked example was accepted");
+  }
+});
+
+Deno.test("learning practice-material verifier rejects forged provenance and integrates with registry", async () => {
+  const verifier = createLearnPracticeMaterialVerifier(() => fixedNow);
+  const forged = await makePracticeMaterialResult();
+  forged.evidence.sourceBindings[0].sha256 = "b".repeat(64);
+  if ((await verifier.verify(practiceMaterialTask, forged)).passed) {
+    throw new Error("Forged practice-material provenance was accepted");
+  }
+
+  const registry = new MissionTaskRegistry();
+  const result = await makePracticeMaterialResult();
+  registry.register(
+    "learn.practice_material",
+    learnPracticeMaterialInputV1,
+    { async execute() { return result; } },
+    createLearnPracticeMaterialVerifier(() => fixedNow),
+  );
+  const execution = await registry.executeAndVerify(practiceMaterialTask);
+  if (!execution.verification.passed ||
+      execution.verification.verifierId !== "learn.practice-material-structure" ||
+      execution.verification.checks.length !== 4) {
+    throw new Error("Practice-material registry integration failed: " +
       JSON.stringify(execution.verification));
   }
 });
