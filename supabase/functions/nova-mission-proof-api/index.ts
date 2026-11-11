@@ -44,6 +44,11 @@ const handler = withSupabase(
     if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
     try {
       const input = await readBody(request);
+      const requestKeys = Object.keys(input);
+      if (requestKeys.length !== 3 ||
+          requestKeys.some((key) => !["envelope", "worker_id", "lease_token"].includes(key))) {
+        return json({ error: "Request contains unsupported fields" }, 400);
+      }
       const envelope = input.envelope;
       if (!envelope || typeof envelope !== "object" || Array.isArray(envelope)) {
         return json({ error: "Proof envelope is required" }, 400);
