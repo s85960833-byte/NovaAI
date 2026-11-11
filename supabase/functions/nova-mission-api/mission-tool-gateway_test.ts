@@ -1,3 +1,4 @@
+import { validateMissionToolPolicy } from "./mission-tool-policy.ts";
 import {
   authorizeMissionToolAction,
   buildMissionToolPolicyApprovalSummary,
@@ -169,4 +170,34 @@ Deno.test("runtime tool gateway requires matching verifier attestation and task/
   if ((await authorizeMissionToolAction(crossOwner, request, async () => {
     throw new Error("Must not reserve");
   })).authorized) throw new Error("Cross-owner run was accepted");
+});
+
+
+Deno.test("tool policy limits keep the owner approval summary within the database contract", async () => {
+  const gates = Array.from({ length: 16 }, (_, index) => ({
+    id: "gate-" + String(index).padStart(2, "0"),
+    tool: "deployment.deploy",
+    operation: "deploy",
+    scope: { kind: "resource" as const, ref: "r".repeat(48) },
+    risk: "high" as const,
+    approvalRequired: true,
+    credentialBoundary: "user_session" as const,
+    reason: "Deploy only the explicitly approved release target.",
+    sourceRefIds: ["mission-input"],
+  }));
+  const bounded: MissionToolPolicy = { version: 1, gates };
+  if (!validateMissionToolPolicy(bounded)) {
+    throw new Error("Maximum supported tool policy was rejected");
+  }
+  const summary = await buildMissionToolPolicyApprovalSummary(bounded);
+  if (summary.length > 2000) {
+    throw new Error("Maximum supported policy summary exceeds approval storage limit: " + summary.length);
+  }
+  const tooMany: MissionToolPolicy = {
+    version: 1,
+    gates: [...gates, { ...gates[0], id: "gate-16" }],
+  };
+  if (validateMissionToolPolicy(tooMany)) {
+    throw new Error("Policy exceeding the approval summary gate limit was accepted");
+  }
 });
