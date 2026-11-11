@@ -145,6 +145,25 @@ Deno.test("runtime tool gateway requires matching verifier attestation and task/
     throw new Error("Must not reserve");
   })).authorized) throw new Error("Untrusted policy attestation was accepted");
 
+  const mismatchedTask = await makeContext();
+  mismatchedTask.policyAttestation.taskId = "another-policy-task";
+  if ((await authorizeMissionToolAction(mismatchedTask, request, async () => {
+    throw new Error("Must not reserve");
+  })).authorized) throw new Error("Policy attestation for another task was accepted");
+
+  const mismatchedRun = await makeContext();
+  mismatchedRun.policyAttestation.runId = "another-policy-run";
+  if ((await authorizeMissionToolAction(mismatchedRun, request, async () => {
+    throw new Error("Must not reserve");
+  })).authorized) throw new Error("Policy attestation for another run was accepted");
+
+  const sameTask = await makeContext();
+  sameTask.policyProof.taskId = sameTask.task.id;
+  sameTask.policyAttestation.taskId = sameTask.task.id;
+  if ((await authorizeMissionToolAction(sameTask, request, async () => {
+    throw new Error("Must not reserve");
+  })).authorized) throw new Error("A task was allowed to authorize itself using its own tool-gates proof");
+
   const crossOwner = await makeContext();
   crossOwner.run.ownerId = "another-owner";
   if ((await authorizeMissionToolAction(crossOwner, request, async () => {
