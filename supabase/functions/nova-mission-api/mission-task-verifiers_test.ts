@@ -431,3 +431,87 @@ Deno.test("learning assessment verifier integrates with the fail-closed task reg
       JSON.stringify(execution.verification));
   }
 });
+
+
+const goalTask: MissionTaskDescriptor = {
+  ...task,
+  taskType: "learn.goal_clarification",
+};
+
+async function makeGoalResult() {
+  return {
+    output: {
+      goal: "Build a reliable beginner algebra study routine.",
+      successCriteria: [
+        "Complete a short practice set on each planned study day.",
+        "Explain each solved equation and check the result.",
+      ],
+      constraints: ["Keep each study session within 30 minutes."],
+      sourceRefIds: ["mission-input"],
+    },
+    evidence: {
+      sourceBindings: [{
+        id: "mission-input",
+        kind: "mission_input",
+        locator: "mission.input.description",
+        sha256: await digest(goalTask.input.description as string),
+      }],
+    },
+  };
+}
+
+Deno.test("learning goal clarification verifier validates the goal contract and provenance", async () => {
+  const verifier = createLearnGoalClarificationVerifier(() => fixedNow);
+  const result = await verifier.verify(goalTask, await makeGoalResult());
+  if (!result.passed || result.checks.length !== 5 ||
+      result.verifierId !== "learn.goal-clarification-structure" ||
+      result.verifierVersion !== "1.0.0") {
+    throw new Error("A valid goal clarification did not pass: " + JSON.stringify(result));
+  }
+});
+
+Deno.test("learning goal clarification verifier rejects missing criteria and malformed constraints", async () => {
+  const verifier = createLearnGoalClarificationVerifier(() => fixedNow);
+  const missing = await makeGoalResult();
+  missing.output.successCriteria = [];
+  if ((await verifier.verify(goalTask, missing)).passed) {
+    throw new Error("A goal without success criteria was accepted");
+  }
+  const malformed = await makeGoalResult();
+  malformed.output.constraints = [" "];
+  if ((await verifier.verify(goalTask, malformed)).passed) {
+    throw new Error("A blank constraint was accepted");
+  }
+});
+
+Deno.test("learning goal clarification verifier rejects forged and missing provenance", async () => {
+  const verifier = createLearnGoalClarificationVerifier(() => fixedNow);
+  const forged = await makeGoalResult();
+  forged.evidence.sourceBindings[0].sha256 = "e".repeat(64);
+  if ((await verifier.verify(goalTask, forged)).passed) {
+    throw new Error("Forged goal clarification provenance was accepted");
+  }
+  const missing = await makeGoalResult();
+  missing.evidence = {};
+  if ((await verifier.verify(goalTask, missing)).passed) {
+    throw new Error("Missing goal clarification provenance was accepted");
+  }
+});
+
+Deno.test("learning goal clarification verifier integrates with the fail-closed registry", async () => {
+  const registry = new MissionTaskRegistry();
+  const result = await makeGoalResult();
+  registry.register(
+    "learn.goal_clarification",
+    learnGoalClarificationInputV1,
+    { async execute() { return result; } },
+    createLearnGoalClarificationVerifier(() => fixedNow),
+  );
+  const execution = await registry.executeAndVerify(goalTask);
+  if (!execution.verification.passed ||
+      execution.verification.verifierId !== "learn.goal-clarification-structure" ||
+      execution.verification.checks.length !== 5) {
+    throw new Error("Goal clarification registry integration failed: " +
+      JSON.stringify(execution.verification));
+  }
+});
