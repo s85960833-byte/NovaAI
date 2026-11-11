@@ -29,7 +29,7 @@ await page.route('**/nova-business-cloud.js', route => route.fulfill({
       let missions = [];
       let tasks = [];
       let events = [];
-      const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed', evidence_json: { schema_version: 'nova.proof.v2', output: { pageTitle: 'NOVA verified homepage', checks: ['HTTP 200', 'No console errors'] } } }, { id: 'proof-2', proof_type: 'unverified-test', verification_status: 'pending', summary: 'Pending result must remain hidden', evidence_json: { schema_version: 'nova.proof.v2', output: { pageTitle: 'UNVERIFIED RESULT MUST NOT DISPLAY' } } }];
+      const proofs = [{ id: 'proof-1', proof_type: 'browser-test', verification_status: 'passed', summary: 'Homepage smoke test passed', evidence_json: { schema_version: 'nova.proof.v2', output: { pageTitle: 'NOVA verified homepage', checks: ['HTTP 200', 'No console errors'] } } }, { id: 'proof-2', proof_type: 'unverified-test', verification_status: 'pending', summary: 'Pending result must remain hidden', evidence_json: { schema_version: 'nova.proof.v2', output: { pageTitle: 'UNVERIFIED RESULT MUST NOT DISPLAY' } } }, { id: 'proof-3', proof_type: 'legacy-test', verification_status: 'passed', summary: 'Legacy result must remain hidden', evidence_json: { schema_version: 'nova.proof.v1', output: { pageTitle: 'LEGACY RESULT MUST NOT DISPLAY' } } }, { id: 'proof-4', proof_type: 'malformed-test', verification_status: 'passed', summary: 'Malformed result must remain hidden', evidence_json: { schema_version: 'nova.proof.v2', output: ['MALFORMED RESULT MUST NOT DISPLAY'] } }];
       const actionReceipts = [{ id: 'receipt-1', action_key: 'mock-proof-action', status: 'uncertain', request_digest: 'a'.repeat(64), uncertain_reason: 'Previous worker lease expired', reconciliation_note: 'Manual external-state review required' }];
       let approvals = [];
       const client = { auth: { onAuthStateChange() {}, getSession: async () => ({ data: { session: null } }) } };
@@ -119,6 +119,8 @@ assert.ok((await page.locator('#missionDetail details pre').textContent()).inclu
 assert.ok((await page.locator('#missionDetail details pre').textContent()).includes('No console errors'), 'Signed proof output must retain its exact nested values');
 assert.equal(await page.locator('#missionDetail details pre').count(), 1, 'Only passed proofs may expose task output');
 assert.ok(!(await page.locator('#missionDetail').innerText()).includes('UNVERIFIED RESULT MUST NOT DISPLAY'), 'Pending proof output must remain hidden');
+assert.ok(!(await page.locator('#missionDetail').innerText()).includes('LEGACY RESULT MUST NOT DISPLAY'), 'Legacy proof output must remain hidden');
+assert.ok(!(await page.locator('#missionDetail').innerText()).includes('MALFORMED RESULT MUST NOT DISPLAY'), 'Malformed proof output must remain hidden');
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mission.created'));
 assert.ok((await page.locator('#missionDetail').innerText()).includes('mock-proof-action'));
 assert.ok((await page.locator('#missionDetail').innerText()).includes('Manual external-state review required'));
