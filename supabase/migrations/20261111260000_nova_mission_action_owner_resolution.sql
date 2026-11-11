@@ -167,6 +167,8 @@ revoke all on function public.nova_guard_unresolved_mission_action()
 -- Attach the mission-wide guard to every new reservation receipt. The reserve
 -- RPC locks the mission row before INSERT, serializing this check with owner
 -- resolutions and other reservations for the same mission.
+drop trigger if exists nova_mission_action_unresolved_guard
+  on public.nova_mission_action_receipts;
 drop trigger if exists nova_guard_unresolved_mission_action
   on public.nova_mission_action_receipts;
 create trigger nova_guard_unresolved_mission_action
