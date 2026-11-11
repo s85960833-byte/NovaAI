@@ -29,7 +29,7 @@ async function readBody(request: Request): Promise<Record<string, unknown>> {
       size += value.byteLength;
       if (size > 70000) {
         await reader.cancel();
-        throw new Error("Request body is too large");
+        throw new RequestInputError("Request body is too large", 413);
       }
       chunks.push(value);
     }
