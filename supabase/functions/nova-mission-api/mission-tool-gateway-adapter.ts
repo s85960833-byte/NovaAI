@@ -171,13 +171,18 @@ export async function loadMissionToolGatewayContext(
     one(serviceRoleDb, "nova_mission_tasks", "id,mission_id,owner_id,task_type,status", [["id", input.taskId], ["mission_id", input.missionId], ["owner_id", input.ownerId]]),
     one(serviceRoleDb, "nova_mission_execution_runs", "id,mission_id,task_id,owner_id,approval_id,status,worker_id,lease_token,lease_expires_at", [["id", input.runId], ["mission_id", input.missionId], ["task_id", input.taskId], ["owner_id", input.ownerId]]),
   ]);
+  const leaseExpiry = Date.parse(str(run, "lease_expires_at") || "");
   if (str(mission, "id") !== input.missionId || str(mission, "owner_id") !== input.ownerId ||
+      str(mission, "state") !== "running" ||
       str(task, "id") !== input.taskId || (str(task, "task_type") === "agents.tool_gates" || str(task, "task_type") === "agents.permissions") ||
       str(task, "mission_id") !== input.missionId || str(task, "owner_id") !== input.ownerId ||
+      str(task, "status") !== "running" ||
       str(run, "id") !== input.runId || str(run, "mission_id") !== input.missionId ||
       str(run, "task_id") !== input.taskId || str(run, "owner_id") !== input.ownerId ||
+      str(run, "status") !== "running" ||
       str(run, "worker_id") !== input.workerId || str(run, "lease_token") !== input.leaseToken ||
-      !str(run, "approval_id") || !str(run, "lease_expires_at")) fail("active mission, task, run or worker lease does not match");
+      !Number.isFinite(leaseExpiry) || leaseExpiry <= Date.now() ||
+      !str(run, "approval_id")) fail("active mission, task, run or worker lease does not match");
   const approval = await one(serviceRoleDb, "nova_mission_approvals",
     "id,mission_id,task_id,owner_id,status,action_summary,decided_by,decided_at",
     [["id", str(run, "approval_id")], ["mission_id", input.missionId], ["task_id", input.taskId], ["owner_id", input.ownerId]]);
@@ -250,6 +255,11 @@ export async function reserveMissionToolAction(
   serviceRoleDb: MissionServiceRoleDatabase,
   args: { runId: string; leaseToken: string; actionKey: string; requestDigest: string },
 ): Promise<MissionToolReservation> {
+  if (!UUID.test(args.runId) || !UUID.test(args.leaseToken) ||
+      !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/.test(args.actionKey) ||
+      !/^[a-f0-9]{64}$/.test(args.requestDigest)) {
+    throw new Error("Trusted action reservation arguments are malformed");
+  }
   const result = await serviceRoleDb.rpc("nova_reserve_mission_action", {
     p_run_id: args.runId,
     p_lease_token: args.leaseToken,
