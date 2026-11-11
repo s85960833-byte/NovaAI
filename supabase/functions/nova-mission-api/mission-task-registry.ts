@@ -185,8 +185,11 @@ export class MissionTaskRegistry {
       output: snapshotRecord(rawResult.output, "Task output"),
       evidence: snapshotRecord(rawResult.evidence, "Task evidence"),
     }) as MissionExecutionResult;
-    const verification = await registration.verifier.verify(taskSnapshot, result);
-    if (!verification || verification.verifierId !== registration.verifier.id ||
+    const rawVerification = await registration.verifier.verify(taskSnapshot, result);
+    // Detach verifier-owned objects too: callers must not be able to mutate the
+    // attestation after validation, and the verifier cannot mutate it later.
+    const verification = snapshotRecord(rawVerification, "Task verification") as unknown as MissionVerificationResult;
+    if (verification.verifierId !== registration.verifier.id ||
         verification.verifierVersion !== registration.verifier.version ||
         !Array.isArray(verification.checks) || verification.checks.length < 1 ||
         verification.checks.length > 50 ||
