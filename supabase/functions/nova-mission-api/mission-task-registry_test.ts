@@ -223,6 +223,47 @@ Deno.test("rejects malformed, duplicate or non-ISO verifier checks", async () =>
   }
 });
 
+Deno.test("rejects unsupported task descriptor and handler result envelope fields", async () => {
+  const registry = new MissionTaskRegistry();
+  let handlerCalls = 0;
+  registry.register("test.safe-check", emptyObjectV1, {
+    async execute() {
+      handlerCalls++;
+      return { output: {}, evidence: {}, assurance_level: "external_verified" } as unknown as {
+        output: Record<string, unknown>;
+        evidence: Record<string, unknown>;
+      };
+    },
+  }, {
+    id: "test.strict-envelope",
+    version: "1.0.0",
+    async verify() {
+      return {
+        passed: true,
+        verifierId: "test.strict-envelope",
+        verifierVersion: "1.0.0",
+        checks: [{ id: "ok", passed: true }],
+        observedAt: "2026-11-10T12:00:00.000Z",
+      };
+    },
+  });
+
+  try {
+    await registry.executeAndVerify({ ...task, assurance_level: "external_verified" } as unknown as MissionTaskDescriptor);
+    throw new Error("Unsupported task descriptor field was accepted");
+  } catch (error) {
+    if (!(error instanceof TypeError) || !error.message.includes("descriptor is invalid")) throw error;
+  }
+
+  try {
+    await registry.executeAndVerify(task);
+    throw new Error("Unsupported handler result field was accepted");
+  } catch (error) {
+    if (!(error instanceof TypeError) || !error.message.includes("invalid result envelope")) throw error;
+  }
+  if (handlerCalls !== 1) throw new Error("Handler execution count was unexpected");
+});
+
 Deno.test("rejects malformed task, mission, run and owner identifiers before handler execution", async () => {
   const registry = new MissionTaskRegistry();
   let handlerCalls = 0;
