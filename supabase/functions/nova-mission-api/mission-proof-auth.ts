@@ -36,7 +36,7 @@ export async function verifyMissionVerifierSignature(input: VerifierSignatureInp
       !/^\d{10}$/.test(input.timestamp) ||
       !UUID.test(input.nonce) ||
       !UUID.test(input.leaseToken) ||
-      !UUID.test(input.workerId) ||
+      !/^[A-Za-z0-9._:-]{1,120}$/.test(input.workerId) ||
       !/^[a-f0-9]{64}$/i.test(input.signature)) return false;
 
   const timestamp = Number(input.timestamp);
@@ -49,7 +49,7 @@ export async function verifyMissionVerifierSignature(input: VerifierSignatureInp
   } catch {
     return false;
   }
-  const message = [input.timestamp, input.nonce, input.workerId, input.leaseToken, canonicalEnvelope].join(".");
+  const message = JSON.stringify([input.timestamp, input.nonce, input.workerId, input.leaseToken, canonicalEnvelope]);
   const key = await crypto.subtle.importKey(
     "raw", encoder.encode(input.secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
   );
