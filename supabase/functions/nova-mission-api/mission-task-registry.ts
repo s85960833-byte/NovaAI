@@ -154,7 +154,9 @@ function snapshotRecord(value: unknown, label: string): Record<string, unknown> 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function isValidCheck(value: unknown): value is { id: string; passed: boolean; detail?: string } {
-  if (!isRecord(value) || typeof value.id !== "string" ||
+  if (!isRecord(value) ||
+      Object.keys(value).some((key) => !["id", "passed", "detail"].includes(key)) ||
+      typeof value.id !== "string" ||
       !/^[a-z][a-z0-9_.-]{0,79}$/.test(value.id) ||
       typeof value.passed !== "boolean") return false;
   return value.detail === undefined ||
@@ -270,7 +272,9 @@ export class MissionTaskRegistry {
     // Detach verifier-owned objects too: callers must not be able to mutate the
     // attestation after validation, and the verifier cannot mutate it later.
     const verification = snapshotRecord(rawVerification, "Task verification") as unknown as MissionVerificationResult;
-    if (verification.verifierId !== registration.verifierId ||
+    if (Object.keys(verification).some((key) =>
+          !["passed", "verifierId", "verifierVersion", "checks", "observedAt"].includes(key)) ||
+        verification.verifierId !== registration.verifierId ||
         verification.verifierVersion !== registration.verifierVersion ||
         !Array.isArray(verification.checks) || verification.checks.length < 1 ||
         verification.checks.length > 50 ||
