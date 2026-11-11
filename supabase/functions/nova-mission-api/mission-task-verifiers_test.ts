@@ -234,7 +234,7 @@ Deno.test("build requirements verifier validates bounded requirements and input 
   if (!result.passed || result.checks.length !== 6 ||
       result.verifierId !== "build.requirements-structure" ||
       result.verifierVersion !== "1.0.0") {
-    throw new Error("A valid build requirements brief did not pass");
+    throw new Error("A valid build requirements brief did not pass: " + JSON.stringify(result));
   }
 });
 
@@ -293,6 +293,6 @@ Deno.test("build requirements verifier integrates with the fail-closed task regi
   if (!execution.verification.passed ||
       execution.verification.verifierId !== "build.requirements-structure" ||
       execution.verification.checks.length !== 6) {
-    throw new Error("Build requirements verifier did not pass through registry validation");
+    throw new Error("Build requirements verifier did not pass through registry validation: " + JSON.stringify(execution.verification));
   }
 });
