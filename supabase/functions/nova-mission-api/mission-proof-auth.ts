@@ -14,6 +14,40 @@ export interface VerifierSignatureInput {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const encoder = new TextEncoder();
 
+export interface TrustedMissionVerifier {
+  version: string;
+  secret: string;
+}
+
+/** Resolve only an explicitly configured own property; never trust inherited object keys. */
+export function resolveMissionVerifierConfig(
+  raw: string,
+  verifierId: string,
+  verifierVersion: string,
+): TrustedMissionVerifier | null {
+  if (!raw || raw.length > 16_384 || !verifierId || verifierId.length > 80 ||
+      !verifierVersion || verifierVersion.length > 40) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+  const config = parsed as Record<string, unknown>;
+  if (!Object.hasOwn(config, verifierId)) return null;
+  const candidate = config[verifierId];
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return null;
+  const entry = candidate as Record<string, unknown>;
+  const keys = Object.keys(entry).sort();
+  if (keys.length !== 2 || keys[0] !== "secret" || keys[1] !== "version" ||
+      typeof entry.version !== "string" || entry.version !== verifierVersion ||
+      typeof entry.secret !== "string" || entry.secret.length < 32 || entry.secret.length > 4096) {
+    return null;
+  }
+  return { version: entry.version, secret: entry.secret };
+}
+
 function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
