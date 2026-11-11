@@ -288,6 +288,34 @@ Deno.test("proof builder copies output only from the immutable task execution re
   } catch { getterRejected = true; }
   if (!getterRejected) throw new Error("Proof builder accepted accessor-backed output");
 
+  let fieldsGetterRan = false;
+  const hostileFields = Object.create(null) as Record<string, unknown>;
+  Object.defineProperty(hostileFields, "verifier_id", {
+    enumerable: true,
+    get() { fieldsGetterRan = true; return binding.verifierId; },
+  });
+  let fieldsAccessorRejected = false;
+  try {
+    createMissionProofEnvelope(hostileFields as unknown as Omit<MissionProofEnvelope, "schema_version" | "output">, taskResult);
+  } catch { fieldsAccessorRejected = true; }
+  if (!fieldsAccessorRejected || fieldsGetterRan) {
+    throw new Error("Proof builder invoked or accepted an accessor in proof metadata");
+  }
+
+  let resultGetterRan = false;
+  const hostileResult = Object.create(null) as Record<string, unknown>;
+  Object.defineProperty(hostileResult, "output", {
+    enumerable: true,
+    get() { resultGetterRan = true; return taskResult.output; },
+  });
+  let resultAccessorRejected = false;
+  try {
+    createMissionProofEnvelope(fields, hostileResult as unknown as { output: Readonly<Record<string, unknown>> });
+  } catch { resultAccessorRejected = true; }
+  if (!resultAccessorRejected || resultGetterRan) {
+    throw new Error("Proof builder invoked or accepted an accessor in the execution result");
+  }
+
   let sparseRejected = false;
   try {
     createMissionProofEnvelope(fields, { output: { items: new Array(2) } });
