@@ -1,6 +1,6 @@
 import { withSupabase } from "@supabase/server";
 import { verifyMissionProofEnvelope } from "../nova-mission-api/mission-proof.ts";
-import { verifyMissionVerifierSignature } from "../nova-mission-api/mission-proof-auth.ts";
+import { resolveMissionVerifierConfig, verifyMissionVerifierSignature } from "../nova-mission-api/mission-proof-auth.ts";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
@@ -38,14 +38,6 @@ async function readBody(request: Request): Promise<Record<string, unknown>> {
   return parsed as Record<string, unknown>;
 }
 
-function verifierConfig(): Record<string, { version: string; secret: string }> {
-  const raw = Deno.env.get("NOVA_MISSION_VERIFIER_KEYS");
-  if (!raw) throw new Error("Verifier configuration is unavailable");
-  const value = JSON.parse(raw);
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Verifier configuration is invalid");
-  return value;
-}
-
 const handler = withSupabase(
   { auth: "secret", cors: "disabled" },
   async (request, ctx) => {
@@ -69,9 +61,12 @@ const handler = withSupabase(
         return json({ error: "Trusted verifier identity is required" }, 400);
       }
 
-      const trusted = verifierConfig()[verifierId];
-      if (!trusted || trusted.version !== verifierVersion ||
-          typeof trusted.secret !== "string" || trusted.secret.length < 32) {
+      const rawVerifierConfig = Deno.env.get("NOVA_MISSION_VERIFIER_KEYS");
+      if (!rawVerifierConfig) {
+        return json({ error: "Trusted verifier is not configured" }, 503);
+      }
+      const trusted = resolveMissionVerifierConfig(rawVerifierConfig, verifierId, verifierVersion);
+      if (!trusted) {
         return json({ error: "Verifier identity or version is not trusted" }, 403);
       }
 
