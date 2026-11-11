@@ -61,10 +61,11 @@ begin
     perform public.nova_persist_mission_proof_and_complete_with_nonce(
       v_run, 'nonce-check-test-worker', gen_random_uuid(),
       jsonb_build_object(
-        'schema_version','nova.proof.v1',
+        'schema_version','nova.proof.v2',
         'mission_id',gen_random_uuid()::text,
         'task_id',gen_random_uuid()::text,
         'run_id',v_run::text,
+        'output',jsonb_build_object('fixture','test-output'),
         'verifier_id','test.nonce-check',
         'verifier_version','1.0.0',
         'observed_at',now()::text,
@@ -86,7 +87,7 @@ begin
       perform public.nova_persist_mission_proof_and_complete_with_nonce(
         v_run, 'nonce-non-array-check-test-worker', gen_random_uuid(),
         jsonb_build_object(
-          'schema_version','nova.proof.v1',
+          'schema_version','nova.proof.v2',
           'mission_id',gen_random_uuid()::text,
           'task_id',gen_random_uuid()::text,
           'run_id',v_run::text,
