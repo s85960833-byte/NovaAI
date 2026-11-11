@@ -17,7 +17,10 @@ begin
       v_run,
       'nonce-rollback-test-worker',
       gen_random_uuid(),
-      jsonb_build_object('verifier_id','test.nonce-rollback'),
+      jsonb_build_object(
+        'verifier_id','test.nonce-rollback',
+        'checks',jsonb_build_array(jsonb_build_object('id','rollback','passed',true))
+      ),
       repeat('a',64),
       'Expected to fail because the run does not exist',
       'test.nonce-rollback',
