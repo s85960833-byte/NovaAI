@@ -59,7 +59,7 @@ const handler = withSupabase(
       const proof = envelope as Record<string, unknown>;
       const workerId = input.worker_id;
       const leaseToken = input.lease_token;
-      if (typeof workerId !== "string" || !UUID.test(workerId) ||
+      if (typeof workerId !== "string" || !/^[A-Za-z0-9._:-]{1,120}$/.test(workerId) ||
           typeof leaseToken !== "string" || !UUID.test(leaseToken)) {
         return json({ error: "Worker and lease identifiers are invalid" }, 400);
       }
