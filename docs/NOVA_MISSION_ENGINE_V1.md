@@ -38,8 +38,9 @@
 | `nova_mission_proof_attestations` | Append-only verifier envelope, digest, outcome and exact proof/task/run binding |
 | `nova_mission_action_receipts` | Lease-bound idempotency keys, request/result digests and reserved/completed/uncertain action outcomes |
 | `nova_mission_action_resolutions` | Immutable owner decisions and evidence references for uncertain action receipts |
+| `nova_mission_verifier_nonce_ledger` | Persistent one-time verifier nonce consumption, keyed by verifier identity and nonce; insert-only for the trusted service role |
 
-All nine tables have RLS enabled. Each row carries `owner_id`; the database enforces mission/child ownership consistency with composite foreign keys. Authenticated clients can select only their own rows. Writes are reserved for trusted server-side code; proof attestations are insert-only even for the service role.
+All ten tables have RLS enabled. Each row carries `owner_id`; the database enforces mission/child ownership consistency with composite foreign keys. Authenticated clients can select only their own rows. Writes are reserved for trusted server-side code; proof attestations are insert-only even for the service role.
 
 ## API contract
 
@@ -54,7 +55,7 @@ The user-facing Edge Function is named `nova-mission-api` and requires an authen
 | POST | `/functions/v1/nova-mission-api/missions/{id}/tasks/{task_id}/approval` | Queue a bounded action summary for explicit owner approval; creates no external side effect |
 | POST | `/functions/v1/nova-mission-api/approvals/{id}/decision` | Record an owner-bound approve/reject decision using the authenticated JWT subject |
 | POST | `/functions/v1/nova-mission-api/missions/{id}/cancel` | Cancel an active mission and atomically close pending approvals and authorization records |
-| POST | `/functions/v1/nova-mission-proof-api` | Internal verifier-only endpoint; authenticates a Supabase secret key plus verifier-specific HMAC, recomputes the canonical SHA-256 digest, and calls one atomic proof + attestation + lease-fenced completion RPC |
+| POST | `/functions/v1/nova-mission-proof-api` | Internal verifier-only endpoint; authenticates a Supabase secret key plus verifier-specific HMAC, recomputes the canonical SHA-256 digest, and calls one atomic nonce-consumption + proof + attestation + lease-fenced completion RPC |
 
 Mission creation accepts `title` (1–200 chars), optional `description` (up to 10,000 chars), one of `learn`, `build`, `agents`, `intelligence`, optional `idempotency_key` (up to 160 chars), and an optional JSON-object `plan` (up to 100 KB). An `Idempotency-Key` header is also accepted; if both header and body specify a key, they must match.
 
@@ -93,7 +94,7 @@ The feature branch includes a fail-closed authorization core in `mission-tool-ga
 - Calls only an injected reservation callback after all checks. The production adapter binds this callback to the service-role-only `nova_reserve_mission_action` RPC. `missionToolPayloadDigest()` now canonicalizes and hashes the exact JSON object an executor intends to send; a future worker must compute this digest from the final outbound payload immediately before reservation, then send only that same immutable payload. The helper itself performs no network action.
 - Replayed, completed or uncertain reservations are never authorized for another execution.
 
-The proof envelope now supports a `permission_policy` snapshot only for the trusted `agents.permissions-least-privilege` verifier, just as `tool_policy` is restricted to the tool-gates verifier. The persistence migration enforces task-type/verifier/snapshot pairing and bounded array sizes; PostgreSQL integration covers a positive permission snapshot persistence case. The proof API recomputes the signed envelope digest, so the snapshot is integrity-bound to the verifier submission.
+The proof envelope now supports a `permission_policy` snapshot only for the trusted `agents.permissions-least-privilege` verifier, just as `tool_policy` is restricted to the tool-gates verifier. The persistence migration enforces task-type/verifier/snapshot pairing and bounded array sizes; PostgreSQL integration covers a positive permission snapshot persistence case. The proof API recomputes the signed envelope digest, so the snapshot is integrity-bound to the verifier submission. The verifier nonce is persisted in the same database transaction as proof/attestation/completion; a failed downstream operation rolls the nonce insertion back, while a duplicate verifier nonce is rejected.
 
 **Important boundary:** the feature branch now also contains `mission-tool-gateway-adapter.ts`. It loads the mission/task/run/approval using an explicitly supplied service-role database client; re-hashes both canonical proof envelopes; cross-checks each proof, attestation, verifier/version, task type, owner, run and succeeded status; and requires exactly one tool-policy/permission-policy pair whose combined summary matches the approved owner decision. Its reservation helper calls `nova_reserve_mission_action`, whose database transaction independently enforces the active approved lease and idempotency key. The adapter is not wired to a worker or external tool executor, and no worker is registered. It is a tested preflight/data adapter only; no external action can be performed by this module.
 
