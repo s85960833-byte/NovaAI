@@ -24,7 +24,7 @@ function noRowsDb(): MissionServiceRoleDatabase {
     },
   };
   return {
-    from() { return query; },
+    from() { return query as unknown as ReturnType<MissionServiceRoleDatabase["from"]>; },
     rpc() { return Promise.resolve({ data: null, error: new Error("unexpected RPC") }); },
   };
 }
@@ -62,11 +62,11 @@ Deno.test("trusted gateway adapter rejects malformed identifiers before querying
 });
 
 Deno.test("reservation adapter binds all fields to the trusted atomic RPC", async () => {
-  let captured: { name: string; args: Record<string, unknown> } | null = null;
+  const captured: { value: { name: string; args: Record<string, unknown> } | null } = { value: null };
   const db: MissionServiceRoleDatabase = {
     from() { throw new Error("No table reads expected"); },
     rpc(name, args) {
-      captured = { name, args };
+      captured.value = { name, args };
       return Promise.resolve({
         data: [{ action_id: "55555555-5555-4555-8555-555555555555", action_status: "reserved", replayed: false }],
         error: null,
@@ -77,9 +77,10 @@ Deno.test("reservation adapter binds all fields to the trusted atomic RPC", asyn
     runId: UUIDS.run, leaseToken: "lease-a", actionKey: "write-project-file",
     requestDigest: "a".repeat(64),
   });
-  if (captured?.name !== "nova_reserve_mission_action" ||
-      captured.args.p_run_id !== UUIDS.run || captured.args.p_lease_token !== "lease-a" ||
-      captured.args.p_action_key !== "write-project-file" || captured.args.p_request_digest !== "a".repeat(64) ||
+  const call = captured.value as { name: string; args: Record<string, unknown> } | null;
+  if (!call || call.name !== "nova_reserve_mission_action" ||
+      call.args.p_run_id !== UUIDS.run || call.args.p_lease_token !== "lease-a" ||
+      call.args.p_action_key !== "write-project-file" || call.args.p_request_digest !== "a".repeat(64) ||
       result.status !== "reserved" || result.replayed || result.actionId !== "55555555-5555-4555-8555-555555555555") {
     throw new Error("Reservation was not bound to the expected database RPC");
   }
