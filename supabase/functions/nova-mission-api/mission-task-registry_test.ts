@@ -227,3 +227,56 @@ Deno.test("rejects malformed task, mission, run and owner identifiers before han
     throw new Error("Handler ran before malformed UUID bindings were rejected");
   }
 });
+
+
+Deno.test("handler and verifier receive detached immutable task and evidence snapshots", async () => {
+  const registry = new MissionTaskRegistry();
+  let verifierSawOriginalBinding = false;
+  let verifierSawFrozenEvidence = false;
+  registry.register("test.safe-check", emptyObjectV1, {
+    async execute(receivedTask) {
+      if (!Object.isFrozen(receivedTask) || !Object.isFrozen(receivedTask.input)) {
+        throw new Error("Handler received a mutable task descriptor");
+      }
+      try {
+        (receivedTask as { missionId: string }).missionId =
+          "99999999-9999-4999-8999-999999999999";
+      } catch {
+        // Frozen objects reject mutation in strict mode; the original value must remain.
+      }
+      return { output: { status: "ok" }, evidence: { artifact: { id: "artifact-1" } } };
+    },
+  }, {
+    id: "test.immutable-verifier",
+    version: "1.0.0",
+    async verify(receivedTask, result) {
+      verifierSawOriginalBinding =
+        receivedTask.missionId === task.missionId &&
+        Object.isFrozen(receivedTask) &&
+        Object.isFrozen(receivedTask.input);
+      verifierSawFrozenEvidence =
+        Object.isFrozen(result) &&
+        Object.isFrozen(result.evidence) &&
+        Object.isFrozen(result.evidence.artifact);
+      try {
+        (result.evidence.artifact as { id: string }).id = "tampered";
+      } catch {
+        // Verifier cannot rewrite the evidence snapshot it is evaluating.
+      }
+      return {
+        passed: true,
+        verifierId: "test.immutable-verifier",
+        verifierVersion: "1.0.0",
+        checks: [{ id: "immutable-snapshot", passed: true }],
+        observedAt: "2026-11-10T12:00:00.000Z",
+      };
+    },
+  });
+
+  const result = await registry.executeAndVerify(task);
+  if (!verifierSawOriginalBinding || !verifierSawFrozenEvidence ||
+      result.result.evidence.artifact === undefined ||
+      (result.result.evidence.artifact as { id: string }).id !== "artifact-1") {
+    throw new Error("Task or evidence changed across the handler/verifier trust boundary");
+  }
+});
