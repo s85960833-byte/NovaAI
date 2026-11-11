@@ -1108,7 +1108,7 @@ export function createAgentsPermissionsVerifier(
           const scopeRef = permission.scope.ref;
           const scopeValid = scopeKind === "workspace"
             ? scopeRef === "current-workspace"
-            : /^[a-z][a-z0-9_-]{1,63}$/.test(scopeRef) &&
+            : /^[a-z][a-z0-9_-]{1,47}$/.test(scopeRef) &&
               scopeRef !== "all" && scopeRef !== "global" && scopeRef !== "*";
           const uniqueActions = new Set(permission.actions);
           const actionsValid = uniqueActions.size === permission.actions.length &&
@@ -1226,7 +1226,7 @@ export function createAgentsToolGatesVerifier(
       const outputValid = isRecord(output) &&
         hasExactKeys(output, ["toolGates"]) && Array.isArray(output.toolGates);
       const gates = outputValid ? output.toolGates as unknown[] : [];
-      let gatesValid = outputValid && gates.length >= 1 && gates.length <= 20;
+      let gatesValid = outputValid && gates.length >= 1 && gates.length <= 16;
       const ids = new Set<string>();
       if (gatesValid) {
         for (const gate of gates) {
