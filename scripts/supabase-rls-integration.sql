@@ -1193,6 +1193,13 @@ begin
     raise exception 'Expired worker token unexpectedly reconciled an abandoned action';
   exception when sqlstate '55000' then null;
   end;
+  begin
+    perform * from public.nova_reserve_mission_action(
+      v_run,v_new_token,'different-action-before-reconciliation',repeat('8',64)
+    );
+    raise exception 'New action was reserved while an earlier lease action remained unresolved';
+  exception when sqlstate '55P03' then null;
+  end;
   v_action_status := public.nova_reconcile_mission_action(
     v_reserved_action,v_new_token,'Previous lease expired; external outcome requires manual verification'
   );
