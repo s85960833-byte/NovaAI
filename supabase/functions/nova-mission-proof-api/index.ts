@@ -107,7 +107,8 @@ const handler = withSupabase(
       if (error) {
         if (error.code === "P0002") return json({ error: "Execution run not found" }, 404);
         if (error.code === "42501") return json({ error: "Trusted verifier is not authorized" }, 403);
-        if (error.code === "23505" || error.code === "55000") return json({ error: error.message }, 409);
+        if (error.code === "23505") return json({ error: "Verifier nonce has already been consumed or this run already has a proof" }, 409);
+        if (error.code === "55000") return json({ error: "The worker lease is no longer active" }, 409);
         if (error.code === "23514" || error.code === "22P02") return json({ error: "Proof does not satisfy the task verification contract" }, 422);
         throw error;
       }
