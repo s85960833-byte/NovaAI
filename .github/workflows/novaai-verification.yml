@@ -94,6 +94,10 @@ jobs:
           deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-permission-policy_test.ts
       - name: Test fail-closed runtime Mission tool gateway
         run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-tool-gateway_test.ts
+      - name: Type-check trusted Mission gateway database adapter
+        run: deno check --config supabase/functions/nova-mission-api/deno.json --no-lock supabase/functions/nova-mission-api/mission-tool-gateway-adapter.ts
+      - name: Test trusted Mission gateway database adapter
+        run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-tool-gateway-adapter_test.ts
       - name: Smoke-test deployed NOVA BI Edge Function auth and CORS
         if: github.ref == 'refs/heads/main'
         run: node scripts/supabase-edge-smoke.mjs
