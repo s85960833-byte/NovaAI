@@ -1025,3 +1025,148 @@ export function createIntelligenceDefineMetricsVerifier(
     },
   });
 }
+
+
+/**
+ * Agent permission contract verifier. It enforces a narrow, explicit allowlist,
+ * rejects wildcard/global scope and requires owner approval for sensitive
+ * actions. It validates the declaration only; runtime tool gateways must
+ * independently enforce these permissions.
+ */
+const AGENT_PERMISSIONS_VERIFIER_ID = "agents.permissions-least-privilege";
+const AGENT_PERMISSIONS_VERIFIER_VERSION = "1.0.0";
+const AGENT_PERMISSION_ACTIONS = new Set([
+  "read", "create", "update", "delete", "execute", "publish", "send", "export",
+]);
+const AGENT_SENSITIVE_ACTIONS = new Set([
+  "delete", "execute", "publish", "send", "export",
+]);
+
+export const agentsPermissionsInputV1: MissionTaskInputSchema = Object.freeze({
+  version: 1,
+  validate(value: unknown): value is Readonly<Record<string, unknown>> {
+    return isRecord(value) && hasExactKeys(value, ["description"]) &&
+      typeof value.description === "string" &&
+      value.description.trim().length >= 1 &&
+      value.description.length <= 2000;
+  },
+});
+
+export function createAgentsPermissionsVerifier(
+  clock: () => Date = () => new Date(),
+): MissionTaskVerifier {
+  return Object.freeze({
+    id: AGENT_PERMISSIONS_VERIFIER_ID,
+    version: AGENT_PERMISSIONS_VERIFIER_VERSION,
+    async verify(
+      task: MissionTaskDescriptor,
+      result: MissionExecutionResult,
+    ): Promise<MissionVerificationResult> {
+      const observedAt = clock().toISOString();
+      const checks: Array<{ id: string; passed: boolean; detail?: string }> = [];
+      const inputValid = agentsPermissionsInputV1.validate(task.input);
+      checks.push({
+        id: "input-contract",
+        passed: inputValid && task.taskType === "agents.permissions" &&
+          task.inputSchemaVersion === agentsPermissionsInputV1.version,
+        detail: "Task must use the version-1 agent permissions input contract",
+      });
+
+      const output = result.output;
+      const outputValid = isRecord(output) &&
+        hasExactKeys(output, ["permissions"]) && Array.isArray(output.permissions);
+      const permissions = outputValid ? output.permissions as unknown[] : [];
+      let permissionsValid = outputValid &&
+        permissions.length >= 1 && permissions.length <= 20;
+      const ids = new Set<string>();
+      if (permissionsValid) {
+        for (const permission of permissions) {
+          if (!isRecord(permission) ||
+              !hasExactKeys(permission, [
+                "id", "scope", "actions", "approvalRequired", "reason", "sourceRefIds",
+              ]) ||
+              typeof permission.id !== "string" || !UUID_LIKE_ID.test(permission.id) ||
+              !isRecord(permission.scope) ||
+              !hasExactKeys(permission.scope, ["kind", "ref"]) ||
+              typeof permission.scope.kind !== "string" ||
+              !["workspace", "project", "resource"].includes(permission.scope.kind) ||
+              typeof permission.scope.ref !== "string" ||
+              typeof permission.approvalRequired !== "boolean" ||
+              typeof permission.reason !== "string" ||
+              permission.reason.trim().length < 10 || permission.reason.length > 300 ||
+              !isStringArray(permission.actions, 8) ||
+              permission.actions.length < 1 ||
+              !isStringArray(permission.sourceRefIds, 1) ||
+              permission.sourceRefIds.length !== 1 ||
+              permission.sourceRefIds[0] !== "mission-input" ||
+              ids.has(permission.id)) {
+            permissionsValid = false;
+            break;
+          }
+
+          const scopeKind = permission.scope.kind;
+          const scopeRef = permission.scope.ref;
+          const scopeValid = scopeKind === "workspace"
+            ? scopeRef === "current-workspace"
+            : /^[a-z][a-z0-9_-]{1,63}$/.test(scopeRef) &&
+              scopeRef !== "all" && scopeRef !== "global" && scopeRef !== "*";
+          const uniqueActions = new Set(permission.actions);
+          const actionsValid = uniqueActions.size === permission.actions.length &&
+            permission.actions.every((action) => AGENT_PERMISSION_ACTIONS.has(action));
+          const approvalValid = permission.actions.some((action) =>
+            AGENT_SENSITIVE_ACTIONS.has(action)
+          ) ? permission.approvalRequired === true : true;
+          if (!scopeValid || !actionsValid || !approvalValid) {
+            permissionsValid = false;
+            break;
+          }
+          ids.add(permission.id);
+        }
+      }
+      checks.push({
+        id: "permission-shape-and-uniqueness",
+        passed: permissionsValid && ids.size === permissions.length,
+        detail: "Permissions must have bounded fields, unique IDs and one explicit scope",
+      });
+      checks.push({
+        id: "deny-by-default-scope-and-actions",
+        passed: permissionsValid,
+        detail: "Wildcard/global scopes, unknown actions and duplicate actions are rejected",
+      });
+      checks.push({
+        id: "sensitive-action-approval",
+        passed: permissionsValid && permissions.every((permission) =>
+          !permission.actions.some((action) => AGENT_SENSITIVE_ACTIONS.has(action)) ||
+          permission.approvalRequired === true
+        ),
+        detail: "Delete, execute, publish, send and export permissions require owner approval",
+      });
+
+      const evidence = result.evidence;
+      const bindings = isRecord(evidence) && hasExactKeys(evidence, ["sourceBindings"]) &&
+        Array.isArray(evidence.sourceBindings) ? evidence.sourceBindings : [];
+      let provenanceValid = false;
+      if (bindings.length === 1 && inputValid) {
+        const binding = bindings[0];
+        if (isRecord(binding) &&
+            hasExactKeys(binding, ["id", "kind", "locator", "sha256"]) &&
+            binding.id === "mission-input" && binding.kind === "mission_input" &&
+            binding.locator === "mission.input.description" &&
+            typeof binding.sha256 === "string" && SHA256.test(binding.sha256)) {
+          provenanceValid = binding.sha256 === await sha256(task.input.description as string);
+        }
+      }
+      checks.push({
+        id: "input-provenance-binding",
+        passed: provenanceValid,
+        detail: "Evidence must bind to the exact mission input description digest",
+      });
+      return failedResult(
+        observedAt,
+        checks,
+        AGENT_PERMISSIONS_VERIFIER_ID,
+        AGENT_PERMISSIONS_VERIFIER_VERSION,
+      );
+    },
+  });
+}
