@@ -99,7 +99,7 @@ begin
      or p_envelope->>'outcome' is distinct from 'passed'
      or pg_catalog.char_length(coalesce(p_envelope->>'verifier_id','')) not between 1 and 80
      or pg_catalog.char_length(coalesce(p_envelope->>'verifier_version','')) not between 1 and 40
-     or pg_catalog.jsonb_typeof(p_envelope->'checks') <> 'array' then
+     or pg_catalog.jsonb_typeof(p_envelope->'checks') is distinct from 'array' then
     raise exception 'Proof envelope does not match the active task, run or verifier contract'
       using errcode = '23514';
   end if;
@@ -108,11 +108,13 @@ begin
   if v_check_count not between 1 and 50
      or exists (
        select 1 from pg_catalog.jsonb_array_elements(p_envelope->'checks') as check_item(value)
-        where pg_catalog.jsonb_typeof(check_item.value) <> 'object'
+        where pg_catalog.jsonb_typeof(check_item.value) is distinct from 'object'
+           or pg_catalog.jsonb_typeof(check_item.value->'passed') is distinct from 'boolean'
            or check_item.value->>'passed' is distinct from 'true'
-           or pg_catalog.char_length(coalesce(check_item.value->>'id','')) not between 1 and 100
+           or pg_catalog.char_length(pg_catalog.btrim(coalesce(check_item.value->>'id',''))) not between 1 and 100
+           or pg_catalog.char_length(coalesce(check_item.value->>'detail','')) > 1000
      )
-     or (select count(distinct check_item->>'id')
+     or (select count(distinct check_item.value->>'id')
            from pg_catalog.jsonb_array_elements(p_envelope->'checks') as check_item(value)) <> v_check_count then
     raise exception 'Only a complete passing proof with unique checks can be persisted'
       using errcode = '23514';
