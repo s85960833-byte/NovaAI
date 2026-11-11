@@ -19,6 +19,7 @@ begin
       'nonce-rollback-test-worker',
       gen_random_uuid(),
       jsonb_build_object(
+        'output',jsonb_build_object('fixture','test-output'),
         'verifier_id','test.nonce-rollback',
         'checks',jsonb_build_array(jsonb_build_object('id','rollback','passed',true))
       ),
