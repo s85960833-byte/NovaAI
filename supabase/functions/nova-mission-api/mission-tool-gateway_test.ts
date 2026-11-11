@@ -270,3 +270,18 @@ Deno.test("runtime tool gateway requires a distinct passing permission proof and
     throw new Error("Must not reserve with unbound owner approval");
   })).authorized) throw new Error("Approval not bound to both policy snapshots was accepted");
 });
+
+Deno.test("runtime tool gateway blocks both policy-authoring tasks from invoking tools", async () => {
+  for (const taskType of ["agents.tool_gates", "agents.permissions"]) {
+    const context = await makeContext();
+    context.task.taskType = taskType;
+    let reserved = false;
+    const result = await authorizeMissionToolAction(context, request, async () => {
+      reserved = true;
+      return { actionId: "action-1", status: "reserved" as const, replayed: false };
+    });
+    if (result.authorized || reserved) {
+      throw new Error("Policy-authoring task " + taskType + " was allowed to invoke tools");
+    }
+  }
+});
