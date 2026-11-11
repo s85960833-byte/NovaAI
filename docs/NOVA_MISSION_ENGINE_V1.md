@@ -85,7 +85,7 @@ The feature branch now includes `supabase/functions/nova-mission-api/mission-too
 - Requires a matching passed `agents.tool_gates` proof and verifier attestation. The policy proof must belong to a distinct task in the same mission and owner; its task/run/proof/verifier bindings must match the attestation exactly.
 - Requires the current mission, task, run and owner approval to be active, and the lease to be unexpired.
 - Computes a canonical digest for the exact policy and produces a human-readable owner-approval summary containing that digest and each allowed tool, operation, scope, risk and approval requirement. The executing task's approval summary must match byte-for-byte.
-- Matches the requested tool, operation and scope to one explicit gate. Unknown tools, broader scopes, invalid policy declarations and credential-boundary mismatches are denied.
+- Matches the requested tool, operation and scope to one explicit gate. The shared policy schema caps declarations at 16 gates and non-workspace scope references at 48 characters so the digest-bound approval summary always fits the database's 2,000-character limit. Unknown tools, broader scopes, invalid policy declarations and credential-boundary mismatches are denied.
 - Calls only an injected reservation callback after all checks. The production adapter must bind this callback to the service-role-only `nova_reserve_mission_action` RPC and calculate the request digest from the exact outbound payload.
 - A replayed reservation, completed action or uncertain action is never authorized for another execution.
 
