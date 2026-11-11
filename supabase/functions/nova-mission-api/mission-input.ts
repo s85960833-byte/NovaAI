@@ -84,3 +84,9 @@ export function validateMissionCancellation(value: unknown): string {
   }
   return reason;
 }
+
+export function validateMissionPlanRequest(value: unknown): void {
+  if (!isRecord(value) || Object.keys(value).length !== 0) {
+    throw new RequestInputError("Plan request must be an empty JSON object", 400);
+  }
+}
