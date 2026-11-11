@@ -201,3 +201,28 @@ The current task-specific verifier module contains reviewed structural/provenanc
 | Intelligence | `intelligence.verify_evidence` | **Not implemented — disabled** |
 
 The registry is empty by default and requires an explicit schema, handler and verifier registration for every executable task type. A verifier passing a structural contract does not establish that generated educational content is factually correct, that software was deployed, that a business metric interpretation is correct, or that an external action actually occurred. Those require separate trusted evidence sources and domain-specific verification. No worker is registered, and this coverage table does not authorize execution.
+
+## Proof assurance semantics and external-evidence boundary
+
+A passing Mission Engine proof means only that the named, version-pinned trusted verifier accepted the task's registered contract for the exact mission/task/run. It is **not** a universal claim that generated content is factually correct, that an external website or dataset was independently checked, or that a proposed business decision is sound.
+
+The current task-specific verifier set is deliberately classified as **structural + mission-input provenance**:
+
+| Task type | Current assurance actually provided | Explicit non-claim |
+|---|---|---|
+| `learn.topic_sequence` | Topic/prerequisite shape and exact mission-input digest/reference binding | Does not fact-check lesson content or validate external sources |
+| `build.requirements` | Bounded requirement/acceptance-criteria structure and input binding | Does not certify product completeness or feasibility |
+| `learn.assessment` | Question/option/answer structure and input binding | Does not fact-check answers |
+| `learn.goal_clarification` | Goal/success-criteria/constraint structure and input binding | Does not establish that the goal is complete or achievable |
+| `build.design_flow` | Flow graph structure and input binding | Does not prove the design is correct for a real system |
+| `learn.practice_material` | Practice-material structure and input binding | Does not independently grade pedagogical quality or factual correctness |
+| `intelligence.define_metrics` | Metric-definition contract, source-field references and input binding | Does not query an external dataset or certify KPI usefulness |
+| `agents.permissions` | Permission-policy schema, least-privilege constraints and input binding | Does not prove a real provider enforces those permissions |
+| `agents.tool_gates` | Tool-gate policy schema and input binding | Does not execute tools or prove an external tool respects the policy |
+
+The proof envelope is an integrity and scope contract. Its verifier ID/version are checked against server configuration, its canonical digest is recomputed, and its HMAC authenticates the configured verifier submission. **A digest or HMAC proves neither the truth of a claim nor the quality of the verifier's underlying evidence.** Unknown envelope fields and unknown per-check fields are rejected; a caller cannot add an `assurance_level` claim or attach arbitrary URLs/evidence fields to a check and have them silently accepted.
+
+Do not label any current task result `external_verified` or imply independent source verification. A future external-evidence verifier must be a separately reviewed server-side adapter, not a worker-supplied boolean or user-provided URL fetch. It must use an explicit provider/source allowlist, bind the fetched record to owner + mission + task + run + verifier version, record observation time and content digest, enforce HTTPS and redirect policy, and apply strict response-size/time limits. Arbitrary URL fetching, private-network targets, redirect escape, and untrusted provider assertions must fail closed. Until that adapter and its independent tests exist, the assurance remains structural/provenance only.
+
+Operational meaning: a task may be marked completed when its **registered structural deliverable contract** passes; that state must not be presented as proof of external factual correctness. Any UI/API consumer that needs externally verified facts must require a distinct future assurance contract rather than infer it from `outcome: "passed"`.
+
