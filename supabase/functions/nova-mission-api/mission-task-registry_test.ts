@@ -413,6 +413,8 @@ Deno.test("snapshot boundary rejects getters, symbol keys and sparse or decorate
   const sparseArray = new Array(2);
   const decoratedArray: unknown[] = [true];
   (decoratedArray as unknown[] & { extra?: boolean }).extra = true;
+  const customPrototypeArray: unknown[] = [true];
+  Object.setPrototypeOf(customPrototypeArray, { custom: true });
   const invalidInputs = [
     accessorInput,
     symbolInput,
@@ -420,6 +422,7 @@ Deno.test("snapshot boundary rejects getters, symbol keys and sparse or decorate
     prototypeSensitiveInput,
     { values: sparseArray },
     { values: decoratedArray },
+    { values: customPrototypeArray },
   ];
 
   for (const input of invalidInputs) {
