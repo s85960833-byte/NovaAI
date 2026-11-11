@@ -164,6 +164,34 @@ select public.nova_resolve_uncertain_mission_action(
 );
 reset role;
 
+-- Even the database owner cannot rewrite or erase an owner-resolution audit record.
+set role postgres;
+do $immutable_resolution$
+declare
+  v_action uuid;
+begin
+  select action_id into v_action from mission_resolved_action_fixture;
+  begin
+    update public.nova_mission_action_resolutions
+       set resolution_note='Attempted audit mutation that must be rejected.'
+     where action_id=v_action;
+    raise exception 'Resolution update unexpectedly succeeded' using errcode = 'P0001';
+  exception when sqlstate '55000' then null;
+  end;
+  begin
+    delete from public.nova_mission_action_resolutions where action_id=v_action;
+    raise exception 'Resolution delete unexpectedly succeeded' using errcode = 'P0001';
+  exception when sqlstate '55000' then null;
+  end;
+  if not exists (
+    select 1 from public.nova_mission_action_resolutions where action_id=v_action
+  ) then
+    raise exception 'Immutable resolution audit row was deleted';
+  end if;
+end;
+$immutable_resolution$;
+reset role;
+
 set role service_role;
 select set_config('request.jwt.claim.role','service_role',false);
 do $completion$
