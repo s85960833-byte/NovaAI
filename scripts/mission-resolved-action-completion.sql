@@ -123,6 +123,37 @@ end;
 $release$;
 reset role;
 
+-- A non-running run with stale worker/heartbeat metadata is not fully released.
+set role service_role;
+select set_config('request.jwt.claim.role','service_role',false);
+update public.nova_mission_execution_runs
+   set worker_id='stale-worker-fixture', heartbeat_at=now()
+ where id=(select run_id from mission_resolved_action_fixture);
+reset role;
+
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+do $stale_lease_metadata$
+begin
+  perform public.nova_resolve_uncertain_mission_action(
+    (select action_id from mission_resolved_action_fixture),
+    'confirmed_not_executed',
+    'provider-audit:stale-lease-metadata',
+    'Checked the provider activity log and confirmed this action was not executed.'
+  );
+  raise exception 'Owner resolution unexpectedly succeeded with stale worker metadata';
+exception when sqlstate '55P03' then null;
+end;
+$stale_lease_metadata$;
+reset role;
+
+set role service_role;
+select set_config('request.jwt.claim.role','service_role',false);
+update public.nova_mission_execution_runs
+   set worker_id=null, heartbeat_at=null
+ where id=(select run_id from mission_resolved_action_fixture);
+reset role;
+
 set role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
 select public.nova_resolve_uncertain_mission_action(
