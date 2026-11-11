@@ -35,7 +35,8 @@ create table if not exists public.nova_mission_proof_attestations (
   foreign key (run_id, mission_id, task_id, owner_id)
     references public.nova_mission_execution_runs(id, mission_id, task_id, owner_id)
     on delete cascade,
-  check (envelope_json->>'schema_version' is not distinct from 'nova.proof.v1'),
+  check (envelope_json->>'schema_version' is not distinct from 'nova.proof.v2'),
+  check (jsonb_typeof(envelope_json->'output') = 'object'),
   check (envelope_json->>'mission_id' is not distinct from mission_id::text),
   check (envelope_json->>'task_id' is not distinct from task_id::text),
   check (envelope_json->>'run_id' is not distinct from run_id::text),
