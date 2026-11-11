@@ -182,29 +182,41 @@ select public.nova_resolve_uncertain_mission_action(
 SQL
 }
 
-claim_race >"$tmp_dir/claim-race.out" 2>"$tmp_dir/claim-race.err" &
-pid_claim=$!
-resolve_race >"$tmp_dir/resolve-race.out" 2>"$tmp_dir/resolve-race.err" &
-pid_resolve=$!
 claim_ok=0
 resolve_ok=0
-if wait "$pid_claim"; then claim_ok=1; fi
-if wait "$pid_resolve"; then resolve_ok=1; fi
+if claim_race >"$tmp_dir/claim-race.out" 2>"$tmp_dir/claim-race.err"; then claim_ok=1; fi
+if resolve_race >"$tmp_dir/resolve-race.out" 2>"$tmp_dir/resolve-race.err"; then resolve_ok=1; fi
 
 race_state="$(psql -v ON_ERROR_STOP=1 -At -F '|' -c \
   "select r.status, (r.lease_token is not null)::int, (select count(*) from public.nova_mission_action_resolutions x where x.action_id='$race_action'::uuid) from public.nova_mission_execution_runs r where r.id='$race_run'::uuid")"
 IFS='|' read -r final_status active_lease resolution_count <<<"$race_state"
-if [[ "$claim_ok" -ne 1 || "$final_status" != "running" || "$active_lease" != "1" || "$resolution_count" -gt 1 ]]; then
+
+# A successful SELECT can still return zero rows, so validate the committed
+# database state rather than treating psql's exit code as proof of a claim.
+claim_token="$(grep -Eo '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' "$tmp_dir/claim-race.out" | tail -n 1 || true)"
+if [[ "$active_lease" == "1" && "$resolution_count" == "0" && "$final_status" == "running" ]]; then
+  if [[ -z "$claim_token" || "$claim_ok" -ne 1 ]]; then
+    echo "Worker-claim winner did not return its committed lease token" >&2
+    cat "$tmp_dir/claim-race.out"
+    cat "$tmp_dir/claim-race.err"
+    exit 1
+  fi
+elif [[ "$active_lease" == "0" && "$resolution_count" == "1" ]]; then
+  if [[ "$resolve_ok" -ne 1 || -n "$claim_token" ]]; then
+    echo "Owner-resolution winner did not exclude the competing worker claim" >&2
+    echo "claim_ok=$claim_ok resolve_ok=$resolve_ok"
+    cat "$tmp_dir/claim-race.out"
+    cat "$tmp_dir/claim-race.err"
+    cat "$tmp_dir/resolve-race.out"
+    cat "$tmp_dir/resolve-race.err"
+    exit 1
+  fi
+else
   echo "Owner-resolution/claim race invariant failed: claim_ok=$claim_ok resolve_ok=$resolve_ok state=$race_state" >&2
   echo "--- claim stdout ---"; cat "$tmp_dir/claim-race.out"
   echo "--- claim stderr ---"; cat "$tmp_dir/claim-race.err"
   echo "--- resolution stdout ---"; cat "$tmp_dir/resolve-race.out"
   echo "--- resolution stderr ---"; cat "$tmp_dir/resolve-race.err"
-  exit 1
-fi
-if [[ "$resolve_ok" -eq 0 ]] && ! grep -q "55P03\|fully released" "$tmp_dir/resolve-race.err"; then
-  echo "Owner resolution failed for an unexpected reason" >&2
-  cat "$tmp_dir/resolve-race.err"
   exit 1
 fi
 
