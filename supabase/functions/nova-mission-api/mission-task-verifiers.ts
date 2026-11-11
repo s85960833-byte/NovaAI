@@ -358,3 +358,166 @@ export function createBuildRequirementsVerifier(
     },
   });
 }
+
+
+/**
+ * Assessment verifier: checks question/option structure and that each answer
+ * key points to exactly one offered option. It does not fact-check answers.
+ */
+const ASSESSMENT_VERIFIER_ID = "learn.assessment-structure";
+const ASSESSMENT_VERIFIER_VERSION = "1.0.0";
+const DIFFICULTIES = new Set(["introductory", "standard", "advanced"]);
+
+type AssessmentOption = { id: string; text: string };
+type AssessmentQuestion = {
+  id: string;
+  prompt: string;
+  options: AssessmentOption[];
+  correctOptionId: string;
+  explanation: string;
+  difficulty: "introductory" | "standard" | "advanced";
+  sourceRefIds: string[];
+};
+
+export const learnAssessmentInputV1: MissionTaskInputSchema = Object.freeze({
+  version: 1,
+  validate(value: unknown): value is Readonly<Record<string, unknown>> {
+    return isRecord(value) && hasExactKeys(value, ["description"]) &&
+      typeof value.description === "string" &&
+      value.description.trim().length >= 1 &&
+      value.description.length <= 2000;
+  },
+});
+
+export function createLearnAssessmentVerifier(
+  clock: () => Date = () => new Date(),
+): MissionTaskVerifier {
+  return Object.freeze({
+    id: ASSESSMENT_VERIFIER_ID,
+    version: ASSESSMENT_VERIFIER_VERSION,
+    async verify(
+      task: MissionTaskDescriptor,
+      result: MissionExecutionResult,
+    ): Promise<MissionVerificationResult> {
+      const observedAt = clock().toISOString();
+      const checks: Array<{ id: string; passed: boolean; detail?: string }> = [];
+      const inputValid = learnAssessmentInputV1.validate(task.input);
+      checks.push({
+        id: "input-contract",
+        passed: inputValid && task.taskType === "learn.assessment" &&
+          task.inputSchemaVersion === learnAssessmentInputV1.version,
+        detail: "Task must use the version-1 learning assessment input contract",
+      });
+
+      const output = result.output;
+      const outputValid = isRecord(output) && hasExactKeys(output, ["questions"]) &&
+        Array.isArray(output.questions);
+      const questions = outputValid ? output.questions as unknown[] : [];
+      checks.push({
+        id: "question-count",
+        passed: questions.length >= 3 && questions.length <= 20,
+        detail: "An assessment must contain between 3 and 20 questions",
+      });
+
+      let shapeValid = outputValid && questions.length >= 3 && questions.length <= 20;
+      const questionIds = new Set<string>();
+      const parsed: AssessmentQuestion[] = [];
+      if (shapeValid) {
+        for (const value of questions) {
+          if (!isRecord(value) ||
+              !hasExactKeys(value, [
+                "id", "prompt", "options", "correctOptionId",
+                "explanation", "difficulty", "sourceRefIds",
+              ]) ||
+              typeof value.id !== "string" || !UUID_LIKE_ID.test(value.id) ||
+              typeof value.prompt !== "string" || value.prompt.trim().length < 10 ||
+              value.prompt.length > 400 ||
+              !Array.isArray(value.options) ||
+              value.options.length < 2 || value.options.length > 6 ||
+              typeof value.correctOptionId !== "string" ||
+              typeof value.explanation !== "string" ||
+              value.explanation.trim().length < 10 || value.explanation.length > 400 ||
+              typeof value.difficulty !== "string" || !DIFFICULTIES.has(value.difficulty) ||
+              !isStringArray(value.sourceRefIds, 5)) {
+            shapeValid = false;
+            break;
+          }
+          const options: AssessmentOption[] = [];
+          const optionIds = new Set<string>();
+          for (const option of value.options) {
+            if (!isRecord(option) ||
+                !hasExactKeys(option, ["id", "text"]) ||
+                typeof option.id !== "string" || !UUID_LIKE_ID.test(option.id) ||
+                typeof option.text !== "string" || option.text.trim().length < 1 ||
+                option.text.length > 240 || optionIds.has(option.id)) {
+              shapeValid = false;
+              break;
+            }
+            optionIds.add(option.id);
+            options.push(option as unknown as AssessmentOption);
+          }
+          if (!shapeValid) break;
+          const question = value as unknown as AssessmentQuestion;
+          if (questionIds.has(question.id) ||
+              options.filter((option) => option.id === question.correctOptionId).length !== 1 ||
+              new Set(question.sourceRefIds).size !== question.sourceRefIds.length) {
+            shapeValid = false;
+            break;
+          }
+          questionIds.add(question.id);
+          parsed.push({ ...question, options });
+        }
+      }
+      checks.push({
+        id: "question-and-option-shape",
+        passed: shapeValid && parsed.length === questions.length,
+        detail: "Questions and options must use bounded fields and unique identifiers",
+      });
+      checks.push({
+        id: "answer-key-integrity",
+        passed: shapeValid && parsed.every((question) =>
+          question.options.filter((option) => option.id === question.correctOptionId).length === 1
+        ),
+        detail: "Every answer key must identify exactly one offered option",
+      });
+
+      const evidence = result.evidence;
+      const sourceBindings = isRecord(evidence) && Array.isArray(evidence.sourceBindings)
+        ? evidence.sourceBindings
+        : [];
+      const evidenceValid = isRecord(evidence) &&
+        hasExactKeys(evidence, ["sourceBindings"]) &&
+        sourceBindings.length === 1;
+      let provenanceValid = false;
+      if (evidenceValid && inputValid) {
+        const binding = sourceBindings[0];
+        if (isRecord(binding) &&
+            hasExactKeys(binding, ["id", "kind", "locator", "sha256"]) &&
+            binding.id === "mission-input" &&
+            binding.kind === "mission_input" &&
+            binding.locator === "mission.input.description" &&
+            typeof binding.sha256 === "string" && SHA256.test(binding.sha256)) {
+          provenanceValid = binding.sha256 === await sha256(task.input.description as string);
+        }
+      }
+      checks.push({
+        id: "input-provenance-binding",
+        passed: provenanceValid,
+        detail: "Evidence must bind to the exact mission input description digest",
+      });
+      checks.push({
+        id: "question-source-coverage",
+        passed: provenanceValid && shapeValid &&
+          parsed.every((question) => question.sourceRefIds.length === 1 &&
+            question.sourceRefIds[0] === "mission-input"),
+        detail: "Every question must reference the verified mission-input binding",
+      });
+      return failedResult(
+        observedAt,
+        checks,
+        ASSESSMENT_VERIFIER_ID,
+        ASSESSMENT_VERIFIER_VERSION,
+      );
+    },
+  });
+}
