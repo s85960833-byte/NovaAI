@@ -407,12 +407,15 @@ Deno.test("snapshot boundary rejects getters, symbol keys and sparse or decorate
   });
   const symbolInput = { safe: true };
   Object.defineProperty(symbolInput, Symbol("hidden"), { value: true, enumerable: true });
+  const hiddenInput = { safe: true };
+  Object.defineProperty(hiddenInput, "hidden", { value: true, enumerable: false });
   const sparseArray = new Array(2);
   const decoratedArray: unknown[] = [true];
   (decoratedArray as unknown[] & { extra?: boolean }).extra = true;
   const invalidInputs = [
     accessorInput,
     symbolInput,
+    hiddenInput,
     { values: sparseArray },
     { values: decoratedArray },
   ];
