@@ -34,7 +34,7 @@ Deno.test("trusted gateway adapter fails closed when any owner-scoped mission ro
   try {
     await loadMissionToolGatewayContext(noRowsDb(), {
       missionId: UUIDS.mission, taskId: UUIDS.task, runId: UUIDS.run,
-      ownerId: UUIDS.owner, workerId: "worker-a", leaseToken: "lease-a",
+      ownerId: UUIDS.owner, workerId: "worker-a", leaseToken: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
     });
   } catch (error) {
     caught = String(error);
