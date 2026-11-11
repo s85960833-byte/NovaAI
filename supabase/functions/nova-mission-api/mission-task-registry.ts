@@ -120,6 +120,9 @@ function assertPlainJsonData(
       throw new TypeError("JSON objects must not contain symbol keys");
     }
     for (const key of ownKeys as string[]) {
+      if (key === "__proto__" || key === "prototype" || key === "constructor") {
+        throw new TypeError("JSON objects must not contain prototype-sensitive keys");
+      }
       const descriptor = Object.getOwnPropertyDescriptor(value, key);
       if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
         throw new TypeError("JSON objects must contain enumerable data properties only");
