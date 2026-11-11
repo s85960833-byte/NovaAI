@@ -48,6 +48,18 @@ Deno.test("rejects proof envelopes bound to another task or run", async () => {
   }
 });
 
+Deno.test("rejects unrecognized assurance claims and unsupported envelope/check fields", async () => {
+  const forgedAssurance = { ...envelope(), assurance_level: "external_verified" };
+  const extraCheckField = {
+    ...envelope(),
+    checks: [{ id: "page-loaded", passed: true, evidence_url: "https://example.invalid" }],
+  };
+  for (const value of [forgedAssurance, extraCheckField]) {
+    const result = await verifyMissionProofEnvelope(value, binding);
+    if (result.valid) throw new Error("Unsupported proof claim or field was accepted");
+  }
+});
+
 Deno.test("rejects outcome mismatches, duplicate checks and verifier-version mismatches", async () => {
   const wrongOutcome = envelope();
   wrongOutcome.checks[0].passed = false;
