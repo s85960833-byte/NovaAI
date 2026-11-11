@@ -206,8 +206,8 @@ export async function authorizeMissionToolAction(
   if (context.approval.actionSummary !== expectedSummary) {
     return denied("Owner approval is not bound to this exact tool policy");
   }
-  if (!request.actionKey || request.actionKey.trim().length < 1 ||
-      request.actionKey.length > 160 || !SHA256.test(request.requestDigest) ||
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/.test(request.actionKey) ||
+      !SHA256.test(request.requestDigest) ||
       !scopeValid(request.scope)) return denied("Tool action request is malformed");
   const gate = policy.gates.find((item) =>
     item.tool === request.tool && item.operation === request.operation &&
