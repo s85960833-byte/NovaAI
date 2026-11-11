@@ -92,6 +92,14 @@ export async function verifyMissionProofEnvelope(
 ): Promise<MissionProofVerification> {
   if (!input || typeof input !== "object" || Array.isArray(input)) return invalid("Evidence envelope must be an object");
   const value = input as Record<string, unknown>;
+  const allowedEnvelopeKeys = new Set([
+    "schema_version", "mission_id", "task_id", "run_id", "verifier_id",
+    "verifier_version", "observed_at", "outcome", "checks", "tool_policy",
+    "permission_policy",
+  ]);
+  if (Object.keys(value).some((key) => !allowedEnvelopeKeys.has(key))) {
+    return invalid("Proof envelope contains unsupported fields");
+  }
   if (value.schema_version !== "nova.proof.v1") return invalid("Unsupported proof schema");
   if (typeof value.mission_id !== "string" || !UUID.test(value.mission_id) ||
       typeof value.task_id !== "string" || !UUID.test(value.task_id) ||
@@ -123,6 +131,9 @@ export async function verifyMissionProofEnvelope(
   for (const check of value.checks) {
     if (!check || typeof check !== "object" || Array.isArray(check)) return invalid("Proof check must be an object");
     const item = check as Record<string, unknown>;
+    if (Object.keys(item).some((key) => !["id", "passed", "detail"].includes(key))) {
+      return invalid("Proof check contains unsupported fields");
+    }
     if (typeof item.id !== "string" || item.id.trim().length < 1 || item.id.length > 100 ||
         ids.has(item.id) || typeof item.passed !== "boolean" ||
         (item.detail !== undefined && (typeof item.detail !== "string" || item.detail.length > 1000))) {
