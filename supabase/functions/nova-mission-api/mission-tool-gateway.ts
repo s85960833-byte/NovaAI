@@ -68,10 +68,10 @@ export async function buildMissionToolPolicyApprovalSummary(
   const toolDigest = await missionToolPolicyDigest(policy);
   const permissionDigest = await sha256(canonicalizeMissionProof(permissions));
   const lines = policy.gates.map((gate) =>
-    `${gate.tool}|${gate.operation}|${gate.scope.kind}:${gate.scope.ref}|${gate.risk}|approval=${gate.approvalRequired ? "required" : "none"}`
+    `T|${gate.tool}|${gate.operation}|${gate.scope.kind}:${gate.scope.ref}|${gate.risk}|${gate.approvalRequired ? "A" : "-"}`
   );
   const permissionLines = permissions.permissions.map((permission) =>
-    `${permission.id}|${permission.scope.kind}:${permission.scope.ref}|${permission.actions.join(",")}|approval=${permission.approvalRequired ? "required" : "none"}`
+    `P|${permission.id}|${permission.scope.kind}:${permission.scope.ref}|${permission.actions.join(",")}|${permission.approvalRequired ? "A" : "-"}`
   );
   const summary = [
     "NOVA_TOOL_AND_PERMISSION_POLICY_V1",
