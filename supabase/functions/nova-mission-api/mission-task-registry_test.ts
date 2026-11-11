@@ -465,3 +465,49 @@ Deno.test("registration rejects unbounded or malformed verifier identities", () 
     }
   }
 });
+
+
+Deno.test("handler result envelope accessors are rejected before verifier execution", async () => {
+  const registry = new MissionTaskRegistry();
+  let getterCalls = 0;
+  let verifierCalls = 0;
+  const envelope: Record<string, unknown> = {};
+  Object.defineProperty(envelope, "output", {
+    enumerable: true,
+    get() {
+      getterCalls++;
+      return {};
+    },
+  });
+  Object.defineProperty(envelope, "evidence", {
+    enumerable: true,
+    value: {},
+  });
+  registry.register("test.safe-check", emptyObjectV1, {
+    async execute() {
+      return envelope as unknown as { output: Record<string, unknown>; evidence: Record<string, unknown> };
+    },
+  }, {
+    id: "test.envelope-verifier",
+    version: "1.0.0",
+    async verify() {
+      verifierCalls++;
+      return {
+        passed: true,
+        verifierId: "test.envelope-verifier",
+        verifierVersion: "1.0.0",
+        checks: [{ id: "never-reached", passed: true }],
+        observedAt: "2026-11-10T12:00:00.000Z",
+      };
+    },
+  });
+  try {
+    await registry.executeAndVerify(task);
+    throw new Error("Accessor-bearing handler envelope was accepted");
+  } catch (error) {
+    if (!(error instanceof TypeError)) throw error;
+  }
+  if (getterCalls !== 0 || verifierCalls !== 0) {
+    throw new Error("Handler envelope accessor executed or verifier ran before rejection");
+  }
+});
