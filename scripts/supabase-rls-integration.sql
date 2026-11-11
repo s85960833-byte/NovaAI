@@ -1849,12 +1849,12 @@ begin
 
   -- A failure in lease-fenced completion must roll back both proof and attestation.
   v_mission := public.nova_create_mission(
-    v_owner,'Trusted proof rollback fixture','Rollback partial proof writes','agents',
+    v_owner,'Trusted proof rollback fixture','Rollback partial proof writes','learn',
     'mission-trusted-proof-rollback-001','{}'::jsonb
   );
   perform public.nova_save_mission_plan(
-    v_owner,v_mission,'{"kind":"starter_template","workspace":"agents"}'::jsonb,
-    '[{"title":"Receipt-blocked task","description":"Atomic rollback test","task_type":"agents.checklist","input_schema_version":1,"input":{"description":"Atomic rollback test"}}]'::jsonb
+    v_owner,v_mission,'{"kind":"starter_template","workspace":"learn"}'::jsonb,
+    '[{"title":"Receipt-blocked task","description":"Atomic rollback test","task_type":"learn.topic_sequence","input_schema_version":1,"input":{"description":"Atomic rollback test"}}]'::jsonb
   );
   select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
   v_approval := public.nova_request_task_approval(
@@ -1868,7 +1868,7 @@ begin
     from public.nova_reserve_mission_action(v_run,v_token,'proof-rollback-action-001',repeat('b',64));
   v_envelope := jsonb_build_object(
     'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
-    'verifier_id','nova.integration-verifier','verifier_version','1.0.0',
+    'verifier_id','learn.topic-sequence-structure','verifier_version','1.0.0',
     'observed_at',now(),'outcome','passed',
     'checks',jsonb_build_array(jsonb_build_object('id','evidence-reviewed','passed',true))
   );
