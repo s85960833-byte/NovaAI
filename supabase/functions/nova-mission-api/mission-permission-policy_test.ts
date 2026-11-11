@@ -8,9 +8,9 @@ const valid: MissionPermissionPolicy = {
   permissions: [{
     id: "123e4567-e89b-42d3-a456-426614174000",
     scope: { kind: "project", ref: "nova-project" },
-    actions: ["read", "update"],
+    actions: ["read"],
     approvalRequired: false,
-    reason: "Read and update resources within this named project.",
+    reason: "Read resources within this named project.",
     sourceRefIds: ["mission-input"],
   }, {
     id: "123e4567-e89b-42d3-a456-426614174001",
@@ -44,6 +44,17 @@ Deno.test("permission policy requires approval for sensitive actions", () => {
   unsafe.permissions[1].approvalRequired = false;
   if (validateMissionPermissionPolicy(unsafe)) {
     throw new Error("Sensitive send permission without approval was accepted");
+  }
+});
+
+Deno.test("permission policy requires approval for create and update mutations", () => {
+  for (const action of ["create", "update"]) {
+    const unsafe = structuredClone(valid);
+    unsafe.permissions[0].actions = [action];
+    unsafe.permissions[0].approvalRequired = false;
+    if (validateMissionPermissionPolicy(unsafe)) {
+      throw new Error("Mutating " + action + " permission without approval was accepted");
+    }
   }
 });
 
