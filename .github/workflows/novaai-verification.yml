@@ -86,6 +86,10 @@ jobs:
         run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-task-registry_test.ts
       - name: Test task-specific Mission evidence verifiers
         run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-task-verifiers_test.ts
+      - name: Type-check runtime Mission tool gateway
+        run: deno check --config supabase/functions/nova-mission-api/deno.json --no-lock supabase/functions/nova-mission-api/mission-tool-gateway.ts
+      - name: Test fail-closed runtime Mission tool gateway
+        run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-tool-gateway_test.ts
       - name: Smoke-test deployed NOVA BI Edge Function auth and CORS
         if: github.ref == 'refs/heads/main'
         run: node scripts/supabase-edge-smoke.mjs
