@@ -17,7 +17,7 @@ create table if not exists public.nova_mission_action_resolutions (
   resolved_at timestamptz not null default pg_catalog.now(),
   foreign key (run_id, mission_id, task_id, owner_id)
     references public.nova_mission_execution_runs(id, mission_id, task_id, owner_id)
-    on delete cascade
+    on delete restrict
 );
 
 create index if not exists nova_mission_action_resolutions_owner_idx
