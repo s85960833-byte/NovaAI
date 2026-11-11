@@ -1798,6 +1798,86 @@ begin
 end $mission_trusted_proof_persistence$;
 reset role;
 
+-- Tool-gates policy snapshots are accepted only on a trusted agents.tool_gates proof.
+set role service_role;
+select set_config('request.jwt.claim.role','service_role',false);
+do $mission_tool_policy_persistence$
+declare
+  v_owner uuid := '11111111-1111-4111-8111-111111111111';
+  v_mission uuid;
+  v_task uuid;
+  v_approval uuid;
+  v_run uuid;
+  v_token uuid;
+  v_proof uuid;
+  v_attestation uuid;
+  v_envelope jsonb;
+begin
+  v_mission := public.nova_create_mission(
+    v_owner,'Tool policy persistence fixture','Bind tool policy to trusted proof','agents',
+    'mission-tool-policy-proof-001','{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    v_owner,v_mission,'{"kind":"starter_template","workspace":"agents"}'::jsonb,
+    '[{"title":"Define tool gates","description":"Persist an approved tool policy","task_type":"agents.tool_gates","input_schema_version":1,"input":{"description":"Persist an approved tool policy"}}]'::jsonb
+  );
+  select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
+  v_approval := public.nova_request_task_approval(
+    v_owner,v_mission,v_task,'approval-tool-policy-proof-001','Run trusted tool policy verifier'
+  );
+  select id into v_run from public.nova_mission_execution_runs where approval_id=v_approval;
+  perform public.nova_decide_task_approval(v_owner,v_approval,'approve',v_owner,'Approved tool policy verifier');
+  select lease_token into v_token
+    from public.nova_claim_mission_task(v_run,'tool-policy-proof-worker',120);
+
+  v_envelope := jsonb_build_object(
+    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'verifier_id','agents.tool-gates-policy','verifier_version','1.0.0',
+    'observed_at',now(),'outcome','passed',
+    'checks',jsonb_build_array(jsonb_build_object('id','tool-policy-reviewed','passed',true))
+  );
+
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
+      v_run,'tool-policy-proof-worker',v_token,v_envelope,repeat('e',64),'Must reject missing tool policy'
+    );
+    raise exception 'Tool-gates proof accepted without a persisted policy snapshot';
+  exception when check_violation then
+    null;
+  end;
+  if exists(select 1 from public.nova_mission_proof_attestations where run_id=v_run)
+     or exists(select 1 from public.nova_mission_proofs where mission_id=v_mission and task_id=v_task) then
+    raise exception 'Rejected tool policy proof left partial proof records';
+  end if;
+
+  v_envelope := v_envelope || jsonb_build_object(
+    'tool_policy',jsonb_build_object(
+      'version',1,
+      'gates',jsonb_build_array(jsonb_build_object(
+        'id','read-project-files','tool','files.read','operation','read',
+        'scope',jsonb_build_object('kind','project','ref','nova-project'),
+        'risk','low','approvalRequired',false,'credentialBoundary','user_session',
+        'reason','Read only files explicitly attached to this project.',
+        'sourceRefIds',jsonb_build_array('mission-input')
+      ))
+    )
+  );
+
+  select proof_id,attestation_id into v_proof,v_attestation
+    from public.nova_persist_mission_proof_and_complete(
+      v_run,'tool-policy-proof-worker',v_token,v_envelope,repeat('e',64),'Persisted signed tool policy'
+    );
+  if v_proof is null or v_attestation is null
+     or not exists (
+       select 1 from public.nova_mission_proof_attestations
+        where id=v_attestation and verifier_id='agents.tool-gates-policy'
+          and envelope_json->'tool_policy' = v_envelope->'tool_policy'
+     ) then
+    raise exception 'Valid tool policy snapshot was not persisted with its trusted attestation';
+  end if;
+end $mission_tool_policy_persistence$;
+reset role;
+
 do $mission_trusted_proof_privileges$
 begin
   if has_function_privilege('anon',
