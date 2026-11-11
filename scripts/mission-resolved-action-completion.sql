@@ -26,6 +26,15 @@ declare
   v_token uuid;
   v_action uuid;
 begin
+  if (
+    select count(*) from pg_catalog.pg_trigger
+     where tgrelid = 'public.nova_mission_action_receipts'::regclass
+       and tgfoid = 'public.nova_guard_unresolved_mission_action()'::regprocedure
+       and not tgisinternal
+  ) <> 1 then
+    raise exception 'Exactly one mission-wide unresolved-action guard trigger must be installed';
+  end if;
+
   v_mission := public.nova_create_mission(
     v_owner,'Resolved action completion regression',
     'Complete only after explicit owner resolution','agents',
