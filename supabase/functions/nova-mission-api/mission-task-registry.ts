@@ -99,7 +99,7 @@ function assertPlainJsonData(
       if (value.length > 50000) throw new TypeError("JSON array is too large");
       const ownKeys = Reflect.ownKeys(value);
       if (ownKeys.some((key) => key !== "length" &&
-          (typeof key !== "string" || !/^(0|[1-9]\\d*)$/.test(key) ||
+          (typeof key !== "string" || !/^(0|[1-9]\d*)$/.test(key) ||
            Number(key) >= value.length))) {
         throw new TypeError("JSON arrays must not contain custom properties");
       }
