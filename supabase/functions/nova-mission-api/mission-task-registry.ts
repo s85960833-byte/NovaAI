@@ -1,3 +1,5 @@
+import { canonicalizeMissionProof } from "./mission-proof.ts";
+
 /**
  * Fail-closed registry for future NOVA Mission workers.
  *
@@ -67,6 +69,27 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return prototype === Object.prototype || prototype === null;
 }
 
+function deepFreeze<T>(value: T): T {
+  if (value !== null && typeof value === "object" && !Object.isFrozen(value)) {
+    for (const child of Object.values(value as Record<string, unknown>)) deepFreeze(child);
+    Object.freeze(value);
+  }
+  return value;
+}
+
+function snapshotRecord(value: unknown, label: string): Record<string, unknown> {
+  if (!isRecord(value)) throw new TypeError(label + " must be a plain JSON object");
+  let serialized: string;
+  try {
+    serialized = canonicalizeMissionProof(value);
+  } catch {
+    throw new TypeError(label + " must be bounded, acyclic JSON data");
+  }
+  const snapshot: unknown = JSON.parse(serialized);
+  if (!isRecord(snapshot)) throw new TypeError(label + " must be a plain JSON object");
+  return deepFreeze(snapshot);
+}
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function isValidCheck(value: unknown): value is { id: string; passed: boolean; detail?: string } {
@@ -117,29 +140,33 @@ export class MissionTaskRegistry {
     result: MissionExecutionResult;
     verification: MissionVerificationResult;
   }> {
-    if (!task || !/^[a-z][a-z0-9_.-]{1,79}$/.test(task.taskType) ||
-        !Number.isSafeInteger(task.inputSchemaVersion) ||
-        !isRecord(task.input) || !UUID.test(task.id) ||
-        !UUID.test(task.missionId) || !UUID.test(task.runId) ||
-        !UUID.test(task.ownerId)) {
+    // Detach caller-owned objects before the first await. The handler and verifier
+    // receive the same frozen task snapshot, preventing descriptor TOCTOU changes.
+    if (!isRecord(task)) throw new TypeError("Mission task descriptor is invalid");
+    const taskSnapshot = snapshotRecord(task, "Mission task descriptor") as unknown as MissionTaskDescriptor;
+    if (!/^[a-z][a-z0-9_.-]{1,79}$/.test(taskSnapshot.taskType) ||
+        !Number.isSafeInteger(taskSnapshot.inputSchemaVersion) ||
+        !isRecord(taskSnapshot.input) || !UUID.test(taskSnapshot.id) ||
+        !UUID.test(taskSnapshot.missionId) || !UUID.test(taskSnapshot.runId) ||
+        !UUID.test(taskSnapshot.ownerId)) {
       throw new TypeError("Mission task descriptor is invalid");
     }
 
-    const registration = this.#registrations.get(task.taskType);
+    const registration = this.#registrations.get(taskSnapshot.taskType);
     if (!registration) {
       throw new MissionTaskNotExecutableError(
-        task.taskType,
+        taskSnapshot.taskType,
         "no input schema, handler and independent verifier are registered",
       );
     }
 
-    if (task.inputSchemaVersion !== registration.inputSchema.version) {
+    if (taskSnapshot.inputSchemaVersion !== registration.inputSchema.version) {
       throw new TypeError("Mission task input schema version is unsupported");
     }
 
     let inputIsValid = false;
     try {
-      inputIsValid = registration.inputSchema.validate(task.input) === true;
+      inputIsValid = registration.inputSchema.validate(taskSnapshot.input) === true;
     } catch {
       inputIsValid = false;
     }
@@ -147,12 +174,18 @@ export class MissionTaskRegistry {
       throw new TypeError("Mission task input does not match its registered schema");
     }
 
-    const result = await registration.handler.execute(task);
-    if (!result || typeof result !== "object" ||
-        !isRecord(result.output) || !isRecord(result.evidence)) {
+    const rawResult = await registration.handler.execute(taskSnapshot);
+    if (!rawResult || typeof rawResult !== "object" ||
+        !isRecord(rawResult.output) || !isRecord(rawResult.evidence)) {
       throw new TypeError("Task handler returned an invalid result envelope");
     }
-    const verification = await registration.verifier.verify(task, result);
+    // Snapshot handler output before verification; the verifier cannot be shown
+    // a moving object that the handler or another reference can mutate.
+    const result = deepFreeze({
+      output: snapshotRecord(rawResult.output, "Task output"),
+      evidence: snapshotRecord(rawResult.evidence, "Task evidence"),
+    }) as MissionExecutionResult;
+    const verification = await registration.verifier.verify(taskSnapshot, result);
     if (!verification || verification.verifierId !== registration.verifier.id ||
         verification.verifierVersion !== registration.verifier.version ||
         !Array.isArray(verification.checks) || verification.checks.length < 1 ||
@@ -161,7 +194,7 @@ export class MissionTaskRegistry {
         new Set(verification.checks.map((check) => check.id)).size !== verification.checks.length ||
         verification.passed !== verification.checks.every((check) => check.passed === true) ||
         typeof verification.observedAt !== "string" ||
-        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z$/.test(verification.observedAt) ||
+        !/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$/.test(verification.observedAt) ||
         !Number.isFinite(Date.parse(verification.observedAt))) {
       throw new TypeError("Trusted verifier returned an invalid or inconsistent attestation");
     }
