@@ -862,9 +862,9 @@ function validAgentPermissions() {
     {
       id: "read-project",
       scope: { kind: "project", ref: "nova-project" },
-      actions: ["read", "update"],
+      actions: ["read"],
       approvalRequired: false,
-      reason: "Read project state and update explicitly assigned draft files.",
+      reason: "Read project state within this named project.",
       sourceRefIds: ["mission-input"],
     },
     {
@@ -913,6 +913,18 @@ Deno.test("agents permissions verifier rejects wildcard scopes and unknown actio
   unknown.output.permissions[0].actions = ["read", "admin"];
   if ((await verifier.verify(agentsPermissionsTask, unknown)).passed) {
     throw new Error("Unknown permission action was accepted");
+  }
+});
+
+Deno.test("agents permissions verifier requires owner approval for create and update", async () => {
+  const verifier = createAgentsPermissionsVerifier(() => fixedNow);
+  for (const action of ["create", "update"]) {
+    const result = await makeAgentsPermissionsResult();
+    result.output.permissions[0].actions = [action];
+    result.output.permissions[0].approvalRequired = false;
+    if ((await verifier.verify(agentsPermissionsTask, result)).passed) {
+      throw new Error("A mutating " + action + " permission without owner approval was accepted");
+    }
   }
 });
 
