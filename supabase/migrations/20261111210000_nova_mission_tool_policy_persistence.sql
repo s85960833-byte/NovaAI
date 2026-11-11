@@ -43,8 +43,8 @@ begin
       raise exception 'Tool policy snapshot version or gates are invalid'
         using errcode = '23514';
     end if;
-    if pg_catalog.jsonb_array_length(new.envelope_json->'tool_policy'->'gates') not between 1 and 20 then
-      raise exception 'Tool policy snapshot must contain between 1 and 20 gates'
+    if pg_catalog.jsonb_array_length(new.envelope_json->'tool_policy'->'gates') not between 1 and 16 then
+      raise exception 'Tool policy snapshot must contain between 1 and 16 gates'
         using errcode = '23514';
     end if;
   elsif v_task_type = 'agents.tool_gates' or new.envelope_json ? 'tool_policy' then
