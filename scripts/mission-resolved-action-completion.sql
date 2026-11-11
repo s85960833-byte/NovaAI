@@ -244,7 +244,8 @@ begin
     '{"checks":[{"id":"owner-resolution-reviewed","passed":true}]}'::jsonb,now()
   ) returning id into v_proof;
   v_envelope := jsonb_build_object(
-    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'schema_version','nova.proof.v2','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'output',jsonb_build_object('status','owner-resolved-action-verified'),
     'verifier_id','nova.resolved-action-integration-verifier','verifier_version','1.0.0',
     'observed_at',now(),'outcome','passed',
     'checks',jsonb_build_array(jsonb_build_object('id','owner-resolution-reviewed','passed',true))
