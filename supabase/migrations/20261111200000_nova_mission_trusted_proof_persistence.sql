@@ -138,15 +138,15 @@ begin
   -- The verifier identity is allowlisted for the exact task type. A valid HMAC
   -- from one verifier must never authorize a different task's proof contract.
   if not (
-    (v_task_type = 'learn.topic_sequence' and v_verifier_id = 'learn.topic-sequence-structure')
-    or (v_task_type = 'build.requirements' and v_verifier_id = 'build.requirements-structure')
-    or (v_task_type = 'learn.assessment' and v_verifier_id = 'learn.assessment-structure')
-    or (v_task_type = 'learn.goal_clarification' and v_verifier_id = 'learn.goal-clarification-structure')
-    or (v_task_type = 'build.design_flow' and v_verifier_id = 'build.design-flow-graph')
-    or (v_task_type = 'learn.practice_material' and v_verifier_id = 'learn.practice-material-structure')
-    or (v_task_type = 'intelligence.define_metrics' and v_verifier_id = 'intelligence.metric-definition-contract')
-    or (v_task_type = 'agents.permissions' and v_verifier_id = 'agents.permissions-least-privilege')
-    or (v_task_type = 'agents.tool_gates' and v_verifier_id = 'agents.tool-gates-policy')
+    (v_task_type = 'learn.topic_sequence' and v_verifier_id = 'learn.topic-sequence-structure' and v_verifier_version = '1.0.0')
+    or (v_task_type = 'build.requirements' and v_verifier_id = 'build.requirements-structure' and v_verifier_version = '1.0.0')
+    or (v_task_type = 'learn.assessment' and v_verifier_id = 'learn.assessment-structure' and v_verifier_version = '1.0.0')
+    or (v_task_type = 'learn.goal_clarification' and v_verifier_id = 'learn.goal-clarification-structure' and v_verifier_version = '1.0.0')
+    or (v_task_type = 'build.design_flow' and v_verifier_id = 'build.design-flow-graph' and v_verifier_version = '1.0.0')
+    or (v_task_type = 'learn.practice_material' and v_verifier_id = 'learn.practice-material-structure' and v_verifier_version = '1.0.0')
+    or (v_task_type = 'intelligence.define_metrics' and v_verifier_id = 'intelligence.metric-definition-contract' and v_verifier_version = '1.0.0')
+    or (v_task_type = 'agents.permissions' and v_verifier_id = 'agents.permissions-least-privilege' and v_verifier_version = '1.0.0')
+    or (v_task_type = 'agents.tool_gates' and v_verifier_id = 'agents.tool-gates-policy' and v_verifier_version = '1.0.0')
   ) then
     raise exception 'Trusted verifier identity is not authorized for this task type'
       using errcode = '23514';
