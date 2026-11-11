@@ -1875,6 +1875,42 @@ begin
      ) then
     raise exception 'Valid tool policy snapshot was not persisted with its trusted attestation';
   end if;
+  -- A tool-policy snapshot must not be smuggled through an unrelated task.
+  v_mission := public.nova_create_mission(
+    v_owner,'Wrong task policy fixture','Reject cross-task policy snapshot','agents',
+    'mission-tool-policy-wrong-task-001','{}'::jsonb
+  );
+  perform public.nova_save_mission_plan(
+    v_owner,v_mission,'{"kind":"starter_template","workspace":"agents"}'::jsonb,
+    '[{"title":"Generic checklist","description":"Must not carry tool policy","task_type":"agents.checklist","input_schema_version":1,"input":{"description":"Must not carry tool policy"}}]'::jsonb
+  );
+  select id into v_task from public.nova_mission_tasks where mission_id=v_mission;
+  v_approval := public.nova_request_task_approval(
+    v_owner,v_mission,v_task,'approval-tool-policy-wrong-task-001','Run generic checklist'
+  );
+  select id into v_run from public.nova_mission_execution_runs where approval_id=v_approval;
+  perform public.nova_decide_task_approval(v_owner,v_approval,'approve',v_owner,'Approved generic checklist');
+  select lease_token into v_token
+    from public.nova_claim_mission_task(v_run,'wrong-task-policy-worker',120);
+  v_envelope := jsonb_build_object(
+    'schema_version','nova.proof.v1','mission_id',v_mission,'task_id',v_task,'run_id',v_run,
+    'verifier_id','agents.tool-gates-policy','verifier_version','1.0.0',
+    'observed_at',now(),'outcome','passed',
+    'checks',jsonb_build_array(jsonb_build_object('id','tool-policy-reviewed','passed',true)),
+    'tool_policy',jsonb_build_object('version',1,'gates',jsonb_build_array())
+  );
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
+      v_run,'wrong-task-policy-worker',v_token,v_envelope,repeat('f',64),'Must reject cross-task policy'
+    );
+    raise exception 'A non-tool-gates task accepted a tool-policy proof snapshot';
+  exception when check_violation then
+    null;
+  end;
+  if exists(select 1 from public.nova_mission_proof_attestations where run_id=v_run)
+     or exists(select 1 from public.nova_mission_proofs where mission_id=v_mission and task_id=v_task) then
+    raise exception 'Rejected cross-task policy proof left partial proof records';
+  end if;
 end $mission_tool_policy_persistence$;
 reset role;
 
