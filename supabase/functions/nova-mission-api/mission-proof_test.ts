@@ -276,4 +276,21 @@ Deno.test("proof builder copies output only from the immutable task execution re
     );
   } catch { rejected = true; }
   if (!rejected) throw new Error("Proof builder accepted caller-supplied output");
+
+  let getterRejected = false;
+  const hostileOutput: Record<string, unknown> = {};
+  Object.defineProperty(hostileOutput, "secret", {
+    enumerable: true,
+    get() { throw new Error("getter must not execute"); },
+  });
+  try {
+    createMissionProofEnvelope(fields, { output: hostileOutput });
+  } catch { getterRejected = true; }
+  if (!getterRejected) throw new Error("Proof builder accepted accessor-backed output");
+
+  let sparseRejected = false;
+  try {
+    createMissionProofEnvelope(fields, { output: { items: new Array(2) } });
+  } catch { sparseRejected = true; }
+  if (!sparseRejected) throw new Error("Proof builder accepted a sparse output array");
 });
