@@ -215,7 +215,10 @@ async function makeValidGatewayFixture() {
     }),
   ]);
   if (!toolCheck.valid || !permissionCheck.valid) throw new Error("Test fixture proof envelopes are invalid");
-  const actionSummary = await buildMissionToolPolicyApprovalSummary(fixtureToolPolicy, fixturePermissionPolicy);
+  const actionSummary = await buildMissionToolPolicyApprovalSummary(
+    fixtureToolPolicy as Parameters<typeof buildMissionToolPolicyApprovalSummary>[0],
+    fixturePermissionPolicy as Parameters<typeof buildMissionToolPolicyApprovalSummary>[1],
+  );
   const tables: Record<string, Record<string, unknown>[]> = {
     nova_missions: [{ id: FIXTURE.mission, owner_id: FIXTURE.owner, state: "running" }],
     nova_mission_tasks: [
