@@ -19,6 +19,11 @@ export function validateMissionInput(value: unknown): MissionInput {
     throw new RequestInputError("Mission request must be a JSON object", 400);
   }
 
+  const allowedFields = new Set(["title", "description", "workspace", "idempotency_key", "plan"]);
+  if (Object.keys(value).some((key) => !allowedFields.has(key))) {
+    throw new RequestInputError("Mission request contains unsupported fields", 400);
+  }
+
   const title = typeof value.title === "string" ? value.title.trim() : "";
   if (title.length < 1 || title.length > 200) {
     throw new RequestInputError("Mission title must be 1 to 200 characters", 400);
