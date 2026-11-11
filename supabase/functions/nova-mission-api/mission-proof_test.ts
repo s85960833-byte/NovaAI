@@ -265,7 +265,7 @@ Deno.test("proof builder copies output only from the immutable task execution re
   if (canonicalizeMissionProof(built.output) !== canonicalizeMissionProof(taskResult.output)) {
     throw new Error("Proof builder substituted the task output");
   }
-  const verified = verifyMissionProofEnvelope(built, binding);
+  const verified = await verifyMissionProofEnvelope(built, binding);
   if (!verified.valid) throw new Error("Proof builder emitted an invalid envelope: " + verified.reason);
 
   let rejected = false;
