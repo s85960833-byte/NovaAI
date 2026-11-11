@@ -183,17 +183,43 @@ function canonical(value: unknown, depth = 0): string {
     return JSON.stringify(value);
   }
   if (Array.isArray(value)) {
-    return "[" + value.map((item) => canonical(item, depth + 1)).join(",") + "]";
+    if (Object.getPrototypeOf(value) !== Array.prototype) {
+      throw new TypeError("Proof evidence arrays must use the standard array prototype");
+    }
+    const keys = Reflect.ownKeys(value);
+    if (keys.some((key) => key !== "length" &&
+        (typeof key !== "string" || !/^(0|[1-9]\\d*)$/.test(key) || Number(key) >= value.length))) {
+      throw new TypeError("Proof evidence arrays cannot contain custom properties");
+    }
+    const items: string[] = [];
+    for (let index = 0; index < value.length; index++) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+      if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+        throw new TypeError("Proof evidence arrays must be dense data arrays");
+      }
+      items.push(canonical(descriptor.value, depth + 1));
+    }
+    return "[" + items.join(",") + "]";
   }
   if (typeof value === "object") {
     const prototype = Object.getPrototypeOf(value);
     if (prototype !== Object.prototype && prototype !== null) {
       throw new TypeError("Proof evidence must contain plain JSON objects");
     }
+    const keys = Reflect.ownKeys(value);
+    if (keys.some((key) => typeof key !== "string")) {
+      throw new TypeError("Proof evidence objects cannot contain symbol keys");
+    }
     const record = value as Record<string, unknown>;
-    return "{" + Object.keys(record).sort().map((key) =>
-      JSON.stringify(key) + ":" + canonical(record[key], depth + 1)
-    ).join(",") + "}";
+    const entries: string[] = [];
+    for (const key of (keys as string[]).sort()) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) {
+        throw new TypeError("Proof evidence objects must contain enumerable data properties");
+      }
+      entries.push(JSON.stringify(key) + ":" + canonical(descriptor.value, depth + 1));
+    }
+    return "{" + entries.join(",") + "}";
   }
   throw new TypeError("Proof evidence contains a non-JSON value");
 }
