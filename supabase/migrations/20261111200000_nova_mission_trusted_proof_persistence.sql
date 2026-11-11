@@ -30,6 +30,7 @@ declare
   v_lease_token uuid;
   v_lease_expires_at timestamptz;
   v_task_status text;
+  v_task_type text;
   v_observed_at timestamptz;
   v_check_count integer;
   v_proof_id uuid;
@@ -77,7 +78,7 @@ begin
    where r.id = p_run_id and r.owner_id = v_owner_id for update;
   if not found then raise exception 'Execution run not found' using errcode = 'P0002'; end if;
 
-  select t.status into v_task_status
+  select t.status, t.task_type into v_task_status, v_task_type
     from public.nova_mission_tasks t
    where t.id = v_task_id and t.mission_id = v_mission_id and t.owner_id = v_owner_id
    for update;
@@ -133,6 +134,23 @@ begin
 
   v_verifier_id := p_envelope->>'verifier_id';
   v_verifier_version := p_envelope->>'verifier_version';
+
+  -- The verifier identity is allowlisted for the exact task type. A valid HMAC
+  -- from one verifier must never authorize a different task's proof contract.
+  if not (
+    (v_task_type = 'learn.topic_sequence' and v_verifier_id = 'learn.topic-sequence-structure')
+    or (v_task_type = 'build.requirements' and v_verifier_id = 'build.requirements-structure')
+    or (v_task_type = 'learn.assessment' and v_verifier_id = 'learn.assessment-structure')
+    or (v_task_type = 'learn.goal_clarification' and v_verifier_id = 'learn.goal-clarification-structure')
+    or (v_task_type = 'build.design_flow' and v_verifier_id = 'build.design-flow-graph')
+    or (v_task_type = 'learn.practice_material' and v_verifier_id = 'learn.practice-material-structure')
+    or (v_task_type = 'intelligence.define_metrics' and v_verifier_id = 'intelligence.metric-definition-contract')
+    or (v_task_type = 'agents.permissions' and v_verifier_id = 'agents.permissions-least-privilege')
+    or (v_task_type = 'agents.tool_gates' and v_verifier_id = 'agents.tool-gates-policy')
+  ) then
+    raise exception 'Trusted verifier identity is not authorized for this task type'
+      using errcode = '23514';
+  end if;
 
   -- One proof completion per execution run; replay cannot create a second proof.
   if exists (
