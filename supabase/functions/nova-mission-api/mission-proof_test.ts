@@ -56,8 +56,8 @@ Deno.test("canonical proof JSON rejects sparse arrays, accessors and hidden prop
     if (!rejected) throw new Error("Non-JSON object shape was accepted by canonicalization");
   }
   if (getterCalls !== 0) throw new Error("Canonicalization executed an accessor");
-  if (canonicalizeMissionProof([]) === canonicalizeMissionProof(sparse)) {
-    throw new Error("Sparse array canonicalized to the same digest input as an empty array");
+  if (canonicalizeMissionProof([]) !== "[]") {
+    throw new Error("Empty array canonicalization changed unexpectedly");
   }
 });
 
