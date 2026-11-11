@@ -64,3 +64,20 @@ Deno.test("rejects oversized mission plans and invalid idempotency keys", () => 
     if (!(error instanceof RequestInputError) || error.status !== 400) throw error;
   }
 });
+
+Deno.test("rejects unknown mission creation fields instead of silently ignoring them", () => {
+  for (const input of [
+    { title: "x", owner_id: "attacker-controlled" },
+    { title: "x", worker_id: "untrusted-worker" },
+    { title: "x", execute_now: true },
+  ]) {
+    try {
+      validateMissionInput(input);
+      throw new Error("Unknown mission creation field was accepted");
+    } catch (error) {
+      if (!(error instanceof RequestInputError) ||
+          error.status !== 400 ||
+          !error.message.includes("unsupported fields")) throw error;
+    }
+  }
+});
