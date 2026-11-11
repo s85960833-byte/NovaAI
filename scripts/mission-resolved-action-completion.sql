@@ -188,6 +188,18 @@ begin
   ) then
     raise exception 'Immutable resolution audit row was deleted';
   end if;
+  if (
+    select count(*)
+      from pg_catalog.pg_constraint c
+     where c.conrelid='public.nova_mission_action_resolutions'::regclass
+       and c.confrelid in (
+         'public.nova_mission_action_receipts'::regclass,
+         'public.nova_mission_execution_runs'::regclass
+       )
+       and c.contype='f' and c.confdeltype='r'
+  ) <> 2 then
+    raise exception 'Resolution audit foreign keys must both use ON DELETE RESTRICT';
+  end if;
 end;
 $immutable_resolution$;
 reset role;
