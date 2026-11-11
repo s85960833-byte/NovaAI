@@ -70,3 +70,17 @@ export function validateMissionInput(value: unknown): MissionInput {
     plan: rawPlan,
   };
 }
+
+export function validateMissionCancellation(value: unknown): string {
+  if (!isRecord(value)) {
+    throw new RequestInputError("Cancellation request must be a JSON object", 400);
+  }
+  if (Object.keys(value).some((key) => key !== "reason")) {
+    throw new RequestInputError("Cancellation request contains unsupported fields", 400);
+  }
+  const reason = value.reason === undefined ? "" : value.reason;
+  if (typeof reason !== "string" || reason.length > 1000) {
+    throw new RequestInputError("Cancellation reason must be a string up to 1000 characters", 400);
+  }
+  return reason;
+}
