@@ -1672,7 +1672,48 @@ begin
 
   begin
     perform public.nova_persist_mission_proof_and_complete(
+      v_run,'proof-persist-worker','77777777-7777-4777-8777-777777777777',
+      v_envelope,repeat('a',64),'Must reject stale lease token'
+    );
+    raise exception 'Proof persistence accepted a stale lease token';
+  exception when sqlstate '55000' then null;
+  end;
+
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
+      v_run,'proof-persist-worker',v_token,v_envelope,'not-a-sha256-digest','Must reject malformed digest'
+    );
+    raise exception 'Proof persistence accepted a malformed digest';
+  exception when check_violation then null;
+  end;
+
+  update public.nova_mission_execution_runs
+     set lease_expires_at=now()-interval '1 second'
+   where id=v_run;
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
+      v_run,'proof-persist-worker',v_token,v_envelope,repeat('a',64),'Must reject expired lease'
+    );
+    raise exception 'Proof persistence accepted an expired lease';
+  exception when sqlstate '55000' then null;
+  end;
+  update public.nova_mission_execution_runs
+     set lease_expires_at=now()+interval '90 seconds'
+   where id=v_run;
+
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
       v_run,'proof-persist-worker',v_token,
+      jsonb_set(v_envelope,'{outcome}','"failed"'::jsonb),
+      repeat('a',64),'Must reject failed proof'
+    );
+    raise exception 'Proof persistence accepted a failed proof as completion';
+  exception when check_violation then null;
+  end;
+
+  begin
+    perform public.nova_persist_mission_proof_and_complete(
+      v_run,'proof-persist-worker',v_token,v_envelope,
       jsonb_set(v_envelope,'{task_id}','"99999999-9999-4999-8999-999999999999"'::jsonb),
       repeat('a',64),'Must reject mismatched task'
     );
