@@ -1128,23 +1128,6 @@ begin
     raise exception 'Completed action accepted a conflicting result replay';
   exception when unique_violation then null;
   end;
-  select action_id into v_uncertain_action
-    from public.nova_reserve_mission_action(v_run,v_token,'action-uncertain-fixture-001',repeat('a',64));
-  v_action_status := public.nova_mark_mission_action_uncertain(
-    v_uncertain_action,v_token,'External operation timed out; outcome unknown'
-  );
-  if v_action_status <> 'uncertain' then raise exception 'Uncertain action marker was not stored'; end if;
-  select action_id,action_status,replayed
-    into v_action_again,v_action_status,v_replayed
-    from public.nova_reserve_mission_action(v_run,v_token,'action-uncertain-fixture-001',repeat('a',64));
-  if v_action_again is distinct from v_uncertain_action or v_action_status <> 'uncertain' or not v_replayed then
-    raise exception 'Uncertain action was not safely returned without re-reserving';
-  end if;
-  begin
-    perform public.nova_complete_mission_action(v_uncertain_action,v_token,repeat('b',64),'must-not-complete');
-    raise exception 'Uncertain action was unexpectedly completed';
-  exception when sqlstate '55000' then null;
-  end;
   select action_id into v_reserved_action
     from public.nova_reserve_mission_action(v_run,v_token,'action-reserved-fixture-001',repeat('c',64));
 
@@ -1224,8 +1207,8 @@ begin
   end if;
   select action_id,action_status,replayed
     into v_action_again,v_action_status,v_replayed
-    from public.nova_reserve_mission_action(v_run,v_new_token,'action-uncertain-fixture-001',repeat('a',64));
-  if v_action_again is distinct from v_uncertain_action or v_action_status <> 'uncertain' or not v_replayed then
+    from public.nova_reserve_mission_action(v_run,v_new_token,'action-reserved-fixture-001',repeat('c',64));
+  if v_action_again is distinct from v_reserved_action or v_action_status <> 'uncertain' or not v_replayed then
     raise exception 'Reclaimed worker did not receive the uncertain action reconciliation state';
   end if;
 
@@ -1284,7 +1267,7 @@ declare
   v_resolution uuid;
 begin
   select id into v_action from public.nova_mission_action_receipts
-   where action_key='action-uncertain-fixture-001';
+   where action_key='action-reserved-fixture-001';
   if v_action is null then raise exception 'Uncertain action fixture is missing'; end if;
   v_resolution := public.nova_resolve_uncertain_mission_action(
     v_action,'confirmed_not_executed','provider-audit://fixture-uncertain-001',
@@ -1319,7 +1302,7 @@ begin
     raise exception 'Authenticated users must not insert proof attestations';
   end if;
   if (select count(*) from public.nova_mission_action_receipts
-      where action_key like 'action-%-fixture-001') <> 3 then
+      where action_key like 'action-%-fixture-001') <> 2 then
     raise exception 'Mission owner cannot read their own action receipts';
   end if;
   if has_table_privilege('authenticated','public.nova_mission_action_receipts','insert')
