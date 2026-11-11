@@ -2,6 +2,7 @@ import { validateMissionToolPolicy } from "./mission-tool-policy.ts";
 import {
   authorizeMissionToolAction,
   buildMissionToolPolicyApprovalSummary,
+  missionToolPayloadDigest,
   type MissionToolGatewayContext,
   type MissionToolPolicy,
 } from "./mission-tool-gateway.ts";
@@ -97,6 +98,19 @@ const request = {
   scope: { kind: "resource" as const, ref: "approved-recipient-list" },
   requestDigest: "a".repeat(64),
 };
+
+Deno.test("tool payload digest is canonical, exact and rejects non-object payloads", async () => {
+  const first = await missionToolPayloadDigest({ to: "owner@example.test", subject: "Approved", body: "Exact content" });
+  const reordered = await missionToolPayloadDigest({ body: "Exact content", subject: "Approved", to: "owner@example.test" });
+  const changed = await missionToolPayloadDigest({ to: "owner@example.test", subject: "Approved", body: "Changed content" });
+  if (first !== reordered) throw new Error("Equivalent JSON payloads did not produce a stable digest");
+  if (first === changed) throw new Error("A changed outbound payload reused the original digest");
+  for (const invalid of [null, [], "text", 42]) {
+    let denied = false;
+    try { await missionToolPayloadDigest(invalid); } catch { denied = true; }
+    if (!denied) throw new Error("Non-object outbound payload was accepted for hashing");
+  }
+});
 
 Deno.test("runtime tool gateway allows only a policy-bound approved action with a fresh lease", async () => {
   const context = await makeContext();
