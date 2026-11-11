@@ -1,3 +1,4 @@
+import { validateMissionToolPolicy } from "./mission-tool-policy.ts";
 import {
   createBuildRequirementsVerifier,
   createBuildDesignFlowVerifier,
@@ -1003,7 +1004,12 @@ async function makeAgentsToolGatesResult() {
 
 Deno.test("agents tool-gates verifier accepts allowlisted scoped tools with approval for side effects", async () => {
   const verifier = createAgentsToolGatesVerifier(() => fixedNow);
-  const result = await verifier.verify(agentsToolGatesTask, await makeAgentsToolGatesResult());
+  const executionResult = await makeAgentsToolGatesResult();
+  const result = await verifier.verify(agentsToolGatesTask, executionResult);
+  const persistedPolicy = { version: 1 as const, gates: executionResult.output.toolGates };
+  if (!validateMissionToolPolicy(persistedPolicy)) {
+    throw new Error("Verified tool-gate output does not satisfy the persisted proof policy schema");
+  }
   if (!result.passed || result.checks.length !== 5 ||
       result.verifierId !== "agents.tool-gates-policy" ||
       result.verifierVersion !== "1.0.0") {
