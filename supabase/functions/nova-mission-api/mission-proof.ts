@@ -82,6 +82,7 @@ function cloneProofOutput(value: unknown, depth = 0, ancestors = new Set<object>
 }
 
 function cloneProofValue(value: unknown, depth: number, ancestors: Set<object>): unknown {
+  if (depth > 16) throw new TypeError("Task output is too deep or cyclic");
   if (Array.isArray(value)) {
     if (Object.getPrototypeOf(value) !== Array.prototype || value.length > 50000 ||
         ancestors.has(value)) throw new TypeError("Task output contains an invalid array");
