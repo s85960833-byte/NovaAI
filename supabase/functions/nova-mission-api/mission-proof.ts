@@ -1,4 +1,8 @@
 import { validateMissionToolPolicy, type MissionToolPolicy } from "./mission-tool-policy.ts";
+import {
+  validateMissionPermissionPolicy,
+  type MissionPermissionPolicy,
+} from "./mission-permission-policy.ts";
 
 export interface MissionProofEnvelope {
   schema_version: "nova.proof.v1";
@@ -11,6 +15,7 @@ export interface MissionProofEnvelope {
   outcome: "passed" | "failed";
   checks: Array<{ id: string; passed: boolean; detail?: string }>;
   tool_policy?: MissionToolPolicy;
+  permission_policy?: MissionPermissionPolicy;
 }
 
 export interface MissionProofBinding {
@@ -103,6 +108,11 @@ export async function verifyMissionProofEnvelope(
     if (!validateMissionToolPolicy(value.tool_policy)) return invalid("Trusted tool-gates proof must include a valid immutable tool policy snapshot");
   } else if (value.tool_policy !== undefined) {
     return invalid("Only the trusted tool-gates verifier may attach a tool policy snapshot");
+  }
+  if (value.verifier_id === "agents.permissions-least-privilege") {
+    if (!validateMissionPermissionPolicy(value.permission_policy)) return invalid("Trusted permissions proof must include a valid immutable permission policy snapshot");
+  } else if (value.permission_policy !== undefined) {
+    return invalid("Only the trusted permissions verifier may attach a permission policy snapshot");
   }
   if (typeof value.observed_at !== "string" || value.observed_at.length > 40 ||
       !Number.isFinite(Date.parse(value.observed_at))) return invalid("Proof observation timestamp is invalid");
