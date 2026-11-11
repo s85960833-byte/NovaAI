@@ -293,4 +293,12 @@ Deno.test("proof builder copies output only from the immutable task execution re
     createMissionProofEnvelope(fields, { output: { items: new Array(2) } });
   } catch { sparseRejected = true; }
   if (!sparseRejected) throw new Error("Proof builder accepted a sparse output array");
+
+  let deeplyNested: unknown = "leaf";
+  for (let depth = 0; depth < 18; depth++) deeplyNested = [deeplyNested];
+  let depthRejected = false;
+  try {
+    createMissionProofEnvelope(fields, { output: { nested: deeplyNested } });
+  } catch { depthRejected = true; }
+  if (!depthRejected) throw new Error("Proof builder accepted output nested beyond the depth limit");
 });
