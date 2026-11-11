@@ -1,5 +1,6 @@
 import {
   canonicalizeMissionProof,
+  createMissionProofEnvelope,
   verifyMissionProofEnvelope,
   type MissionProofEnvelope,
 } from "./mission-proof.ts";
@@ -243,4 +244,36 @@ Deno.test("permission proofs reject missing or malformed snapshots and other ver
     const result = await verifyMissionProofEnvelope(value, expected);
     if (result.valid) throw new Error("Invalid or smuggled permission policy snapshot was accepted");
   }
+});
+
+
+Deno.test("proof builder copies output only from the immutable task execution result", () => {
+  const taskResult = Object.freeze({
+    output: Object.freeze({ reportId: "report-123", findings: Object.freeze(["a", "b"]) }),
+  });
+  const fields = {
+    mission_id: binding.missionId,
+    task_id: binding.taskId,
+    run_id: binding.runId,
+    verifier_id: binding.verifierId,
+    verifier_version: binding.verifierVersion,
+    observed_at: "2026-11-10T11:00:00.000Z",
+    outcome: "passed" as const,
+    checks: [{ id: "report-verified", passed: true }],
+  };
+  const built = createMissionProofEnvelope(fields, taskResult);
+  if (canonicalizeMissionProof(built.output) !== canonicalizeMissionProof(taskResult.output)) {
+    throw new Error("Proof builder substituted the task output");
+  }
+  const verified = verifyMissionProofEnvelope(built, binding);
+  if (!verified.valid) throw new Error("Proof builder emitted an invalid envelope: " + verified.reason);
+
+  let rejected = false;
+  try {
+    createMissionProofEnvelope(
+      { ...fields, output: { forged: true } } as unknown as Omit<MissionProofEnvelope, "schema_version" | "output">,
+      taskResult,
+    );
+  } catch { rejected = true; }
+  if (!rejected) throw new Error("Proof builder accepted caller-supplied output");
 });
