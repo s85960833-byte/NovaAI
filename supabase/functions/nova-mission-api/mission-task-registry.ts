@@ -51,9 +51,14 @@ export interface MissionTaskVerifier {
 }
 
 interface RegisteredTaskType {
-  inputSchema: MissionTaskInputSchema;
+  inputSchemaVersion: number;
+  validateInput: MissionTaskInputSchema["validate"];
   handler: MissionTaskHandler;
+  execute: MissionTaskHandler["execute"];
   verifier: MissionTaskVerifier;
+  verify: MissionTaskVerifier["verify"];
+  verifierId: string;
+  verifierVersion: string;
 }
 
 export class MissionTaskNotExecutableError extends Error {
@@ -129,7 +134,19 @@ export class MissionTaskRegistry {
         typeof verifier.version !== "string" || !verifier.version.trim()) {
       throw new TypeError("An independent trusted verifier is required");
     }
-    this.#registrations.set(key, { inputSchema, handler, verifier });
+    // Capture version, identity and method references at registration. A
+    // later mutation of a configuration object must not swap the trusted code
+    // or verifier identity underneath an in-flight task.
+    this.#registrations.set(key, {
+      inputSchemaVersion: inputSchema.version,
+      validateInput: inputSchema.validate,
+      handler,
+      execute: handler.execute,
+      verifier,
+      verify: verifier.verify,
+      verifierId: verifier.id,
+      verifierVersion: verifier.version,
+    });
   }
 
   has(taskType: string): boolean {
@@ -160,13 +177,13 @@ export class MissionTaskRegistry {
       );
     }
 
-    if (taskSnapshot.inputSchemaVersion !== registration.inputSchema.version) {
+    if (taskSnapshot.inputSchemaVersion !== registration.inputSchemaVersion) {
       throw new TypeError("Mission task input schema version is unsupported");
     }
 
     let inputIsValid = false;
     try {
-      inputIsValid = registration.inputSchema.validate(taskSnapshot.input) === true;
+      inputIsValid = registration.validateInput.call(undefined, taskSnapshot.input) === true;
     } catch {
       inputIsValid = false;
     }
@@ -174,7 +191,7 @@ export class MissionTaskRegistry {
       throw new TypeError("Mission task input does not match its registered schema");
     }
 
-    const rawResult = await registration.handler.execute(taskSnapshot);
+    const rawResult = await registration.execute.call(registration.handler, taskSnapshot);
     if (!rawResult || typeof rawResult !== "object" ||
         !isRecord(rawResult.output) || !isRecord(rawResult.evidence)) {
       throw new TypeError("Task handler returned an invalid result envelope");
@@ -185,12 +202,12 @@ export class MissionTaskRegistry {
       output: snapshotRecord(rawResult.output, "Task output"),
       evidence: snapshotRecord(rawResult.evidence, "Task evidence"),
     }) as MissionExecutionResult;
-    const rawVerification = await registration.verifier.verify(taskSnapshot, result);
+    const rawVerification = await registration.verify.call(registration.verifier, taskSnapshot, result);
     // Detach verifier-owned objects too: callers must not be able to mutate the
     // attestation after validation, and the verifier cannot mutate it later.
     const verification = snapshotRecord(rawVerification, "Task verification") as unknown as MissionVerificationResult;
-    if (verification.verifierId !== registration.verifier.id ||
-        verification.verifierVersion !== registration.verifier.version ||
+    if (verification.verifierId !== registration.verifierId ||
+        verification.verifierVersion !== registration.verifierVersion ||
         !Array.isArray(verification.checks) || verification.checks.length < 1 ||
         verification.checks.length > 50 ||
         !verification.checks.every(isValidCheck) ||
