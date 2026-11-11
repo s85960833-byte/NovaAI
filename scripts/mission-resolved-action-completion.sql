@@ -9,6 +9,11 @@ create temp table mission_resolved_action_fixture (
   action_id uuid, lease_token uuid, proof_id uuid, attestation_id uuid
 );
 
+-- The fixture is created by the database test owner but accessed under
+-- service_role/authenticated below; grant only the operations each test role needs.
+grant select, insert on mission_resolved_action_fixture to service_role;
+grant select on mission_resolved_action_fixture to authenticated;
+
 set role service_role;
 select set_config('request.jwt.claim.role','service_role',false);
 do $fixture$
