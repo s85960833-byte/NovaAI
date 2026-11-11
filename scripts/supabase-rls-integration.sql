@@ -1271,6 +1271,7 @@ select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111'
 do $mission_attestation_owner_read$
 declare
   v_action uuid;
+  v_completed_action uuid;
   v_resolution uuid;
 begin
   select id into v_action from public.nova_mission_action_receipts
@@ -1294,6 +1295,19 @@ begin
        <> 'confirmed_not_executed' then
     raise exception 'Mission owner could not record an evidence-backed uncertain-action resolution';
   end if;
+  select id into v_completed_action from public.nova_mission_action_receipts
+   where action_key='action-complete-fixture-001';
+  if v_completed_action is null then
+    raise exception 'Completed action fixture is missing';
+  end if;
+  begin
+    perform public.nova_resolve_uncertain_mission_action(
+      v_completed_action,'confirmed_not_executed','provider-audit://completed-action',
+      'A completed action must not be reopened through uncertain-action resolution.'
+    );
+    raise exception 'A completed action unexpectedly accepted uncertain-action resolution';
+  exception when sqlstate '55000' then null;
+  end;
   begin
     perform public.nova_resolve_uncertain_mission_action(
       v_action,'confirmed_executed','provider-audit://fixture-conflict-002',
