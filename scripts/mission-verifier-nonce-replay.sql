@@ -28,6 +28,52 @@ begin
     null;
   end;
 
+  -- Database boundary rejects unsupported envelope and check fields before nonce use.
+  begin
+    perform public.nova_persist_mission_proof_and_complete_with_nonce(
+      v_run, 'nonce-envelope-test-worker', gen_random_uuid(),
+      jsonb_build_object(
+        'schema_version','nova.proof.v1',
+        'mission_id',gen_random_uuid()::text,
+        'task_id',gen_random_uuid()::text,
+        'run_id',v_run::text,
+        'verifier_id','test.nonce-envelope',
+        'verifier_version','1.0.0',
+        'observed_at',now()::text,
+        'outcome','passed',
+        'checks',jsonb_build_array(jsonb_build_object('id','shape','passed',true)),
+        'assurance_level','external_verified'
+      ),
+      repeat('a',64), 'Unsupported envelope field test',
+      'test.nonce-envelope', gen_random_uuid()
+    );
+    raise exception 'Unsupported proof envelope field was accepted';
+  exception when check_violation then
+    null;
+  end;
+
+  begin
+    perform public.nova_persist_mission_proof_and_complete_with_nonce(
+      v_run, 'nonce-check-test-worker', gen_random_uuid(),
+      jsonb_build_object(
+        'schema_version','nova.proof.v1',
+        'mission_id',gen_random_uuid()::text,
+        'task_id',gen_random_uuid()::text,
+        'run_id',v_run::text,
+        'verifier_id','test.nonce-check',
+        'verifier_version','1.0.0',
+        'observed_at',now()::text,
+        'outcome','passed',
+        'checks',jsonb_build_array(jsonb_build_object('id','shape','passed',true,'evidence_url','https://example.invalid'))
+      ),
+      repeat('a',64), 'Unsupported check field test',
+      'test.nonce-check', gen_random_uuid()
+    );
+    raise exception 'Unsupported proof check field was accepted';
+  exception when check_violation then
+    null;
+  end;
+
   -- A committed nonce cannot be consumed a second time, even under another run.
   insert into public.nova_mission_verifier_nonce_ledger(verifier_id, verifier_nonce, run_id)
   values ('test.nonce-replay', v_duplicate_nonce, v_run);
