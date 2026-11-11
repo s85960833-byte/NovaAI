@@ -32,6 +32,12 @@ declare
   v_approval uuid;
   v_run uuid;
   v_token uuid;
+  v_race_mission uuid;
+  v_race_task uuid;
+  v_race_approval uuid;
+  v_race_run uuid;
+  v_race_token uuid;
+  v_race_action uuid;
 begin
   v_mission := public.nova_create_mission(
     v_owner,'Concurrent action reservation regression',
@@ -53,15 +59,7 @@ begin
   insert into public.nova_mission_concurrency_fixture(mission_id,run_id,lease_token)
   values(v_mission,v_run,v_token);
   -- Prepare a second mission with an uncertain action and a fully released lease.
-  declare
-    v_race_mission uuid;
-    v_race_task uuid;
-    v_race_approval uuid;
-    v_race_run uuid;
-    v_race_token uuid;
-    v_race_action uuid;
-  begin
-    v_race_mission := public.nova_create_mission(
+  v_race_mission := public.nova_create_mission(
       v_owner,'Concurrent owner resolution and claim regression',
       'Owner resolution and worker claim must serialize','agents',
       'mission-concurrent-resolution-claim-001','{}'::jsonb
@@ -89,10 +87,9 @@ begin
     ) <> 'authorized' then
       raise exception 'Could not release race fixture worker lease';
     end if;
-    insert into public.nova_mission_concurrency_fixture(
-      mission_id,run_id,lease_token,owner_id,action_id
-    ) values(v_race_mission,v_race_run,v_race_token,v_owner,v_race_action);
-  end;
+  insert into public.nova_mission_concurrency_fixture(
+    mission_id,run_id,lease_token,owner_id,action_id
+  ) values(v_race_mission,v_race_run,v_race_token,v_owner,v_race_action);
 end;
 $fixture$;
 reset role;
