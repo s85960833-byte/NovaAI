@@ -75,3 +75,82 @@ Deno.test("rejects oversized and non-JSON proof payloads", () => {
     if (!(error instanceof TypeError)) throw error;
   }
 });
+
+
+const toolPolicy = {
+  version: 1 as const,
+  gates: [{
+    id: "read-project-files",
+    tool: "files.read",
+    operation: "read",
+    scope: { kind: "project" as const, ref: "nova-project" },
+    risk: "low" as const,
+    approvalRequired: false,
+    credentialBoundary: "user_session" as const,
+    reason: "Read only files explicitly attached to this project.",
+    sourceRefIds: ["mission-input"],
+  }, {
+    id: "send-approved-email",
+    tool: "email.send",
+    operation: "send",
+    scope: { kind: "resource" as const, ref: "approved-recipient-list" },
+    risk: "high" as const,
+    approvalRequired: true,
+    credentialBoundary: "user_session" as const,
+    reason: "Send only owner-approved content to approved recipients.",
+    sourceRefIds: ["mission-input"],
+  }],
+};
+
+const toolPolicyBinding = {
+  ...binding,
+  verifierId: "agents.tool-gates-policy",
+  verifierVersion: "1.0.0",
+};
+
+Deno.test("trusted tool-gates proof persists its exact validated policy snapshot in the signed envelope", async () => {
+  const value = {
+    ...envelope(),
+    verifier_id: toolPolicyBinding.verifierId,
+    verifier_version: toolPolicyBinding.verifierVersion,
+    tool_policy: toolPolicy,
+  };
+  const result = await verifyMissionProofEnvelope(value, toolPolicyBinding);
+  if (!result.valid || !/^[a-f0-9]{64}$/.test(result.digest || "")) {
+    throw new Error("A valid tool policy snapshot was not accepted: " + result.reason);
+  }
+});
+
+Deno.test("tool-gates proof rejects missing or malformed policy snapshots and other verifiers cannot attach one", async () => {
+  const missing = {
+    ...envelope(),
+    verifier_id: toolPolicyBinding.verifierId,
+    verifier_version: toolPolicyBinding.verifierVersion,
+  };
+  const malformed = {
+    ...missing,
+    tool_policy: {
+      version: 1,
+      gates: [{
+        id: "unrestricted-shell",
+        tool: "shell.exec",
+        operation: "execute",
+        scope: { kind: "workspace", ref: "current-workspace" },
+        risk: "high",
+        approvalRequired: true,
+        credentialBoundary: "user_session",
+        reason: "Run unrestricted shell commands for the agent.",
+        sourceRefIds: ["mission-input"],
+      }],
+    },
+  };
+  const smuggled = { ...envelope(), tool_policy: toolPolicy };
+  for (const [value, expected] of [
+    [missing, toolPolicyBinding],
+    [malformed, toolPolicyBinding],
+    [smuggled, binding],
+  ] as const) {
+    const result = await verifyMissionProofEnvelope(value, expected);
+    if (result.valid) throw new Error("Invalid or smuggled tool policy snapshot was accepted");
+  }
+});
