@@ -81,6 +81,20 @@ begin
     null;
   end;
 
+  -- Scalar and array envelopes must be rejected cleanly at the database boundary.
+  foreach v_checks in array array['null'::jsonb, '42'::jsonb, '"text"'::jsonb, '[]'::jsonb] loop
+    begin
+      perform public.nova_persist_mission_proof_and_complete_with_nonce(
+        v_run, 'nonce-non-object-envelope-worker', gen_random_uuid(),
+        v_checks, repeat('a',64), 'Non-object envelope test',
+        'test.non-object-envelope', gen_random_uuid()
+      );
+      raise exception 'Non-object proof envelope was accepted';
+    exception when check_violation then
+      null;
+    end;
+  end loop;
+
   -- A proof without the exact output it attests must fail before nonce consumption.
   begin
     perform public.nova_persist_mission_proof_and_complete_with_nonce(
