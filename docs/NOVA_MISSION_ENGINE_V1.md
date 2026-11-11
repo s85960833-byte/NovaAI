@@ -89,7 +89,7 @@ The feature branch now includes `supabase/functions/nova-mission-api/mission-too
 - Calls only an injected reservation callback after all checks. The production adapter must bind this callback to the service-role-only `nova_reserve_mission_action` RPC and calculate the request digest from the exact outbound payload.
 - A replayed reservation, completed action or uncertain action is never authorized for another execution.
 
-**Important boundary:** the module does not load database records, create approvals, call the reservation RPC itself, or invoke external tools. Its context must be assembled from trusted service-role reads; an API/worker adapter must connect it to the approval UI and reservation RPC before it can protect any real tool. The current SQL reservation RPC independently enforces the active approved lease and idempotency but does not itself evaluate the tool policy. No worker is registered, and no external action can be performed by this module.
+**Important boundary:** the module does not load database records, create approvals, call the reservation RPC itself, or invoke external tools. Its context must be assembled from trusted service-role reads, including the policy snapshot in the signed proof envelope; an API/worker adapter must connect it to the approval UI and reservation RPC before it can protect any real tool. The current SQL reservation RPC independently enforces the active approved lease and idempotency but does not itself evaluate the tool policy. No worker is registered, and no external action can be performed by this module.
 
 ## Worker lease foundation (not an active worker)
 
