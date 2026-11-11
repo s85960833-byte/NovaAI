@@ -51,6 +51,7 @@ export interface MissionTaskVerifier {
 }
 
 interface RegisteredTaskType {
+  inputSchema: MissionTaskInputSchema;
   inputSchemaVersion: number;
   validateInput: MissionTaskInputSchema["validate"];
   handler: MissionTaskHandler;
@@ -138,6 +139,7 @@ export class MissionTaskRegistry {
     // later mutation of a configuration object must not swap the trusted code
     // or verifier identity underneath an in-flight task.
     this.#registrations.set(key, {
+      inputSchema,
       inputSchemaVersion: inputSchema.version,
       validateInput: inputSchema.validate,
       handler,
@@ -183,7 +185,7 @@ export class MissionTaskRegistry {
 
     let inputIsValid = false;
     try {
-      inputIsValid = registration.validateInput.call(undefined, taskSnapshot.input) === true;
+      inputIsValid = registration.validateInput.call(registration.inputSchema, taskSnapshot.input) === true;
     } catch {
       inputIsValid = false;
     }
