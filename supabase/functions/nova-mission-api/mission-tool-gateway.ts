@@ -60,6 +60,16 @@ export async function missionToolPolicyDigest(policy: MissionToolPolicy): Promis
   return await sha256(canonicalizeMissionProof(policy));
 }
 
+/**
+ * Computes a deterministic digest from the exact JSON payload an executor intends
+ * to send. Workers must call this on the final outbound payload, not on a plan or
+ * caller-supplied summary. This helper does not perform the outbound request.
+ */
+export async function missionToolPayloadDigest(payload: unknown): Promise<string> {
+  if (!isRecord(payload)) throw new TypeError("Tool payload must be a plain JSON object");
+  return await sha256(canonicalizeMissionProof(payload));
+}
+
 /** Approval binds both independently verified policy snapshots by digest. */
 export async function buildMissionToolPolicyApprovalSummary(
   policy: MissionToolPolicy,
