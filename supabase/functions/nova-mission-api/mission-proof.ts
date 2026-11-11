@@ -1,3 +1,5 @@
+import { validateMissionToolPolicy, type MissionToolPolicy } from "./mission-tool-policy.ts";
+
 export interface MissionProofEnvelope {
   schema_version: "nova.proof.v1";
   mission_id: string;
@@ -8,6 +10,7 @@ export interface MissionProofEnvelope {
   observed_at: string;
   outcome: "passed" | "failed";
   checks: Array<{ id: string; passed: boolean; detail?: string }>;
+  tool_policy?: MissionToolPolicy;
 }
 
 export interface MissionProofBinding {
@@ -96,6 +99,11 @@ export async function verifyMissionProofEnvelope(
       value.verifier_id !== expected.verifierId) return invalid("Proof verifier identity does not match the trusted verifier");
   if (typeof value.verifier_version !== "string" || value.verifier_version.length < 1 || value.verifier_version.length > 40 ||
       value.verifier_version !== expected.verifierVersion) return invalid("Proof verifier version does not match the trusted verifier");
+  if (value.verifier_id === "agents.tool-gates-policy") {
+    if (!validateMissionToolPolicy(value.tool_policy)) return invalid("Trusted tool-gates proof must include a valid immutable tool policy snapshot");
+  } else if (value.tool_policy !== undefined) {
+    return invalid("Only the trusted tool-gates verifier may attach a tool policy snapshot");
+  }
   if (typeof value.observed_at !== "string" || value.observed_at.length > 40 ||
       !Number.isFinite(Date.parse(value.observed_at))) return invalid("Proof observation timestamp is invalid");
   if (!Array.isArray(value.checks) || value.checks.length < 1 || value.checks.length > MAX_CHECKS) {
