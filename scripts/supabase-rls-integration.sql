@@ -965,9 +965,7 @@ declare
   v_envelope jsonb;
   v_action uuid;
   v_action_again uuid;
-  v_uncertain_action uuid;
   v_reserved_action uuid;
-  v_fail_action uuid;
   v_action_status text;
   v_replayed boolean;
 begin
