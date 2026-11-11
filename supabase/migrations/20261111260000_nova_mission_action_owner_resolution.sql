@@ -89,6 +89,10 @@ begin
   select status into v_run_status from public.nova_mission_execution_runs
    where id = v_run_id and owner_id = v_owner_id for update;
   if not found then raise exception 'Execution run not found' using errcode = 'P0002'; end if;
+  if v_run_status = 'running' then
+    raise exception 'An uncertain action can only be owner-resolved after its worker lease has been released'
+      using errcode = '55P03';
+  end if;
   select status into v_task_status from public.nova_mission_tasks
    where id = v_task_id and mission_id = v_mission_id and owner_id = v_owner_id for update;
   if not found then raise exception 'Task not found' using errcode = 'P0002'; end if;
