@@ -5,7 +5,12 @@ import {
   type MissionToolGate,
   type MissionToolPolicy,
 } from "./mission-tool-policy.ts";
+import {
+  validateMissionPermissionPolicy,
+  type MissionPermissionPolicy,
+} from "./mission-permission-policy.ts";
 export type { MissionToolGate, MissionToolPolicy } from "./mission-tool-policy.ts";
+export type { MissionPermissionPolicy } from "./mission-permission-policy.ts";
 
 const SHA256 = /^[a-f0-9]{64}$/;
 
@@ -25,6 +30,8 @@ export interface MissionToolGatewayContext {
   approval: { id: string; missionId: string; taskId: string; ownerId: string; status: string; actionSummary: string };
   policyProof: { id: string; missionId: string; taskId: string; ownerId: string; taskType: string; status: string; outcome: string; verifierId: string; verifierVersion: string; runId: string; policy: unknown };
   policyAttestation: { proofId: string; missionId: string; taskId: string; ownerId: string; runId: string; verifierId: string; verifierVersion: string; outcome: string };
+  permissionProof: { id: string; missionId: string; taskId: string; ownerId: string; taskType: string; status: string; outcome: string; verifierId: string; verifierVersion: string; runId: string; policy: unknown };
+  permissionAttestation: { proofId: string; missionId: string; taskId: string; ownerId: string; runId: string; verifierId: string; verifierVersion: string; outcome: string };
 }
 
 export interface MissionToolReservation {
@@ -53,22 +60,42 @@ export async function missionToolPolicyDigest(policy: MissionToolPolicy): Promis
   return await sha256(canonicalizeMissionProof(policy));
 }
 
-/** Human-readable approval text is cryptographically bound to the exact gate policy. */
-export async function buildMissionToolPolicyApprovalSummary(policy: MissionToolPolicy): Promise<string> {
-  const digest = await missionToolPolicyDigest(policy);
+/** Approval binds both independently verified policy snapshots by digest. */
+export async function buildMissionToolPolicyApprovalSummary(
+  policy: MissionToolPolicy,
+  permissions: MissionPermissionPolicy,
+): Promise<string> {
+  const toolDigest = await missionToolPolicyDigest(policy);
+  const permissionDigest = await sha256(canonicalizeMissionProof(permissions));
   const lines = policy.gates.map((gate) =>
     `${gate.tool}|${gate.operation}|${gate.scope.kind}:${gate.scope.ref}|${gate.risk}|approval=${gate.approvalRequired ? "required" : "none"}`
   );
+  const permissionLines = permissions.permissions.map((permission) =>
+    `${permission.id}|${permission.scope.kind}:${permission.scope.ref}|${permission.actions.join(",")}|approval=${permission.approvalRequired ? "required" : "none"}`
+  );
   const summary = [
-    "NOVA_TOOL_POLICY_V1",
-    `Policy digest: ${digest}`,
+    "NOVA_TOOL_AND_PERMISSION_POLICY_V1",
+    `Tool policy digest: ${toolDigest}`,
+    `Permission policy digest: ${permissionDigest}`,
     "Allowed tool actions:",
     ...lines,
+    "Granted permission actions:",
+    ...permissionLines,
   ].join("\n");
   if (summary.length > 2000) {
-    throw new TypeError("Tool policy approval summary exceeds the database limit");
+    throw new TypeError("Combined tool and permission approval summary exceeds the database limit");
   }
   return summary;
+}
+
+function requiredPermissionAction(tool: string, operation: string): string | null {
+  if (operation === "read" && tool.endsWith(".read")) return "read";
+  if (operation === "write" && tool.endsWith(".write")) return "update";
+  if (tool === "browser.submit" && operation === "submit") return "publish";
+  if (tool === "email.send" && operation === "send") return "send";
+  if (tool === "payments.create" && operation === "create") return "create";
+  if (tool === "deployment.deploy" && operation === "deploy") return "execute";
+  return null;
 }
 
 function denied(reason: string): MissionToolGatewayResult {
@@ -132,8 +159,34 @@ export async function authorizeMissionToolAction(
   }
   if (!validateMissionToolPolicy(policyProof.policy)) return denied("Stored tool policy is invalid");
   const policy = policyProof.policy;
+
+  const permissionProof = context.permissionProof;
+  const permissionAttestation = context.permissionAttestation;
+  if (!permissionProof.id || !permissionProof.taskId || !permissionProof.runId ||
+      permissionProof.missionId !== context.mission.id ||
+      permissionProof.ownerId !== context.mission.ownerId ||
+      permissionProof.taskType !== "agents.permissions" ||
+      permissionProof.taskId === context.task.id ||
+      permissionProof.taskId === policyProof.taskId ||
+      permissionProof.status !== "passed" || permissionProof.outcome !== "passed" ||
+      permissionProof.verifierId !== "agents.permissions-least-privilege" ||
+      permissionProof.verifierVersion !== "1.0.0" ||
+      !permissionAttestation.proofId || permissionAttestation.proofId !== permissionProof.id ||
+      permissionAttestation.missionId !== permissionProof.missionId ||
+      permissionAttestation.taskId !== permissionProof.taskId ||
+      permissionAttestation.ownerId !== permissionProof.ownerId ||
+      permissionAttestation.runId !== permissionProof.runId ||
+      permissionAttestation.verifierId !== permissionProof.verifierId ||
+      permissionAttestation.verifierVersion !== permissionProof.verifierVersion ||
+      permissionAttestation.outcome !== "passed") {
+    return denied("A matching passing, trusted permission-policy attestation is required");
+  }
+  if (!validateMissionPermissionPolicy(permissionProof.policy)) {
+    return denied("Stored permission policy is invalid");
+  }
+  const permissions = permissionProof.policy;
   const policyDigest = await missionToolPolicyDigest(policy);
-  const expectedSummary = await buildMissionToolPolicyApprovalSummary(policy);
+  const expectedSummary = await buildMissionToolPolicyApprovalSummary(policy, permissions);
   if (context.approval.actionSummary !== expectedSummary) {
     return denied("Owner approval is not bound to this exact tool policy");
   }
@@ -145,6 +198,17 @@ export async function authorizeMissionToolAction(
     item.scope.kind === request.scope.kind && item.scope.ref === request.scope.ref
   );
   if (!gate) return denied("No approved tool gate matches this exact action and scope");
+  const permissionAction = requiredPermissionAction(request.tool, request.operation);
+  if (!permissionAction) return denied("Tool operation has no explicit permission-action mapping");
+  const permission = permissions.permissions.find((item) =>
+    item.scope.kind === request.scope.kind && item.scope.ref === request.scope.ref &&
+    item.actions.includes(permissionAction)
+  );
+  if (!permission) return denied("No matching permission grant authorizes this exact action and scope");
+  if ((gate.approvalRequired || permission.approvalRequired) &&
+      context.approval.status !== "approved") {
+    return denied("The exact tool and permission action requires owner approval");
+  }
   if (gate.credentialBoundary === "none" && request.tool !== "files.read" &&
       request.tool !== "repo.read" && request.tool !== "browser.read" &&
       request.tool !== "database.read") {
