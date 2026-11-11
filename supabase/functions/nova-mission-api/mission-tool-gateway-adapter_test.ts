@@ -283,3 +283,25 @@ Deno.test("trusted gateway adapter rejects proof digest tampering and incomplete
   } catch { stateDenied = true; }
   if (!stateDenied) throw new Error("Incomplete policy task was accepted");
 });
+
+Deno.test("trusted gateway adapter rejects malformed lease and worker identifiers before querying", async () => {
+  for (const override of [{ leaseToken: "not-a-uuid" }, { workerId: "bad worker id" }]) {
+    let queried = false;
+    const db = noRowsDb();
+    const guarded: MissionServiceRoleDatabase = {
+      from(table) { queried = true; return db.from(table); },
+      rpc(name, args) { return db.rpc(name, args); },
+    };
+    try {
+      await loadMissionToolGatewayContext(guarded, {
+        missionId: UUIDS.mission, taskId: UUIDS.task, runId: UUIDS.run,
+        ownerId: UUIDS.owner, workerId: "worker-a", leaseToken: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        ...override,
+      });
+    } catch {
+      if (queried) throw new Error("Malformed worker lease data reached the database");
+      continue;
+    }
+    throw new Error("Malformed worker lease data was accepted");
+  }
+});
