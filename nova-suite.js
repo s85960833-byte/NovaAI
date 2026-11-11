@@ -77,7 +77,7 @@ function signedProofOutput(proof){
  let serialized;
  try{serialized=JSON.stringify(envelope.output,null,2)}catch{return ''}
  if(typeof serialized!=='string'||serialized.length>50000)return '';
- return '<details class="ns-card"><summary>'+esc(bi('Signed task output'))+'</summary><p class="ns-muted">'+esc(bi('Structural verification only / केवल संरचनात्मक जाँच — external facts are not independently verified / बाहरी तथ्यों की स्वतंत्र जाँच नहीं हुई है।'))+'</p><pre class="ns-out">'+esc(serialized)+'</pre></details>';
+ return '<details class="ns-card"><summary>'+esc(bi('Signed task output'))+'</summary><p class="ns-muted">'+esc(bi('Structural verification only — external facts are not independently verified / केवल संरचनात्मक जाँच — बाहरी तथ्यों की स्वतंत्र जाँच नहीं हुई है।'))+'</p><pre class="ns-out">'+esc(serialized)+'</pre></details>';
 }
 async function showMissionDetail(id){
  currentMissionId=id;
