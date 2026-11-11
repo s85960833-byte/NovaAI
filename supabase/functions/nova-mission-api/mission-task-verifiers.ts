@@ -623,3 +623,143 @@ export function createLearnGoalClarificationVerifier(
     },
   });
 }
+
+
+/** Validates navigation graph integrity, not the visual quality of the proposed UX. */
+const DESIGN_FLOW_VERIFIER_ID = "build.design-flow-graph";
+const DESIGN_FLOW_VERIFIER_VERSION = "1.0.0";
+
+export const buildDesignFlowInputV1: MissionTaskInputSchema = Object.freeze({
+  version: 1,
+  validate(value: unknown): value is Readonly<Record<string, unknown>> {
+    return isRecord(value) && hasExactKeys(value, ["description"]) &&
+      typeof value.description === "string" &&
+      value.description.trim().length >= 1 &&
+      value.description.length <= 2000;
+  },
+});
+
+export function createBuildDesignFlowVerifier(
+  clock: () => Date = () => new Date(),
+): MissionTaskVerifier {
+  return Object.freeze({
+    id: DESIGN_FLOW_VERIFIER_ID,
+    version: DESIGN_FLOW_VERIFIER_VERSION,
+    async verify(
+      task: MissionTaskDescriptor,
+      result: MissionExecutionResult,
+    ): Promise<MissionVerificationResult> {
+      const observedAt = clock().toISOString();
+      const checks: Array<{ id: string; passed: boolean; detail?: string }> = [];
+      const inputValid = buildDesignFlowInputV1.validate(task.input);
+      checks.push({
+        id: "input-contract",
+        passed: inputValid && task.taskType === "build.design_flow" &&
+          task.inputSchemaVersion === buildDesignFlowInputV1.version,
+        detail: "Task must use the version-1 design-flow input contract",
+      });
+
+      const output = result.output;
+      const outputValid = isRecord(output) &&
+        hasExactKeys(output, ["screens", "edges", "startScreenId"]) &&
+        Array.isArray(output.screens) && Array.isArray(output.edges);
+      const screens = outputValid ? output.screens as unknown[] : [];
+      const edges = outputValid ? output.edges as unknown[] : [];
+      const screenIds = new Set<string>();
+      let screensValid = outputValid && screens.length >= 2 && screens.length <= 40;
+      if (screensValid) {
+        for (const screen of screens) {
+          if (!isRecord(screen) || !hasExactKeys(screen, ["id", "title"]) ||
+              typeof screen.id !== "string" || !UUID_LIKE_ID.test(screen.id) ||
+              typeof screen.title !== "string" || screen.title.trim().length < 2 ||
+              screen.title.length > 100 || screenIds.has(screen.id)) {
+            screensValid = false;
+            break;
+          }
+          screenIds.add(screen.id);
+        }
+      }
+      checks.push({
+        id: "screen-identities",
+        passed: screensValid && screenIds.size === screens.length,
+        detail: "A flow needs 2–40 screens with unique bounded IDs and titles",
+      });
+
+      const edgePairs = new Set<string>();
+      let edgesValid = outputValid && edges.length >= 1 && edges.length <= 120;
+      const adjacency = new Map<string, string[]>();
+      if (edgesValid) {
+        for (const edge of edges) {
+          if (!isRecord(edge) || !hasExactKeys(edge, ["from", "to"]) ||
+              typeof edge.from !== "string" || typeof edge.to !== "string" ||
+              !screenIds.has(edge.from) || !screenIds.has(edge.to) ||
+              edge.from === edge.to) {
+            edgesValid = false;
+            break;
+          }
+          const key = edge.from + "\u0000" + edge.to;
+          if (edgePairs.has(key)) {
+            edgesValid = false;
+            break;
+          }
+          edgePairs.add(key);
+          adjacency.set(edge.from, [...(adjacency.get(edge.from) ?? []), edge.to]);
+        }
+      }
+      checks.push({
+        id: "navigation-edge-integrity",
+        passed: edgesValid,
+        detail: "Edges must connect existing distinct screens without duplicates",
+      });
+
+      const start = outputValid ? output.startScreenId : undefined;
+      let reachableValid = edgesValid && screensValid &&
+        typeof start === "string" && screenIds.has(start);
+      if (reachableValid) {
+        const visited = new Set<string>([start as string]);
+        const queue = [start as string];
+        while (queue.length) {
+          const current = queue.shift()!;
+          for (const next of adjacency.get(current) ?? []) {
+            if (!visited.has(next)) {
+              visited.add(next);
+              queue.push(next);
+            }
+          }
+        }
+        reachableValid = visited.size === screenIds.size;
+      }
+      checks.push({
+        id: "start-and-reachability",
+        passed: reachableValid,
+        detail: "A valid start screen must reach every screen through directed navigation",
+      });
+
+      const evidence = result.evidence;
+      const bindings = isRecord(evidence) && hasExactKeys(evidence, ["sourceBindings"]) &&
+        Array.isArray(evidence.sourceBindings) ? evidence.sourceBindings : [];
+      let provenanceValid = false;
+      if (bindings.length === 1 && inputValid) {
+        const binding = bindings[0];
+        if (isRecord(binding) &&
+            hasExactKeys(binding, ["id", "kind", "locator", "sha256"]) &&
+            binding.id === "mission-input" && binding.kind === "mission_input" &&
+            binding.locator === "mission.input.description" &&
+            typeof binding.sha256 === "string" && SHA256.test(binding.sha256)) {
+          provenanceValid = binding.sha256 === await sha256(task.input.description as string);
+        }
+      }
+      checks.push({
+        id: "input-provenance-binding",
+        passed: provenanceValid,
+        detail: "Evidence must bind to the exact mission input description digest",
+      });
+      return failedResult(
+        observedAt,
+        checks,
+        DESIGN_FLOW_VERIFIER_ID,
+        DESIGN_FLOW_VERIFIER_VERSION,
+      );
+    },
+  });
+}
