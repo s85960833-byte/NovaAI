@@ -131,7 +131,7 @@ begin
   if exists (
     select 1
       from public.nova_mission_action_receipts receipt
-     where receipt.run_id = new.run_id
+     where receipt.mission_id = new.mission_id
        and receipt.action_key <> new.action_key
        and (
          receipt.status = 'reserved'
@@ -144,7 +144,7 @@ begin
          )
        )
   ) then
-    raise exception 'An earlier action must be completed or explicitly resolved by its owner before another action is reserved'
+    raise exception 'An earlier mission action must be completed or explicitly resolved by its owner before another action is reserved'
       using errcode = '55P03';
   end if;
   return new;
