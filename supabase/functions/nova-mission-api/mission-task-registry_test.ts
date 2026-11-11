@@ -409,6 +409,7 @@ Deno.test("snapshot boundary rejects getters, symbol keys and sparse or decorate
   Object.defineProperty(symbolInput, Symbol("hidden"), { value: true, enumerable: true });
   const hiddenInput = { safe: true };
   Object.defineProperty(hiddenInput, "hidden", { value: true, enumerable: false });
+  const prototypeSensitiveInput = JSON.parse('{"__proto__":{"polluted":true}}') as Record<string, unknown>;
   const sparseArray = new Array(2);
   const decoratedArray: unknown[] = [true];
   (decoratedArray as unknown[] & { extra?: boolean }).extra = true;
@@ -416,6 +417,7 @@ Deno.test("snapshot boundary rejects getters, symbol keys and sparse or decorate
     accessorInput,
     symbolInput,
     hiddenInput,
+    prototypeSensitiveInput,
     { values: sparseArray },
     { values: decoratedArray },
   ];
