@@ -1305,10 +1305,25 @@ begin
   if (select count(*) from public.nova_mission_action_resolutions where owner_id='11111111-1111-4111-8111-111111111111') <> 1 then
     raise exception 'Mission owner cannot read their action resolution';
   end if;
+  begin
+    perform public.nova_resolve_uncertain_mission_action(
+      v_action,'confirmed_not_executed','short',
+      'This resolution note is long enough but its evidence reference is invalid.'
+    );
+    raise exception 'Invalid evidence reference was accepted';
+  exception when check_violation then null;
+  end;
   if has_table_privilege('authenticated','public.nova_mission_action_resolutions','insert')
      or has_table_privilege('authenticated','public.nova_mission_action_resolutions','update')
-     or has_table_privilege('authenticated','public.nova_mission_action_resolutions','delete') then
-    raise exception 'Authenticated users must resolve actions only through the guarded RPC';
+     or has_table_privilege('authenticated','public.nova_mission_action_resolutions','delete')
+     or has_table_privilege('service_role','public.nova_mission_action_resolutions','insert')
+     or has_table_privilege('service_role','public.nova_mission_action_resolutions','update')
+     or has_table_privilege('service_role','public.nova_mission_action_resolutions','delete') then
+    raise exception 'Action resolutions must be immutable outside the guarded owner RPC';
+  end if;
+  if has_function_privilege('service_role','public.nova_resolve_uncertain_mission_action(uuid,text,text,text)','execute')
+     or not has_function_privilege('authenticated','public.nova_resolve_uncertain_mission_action(uuid,text,text,text)','execute') then
+    raise exception 'Owner resolution RPC must be authenticated-owner-only';
   end if;
   if (select count(*) from public.nova_mission_proof_attestations
       where verifier_id='nova.integration-verifier') <> 1 then
