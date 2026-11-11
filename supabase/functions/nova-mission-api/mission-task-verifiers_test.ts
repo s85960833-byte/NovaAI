@@ -6,6 +6,7 @@ import {
   createLearnPracticeMaterialVerifier,
   createIntelligenceDefineMetricsVerifier,
   createAgentsPermissionsVerifier,
+  createAgentsToolGatesVerifier,
   createLearnTopicSequenceVerifier,
   buildRequirementsInputV1,
   buildDesignFlowInputV1,
@@ -14,6 +15,7 @@ import {
   learnPracticeMaterialInputV1,
   intelligenceDefineMetricsInputV1,
   agentsPermissionsInputV1,
+  agentsToolGatesInputV1,
   learnTopicSequenceInputV1,
 } from "./mission-task-verifiers.ts";
 import {
@@ -948,6 +950,116 @@ Deno.test("agents permissions verifier rejects forged provenance and integrates 
       execution.verification.verifierId !== "agents.permissions-least-privilege" ||
       execution.verification.checks.length !== 5) {
     throw new Error("Agent permissions registry integration failed: " +
+      JSON.stringify(execution.verification));
+  }
+});
+
+
+const agentsToolGatesTask: MissionTaskDescriptor = {
+  ...task,
+  taskType: "agents.tool_gates",
+};
+
+function validAgentToolGates() {
+  return [
+    {
+      id: "read-project-files",
+      tool: "files.read",
+      operation: "read",
+      scope: { kind: "project", ref: "nova-project" },
+      risk: "low",
+      approvalRequired: false,
+      credentialBoundary: "user_session",
+      reason: "Read files explicitly attached to the current project.",
+      sourceRefIds: ["mission-input"],
+    },
+    {
+      id: "send-approved-email",
+      tool: "email.send",
+      operation: "send",
+      scope: { kind: "resource", ref: "approved-recipient-list" },
+      risk: "high",
+      approvalRequired: true,
+      credentialBoundary: "user_session",
+      reason: "Send only the owner-approved message to the approved recipient list.",
+      sourceRefIds: ["mission-input"],
+    },
+  ];
+}
+
+async function makeAgentsToolGatesResult() {
+  return {
+    output: { toolGates: validAgentToolGates() },
+    evidence: {
+      sourceBindings: [{
+        id: "mission-input",
+        kind: "mission_input",
+        locator: "mission.input.description",
+        sha256: await digest(agentsToolGatesTask.input.description as string),
+      }],
+    },
+  };
+}
+
+Deno.test("agents tool-gates verifier accepts allowlisted scoped tools with approval for side effects", async () => {
+  const verifier = createAgentsToolGatesVerifier(() => fixedNow);
+  const result = await verifier.verify(agentsToolGatesTask, await makeAgentsToolGatesResult());
+  if (!result.passed || result.checks.length !== 5 ||
+      result.verifierId !== "agents.tool-gates-policy" ||
+      result.verifierVersion !== "1.0.0") {
+    throw new Error("Valid agent tool gates did not pass: " + JSON.stringify(result));
+  }
+});
+
+Deno.test("agents tool-gates verifier rejects unknown tools and server-secret credential access", async () => {
+  const verifier = createAgentsToolGatesVerifier(() => fixedNow);
+  const unknown = await makeAgentsToolGatesResult();
+  unknown.output.toolGates[0].tool = "shell.exec";
+  if ((await verifier.verify(agentsToolGatesTask, unknown)).passed) {
+    throw new Error("An unknown tool was accepted");
+  }
+  const secret = await makeAgentsToolGatesResult();
+  secret.output.toolGates[0].credentialBoundary = "server_secret";
+  if ((await verifier.verify(agentsToolGatesTask, secret)).passed) {
+    throw new Error("Direct server-secret access was accepted");
+  }
+});
+
+Deno.test("agents tool-gates verifier rejects wildcard scopes and missing side-effect approval", async () => {
+  const verifier = createAgentsToolGatesVerifier(() => fixedNow);
+  const wildcard = await makeAgentsToolGatesResult();
+  wildcard.output.toolGates[0].scope.ref = "*";
+  if ((await verifier.verify(agentsToolGatesTask, wildcard)).passed) {
+    throw new Error("Wildcard tool scope was accepted");
+  }
+  const missingApproval = await makeAgentsToolGatesResult();
+  missingApproval.output.toolGates[1].approvalRequired = false;
+  if ((await verifier.verify(agentsToolGatesTask, missingApproval)).passed) {
+    throw new Error("A side-effecting tool without approval was accepted");
+  }
+});
+
+Deno.test("agents tool-gates verifier rejects mismatched operations and integrates with registry", async () => {
+  const verifier = createAgentsToolGatesVerifier(() => fixedNow);
+  const mismatch = await makeAgentsToolGatesResult();
+  mismatch.output.toolGates[0].operation = "write";
+  if ((await verifier.verify(agentsToolGatesTask, mismatch)).passed) {
+    throw new Error("A mismatched tool operation was accepted");
+  }
+
+  const registry = new MissionTaskRegistry();
+  const result = await makeAgentsToolGatesResult();
+  registry.register(
+    "agents.tool_gates",
+    agentsToolGatesInputV1,
+    { async execute() { return result; } },
+    createAgentsToolGatesVerifier(() => fixedNow),
+  );
+  const execution = await registry.executeAndVerify(agentsToolGatesTask);
+  if (!execution.verification.passed ||
+      execution.verification.verifierId !== "agents.tool-gates-policy" ||
+      execution.verification.checks.length !== 5) {
+    throw new Error("Agent tool-gates registry integration failed: " +
       JSON.stringify(execution.verification));
   }
 });
