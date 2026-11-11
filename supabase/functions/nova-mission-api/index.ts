@@ -1,7 +1,7 @@
 import { withSupabase } from "@supabase/server";
 import { RequestInputError, parseJsonObject } from "../nova-bi-api/request-input.ts";
 import { configuredSiteOrigin, withSiteOrigin } from "../nova-bi-api/cors.ts";
-import { validateMissionCancellation, validateMissionInput } from "./mission-input.ts";
+import { validateMissionCancellation, validateMissionInput, validateMissionPlanRequest } from "./mission-input.ts";
 import { buildStarterPlan, type MissionWorkspace } from "./mission-planner.ts";
 import { validateApprovalDecision, validateApprovalRequest } from "./mission-approval.ts";
 
@@ -130,10 +130,7 @@ const authenticatedHandler = withSupabase(
 
       const planMatch = path.match(/^missions\/([0-9a-f-]{36})\/plan$/i);
       if (req.method === "POST" && planMatch && uuid(planMatch[1])) {
-        const planRequest = parseJsonObject(await readBoundedBody(req));
-        if (Object.keys(planRequest).length > 0) {
-          return fail("Plan request contains unsupported fields", 400);
-        }
+        validateMissionPlanRequest(parseJsonObject(await readBoundedBody(req)));
         const missionId = planMatch[1];
         const { data: currentMission, error: readError } = await db.from("nova_missions")
           .select("id,title,description,workspace,state")
