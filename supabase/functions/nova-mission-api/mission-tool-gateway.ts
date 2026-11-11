@@ -108,13 +108,15 @@ export async function authorizeMissionToolAction(
   }
   const policyProof = context.policyProof;
   const attestation = context.policyAttestation;
-  if (policyProof.missionId !== context.mission.id ||
+  if (!policyProof.id || !policyProof.taskId || !policyProof.runId ||
+      policyProof.missionId !== context.mission.id ||
       policyProof.ownerId !== context.mission.ownerId ||
       policyProof.taskType !== "agents.tool_gates" ||
+      policyProof.taskId === context.task.id ||
       policyProof.status !== "passed" || policyProof.outcome !== "passed" ||
       policyProof.verifierId !== "agents.tool-gates-policy" ||
       policyProof.verifierVersion !== "1.0.0" ||
-      attestation.proofId !== policyProof.id ||
+      !attestation.proofId || attestation.proofId !== policyProof.id ||
       attestation.missionId !== policyProof.missionId ||
       attestation.taskId !== policyProof.taskId ||
       attestation.ownerId !== policyProof.ownerId ||
