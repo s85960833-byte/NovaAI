@@ -133,7 +133,8 @@ jobs:
       - name: Verify graceful server shutdown
         run: node scripts/shutdown-smoke.mjs
       - name: Install Devanagari fonts for visual regression screenshots
-        timeout-minutes: 8
+        timeout-minutes: 3
+        continue-on-error: true
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
