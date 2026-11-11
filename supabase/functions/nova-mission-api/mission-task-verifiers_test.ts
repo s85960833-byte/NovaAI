@@ -3,13 +3,15 @@ import {
   createBuildDesignFlowVerifier,
   createLearnAssessmentVerifier,
   createLearnGoalClarificationVerifier,
-  createLearnPracticeMaterialVerifier,\n  createIntelligenceDefineMetricsVerifier,
+  createLearnPracticeMaterialVerifier,
+  createIntelligenceDefineMetricsVerifier,
   createLearnTopicSequenceVerifier,
   buildRequirementsInputV1,
   buildDesignFlowInputV1,
   learnAssessmentInputV1,
   learnGoalClarificationInputV1,
-  learnPracticeMaterialInputV1,\n  intelligenceDefineMetricsInputV1,
+  learnPracticeMaterialInputV1,
+  intelligenceDefineMetricsInputV1,
   learnTopicSequenceInputV1,
 } from "./mission-task-verifiers.ts";
 import {
