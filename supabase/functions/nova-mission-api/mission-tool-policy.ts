@@ -24,7 +24,7 @@ const SIDE_EFFECT_TOOLS = new Set([
   "files.write", "repo.write", "browser.submit", "database.write",
   "email.send", "payments.create", "deployment.deploy",
 ]);
-const SAFE_REF = /^[a-z][a-z0-9_-]{1,63}$/;
+const SAFE_REF = /^[a-z][a-z0-9_-]{1,47}$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
@@ -60,7 +60,7 @@ export function validateMissionToolScope(scope: unknown): scope is MissionToolGa
 export function validateMissionToolPolicy(value: unknown): value is MissionToolPolicy {
   if (!isRecord(value) || !exactKeys(value, ["version", "gates"]) ||
       value.version !== 1 || !Array.isArray(value.gates) ||
-      value.gates.length < 1 || value.gates.length > 20) return false;
+      value.gates.length < 1 || value.gates.length > 16) return false;
   const ids = new Set<string>();
   for (const raw of value.gates) {
     if (!isRecord(raw) || !exactKeys(raw, [
