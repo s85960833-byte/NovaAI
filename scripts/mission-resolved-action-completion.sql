@@ -55,6 +55,16 @@ begin
     raise exception 'Active worker action was not marked uncertain';
   end if;
 
+  -- An unresolved uncertain receipt blocks a different action key mission-wide.
+  begin
+    perform * from public.nova_reserve_mission_action(
+      v_run,v_token,'blocked-before-owner-resolution',repeat('c',64)
+    );
+    raise exception 'A different action was reserved while an earlier action remained unresolved';
+  exception when sqlstate '55P03' then
+    null;
+  end;
+
   insert into mission_resolved_action_fixture(mission_id,task_id,approval_id,run_id,action_id,lease_token)
   values(v_mission,v_task,v_approval,v_run,v_action,v_token);
 end;
@@ -133,6 +143,18 @@ begin
   select lease_token into v_token
     from public.nova_claim_mission_task(v_run,'resolved-action-retry-worker',120);
   if v_token is null then raise exception 'Could not reclaim run after owner resolution'; end if;
+
+  -- Once the owner resolves the earlier receipt, a new action key is allowed.
+  select action_id into v_action
+    from public.nova_reserve_mission_action(
+      v_run,v_token,'allowed-after-owner-resolution',repeat('c',64)
+    );
+  if v_action is null then raise exception 'Resolved action did not release the mission-wide action guard'; end if;
+  if public.nova_complete_mission_action(
+       v_action,v_token,repeat('d',64),'provider-audit:followup-action'
+     ) <> 'completed' then
+    raise exception 'Follow-up action did not complete after owner resolution';
+  end if;
 
   insert into public.nova_mission_proofs(
     mission_id,task_id,owner_id,proof_type,summary,verification_status,evidence_json,verified_at
