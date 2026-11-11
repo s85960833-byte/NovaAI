@@ -80,16 +80,20 @@ CI results are attached to the current PR head. The last fully inspected run pai
 
 ## Runtime tool-gateway authorization core (preflight only)
 
-The feature branch now includes `supabase/functions/nova-mission-api/mission-tool-gateway.ts` and focused Deno tests. This is a fail-closed authorization core, not an enabled tool executor or deployed endpoint.
+The feature branch includes a fail-closed authorization core in `mission-tool-gateway.ts`, a strict shared permission-policy validator, and focused Deno tests. It is a preflight core, not an enabled tool executor or deployed endpoint.
 
-- Requires a matching passed `agents.tool_gates` proof and verifier attestation. The policy proof must belong to a distinct task in the same mission and owner; its task/run/proof/verifier bindings must match the attestation exactly.
+- Requires both a matching passed `agents.tool_gates` proof and a matching passed `agents.permissions` proof. Each proof must belong to a distinct policy task in the same mission and owner, neither of which may be the active action task. Proof, task, run and verifier identity/version bindings must match their attestations exactly.
 - Requires the current mission, task, run and owner approval to be active, and the lease to be unexpired.
-- Computes a canonical digest for the exact policy and produces a human-readable owner-approval summary containing that digest and each allowed tool, operation, scope, risk and approval requirement. The executing task's approval summary must match byte-for-byte.
-- Matches the requested tool, operation and scope to one explicit gate. The shared policy schema caps declarations at 16 gates and non-workspace scope references at 48 characters so the digest-bound approval summary always fits the database's 2,000-character limit. Unknown tools, broader scopes, invalid policy declarations and credential-boundary mismatches are denied.
+- Validates permission grants independently: bounded unique IDs, exact scopes, allowlisted actions, provenance shape, no wildcard/global scope, and owner approval for sensitive actions.
+- Maps each supported tool operation to one explicit permission action (read→read, write→update, submit→publish, send→send, create→create, deploy→execute). Unknown mappings fail closed. A permission grant must match the requested scope exactly; a workspace grant does not implicitly authorize a project or resource.
+- Computes canonical digests for both policy snapshots. The owner-approval summary includes both digests plus the human-readable tool gates and permission grants; it must match byte-for-byte and remain within the database's 2,000-character limit. Oversized combined summaries are rejected rather than truncated.
+- Matches the requested tool, operation and scope to one explicit gate and one exact permission grant. Credential-boundary mismatches are denied.
 - Calls only an injected reservation callback after all checks. The production adapter must bind this callback to the service-role-only `nova_reserve_mission_action` RPC and calculate the request digest from the exact outbound payload.
-- A replayed reservation, completed action or uncertain action is never authorized for another execution.
+- Replayed, completed or uncertain reservations are never authorized for another execution.
 
-**Important boundary:** this preflight currently evaluates the `agents.tool_gates` policy only; it does not yet join and enforce the separate `agents.permissions` proof. It is therefore not an activation-ready complete authorization gateway. The module does not load database records, create approvals, call the reservation RPC itself, or invoke external tools. Its context must be assembled from trusted service-role reads, including the policy snapshot in the signed proof envelope; an API/worker adapter must connect it to the approval UI and reservation RPC before it can protect any real tool. The current SQL reservation RPC independently enforces the active approved lease and idempotency but does not itself evaluate the tool policy. No worker is registered, and no external action can be performed by this module.
+The proof envelope now supports a `permission_policy` snapshot only for the trusted `agents.permissions-least-privilege` verifier, just as `tool_policy` is restricted to the tool-gates verifier. The persistence migration enforces task-type/verifier/snapshot pairing and bounded array sizes; PostgreSQL integration covers a positive permission snapshot persistence case. The proof API recomputes the signed envelope digest, so the snapshot is integrity-bound to the verifier submission.
+
+**Important boundary:** this is still not activation-ready. It does not load trusted database records, create the owner approval, invoke the reservation RPC itself, or call external tools. A separately reviewed API/worker adapter must assemble both proof/attestation pairs from trusted service-role reads and connect the approval and reservation flows. The database reservation RPC independently enforces active approved leases and idempotency; it does not evaluate the tool or permission policy itself. No worker is registered, and no external action can be performed by this module.
 
 ## Worker lease foundation (not an active worker)
 
