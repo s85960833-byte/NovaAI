@@ -131,7 +131,7 @@ async function verifiedPolicies(
         str(proof, "owner_id") !== ownerId || str(proof, "proof_type") !== "trusted_verifier" ||
         str(proof, "verification_status") !== "passed" || !str(proof, "verified_at") ||
         str(task, "mission_id") !== missionId || str(task, "owner_id") !== ownerId ||
-        str(task, "task_type") !== taskType || str(task, "status") !== "succeeded" ||
+        str(task, "task_type") !== taskType || str(task, "status") !== "completed" ||
         str(run, "mission_id") !== missionId || str(run, "task_id") !== taskId ||
         str(run, "owner_id") !== ownerId || str(run, "status") !== "succeeded") continue;
     const envelope = record(attestation.envelope_json);
