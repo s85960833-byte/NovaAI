@@ -1,4 +1,4 @@
-import { verifyMissionVerifierSignature } from "./mission-proof-auth.ts";
+import { resolveMissionVerifierConfig, verifyMissionVerifierSignature } from "./mission-proof-auth.ts";
 
 const workerId = "nova-worker-v1";
 const leaseToken = "55555555-5555-4555-8555-555555555555";
@@ -44,5 +44,34 @@ Deno.test("rejects changed evidence, stale timestamps and malformed lease bindin
   ];
   for (const input of cases) {
     if (await verifyMissionVerifierSignature(input)) throw new Error("Invalid verifier signature was accepted");
+  }
+});
+
+
+Deno.test("trusted verifier config requires an explicit own key and exact schema", () => {
+  const secret = "a-configured-secret-that-is-long-enough-for-hmac";
+  const valid = JSON.stringify({
+    "learn.topic-sequence-structure": { version: "1.0.0", secret },
+  });
+  const resolved = resolveMissionVerifierConfig(valid, "learn.topic-sequence-structure", "1.0.0");
+  if (!resolved || resolved.secret !== secret) throw new Error("Expected explicitly configured verifier");
+
+  for (const verifierId of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {
+    if (resolveMissionVerifierConfig(valid, verifierId, "1.0.0")) {
+      throw new Error(`Inherited verifier key was accepted: ${verifierId}`);
+    }
+  }
+  const invalidConfigs = [
+    "{",
+    "[]",
+    "null",
+    JSON.stringify({ "learn.topic-sequence-structure": { version: "2.0.0", secret } }),
+    JSON.stringify({ "learn.topic-sequence-structure": { version: "1.0.0", secret, extra: true } }),
+    JSON.stringify({ "learn.topic-sequence-structure": { version: "1.0.0", secret: "short" } }),
+  ];
+  for (const config of invalidConfigs) {
+    if (resolveMissionVerifierConfig(config, "learn.topic-sequence-structure", "1.0.0")) {
+      throw new Error("Malformed or unapproved verifier config was accepted");
+    }
   }
 });
