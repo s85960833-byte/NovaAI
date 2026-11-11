@@ -127,6 +127,7 @@ export async function authorizeMissionToolAction(
     return denied("Mission, task, run and owner approval must all be active");
   }
   if (context.task.taskType === "agents.tool_gates" ||
+      context.task.taskType === "agents.permissions" ||
       context.task.missionId !== context.mission.id ||
       context.task.ownerId !== context.mission.ownerId ||
       context.run.missionId !== context.mission.id ||
