@@ -9,6 +9,9 @@ export interface ApprovalDecisionInput {
 }
 
 export function validateApprovalRequest(value: Record<string, unknown>): ApprovalRequestInput {
+  if (Object.keys(value).some((key) => !["request_key", "action_summary"].includes(key))) {
+    throw new TypeError("Approval request contains unsupported fields");
+  }
   const requestKey = typeof value.request_key === "string" ? value.request_key.trim() : "";
   const actionSummary = typeof value.action_summary === "string" ? value.action_summary.trim() : "";
   if (requestKey.length < 1 || requestKey.length > 160) {
@@ -21,6 +24,9 @@ export function validateApprovalRequest(value: Record<string, unknown>): Approva
 }
 
 export function validateApprovalDecision(value: Record<string, unknown>): ApprovalDecisionInput {
+  if (Object.keys(value).some((key) => !["decision", "decision_note"].includes(key))) {
+    throw new TypeError("Approval decision contains unsupported fields");
+  }
   if (value.decision !== "approve" && value.decision !== "reject") {
     throw new TypeError("decision must be approve or reject");
   }
