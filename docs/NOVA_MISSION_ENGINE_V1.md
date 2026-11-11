@@ -82,7 +82,7 @@ CI results are attached to the current PR head. The last fully inspected run pai
 
 The feature branch now includes `supabase/functions/nova-mission-api/mission-tool-gateway.ts` and focused Deno tests. This is a fail-closed authorization core, not an enabled tool executor or deployed endpoint.
 
-- Requires a matching passed `agents.tool_gates` proof and verifier attestation, with mission/owner/proof/run bindings checked.
+- Requires a matching passed `agents.tool_gates` proof and verifier attestation. The policy proof must belong to a distinct task in the same mission and owner; its task/run/proof/verifier bindings must match the attestation exactly.
 - Requires the current mission, task, run and owner approval to be active, and the lease to be unexpired.
 - Computes a canonical digest for the exact policy and produces a human-readable owner-approval summary containing that digest and each allowed tool, operation, scope, risk and approval requirement. The executing task's approval summary must match byte-for-byte.
 - Matches the requested tool, operation and scope to one explicit gate. Unknown tools, broader scopes, invalid policy declarations and credential-boundary mismatches are denied.
