@@ -48,7 +48,7 @@ Deno.test("permission policy requires approval for sensitive actions", () => {
 });
 
 Deno.test("permission policy requires approval for create and update mutations", () => {
-  for (const action of ["create", "update"]) {
+  for (const action of ["create", "update"] as const) {
     const unsafe = structuredClone(valid);
     unsafe.permissions[0].actions = [action];
     unsafe.permissions[0].approvalRequired = false;
