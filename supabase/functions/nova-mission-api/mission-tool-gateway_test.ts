@@ -49,7 +49,7 @@ async function makeContext(): Promise<MissionToolGatewayContext> {
       id: "proof-policy", missionId: "mission-1", taskId: "task-policy", ownerId: "owner-1",
       taskType: "agents.tool_gates", status: "passed", outcome: "passed",
       verifierId: "agents.tool-gates-policy", verifierVersion: "1.0.0",
-      runId: "run-policy", policy,
+      runId: "run-policy", policy: structuredClone(policy),
     },
     policyAttestation: {
       proofId: "proof-policy", missionId: "mission-1", taskId: "task-policy",
@@ -133,7 +133,7 @@ Deno.test("runtime tool gateway never re-executes replayed, completed or uncerta
       actionId: "action-replay", status, replayed: true,
     }));
     if (!result.authorized || result.executeNow || result.status !== status) {
-      throw new Error("Replay state " + status + " was allowed to execute");
+      throw new Error("Replay state " + status + " was not safely blocked: " + JSON.stringify(result));
     }
   }
 });
