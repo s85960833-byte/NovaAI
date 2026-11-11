@@ -96,6 +96,9 @@ function assertPlainJsonData(
   ancestors.add(value);
   try {
     if (Array.isArray(value)) {
+      if (Object.getPrototypeOf(value) !== Array.prototype) {
+        throw new TypeError("JSON arrays must use the standard array prototype");
+      }
       if (value.length > 50000) throw new TypeError("JSON array is too large");
       const ownKeys = Reflect.ownKeys(value);
       if (ownKeys.some((key) => key !== "length" &&
