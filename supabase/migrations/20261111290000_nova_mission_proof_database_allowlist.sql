@@ -54,7 +54,13 @@ begin
   if pg_catalog.jsonb_typeof(p_envelope->'checks') is distinct from 'array'
      or exists (
        select 1
-         from pg_catalog.jsonb_array_elements(p_envelope->'checks') as check_item(value)
+         from pg_catalog.jsonb_array_elements(
+         case
+           when pg_catalog.jsonb_typeof(p_envelope->'checks') = 'array'
+             then p_envelope->'checks'
+           else '[]'::jsonb
+         end
+       ) as check_item(value)
         where pg_catalog.jsonb_typeof(check_item.value) is distinct from 'object'
            or pg_catalog.jsonb_typeof(check_item.value->'id') is distinct from 'string'
            or pg_catalog.jsonb_typeof(check_item.value->'passed') is distinct from 'boolean'
