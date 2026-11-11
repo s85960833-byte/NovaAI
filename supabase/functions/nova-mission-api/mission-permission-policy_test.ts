@@ -59,7 +59,7 @@ Deno.test("permission policy rejects duplicate IDs/actions and forged provenance
     throw new Error("Duplicate actions were accepted");
   }
   const forgedSource = structuredClone(valid);
-  forgedSource.permissions[0].sourceRefIds = ["other-source"];
+  (forgedSource.permissions[0] as unknown as { sourceRefIds: string[] }).sourceRefIds = ["other-source"];
   if (validateMissionPermissionPolicy(forgedSource)) {
     throw new Error("Forged provenance was accepted");
   }
@@ -67,7 +67,7 @@ Deno.test("permission policy rejects duplicate IDs/actions and forged provenance
 
 Deno.test("permission policy rejects unknown actions and excessive grants", () => {
   const unknownAction = structuredClone(valid);
-  unknownAction.permissions[0].actions = ["read", "admin"];
+  (unknownAction.permissions[0] as unknown as { actions: string[] }).actions = ["read", "admin"];
   if (validateMissionPermissionPolicy(unknownAction)) {
     throw new Error("Unknown permission action was accepted");
   }
