@@ -275,6 +275,19 @@ Deno.test("trusted gateway adapter rejects approval not decided by the mission o
   if (!denied) throw new Error("Approval by a different actor was accepted");
 });
 
+Deno.test("trusted gateway adapter rejects approved rows without a decision timestamp", async () => {
+  const { tables } = await makeValidGatewayFixture();
+  tables.nova_mission_approvals[0].decided_at = "";
+  let denied = false;
+  try {
+    await loadMissionToolGatewayContext(fixtureDb(tables), {
+      missionId: FIXTURE.mission, taskId: FIXTURE.activeTask, runId: FIXTURE.activeRun,
+      ownerId: FIXTURE.owner, workerId: "worker-a", leaseToken: FIXTURE.lease,
+    });
+  } catch { denied = true; }
+  if (!denied) throw new Error("Approval without a decision timestamp was accepted");
+});
+
 Deno.test("trusted gateway adapter rejects proof digest tampering and incomplete policy task states", async () => {
   const tampered = await makeValidGatewayFixture();
   tampered.tables.nova_mission_proof_attestations[0].evidence_digest = "f".repeat(64);
