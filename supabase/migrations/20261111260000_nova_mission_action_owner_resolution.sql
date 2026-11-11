@@ -50,6 +50,8 @@ declare
   v_mission_state text;
   v_approval_status text;
   v_run_status text;
+  v_run_lease_token uuid;
+  v_run_lease_expires_at timestamptz;
   v_task_status text;
   v_action_status text;
   v_resolution_id uuid;
@@ -86,11 +88,15 @@ begin
     join public.nova_mission_execution_runs r on r.approval_id = a.id
    where r.id = v_run_id and a.owner_id = v_owner_id for update of a;
   if not found then raise exception 'Approval not found' using errcode = 'P0002'; end if;
-  select status into v_run_status from public.nova_mission_execution_runs
+  select status, lease_token, lease_expires_at
+    into v_run_status, v_run_lease_token, v_run_lease_expires_at
+    from public.nova_mission_execution_runs
    where id = v_run_id and owner_id = v_owner_id for update;
   if not found then raise exception 'Execution run not found' using errcode = 'P0002'; end if;
-  if v_run_status = 'running' then
-    raise exception 'An uncertain action can only be owner-resolved after its worker lease has been released'
+  if v_run_status = 'running'
+     or v_run_lease_token is not null
+     or v_run_lease_expires_at is not null then
+    raise exception 'An uncertain action can only be owner-resolved after its worker lease has been fully released'
       using errcode = '55P03';
   end if;
   select status into v_task_status from public.nova_mission_tasks
