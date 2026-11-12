@@ -41,7 +41,7 @@ async function readBoundedAuthUser(response, maxBytes = 64 * 1024) {
     if (new TextEncoder().encode(text).byteLength > maxBytes) throw new Error('Supabase Auth response exceeded the size limit');
     return JSON.parse(text);
   }
-  const user = await readBoundedAuthUser(response);
+  const user = await response.json();
   if (new TextEncoder().encode(JSON.stringify(user)).byteLength > maxBytes) throw new Error('Supabase Auth response exceeded the size limit');
   return user;
 }
@@ -77,7 +77,7 @@ function createSupabaseUserMiddleware({ supabaseUrl, publishableKey, fetchImpl =
       if (!response.ok) {
         return res.status(503).json({ error: 'Account verification is temporarily unavailable. Please retry.' });
       }
-      const user = await response.json();
+      const user = await readBoundedAuthUser(response);
       if (!user || typeof user.id !== 'string' || !user.id.trim()) {
         return res.status(401).json({ error: 'A valid signed-in account is required.' });
       }
