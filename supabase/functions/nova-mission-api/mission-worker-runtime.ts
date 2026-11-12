@@ -49,21 +49,22 @@ const CLAIM_KEYS = new Set([
 ]);
 
 function snapshotClaim(value: unknown): MissionWorkerClaim | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const prototype = Object.getPrototypeOf(value);
-  if (prototype !== Object.prototype && prototype !== null) return null;
-  const keys = Reflect.ownKeys(value);
-  if (keys.length !== CLAIM_KEYS.size ||
-      keys.some((key) => typeof key !== "string" || !CLAIM_KEYS.has(key))) return null;
-  for (const key of keys as string[]) {
-    const descriptor = Object.getOwnPropertyDescriptor(value, key);
-    if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) return null;
-  }
   try {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) return null;
+    const keys = Reflect.ownKeys(value);
+    if (keys.length !== CLAIM_KEYS.size ||
+        keys.some((key) => typeof key !== "string" || !CLAIM_KEYS.has(key))) return null;
+    for (const key of keys as string[]) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) return null;
+    }
     const snapshot: unknown = JSON.parse(canonicalizeMissionProof(value));
     if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return null;
     return snapshot as MissionWorkerClaim;
   } catch {
+    // Proxies, accessors, cycles, non-JSON values and hostile traps all fail closed.
     return null;
   }
 }
