@@ -121,3 +121,13 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Added `scripts/provider-http.test.cjs` and CI command to test unsafe URLs, cross-host redirects and response size limits. These tests are not yet counted as passed until the latest GitHub workflow completes.
 - Fixed chat timezone metadata: NOVA consumes `body.tz` to build local date/time context and deletes it before forwarding the model request, avoiding a non-standard provider payload field.
 - Staging remains on old SHA `195739a`; no Staging or Production deploy was made. PR remains Draft and unmerged.
+
+
+## Latest code/security work — 12 November 2026
+
+- `API_INTEGRATION_AUDIT.md` corrected: chat now uses a validated browser timezone with IST fallback; timezone metadata is removed before forwarding the provider payload. Yahoo Finance relay removed; direct Yahoo endpoint remains unofficial and blocked from commercial clearance.
+- Outbound helper `lhttp()` now rejects non-HTTPS, credentials, IP-literal, local-style, single-label and non-443 provider URLs; restricts redirects to the original hostname (max 3); blocks redirected non-GET requests; cancels redirect response bodies; and reads response bodies with a 3 MiB streaming cap.
+- Added `nova-http.js` and `scripts/provider-http.test.cjs`; CI main workflow runs `npm run test:provider-http`. The current full workflow must pass before these changes are considered verified.
+- Current dependency inventory document lists 72 npm lockfile package records and declared licences. Deno dependency provenance, third-party assets, and contributor IP remain open.
+- Current PR is still Draft and unmerged. Staging deployment remains old SHA `195739a`; Production main remains untouched.
+- Remaining direct `fetch()` integrations (speech, LLM streaming, image providers, Horde polling) are being audited separately; the generic `lhttp()` protections do not automatically cover them.
