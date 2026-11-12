@@ -45,3 +45,9 @@ Never place secrets, passwords, service-role keys, personal data, raw customer d
 - [India competition and user-review research](MARKET_AND_DIFFERENTIATION_RESEARCH.md): Paddlewheel, BooDoo and NavBharatAI overlap with broad positioning; user-review signals are qualitative only.
 - [Cost-to-replicate report](COST_TO_REPLICATE.md): modelled gross parity labour ₹35.1–104.7 lakh; not independent appraisal or asset value.
 - [Buyer-readiness scorecard](BUYER_READINESS_SCORECARD.md): revised weighted estimate 36.8/100 ≈ 37/100.
+
+
+## Synthetic demo evidence
+- [NOVA BI sample data guide](samples/README.md) explains the three fictional CSVs and the exact expected arithmetic.
+- CI test `scripts/demo-data.test.cjs` checks expense budgets/trends, client contribution, team task metrics, risk heuristics and digital-twin scenario arithmetic against the production calculation module.
+- Sample data are fictional and must not be described as real user, customer, employee or financial results.

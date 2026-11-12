@@ -133,3 +133,13 @@ These documents describe candidate source and available evidence; they do not pr
 
 - [Preliminary cost-to-replicate report](COST_TO_REPLICATE.md)
 - [India market and differentiation research](MARKET_AND_DIFFERENTIATION_RESEARCH.md)
+
+
+## NOVA BI synthetic demo data
+
+- [Synthetic CSV demo guide](samples/README.md)
+- [Expenses demo CSV](samples/demo-expenses.csv)
+- [Client profitability demo CSV](samples/demo-clients.csv)
+- [Team tasks demo CSV](samples/demo-team-tasks.csv)
+
+All sample rows are fictional, labelled demo data and validated against the same analysis functions used by NOVA BI. They are not customer outcomes, testimonials or benchmarks.

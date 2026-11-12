@@ -1,0 +1,8 @@
+Task,Team,Status,Created Date,Completed Date,Due Date
+Review onboarding,Customer Ops,Completed,2026-10-01,2026-10-04,2026-10-05
+Prepare month report,Data,Completed,2026-10-02,2026-10-08,2026-10-10
+Update landing page,Product,In Progress,2026-11-01,,2026-11-10
+Fix CSV import,Engineering,In Progress,2026-11-06,,2026-11-14
+Write FAQ,Customer Ops,Completed,2026-11-04,2026-11-07,2026-11-08
+Test export,Engineering,In Progress,2026-11-08,,2026-11-11
+Prepare preview,Product,In Progress,2026-11-10,,2026-11-18

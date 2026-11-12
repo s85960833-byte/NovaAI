@@ -43,3 +43,11 @@
 
 - [Cost-to-replicate report](../COST_TO_REPLICATE.md) — modelled estimate, not independent appraisal.
 - [India competition/user-review evidence](../MARKET_AND_DIFFERENTIATION_RESEARCH.md) — desk research, no exclusivity claim.
+
+
+## Synthetic demo evidence
+- [NOVA BI sample data guide](../samples/README.md)
+- Expense, client-profitability and team-task CSV fixtures in `../samples/`.
+- Automated deterministic-output checks in `../scripts/demo-data.test.cjs`.
+- Samples are fictional and not customer/user/testimonial or business-outcome evidence.
+- [Supervised feedback outreach templates](../BUYER_OUTREACH_TEMPLATES.md) — not acquisition, paid trial or purchase solicitation.

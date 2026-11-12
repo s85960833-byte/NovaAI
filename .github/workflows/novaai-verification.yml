@@ -94,6 +94,8 @@ jobs:
         run: node scripts/supabase-edge-smoke.mjs
       - name: Test NOVA Business Intelligence calculations and CSV validation
         run: node --test scripts/business-intelligence.test.cjs
+      - name: Verify synthetic NOVA BI demo datasets and deterministic outputs
+        run: node --test scripts/demo-data.test.cjs
       - name: Validate 60-case AI evaluation fixture
         run: node scripts/validate-ai-evaluation.mjs
       - name: Audit production dependency vulnerabilities
