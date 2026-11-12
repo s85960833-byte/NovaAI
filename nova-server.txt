@@ -1119,7 +1119,7 @@ app.post('/api/live', async (q, r) => {
   if (!a) return r.status(503).json({ ok: false, error: 'Live-search rate-limit capacity reached; retry shortly.' });
   if (a.length >= 24) return r.status(429).json({ ok: false, error: 'Too many live searches. Please wait a minute.' });
   if (liveActive >= LIVE_MAX) return r.status(429).json({ ok: false, error: 'Live search is busy. Try again in a few seconds.' });
-  a.push(nw); liveHits.set(q.ip, a); liveActive++;
+  a.push(nw); liveHits.set(liveRateKey, a); liveActive++;
   try { r.json(await withTimeout(runLive(text, { mode: b.mode === 'always' ? 'always' : 'auto', lang: b.lang === 'hi' ? 'hi' : 'en', tz: String(b.tz || '').slice(0, 60), place: String(b.place || '').slice(0, 60) }), 20000, 'live')); }
   catch (e) { r.status(502).json({ ok: false, error: 'Live retrieval failed: ' + String(e && e.message).slice(0, 80) }); }
   finally { liveActive--; }
