@@ -50,6 +50,8 @@ jobs:
         run: npm run test:timezone
       - name: Test HTTPS-only secret-bearing provider endpoints
         run: node --test scripts/provider-url.test.cjs
+      - name: Test safe provider redirects and bounded response reads
+        run: npm run test:provider-http
       - name: Test PDF.js untrusted-document eval mitigation
         run: node --test scripts/pdf-security.test.cjs
       - name: Install PostgreSQL client
