@@ -14,7 +14,7 @@ test('container uses supported Node 22 runtime and production-only dependencies'
 
 test('container drops root privileges and exposes the app health check', () => {
   assert.match(dockerfile, /^USER node$/m);
-  assert.match(dockerfile, /HEALTHCHECK[\s\S]*process\\.env\\.PORT[\s\S]*\/health/);
+  assert.match(dockerfile, /HEALTHCHECK[\s\S]*process\.env\.PORT[\s\S]*\/health/);
   assert.match(dockerfile, /CMD \["node", "nova-server\.txt"\]/);
 });
 
