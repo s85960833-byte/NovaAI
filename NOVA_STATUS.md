@@ -219,3 +219,36 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Added unit coverage for timestamp conflict resolution, empty-value deletion, legacy snapshot loading, document deletion and local/remote document precedence.
 - Candidate head `3720d278c151194f9213c55a352d528ec5f05f1c`: Main verification run #43201234510 **PASS**; Browser verification run #43201234633 **PASS**. The Main cloud-sync regression step passed on this exact head; the Browser workflow passed account, Company Cloud and mobile/drawer checks.
 - The status-document commit itself must receive fresh CI before it is counted as latest-head evidence. PR remains Draft and unmerged; Production remains unchanged.
+
+
+## Phase 1 audit continuation — 12 November 2026
+
+### Done
+- Reviewed the current repository tree, frontend markup, backend route inventory, account/cloud-sync flow, NOVA BI Edge Function, security middleware, dependency/API/privacy documents, Render service settings/events/metrics/logs and automated browser/runtime tests.
+- Removed two obsolete artifacts from the PR branch: an empty HTML file and an unreferenced, explicitly untested legacy starter server. The active server entry point remains `nova-server.txt`; historical content remains in Git history.
+- Added page description, canonical URL, Open Graph and Twitter summary metadata to the existing homepage. Added root-only `/sitemap.xml` and `/robots.txt` endpoints; the crawler policy disallows `/api/`. Added local runtime smoke assertions for all three SEO surfaces.
+- Updated the dependency audit to record artifact cleanup and the support runbook to replace unresolved placeholder fields with explicit “not configured / no customer onboarding” blockers.
+- Created `PHASE1_AUDIT.md` with evidence, route/UI inventory, positive controls, release blockers and remaining verification work.
+- Previous exact code candidate `3720d278c151194f9213c55a352d528ec5f05f1c`: Main #43201234510 PASS and Browser #43201234633 PASS. These results do not automatically cover subsequent commits.
+
+### Findings / blockers
+- Express chat, speech transcription, search, image and live routes are public and not account-authenticated. Current per-IP controls are process-local, not durable user quotas or monthly spend caps. Do not enable billable public traffic.
+- Account “Delete cloud backup” removes only the workspace row; self-service Supabase Auth account deletion and a full retention/deletion workflow are absent.
+- API commercial rights, vendor credentials, final privacy/terms, operator/support identity, age/consent policy, data retention, external asset/CDN integrity, source IP clearance and backup/restore evidence remain incomplete.
+- Render Staging still serves `195739a04895de364a5af22aa61f930d5d782cbb`; Staging Health Check Path is blank. Production remains `c3cee61906b88ff111b3a645db55c9c2503cd8f7` and was not modified.
+- Direct external HTTP inspection from the review environment was unavailable. Available Render request logs and HTTP metrics were empty; this is not evidence of uptime or traffic.
+- Automated static scan found 49 buttons with accessible names and no static HTML forms. This is not a complete dynamic accessibility or screen-reader audit.
+- Current PR revision after SEO, docs and cleanup changes must pass fresh Main and Browser CI before it is considered verified.
+
+### Next
+1. Verify Main and Browser CI on the latest PR head.
+2. Owner must set Staging Settings → Health Checks to `/health`, save, then confirm. Do not manually trigger a deploy while Auto Deploy is enabled.
+3. Deploy/verify the latest candidate on Staging only, then run route, auth, provider and responsive smoke checks.
+4. Continue route-by-route security, dynamic UI, error/empty/loading, accessibility, Android/microphone and data-lifecycle review.
+5. Keep Production main and Render untouched until every release gate is evidenced and approved.
+
+### Current assessment
+- Phase 1: **IN PROGRESS**.
+- Whole Definition of Done: approximately **14%** (rough estimate; includes later phases not started).
+- Preliminary buyer-readiness: **28/100** (evidence-based working score, not a valuation or sale recommendation).
+- PR #98 remains Open, Draft and unmerged. No paid service/API use or production mutation was performed.
