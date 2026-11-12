@@ -10,7 +10,8 @@
     "test:timezone": "node --test scripts/timezone.test.cjs",
     "test:provider-http": "node --test scripts/provider-http.test.cjs",
     "test:image-privacy": "node --test scripts/image-privacy.test.cjs",
-    "test:env-example": "node --test scripts/env-example.test.cjs"
+    "test:env-example": "node --test scripts/env-example.test.cjs",
+    "test:a11y": "node --test scripts/accessibility-markup.test.cjs"
   },
   "engines": {
     "node": "22.x"
