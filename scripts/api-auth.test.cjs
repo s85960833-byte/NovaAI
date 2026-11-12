@@ -119,6 +119,7 @@ test('Express API routes are gated before JSON body parsing when enabled', () =>
   assert.match(server, /job\.userId !== q\.novaUser\?\.id/);
   assert.match(server, /imageRateKey = q\.novaUser\?\.id \? 'user:' \+ q\.novaUser\.id : 'ip:' \+ q\.ip/);
   assert.match(server, /liveRateKey = q\.novaUser\?\.id \? 'user:' \+ q\.novaUser\.id : 'ip:' \+ q\.ip/);
+  assert.match(server, /liveHits\.set\(liveRateKey, a\)/, 'live search rate windows must persist under the same user/IP key used to read them');
 });
 
 test('browser attaches Supabase access tokens to same-origin protected API requests', () => {
