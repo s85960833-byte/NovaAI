@@ -1181,7 +1181,7 @@ if (E.SELFTEST_ON_START === '1') {
           return null;
         }
       }
-      const providerConfigured = !!(E.LLM_KEY || E.GROQ_API_KEY || E.OPENROUTER_API_KEY);
+      const providerConfigured = !!(E.LLM_KEY || (E.GROQ_API_KEY && E.GROQ_MODEL) || E.OPENROUTER_API_KEY);
       await probe('health', '/health', {}, (r, j) => r.ok && j.status === 'ok' && j.ready === true);
       const config = await probe('config', '/api/config', {}, (r, j) => r.ok && !!j.model || (!providerConfigured && r.status === 503));
       console.log('NOVA_SELFTEST_CONFIG ' + JSON.stringify(results[results.length - 1]));
