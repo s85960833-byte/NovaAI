@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { safeRedirectTarget, readBoundedText } = require('../nova-http');
+const { safeRedirectTarget, readBoundedBuffer, readBoundedText } = require('../nova-http');
 
 test('provider URLs require public HTTPS hostnames', () => {
   assert.equal(safeRedirectTarget('https://api.example.com/path').hostname, 'api.example.com');
@@ -34,4 +34,11 @@ test('response reader returns small bodies intact', async () => {
 test('response reader cancels bodies that exceed the byte limit', async () => {
   const response = new Response('0123456789');
   await assert.rejects(readBoundedText(response, 5), /response too large/);
+});
+
+test('binary response reader enforces the byte cap and preserves bytes', async () => {
+  const response = new Response(new Uint8Array([0, 1, 2, 255]));
+  const result = await readBoundedBuffer(response, 4);
+  assert.deepEqual([...result], [0, 1, 2, 255]);
+  await assert.rejects(readBoundedBuffer(new Response(new Uint8Array(10)), 5), /response too large/);
 });
