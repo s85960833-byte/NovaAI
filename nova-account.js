@@ -14,6 +14,26 @@ function getClient(){
  client=window.NovaBusinessCloud.getClient();
  return client;
 }
+// Attach the current Supabase access token to same-origin API calls. The server
+// still verifies the token independently; browser session state is never trusted.
+const nativeFetch=window.fetch.bind(window);
+window.fetch=async(input,init)=>{
+ let target=null;
+ try{target=new URL(typeof input==='string'?input:input.url,location.href)}catch(e){}
+ if(target&&target.origin===location.origin&&target.pathname.startsWith('/api/')&&target.pathname!=='/api/config'&&target.pathname!=='/api/feed'){
+  try{
+   const {data,error}=await getClient().auth.getSession();
+   const token=!error&&data?.session?.access_token;
+   if(token){
+    const headers=new Headers(typeof Request!=='undefined'&&input instanceof Request?input.headers:undefined);
+    new Headers(init?.headers||{}).forEach((value,name)=>headers.set(name,value));
+    headers.set('Authorization','Bearer '+token);
+    init={...(init||{}),headers};
+   }
+  }catch(e){}
+ }
+ return nativeFetch(input,init);
+};
 function showDialog(){dialog.showModal();if(user)$('novaSyncNow').focus();else $('novaAccountEmailInput').focus()}
 function render(){
  const signed=!!user;
