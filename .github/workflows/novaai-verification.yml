@@ -34,6 +34,11 @@ jobs:
           node-version: 22
       - name: Install runtime dependencies
         run: npm ci --no-audit --no-fund
+      - name: Generate and validate production dependency SBOM
+        run: |
+          mkdir -p artifacts
+          npm sbom --omit=dev --sbom-format=spdx > artifacts/novaai-production-sbom.spdx.json
+          npm run sbom:validate
       - name: Check backend and frontend syntax
         run: node scripts/check.mjs
       - name: Verify free-provider model defaults and deprecation safety
