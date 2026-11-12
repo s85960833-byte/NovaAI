@@ -14,7 +14,7 @@ on:
       - supabase/migrations/**
       - .github/workflows/nova-account-browser-verification.yml
   push:
-    branches: [feature/nova-account-cloud-sync-20261108]
+    branches: [feature/nova-account-cloud-sync-20261108, fix/nova-home-learn-first-mobile-20261109]
   workflow_dispatch:
 concurrency:
   group: nova-account-browser-${{ github.ref }}
