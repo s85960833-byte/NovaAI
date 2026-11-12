@@ -174,7 +174,7 @@ app.post('/api/chat/completions', async (q, r) => {
     // Provider secrets stay in the Render environment. Groq model IDs are explicit:
     // this avoids silently selecting a retired or billable model after provider catalog changes.
     if (E.GROQ_API_KEY && E.GROQ_MODEL) providers.push({ base: secureProviderBase('GROQ_BASE', E.GROQ_BASE, 'https://api.groq.com/openai/v1'), key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL] });
-    if (E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: secureProviderBase('OPENROUTER_BASE', E.OPENROUTER_BASE, 'https://openrouter.ai/api/v1'), key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'openrouter/free'] });
+    if (E.OPENROUTER_API_KEY && (!E.LLM_KEY || !E.LLM_MODEL || E.OPENROUTER_API_KEY !== E.LLM_KEY)) providers.push({ base: secureProviderBase('OPENROUTER_BASE', E.OPENROUTER_BASE, 'https://openrouter.ai/api/v1'), key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'openrouter/free'] });
     if (!providers.length) return r.status(503).json({ error: 'No compatible AI chat provider is configured. Set LLM_KEY with LLM_MODEL, GROQ_API_KEY with GROQ_MODEL, or OPENROUTER_API_KEY (defaults to openrouter/free).' });
     let extra = vis ? { reasoning_format: 'hidden' } : {};   // keep the model's private thinking out of the answer
     let good = null, first = null, last = 0;
