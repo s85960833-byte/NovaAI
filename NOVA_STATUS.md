@@ -178,3 +178,13 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Added explicit `aria-label` values to those controls: Home, Photo Solver, Chat Archive, Image Studio, Live Voice, Settings, Memory Settings, AI Model Settings, Export, Delete Chats, Privacy, Keyboard Shortcuts, provider settings save/close/share, memory save/close, camera, photo-help link, photo solve, confirm and cancel.
 - Added `scripts/accessibility-markup.test.cjs`, `npm run test:a11y`, and a CI step. This static check only covers buttons in `index.html`; dynamic buttons in JavaScript components still need rendered accessibility review.
 - Previous candidate `7f6adcd` had Main and Browser CI pass. New accessibility code/test changes require fresh latest-head CI.
+
+
+## Branch targeting and rollback note — 12 November 2026
+
+- A status-file update was inadvertently committed to the repository default branch because the optional `branch` argument was omitted. The commit changed only by adding `NOVA_STATUS.md`; no application code or production configuration changed.
+- Immediately restored `main` from accidental commit `35f936b0ffafc399992fe42f788fc242b33bf5cd` to its exact previous parent `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50` using an expected-SHA guarded ref update.
+- Verified current `main` head is `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render deployment history remains unchanged, latest live deployment is still commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`.
+- All subsequent GitHub writes in this workflow must include `branch: fix/nova-home-learn-first-mobile-20261109` explicitly. Do not write to `main`.
+- Accessibility markup change: 22 previously unnamed static buttons now have `aria-label`; static audit confirms 49 buttons, 0 unnamed. `scripts/modes-check.mjs` was corrected to test attributes independently of order.
+- Candidate PR head observed at this continuation: `05797a1524c1105a77cf56444129e9abb0594ea5`. Latest CI run list observed: NOVA account and browser verification #43198934007 in_progress; NovaAI verification #43198934012 completed; NovaAI verification #43198739738 completed; NOVA account and browser verification #43198740168 completed.
