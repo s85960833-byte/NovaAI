@@ -113,3 +113,36 @@ MIT, ISC, BSD-3-Clause and Apache-2.0 are generally permissive, but each licence
 6. Re-run the audit on the exact release tag and record its SHA.
 
 **Status: PRELIMINARY PASS for declared npm lockfile metadata only; overall IP/licence clearance remains INCOMPLETE.**
+
+
+## External browser runtime libraries and fonts
+
+These are referenced from CDN URLs or CSS imports in the active UI and are **not counted** in the 72 npm lockfile records.
+
+| Component | Version / reference | Declared licence | Notes |
+|---|---|---|---|
+| Supabase JS UMD | `@supabase/supabase-js@2.119.0` via jsDelivr | MIT | Pinned CDN version; no Subresource Integrity hash is present in the current script tag. Archive MIT notice and verify CDN artefact hash. |
+| PDF.js | `pdfjs-dist@6.5.438` via jsDelivr | Apache-2.0 | Pinned CDN module/worker; archive Apache notice and verify artefact hash. |
+| math.js | `mathjs@15.2.0` via cdnjs | Apache-2.0 | Pinned CDN script; archive Apache notice and verify artefact hash. |
+| Nerdamer | `nerdamer@1.1.13` via cdnjs | MIT | Old 1.x release. Archive the exact 1.1.13 package's `license.txt`; do not infer the newer 2.x licence for this version. |
+| KaTeX | `katex@0.16.9` via cdnjs | MIT; bundled font files carry OFL-1.1 | Archive MIT and font notices. |
+| Fraunces | Google Fonts CSS import | SIL Open Font License 1.1 | Can be embedded/bundled with software subject to OFL notice and reserved-name conditions. |
+| Nunito | Google Fonts CSS import | SIL Open Font License 1.1 | Can be embedded/bundled with software subject to OFL notice and reserved-name conditions. |
+
+Source records:
+- Supabase JS package metadata and UMD installation guidance: https://www.npmjs.com/package/@supabase/supabase-js and https://supabase.com/docs/reference/javascript/installing
+- PDF.js package and Apache-2.0 metadata: https://www.npmjs.com/package/pdfjs-dist
+- math.js package and Apache-2.0 metadata: https://www.npmjs.com/package/mathjs
+- Nerdamer 1.x package history and MIT licence range: https://www.npmjs.com/package/nerdamer and https://security.snyk.io/package/npm/nerdamer/1.1.6
+- KaTeX 0.16.9 and MIT licence: https://cdnjs.com/libraries/KaTeX/0.16.9
+- Fraunces OFL-1.1: https://github.com/expo/google-fonts/blob/main/font-packages/fraunces/LICENSE_FONT
+- Nunito OFL-1.1: https://github.com/googlefonts/nunito/blob/main/OFL.txt
+- Google Fonts licensing guidance: https://googlefonts.github.io/gf-guide/license-file.html
+
+## Additional external content references
+
+- `nova-app.js` hardcodes a Claude Artifact URL used by the photo-help panel. This is an external resource not hosted or owned by NOVA; verify it remains available and that its content may be redistributed, or replace it with an owner-controlled NOVA help page before sale.
+- The business branding form uses `https://example.com/logo.png` only as an input placeholder, not as a seeded logo. The task-planning form uses `https://example.com` as an example URL. Confirm no placeholder is persisted or shown as a real customer asset.
+- No Subresource Integrity hash is currently attached to the observed external CDN scripts. Pinning versions reduces drift but does not protect against a compromised CDN or account. Prefer self-hosted, hash-verified vendor assets with a third-party notices bundle for buyer transfer.
+
+**External-runtime licence status:** preliminary review only. Exact 1.1.13 Nerdamer licence file, CDN artefact hashes, and source asset provenance still require archival verification.
