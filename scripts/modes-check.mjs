@@ -43,8 +43,8 @@ assert.ok(business.includes('function bilingualize(root)')&&business.includes('b
 assert.match(cloud, /["']Sign in to your company workspace["']\s*:\s*["']अपने कंपनी वर्कस्पेस में साइन इन करें["']/, 'Company Cloud Hindi dictionary entry is missing');
 assert.ok(cloud.includes('function bilingualize(root)')&&cloud.includes('bilingualize(overlay)')&&cloud.includes('bilingualValue(m)'), 'Company Cloud forms and status messages must be bilingualized');
 for(const action of ['openPhoto,openArchive:openArch','startVoice:startLive','openAgentsSuite(){window.NovaSuite?.open()}','openBusinessIntelligence(){window.NovaBusiness?.open()}','openCompanyCloud(){window.NovaBusinessCloud?.open()}','openImageStudio(){'])assert.ok(app.includes(action),'legacy feature action bridge missing: '+action);
-assert.match(html, /<button\\b(?=[^>]*\\bid="nPhoto")(?=[^>]*\\bdata-i="nPhoto")(?=[^>]*\\bhidden)[^>]*>/, 'photo solver must stay hidden from the global sidebar');
-assert.match(html, /<button\\b(?=[^>]*\\bid="nArch")(?=[^>]*\\bdata-i="nArch")(?=[^>]*\\bhidden)[^>]*>/, 'chat archive must stay hidden from the global sidebar');
+assert.match(html, /<button\b(?=[^>]*\bid="nPhoto")(?=[^>]*\bdata-i="nPhoto")(?=[^>]*\bhidden)[^>]*>/, 'photo solver must stay hidden from the global sidebar');
+assert.match(html, /<button\b(?=[^>]*\bid="nArch")(?=[^>]*\bdata-i="nArch")(?=[^>]*\bhidden)[^>]*>/, 'chat archive must stay hidden from the global sidebar');
 
 assert.ok(workspace.includes("isHi()?(g.nameHi||g.name):g.name"),'workspace group labels must follow the selected interface language');
 assert.ok(workspace.includes("name:isHi()?(m.nameHi||m.name):m.name")&&workspace.includes("desc:isHi()?(m.descHi||m.desc):m.desc"),'mode names and descriptions must follow the selected interface language');
