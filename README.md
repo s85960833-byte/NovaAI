@@ -19,6 +19,10 @@ Production preview: https://novaai-4auo.onrender.com
 - AI chat is not enabled on staging until a server-side model provider is configured. Physical Android handset and real microphone capture are not yet verified. Direct external HTTP inspection from the review environment was unavailable; Render deployment and internal self-test logs are the available staging evidence.
 - The app is not approved for Production release or customer onboarding until provider configuration, physical-device checks, and the remaining privacy/authentication controls are reviewed.
 
+## Search and sharing metadata
+
+- The current PR branch includes a page description, canonical URL, Open Graph/Twitter summary metadata, a root-only sitemap and a robots policy that disallows `/api/`. These endpoints are covered by local runtime smoke tests, but they are not yet live on Production. Search-engine indexing and social-card rendering have not been verified.
+
 ## Data and privacy notes
 
 - Chat history remains browser-local by default.
@@ -62,8 +66,8 @@ Only non-paid, adult-supervised buyer-interest conversations and synthetic-data 
 
 ## Cloud-sync status and limitation
 
-- The current client reads the remote snapshot before writing, merges message histories and deleted-chat tombstones, then uses an `updated_at` compare-and-swap update with bounded retries. Unit tests cover overlapping and divergent message histories and deletion tombstones.
-- This reduces stale whole-snapshot overwrites; it is not a full CRDT or per-message/field-level conflict-resolution system. Memory and custom-instruction fields do not have independent version histories.
+- The current client reads the remote snapshot before writing, merges message histories and deleted-chat tombstones, then uses an `updated_at` compare-and-swap update with bounded retries. Unit tests cover overlapping and divergent message histories, deletion tombstones, memory/custom-instruction timestamp conflicts, empty-value deletions and explicit document deletion.
+- This reduces stale whole-snapshot overwrites; it is not a full CRDT or per-message/field-level conflict-resolution system. Chat/message conflicts are merged by the current deterministic rules, while memory and custom-instruction fields use client-side timestamps rather than a server-authoritative conflict clock.
 - Real concurrent two-device Supabase sync, recovery after network interruption, and user-level deletion/retention flows have not been verified end to end. Keep cloud sync optional, export local backups, and do not rely on it as the only copy of important data.
 
 
