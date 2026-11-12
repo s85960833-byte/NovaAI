@@ -232,3 +232,34 @@ Deno.test("hostile claim proxies and accessor properties fail closed", async () 
     throw new Error("Hostile claim object reached trusted worker callbacks");
   }
 });
+
+
+Deno.test("worker rejects accessor, symbol, extra-key and proxy claims before trusted callbacks", async () => {
+  let callbacks = 0;
+  const dependencies = {
+    registry: registry(),
+    async assertLeaseCurrent() { callbacks++; return true; },
+    async persistProof() {
+      callbacks++;
+      return { proofId: "66666666-6666-4666-8666-666666666666",
+        attestationId: "77777777-7777-4777-8777-777777777777", digest: "d".repeat(64) };
+    },
+  };
+  const accessorClaim = { ...claim } as Record<string, unknown>;
+  Object.defineProperty(accessorClaim, "workerId", {
+    enumerable: true,
+    get() { throw new Error("getter must not execute"); },
+  });
+  const symbolClaim = { ...claim, [Symbol("hidden")]: "unexpected" } as MissionWorkerClaim;
+  const extraClaim = { ...claim, extra: true } as MissionWorkerClaim;
+  const hostileProxy = new Proxy({ ...claim }, {
+    ownKeys() { throw new Error("proxy trap"); },
+  }) as MissionWorkerClaim;
+  for (const candidate of [accessorClaim, symbolClaim, extraClaim, hostileProxy]) {
+    const result = await processClaimedMissionTask(candidate, dependencies);
+    if (result.status !== "denied" || result.reason !== "invalid_claim") {
+      throw new Error("Malformed claim was not rejected");
+    }
+  }
+  if (callbacks !== 0) throw new Error("Malformed claim reached trusted callbacks");
+});
