@@ -45,6 +45,9 @@ app.use('/api', (q, r, next) => {
 
 app.use(express.json({ limit: '6mb' }));
 
+// Liveness check is intentionally independent of third-party provider credentials.
+app.get('/health', (q, r) => r.json({ ok: true, service: 'nova-ai', status: 'healthy' }));
+
 app.get('/api/config', (q, r) => {
   if (!E.LLM_KEY && !E.GROQ_API_KEY && !E.OPENROUTER_API_KEY) return r.status(503).end();
   r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || 'free-provider-fallback', image: !E.IMAGE_OFF, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY, hordeImage: !!E.HORDE_API_KEY } });
@@ -172,6 +175,7 @@ app.post('/api/chat/completions', async (q, r) => {
     // Optional free-tier OpenAI-compatible providers; secrets are read only from Render env vars.
     if (E.GROQ_API_KEY) providers.push({ base: secureProviderBase('GROQ_BASE', E.GROQ_BASE, 'https://api.groq.com/openai/v1'), key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL || 'llama-3.3-70b-versatile'] });
     if (E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: secureProviderBase('OPENROUTER_BASE', E.OPENROUTER_BASE, 'https://openrouter.ai/api/v1'), key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'] });
+    if (!providers.length) return r.status(503).json({ error: 'No AI provider is configured. Set LLM_KEY, GROQ_API_KEY, or OPENROUTER_API_KEY in the server environment.' });
     let extra = vis ? { reasoning_format: 'hidden' } : {};   // keep the model's private thinking out of the answer
     let good = null, first = null, last = 0;
     for (const provider of providers) {
@@ -1178,10 +1182,11 @@ if (E.SELFTEST_ON_START === '1') {
           return null;
         }
       }
-      const config = await probe('config', '/api/config', {}, (r, j) => r.ok && !!j.model);
+      const providerConfigured = !!(E.LLM_KEY || E.GROQ_API_KEY || E.OPENROUTER_API_KEY);
+      const config = await probe('config', '/api/config', {}, (r, j) => r.ok && !!j.model || (!providerConfigured && r.status === 503));
       console.log('NOVA_SELFTEST_CONFIG ' + JSON.stringify(results[results.length - 1]));
       await probe('frontend', '/', {}, (r, j, body) => r.ok && body.includes('<title>Nova AI</title>'));
-      await probe('manifest', '/manifest.webmanifest', {}, (r, j) => r.ok && j.name === 'Nova AI');
+      await probe('manifest', '/manifest.webmanifest', {}, (r, j) => r.ok && j.name === 'NOVA AI — Indian Intelligence');
       await probe('PWA icon', '/icons/icon-192.png', {}, r => r.ok && (r.headers.get('content-type') || '').includes('image/png'));
       await probe('service worker', '/sw.js', {}, r => r.ok);
       await probe('news feed', '/api/feed?cat=all&lang=en', {}, (r, j) => r.ok && Object.keys(j.cats || {}).length > 0);
@@ -1193,7 +1198,11 @@ if (E.SELFTEST_ON_START === '1') {
         results.push({ name: 'provider self-test endpoint', ok: true, status: 404, note: 'Disabled by default; set LIVE_SELFTEST_ENABLED=1 for an operator-authorized check.' });
       }
       await probe('live retrieval', '/api/live', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: 'Latest NASA news', mode: 'always', lang: 'en', tz: 'Asia/Kolkata' }), timeout: 60000 }, (r, j) => r.ok && j.ok && !!j.context);
-      await probe('AI chat', '/api/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: (config && config.data.model) || E.LLM_MODEL, stream: false, max_tokens: 16, messages: [{ role: 'user', content: 'Reply exactly NOVAAI_OK.' }] }), timeout: 60000 }, (r, j) => r.ok && !!(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content));
+      if (providerConfigured) {
+        await probe('AI chat', '/api/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: (config && config.data.model) || E.LLM_MODEL, stream: false, max_tokens: 16, messages: [{ role: 'user', content: 'Reply exactly NOVAAI_OK.' }] }), timeout: 60000 }, (r, j) => r.ok && !!(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content));
+      } else {
+        results.push({ name: 'AI chat', ok: false, status: 503, note: 'Skipped: set LLM_KEY, GROQ_API_KEY, or OPENROUTER_API_KEY in Render to enable real AI chat.' });
+      }
       if (config && config.data.providers && config.data.providers.tavily) {
         await probe('Tavily search route', '/api/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: 'NASA' }), timeout: 15000 }, (r, j) => r.ok && Array.isArray(j.results));
       } else results.push({ name: 'Tavily search route', ok: true, status: 404, note: 'No Tavily key configured; general search uses fallback providers.' });
