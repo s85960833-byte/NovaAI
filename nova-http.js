@@ -7,7 +7,7 @@ function safeRedirectTarget(raw, originalHost = '') {
   try { target = new URL(String(raw)); } catch { throw new Error('invalid provider URL'); }
   const host = target.hostname.toLowerCase().replace(/^\[|\]$/g, '');
   if (target.protocol !== 'https:' || target.username || target.password ||
-      (target.port && target.port !== '443') || !host || isIP(host) ||
+      (target.port && target.port !== '443') || !host || !host.includes('.') || isIP(host) ||
       host === 'localhost' || host.endsWith('.localhost') ||
       host.endsWith('.local') || host.endsWith('.internal')) {
     throw new Error('unsafe provider URL');
