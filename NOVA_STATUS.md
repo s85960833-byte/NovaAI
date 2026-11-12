@@ -1,3 +1,39 @@
+## Current verified checkpoint — 12 November 2026
+
+This section supersedes earlier checkpoint statements below wherever they describe a later/earlier candidate SHA or current CI/deployment state.
+
+### PR #98 and exact-head CI
+- PR #98: Open, Draft, unmerged; GitHub reports mergeable=true. Current head before this status-only refresh: `be4287fde83d7adcca5a41b13674d29f31383af6`.
+- Main CI [#43260317789](https://github.com/s85960833-byte/NovaAI/actions/runs/43260317789): success on that exact SHA; 45 successful steps, 4 live/release-only steps skipped, 0 failures.
+- Browser CI [#43260317846](https://github.com/s85960833-byte/NovaAI/actions/runs/43260317846): success on that exact SHA; 17 successful steps, 0 skipped, 0 failures.
+- No PR review submissions or inline review threads were returned at this checkpoint. Combined commit status endpoint returned no separate status entries; the workflow runs above are the CI evidence.
+- CI successes do not prove current deployed Staging or Production behavior. The four skipped Main steps remain skipped, not passed.
+
+### Render status and observability
+- Staging service `srv-dbqm035g1s2s73eogao0` remains linked to `fix/nova-home-learn-first-mobile-20261109`, Auto Deploy enabled with commit trigger, Free plan.
+- Latest Staging Live deployment is still `dep-dbqnenhe35nc73f81k4g`, SHA `195739a04895de364a5af22aa61f930d5d782cbb` (old code/doc revision; not PR head `be4287f`). The recorded deploy succeeded, but it does not prove the current candidate is deployed.
+- Staging Health Check Path is blank. The connected Render tools available in this workspace expose service read, deploy, events, logs, metrics and environment updates, but no direct Health Check Path update action.
+- Staging metrics for 11–12 Nov returned no CPU, HTTP request-count, HTTP-latency or instance-count samples; memory samples exist for several instance IDs. This is insufficient for uptime or usage claims.
+- Production service `srv-dbidhpc9v7es73d6ia80` remains on branch `main`; latest Live deployment `dep-dbom7bbm8hqs73ec2gi0` is SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No merge or Production redeploy was made.
+- Production CPU/memory samples exist, but HTTP request-count, latency and instance-count samples were empty in the queried period. Do not claim measured uptime, user traffic or an SLA.
+- Direct browser fetch and shell curl from this audit environment could not resolve either `onrender.com` hostname. This is an audit-network/DNS limitation, not proof the sites are down or healthy. Live HTTP/health verification remains unpassed.
+
+### Supabase and diligence
+- Read-only Security Advisor: 0 lints. Read-only Health Advisor: 0 lints. Performance Advisor: 13 INFO unused-index notices; no index changes made.
+- No Supabase schema, users, secrets, functions or deployments were changed in this checkpoint.
+- Valuation Memo and Cost-to-Replicate Report explicitly label the ₹35–105 lakh replacement-labour model as unvalidated planning arithmetic, not fair value or guaranteed buyer savings. The ₹15–20 lakh ask remains unsupported by current evidence.
+- Transfer Pack is a draft; backup/restore has not been drilled. Dependency licence inventory covers npm metadata, not complete Deno, CDN, media, source-code or contributor IP provenance.
+- No exclusive feature claim, buyer interest, customer, revenue, certified security result or ₹10–20 crore valuation is established.
+
+### Current release gate
+- Overall Definition-of-Done estimate: 30% (qualitative cross-phase estimate).
+- Buyer-readiness: 36.8/100 ≈ 37/100 (internal qualitative score, not appraisal).
+- Production decision: NO-GO. Keep PR #98 Draft/unmerged and Production unchanged.
+- Owner action still required: Staging Dashboard → Settings → Health Checks → set `/health` → Save. Then verify the change. Physical Android/touch/microphone test also requires the actual handset.
+- Next autonomous work: verify the post-refresh CI, watch whether the Staging service receives the latest PR branch commit via its configured Auto Deploy, and continue documentation/security gap review without changing Production or spending money.
+
+---
+
 # NOVA Status — Current Source of Truth
 
 **Last exact CI verification:** 12 November 2026 (updated after current-head verification)  
