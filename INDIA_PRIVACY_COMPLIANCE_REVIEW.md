@@ -91,3 +91,22 @@ Do not describe every substantive obligation as already commenced on 12 November
 A read-only catalog query on project `qrfwsewppafhxibdboam` found eight public-table foreign keys to `auth.users(id)`: six RESTRICT, one SET NULL and one CASCADE. RESTRICT covers NOVA BI analyses, datasets, memberships, organisation creators, workflow approvals and proposals. The only CASCADE is the optional `nova_user_workspaces` row; the audit-event actor uses SET NULL.
 
 The account UI's **Delete cloud backup** action deletes only the optional workspace snapshot. It does not delete the Auth identity or BI tenant data. A generic Auth-delete call can fail while RESTRICT relationships remain; cascading organisation deletion could destroy other members' information. A complete safe deletion workflow, session revocation, ownership transfer, audit treatment, Storage deletion and retention policy are **not implemented or verified**. See [ACCOUNT_DELETION_REVIEW.md](ACCOUNT_DELETION_REVIEW.md). Do not claim full deletion or onboard confidential/customer data.
+
+
+## 8. Date-sensitive commencement check — 12 November 2026
+
+This review is dated **12 November 2026**. The following provisions are therefore scheduled for the next day, not treated in this review as already commenced:
+
+- DPDP Act section 6(9) and section 27(1)(d): scheduled for **13 November 2026** under G.S.R. 843(E).
+- DPDP Rules rule 4: scheduled for **13 November 2026** under G.S.R. 846(E).
+
+The main eighteen-month group is scheduled for **13 May 2027**. In particular, Act section 9 (children's personal data) is in the sections 7–10 group, and Rules 10–11 (verifiable parental consent) are in the rules 5–16 group. They should be treated as near-term product-readiness requirements, not as a reason to collect children's data before the required safeguards exist.
+
+MeitY's official listing records a corrigendum to the 2025 Rules published on 16 December 2025. Read the corrected Rules together with the original G.S.R. 846(E); do not rely on an uncorrected copy for detailed clause wording. The corrigendum's listed corrections include wording in rule 1's commencement paragraph; they do not change the one-year / eighteen-month phased schedule.
+
+Official source links:
+- [G.S.R. 843(E) — DPDP Act commencement notification, 13 November 2025](https://egazette.gov.in/WriteReadData/2025/267647.pdf)
+- [G.S.R. 846(E) — DPDP Rules, 13 November 2025](https://egazette.gov.in/WriteReadData/2025/267650.pdf)
+- [MeitY official DPDP Rules page, including the corrigendum listing published 16 December 2025](https://www.meity.gov.in/documents/act-and-policies/digital-personal-data-protection-rules-2025-gDOxUjMtQWa)
+
+This timing note is a statutory commencement summary, not an opinion on whether NOVA is a Data Fiduciary, Significant Data Fiduciary, processor, Consent Manager or otherwise subject to a particular duty. That classification depends on actual product operations, contracts, purposes and scale and must be confirmed by qualified Indian privacy counsel. Other applicable Indian laws and platform/provider contracts may apply independently.
