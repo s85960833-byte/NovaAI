@@ -92,20 +92,20 @@ test('Express API routes are gated before JSON body parsing when enabled', () =>
   const fs = require('node:fs');
   const path = require('node:path');
   const server = fs.readFileSync(path.join(__dirname, '..', 'nova-server.txt'), 'utf8');
-  const gate = server.indexOf("app.use('/api', (q, r, next) => {\\n  if (q.path === '/config' || q.path === '/feed') return next();");
+  const gate = server.indexOf("app.use('/api', (q, r, next) => {\n  if (q.path === '/config' || q.path === '/feed') return next();");
   const parser = server.indexOf("app.use(express.json({ limit: '6mb' }));");
   assert.ok(gate >= 0, 'API auth gate must exist');
   assert.ok(parser > gate, 'unauthenticated requests must be rejected before JSON parsing');
-  assert.match(server, /const apiAuthRequired = E\\.NOVA_API_AUTH_REQUIRED === '1'/);
-  assert.match(server, /userId: q\\.novaUser\\?\\.id \\|\\| null/);
-  assert.match(server, /job\\.userId !== q\\.novaUser\\?\\.id/);
+  assert.match(server, /const apiAuthRequired = E\.NOVA_API_AUTH_REQUIRED === '1'/);
+  assert.match(server, /userId: q\.novaUser\?\.id \|\| null/);
+  assert.match(server, /job\.userId !== q\.novaUser\?\.id/);
 });
 
 test('browser attaches Supabase access tokens to same-origin protected API requests', () => {
   const fs = require('node:fs');
   const path = require('node:path');
   const client = fs.readFileSync(path.join(__dirname, '..', 'nova-account.js'), 'utf8');
-  assert.match(client, /getClient\\(\\)\\.auth\\.getSession\\(\\)/);
-  assert.match(client, /headers\\.set\\('Authorization', 'Bearer '\\+token\\)/);
-  assert.match(client, /target\\.pathname\\.startsWith\\('\\/api\\/'\\)/);
+  assert.match(client, /getClient\(\)\.auth\.getSession\(\)/);
+  assert.match(client, /headers\.set\('Authorization','Bearer '\+token\)/);
+  assert.match(client, /target\.pathname\.startsWith\('\/api\/'\)/);
 });
