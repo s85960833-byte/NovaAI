@@ -31,13 +31,14 @@
 | File | Contents | Status |
 |---|---|---|
 | MARKET_AND_DIFFERENTIATION_RESEARCH.md | Official competitor documentation and hypotheses | Desk research; no unique-market claim approved |
+| BUYER_MAP.md | 24 buyer categories, illustrative companies and strategic-use hypotheses | Desk research only; no confirmed prospects or buyer interest |
 | BUYER_INTEREST_BRIEF.md | Supervised non-paid preview brief | Discovery only; no purchase/customer claim |
 | BUYER_OBJECTION_REVIEW.md | Remaining CTO/CFO/founder/legal objections | Open objections remain; NO-GO |
 | VALUATION_MEMO.md | Cost, comparable and revenue-scenario framework | Evidence-limited; ₹15–20 lakh unsupported; ₹10–20 crore aspiration only |
 
 ## Current evidence checkpoint
 
-- PR #98 candidate 13f6f317f190d569776f07c92d2dbcb752862c5f is Draft and unmerged.
+- PR #98 candidate 3897fe351b0b6d02b580e22a69746a7d58e5bc9e is Draft and unmerged.
 - Main CI: 47/47 steps passed. Browser CI: 16/16 steps passed on the same candidate.
 - Production main and Production Render were not changed by this candidate.
 - Staging still needs current-head deployment and live smoke verification; Health Check Path was blank at last Render inspection.

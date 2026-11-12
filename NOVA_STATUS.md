@@ -334,3 +334,11 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 ### Current scorecard
 - Overall Definition-of-Done progress: **20% estimated**.
 - Buyer-readiness: **34/100 estimated**. Exact-head CI and live Supabase configuration evidence improved; no customer, revenue, unique moat or buyer interest is verified.
+
+
+## Buyer map research — 12 November 2026
+
+- Added BUYER_MAP.md with 24 buyer categories, illustrative company examples, potential use cases and strategic-fit caveats. The map explicitly says no company is a confirmed prospect and no acquisition interest has been evidenced.
+- Research indicates the more plausible no-customer asset buyers would be smaller Indian software agencies, vertical SaaS vendors, managed service providers and training providers that can reuse a verified codebase. Large enterprises and existing AI platforms already have overlapping capabilities and would face a strong build-versus-buy objection.
+- PR #98 candidate 3897fe351b0b6d02b580e22a69746a7d58e5bc9e passed Main CI 47/47 and Browser CI 16/16. Production remains unchanged; Staging remains stale and owner Health Check Path action remains open.
+- No buyer outreach, contact, sale claim or price claim was made.
