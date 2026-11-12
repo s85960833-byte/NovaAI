@@ -227,9 +227,9 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 <section id="novaEntryGate" aria-label="NOVA introduction" aria-live="polite"><div class="nova-entry-core"><div class="nova-entry-mark" aria-hidden="true">✦</div><p class="nova-entry-word">NOVA</p><p class="nova-entry-tagline">A NEW ERA OF INTELLIGENCE</p><div class="nova-entry-rule" aria-hidden="true"></div><p class="nova-entry-caption">THINK · CREATE · DISCOVER</p></div></section>
 
 <aside id="side"><div class="brand"><span class="logo">✦</span><b>Nova AI</b></div>
-<button id="new" data-i="new">＋ New chat</button><nav class="nav"><button id="nHome" data-i="nHome"></button><button id="nPhoto" data-i="nPhoto" hidden></button><button id="nArch" data-i="nArch" hidden></button><button id="nImg" data-i="nImg" hidden></button><button id="nLive" data-i="nLive" hidden></button></nav><input id="q" type="search" data-p="search" aria-label="Search chats"><div id="list"></div>
+<button id="new" data-i="new">＋ New chat</button><nav class="nav"><button id="nHome" aria-label="Home" data-i="nHome"></button><button id="nPhoto" aria-label="Photo solver" data-i="nPhoto" hidden></button><button id="nArch" aria-label="Chat archive" data-i="nArch" hidden></button><button id="nImg" aria-label="Image Studio" data-i="nImg" hidden></button><button id="nLive" aria-label="Live voice" data-i="nLive" hidden></button></nav><input id="q" type="search" data-p="search" aria-label="Search chats"><div id="list"></div>
 <select id="lang" aria-label="Reply language"></select>
-<div class="row"><button id="setb" data-i="setB"></button><button id="theme" aria-label="Theme">◐</button></div></aside><div id="scrim"></div>
+<div class="row"><button id="setb" aria-label="Settings" data-i="setB"></button><button id="theme" aria-label="Theme">◐</button></div></aside><div id="scrim"></div>
 <div id="main"><div id="top"><button id="menu" aria-label="Menu">☰</button><span class="logo">✦</span><b>Nova AI</b><label class="ui-language-wrap" aria-label="Interface language"><span class="ui-language-label">Language</span><select id="uiLangTop" aria-label="Interface language"><option value="en">English</option><option value="hi">हिंदी</option></select></label><select id="mode" aria-label="Mode"></select><button id="acc" type="button" class="on" aria-pressed="true">🎯</button><button id="xcopy" type="button" hidden>📋</button><button id="xexp" type="button" hidden>⤓</button></div>
 <div id="msgs" aria-live="polite"><div class="w" id="log"></div></div>
 <div class="w" id="imbar" hidden></div>
@@ -239,12 +239,12 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 <p class="note">Nova AI can make mistakes. Check important information.</p></div>
 
 <dialog id="dset"><div class="ptop"><b data-i="setB"></b><button id="sclose" type="button" aria-label="Close">✕</button></div>
-<h4 data-i="sgA"></h4><label for="uiLang">Interface language / इंटरफ़ेस भाषा</label><select id="uiLang" aria-label="Interface language"><option value="en">English</option><option value="hi">हिंदी</option></select><div class="sgrid"><button id="mem" data-i="mem"></button><button id="cfg" data-i="cfg"></button></div><label class="sw"><input type="checkbox" id="accset" checked><span data-i="accD"></span></label><label class="sw"><input type="checkbox" id="ultset" checked><span data-i="ultD"></span></label>
+<h4 data-i="sgA"></h4><label for="uiLang">Interface language / इंटरफ़ेस भाषा</label><select id="uiLang" aria-label="Interface language"><option value="en">English</option><option value="hi">हिंदी</option></select><div class="sgrid"><button id="mem" aria-label="Memory settings" data-i="mem"></button><button id="cfg" aria-label="AI model settings" data-i="cfg"></button></div><label class="sw"><input type="checkbox" id="accset" checked><span data-i="accD"></span></label><label class="sw"><input type="checkbox" id="ultset" checked><span data-i="ultD"></span></label>
 <h4 data-i="sgV"></h4><label class="sw"><input type="checkbox" id="autoread"><span data-i="autoRead"></span></label>
 <div class="row fz"><span data-i="fontT"></span><button id="fdec" type="button" aria-label="Smaller">A−</button><button id="finc" type="button" aria-label="Larger">A+</button></div>
 <h4 id="persH"></h4><div id="pers" class="pers"></div>
-<h4>NOVA Account / NOVA खाता</h4><div id="novaAccountMount"></div><h4 data-i="sgD"></h4><div class="sgrid"><button id="exp" data-i="exp"></button><label id="imp" class="sbtn" for="impf" role="button" tabindex="0" data-i="imp"></label></div><button id="wipe" type="button" class="danger" data-i="wipe"></button><input id="impf" type="file" accept=".json" class="vh">
-<h4 data-i="sgP"></h4><div class="sgrid"><button id="priv" data-i="priv"></button><button id="kbd" type="button" data-i="kbd"></button></div><small data-i="foot" style="color:var(--mut);display:block;margin-top:12px"></small></dialog>
+<h4>NOVA Account / NOVA खाता</h4><div id="novaAccountMount"></div><h4 data-i="sgD"></h4><div class="sgrid"><button id="exp" aria-label="Export chats" data-i="exp"></button><label id="imp" class="sbtn" for="impf" role="button" tabindex="0" data-i="imp"></label></div><button id="wipe" aria-label="Delete all chats" type="button" class="danger" data-i="wipe"></button><input id="impf" type="file" accept=".json" class="vh">
+<h4 data-i="sgP"></h4><div class="sgrid"><button id="priv" aria-label="Privacy information" data-i="priv"></button><button id="kbd" aria-label="Keyboard shortcuts" type="button" data-i="kbd"></button></div><small data-i="foot" style="color:var(--mut);display:block;margin-top:12px"></small></dialog>
 <dialog id="dkbd"><div class="ptop"><b data-i="kbdT"></b><button id="kclose" type="button" aria-label="Close">✕</button></div><ul class="kl"><li><kbd>Ctrl / ⌘ + K</kbd><span data-i="kbd1"></span></li><li><kbd>Ctrl / ⌘ + Shift + O</kbd><span data-i="kbd2"></span></li><li><kbd>/</kbd><span data-i="kbd3"></span></li><li><kbd>Enter · Shift + Enter</kbd><span data-i="kbd4"></span></li><li><kbd>Esc</kbd><span data-i="kbd5"></span></li></ul></dialog>
 <dialog id="dcfg"><b data-i="setT"></b>
 <p style="font-size:14px;color:var(--mut);margin:6px 0" data-i="setP"></p>
@@ -252,12 +252,12 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 <label data-i="base"></label><input id="base" autocomplete="off">
 <label data-i="model"></label><input id="model" autocomplete="off" data-p="modelph">
 <label data-i="key"></label><input id="key" type="password" autocomplete="off">
-<div class="row" style="margin-top:12px"><button id="csave" data-i="save"></button><button id="cclose" data-i="close"></button></div>
-<button id="share" style="width:100%;margin-top:10px" data-i="share"></button>
+<div class="row" style="margin-top:12px"><button id="csave" aria-label="Save provider settings" data-i="save"></button><button id="cclose" aria-label="Close provider settings" data-i="close"></button></div>
+<button id="share" aria-label="Share chat" style="width:100%;margin-top:10px" data-i="share"></button>
 <small style="color:var(--mut)" data-i="shareW"></small></dialog>
 <dialog id="dmem"><b data-i="memT"></b><textarea id="memt" rows="5" maxlength="1500" style="width:100%;border:1px solid var(--bd);border-radius:8px;padding:8px;margin-top:8px"></textarea>
 <b data-i="ciT" style="display:block;margin-top:12px"></b><textarea id="cit" rows="4" maxlength="800" style="width:100%;border:1px solid var(--bd);border-radius:8px;padding:8px;margin-top:8px"></textarea>
-<div class="row" style="margin-top:8px"><button id="msave" data-i="save"></button><button id="mclose" data-i="close"></button></div></dialog>
+<div class="row" style="margin-top:8px"><button id="msave" aria-label="Save memory" data-i="save"></button><button id="mclose" aria-label="Close memory" data-i="close"></button></div></dialog>
 
 <div id="photo" hidden><div class="pbox"><div class="ptop"><b data-i="phTitle"></b><button id="pclose2" aria-label="Close">✕</button></div>
 <p class="psub" data-i="phSub"></p>
@@ -265,14 +265,14 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 <div id="pcamctl" class="pcamctl" hidden><button id="pflip" type="button" aria-label="Flip camera">🔄</button><button id="pshot" type="button" class="shutter" aria-label="Capture"></button><button id="pcamoff" type="button" aria-label="Close camera">✕</button></div>
 <div class="pbtns"><label class="pbig" for="cam" role="button" tabindex="0" data-i="phCam"></label><label class="pbig" for="gal" role="button" tabindex="0" data-i="phGal"></label></div>
 <input id="cam" class="vh" type="file" accept="image/*" capture="environment"><input id="gal" class="vh" type="file" accept="image/*">
-<button id="plive" type="button" class="plive" data-i="phLive"></button>
-<div id="phelp" class="phelp" hidden><span data-i="phHelp"></span><div class="row"><button id="plink" type="button" data-i="phLink"></button><a id="pbrowse" class="abtn" target="_blank" rel="noopener noreferrer" data-i="phBrowse"></a></div></div>
+<button id="plive" aria-label="Start camera" type="button" class="plive" data-i="phLive"></button>
+<div id="phelp" class="phelp" hidden><span data-i="phHelp"></span><div class="row"><button id="plink" aria-label="Copy photo help link" type="button" data-i="phLink"></button><a id="pbrowse" class="abtn" target="_blank" rel="noopener noreferrer" data-i="phBrowse"></a></div></div>
 <div class="pchips" id="psub"></div><input id="pnote" data-p="phNote" maxlength="200" autocomplete="off">
-<button id="psolve" class="psolve" data-i="phSolve" disabled></button><p id="perr" class="perr"></p><small class="ptip" data-i="phTip"></small></div></div>
+<button id="psolve" aria-label="Solve with photo" class="psolve" data-i="phSolve" disabled></button><p id="perr" class="perr"></p><small class="ptip" data-i="phTip"></small></div></div>
 <button id="tobot" type="button" hidden aria-label="Scroll to latest">↓</button>
 <div id="harch" hidden><div class="pbox hbox"><div class="ptop"><b data-i="arT"></b><button id="aclose" type="button" aria-label="Close">✕</button></div><p class="psub" data-i="arSub"></p><div id="abody"></div></div></div>
 <div id="toast" role="status" aria-live="polite" hidden></div>
-<dialog id="dask"><p id="askm" style="margin:0 0 10px"></p><input id="aski" hidden autocomplete="off"><div class="row" style="margin-top:10px"><button id="askok" data-i="okB"></button><button id="askno" data-i="cancelB"></button></div></dialog>
+<dialog id="dask"><p id="askm" style="margin:0 0 10px"></p><input id="aski" hidden autocomplete="off"><div class="row" style="margin-top:10px"><button id="askok" aria-label="Confirm" data-i="okB"></button><button id="askno" aria-label="Cancel" data-i="cancelB"></button></div></dialog>
 <div id="zoom" hidden><img alt=""></div>
 <div id="live" hidden class="ls-listen"><div class="lvbox"><div class="lvtop"><b data-i="lvTitle"></b><select id="llang" aria-label="Language"></select></div><div class="lvvoice"><select id="lvoice" aria-label="Voice"></select><button id="lplay" aria-label="Play">▶</button></div><button id="lorb" class="lorb" aria-label="Talk"><i></i><i></i><span>✦</span></button><div id="lst" class="lst"></div><p id="lcap" class="lcap"></p><p id="ldiag" class="ldiag"></p><div class="lvbtn"><button id="lmute" aria-label="Mute">🎙</button><button id="lend" aria-label="End">✕</button></div></div></div>
 <dialog id="novaAccountDialog" class="nova-account-dialog"></dialog>
