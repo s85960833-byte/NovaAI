@@ -144,3 +144,13 @@ This section supersedes earlier checkpoint statements below wherever they descri
 - Render Production service remains on main, latest Live commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; no production change.
 - Staging remains on old Live commit `195739a04895de364a5af22aa61f930d5d782cbb`; Health Check Path blank. Owner action still required: Staging Dashboard → Settings → Health Checks → set `/health` → Save. No manual deployment was triggered.
 - Buyer-readiness remains `36.8/100 ≈ 37/100`; overall Definition-of-Done estimate remains 30%. These are provisional internal estimates, not an appraisal.
+
+
+## Privacy-law documentation checkpoint — 12 November 2026
+
+- Updated `INDIA_PRIVACY_COMPLIANCE_REVIEW.md` on the PR branch with a date-sensitive note for the DPDP Act and Rules' phased commencement schedule.
+- Official source schedule recorded: Act sections 6(9) and 27(1)(d), and Rules rule 4, are scheduled for 13 November 2026; the main eighteen-month group, including Act section 9 and Rules 10–11, is scheduled for 13 May 2027. This is a commencement summary, not a legal opinion or compliance certification.
+- MeitY's official Rules listing includes a corrigendum published 16 December 2025; the review now directs readers to consult the corrected Rules alongside the Gazette text.
+- New doc commit: `362c58c956f1d38ea067e71f993557eedbe9037a`. GitHub compare confirms this commit changed only `INDIA_PRIVACY_COMPLIANCE_REVIEW.md` (19 additions, 0 deletions). No application code changed and no deployment was triggered by this documentation edit.
+- PR #98 remains Open/Draft/unmerged and currently mergeable; Production remains untouched.
+- Remaining gating items are unchanged: Staging on old SHA, blank Staging Health Check Path, no live auth/session test, no physical Android test, incomplete durable quotas/account deletion/provider-rights/IP/legal/restore evidence.
