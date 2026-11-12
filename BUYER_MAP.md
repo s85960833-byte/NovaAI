@@ -2,7 +2,7 @@
 
 **Review date:** 12 November 2026  
 **Purpose:** Identify buyer categories that might reuse parts of NOVA if its IP, security, portability, product quality and commercial rights are independently cleared.  
-**Important:** The companies below are illustrative examples of adjacent businesses, not confirmed prospects. No acquisition interest, contact, willingness to pay or relationship is claimed. The map is not a recommendation to contact anyone now.
+**Important:** The companies below are illustrative examples of adjacent businesses, not confirmed prospects. No acquisition interest, contact, willingness to pay or relationship is claimed. The map is not a recommendation to contact anyone now. Any discussion must remain adult-supervised and non-paid; do not request payment, deposits, confidential data, credentials or customer onboarding.
 
 ## Summary
 

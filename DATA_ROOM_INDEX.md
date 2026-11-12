@@ -33,12 +33,14 @@
 | MARKET_AND_DIFFERENTIATION_RESEARCH.md | Official competitor documentation and hypotheses | Desk research; no unique-market claim approved |
 | BUYER_MAP.md | 24 buyer categories, illustrative companies and strategic-use hypotheses | Desk research only; no confirmed prospects or buyer interest |
 | BUYER_INTEREST_BRIEF.md | Supervised non-paid preview brief | Discovery only; no purchase/customer claim |
+| PITCH_READINESS.md | Release gates and allowed demonstration scope | LIMITED DISCOVERY ONLY; NOT READY FOR PAID SALE |
+| NOVA_PITCH_KIT.md, PITCH_SCRIPT.md | Intro, safe demo and buyer-interest conversation material | Adult-supervised, non-paid discovery only |
 | BUYER_OBJECTION_REVIEW.md | Remaining CTO/CFO/founder/legal objections | Open objections remain; NO-GO |
 | VALUATION_MEMO.md | Cost, comparable and revenue-scenario framework | Evidence-limited; ₹15–20 lakh unsupported; ₹10–20 crore aspiration only |
 
 ## Current evidence checkpoint
 
-- PR #98 candidate 553e438524bdba2255b569300ae24310af6ff2f2 is Draft and unmerged.
+- PR #98 candidate cd073c966d9a00bbb922ef3e12be4db1660b1723 is Draft and unmerged.
 - Main CI: 47/47 steps passed. Browser CI: 16/16 steps passed on the same candidate.
 - BUYER_MAP.md documents 24 illustrative buyer categories; no company is a confirmed prospect and no interest is claimed.
 - Production main and Production Render were not changed by this candidate.

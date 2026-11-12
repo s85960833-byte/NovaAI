@@ -351,3 +351,13 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - DATA_ROOM_INDEX.md now includes the Buyer Map and current evidence state.
 - PR #98 remains Draft and unmerged. Production is unchanged. Staging remains stale at 195739a04895de364a5af22aa61f930d5d782cbb; Health Check Path is blank.
 - Overall Definition-of-Done progress: **21% estimated**. Buyer-readiness: **35/100 estimated**. These are internal qualitative estimates, not an independent valuation.
+
+
+## Exact-head buyer-doc and CI checkpoint — 12 November 2026
+
+- Candidate cd073c966d9a00bbb922ef3e12be4db1660b1723 passed Main workflow #43206866629 (**47/47**) and Browser workflow #43206866508 (**16/16**).
+- Buyer Map (24 categories), Supabase security audit and Data Room index are in the PR branch. Buyer materials remain limited to adult-supervised, non-paid discovery; no company is a confirmed prospect.
+- PITCH_READINESS and BUYER_INTEREST_BRIEF are being refreshed to replace stale November 8 deployment/CI references with the current verified baseline and PR evidence.
+- Production main remains bdbeb20881f9b6cef51ff5a9d8a3b80131079a50; Production Render remains c3cee61906b88ff111b3a645db55c9c2503cd8f7. PR #98 remains Draft and unmerged.
+- Staging remains on 195739a04895de364a5af22aa61f930d5d782cbb; Health Check Path remains blank. No current-head staging/live smoke is claimed.
+- Overall Definition-of-Done progress: **22% estimated**. Buyer-readiness: **36/100 estimated**. These are internal qualitative estimates, not an appraisal.
