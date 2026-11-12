@@ -13,6 +13,7 @@ const fs = require('fs');
 const E = process.env;
 const { secureProviderBase } = require('./nova-provider-url');
 const { formatCurrentDateTime } = require('./nova-timezone');
+const { safeRedirectTarget, readBoundedText } = require('./nova-http');
 const BASE = secureProviderBase('LLM_BASE', E.LLM_BASE, 'https://openrouter.ai/api/v1');
 const app = express();
 app.disable('x-powered-by');
@@ -452,24 +453,36 @@ async function lhttp(url, o = {}) {
   const tries = Math.max(1, Number(o.tries) || 2); let err;
   for (let i = 0; i < tries; i++) {
     try {
-      const r = await fetch(url, {
-        method: o.method || 'GET',
-        headers: { 'User-Agent': L_UA, Accept: o.accept || '*/*', ...(o.headers || {}) },
-        body: o.body, redirect: 'follow', signal: AbortSignal.timeout(o.timeout || 5000)
-      });
+      const initial = safeRedirectTarget(url);
+      const originalHost = initial.hostname.toLowerCase();
+      const signal = AbortSignal.timeout(o.timeout || 5000);
+      let target = initial, r;
+      for (let hop = 0; hop <= 3; hop++) {
+        r = await fetch(target, {
+          method: o.method || 'GET',
+          headers: { 'User-Agent': L_UA, Accept: o.accept || '*/*', ...(o.headers || {}) },
+          body: o.body, redirect: 'manual', signal
+        });
+        if (![301, 302, 303, 307, 308].includes(r.status)) break;
+        if ((o.method || 'GET').toUpperCase() !== 'GET' || hop === 3) {
+          throw new Error('provider redirect blocked');
+        }
+        const location = r.headers.get('location');
+        if (!location) throw new Error('provider redirect missing location');
+        target = safeRedirectTarget(new URL(location, target).href, originalHost);
+      }
       if (r.status === 429) {
         const e = new Error('HTTP 429'); e.status = 429;
         const ra = r.headers.get('retry-after'); e.retryAfter = Number(ra) || (ra ? Math.max(0, Math.ceil((Date.parse(ra) - Date.now()) / 1000)) : 0);
-        throw e; // do not amplify provider rate limits with automatic retries
+        throw e;
       }
       if (r.status >= 500) { err = new Error('HTTP ' + r.status); err.status = r.status; if (i < tries - 1) { await sleep(500 * (i + 1)); continue; } throw err; }
       if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; throw e; }
-      const txt = await r.text();
-      if (txt.length > 3e6) throw new Error('response too large');
+      const txt = await readBoundedText(r, 3 * 1024 * 1024);
       return o.json ? JSON.parse(txt) : txt;
     } catch (e) {
       err = e;
-      if (e && (e.name === 'SyntaxError' || e.status === 429 || (e.status >= 400 && e.status < 500))) break;
+      if (e && (e.name === 'SyntaxError' || e.status === 429 || (e.status >= 400 && e.status < 500) || /redirect blocked|unsafe provider URL|invalid provider URL|response too large/.test(String(e.message)))) break;
       if (i < tries - 1) await sleep(350 * (i + 1));
     }
   }
