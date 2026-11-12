@@ -50,8 +50,33 @@ try {
   }));
   assert.match(importDiagnostic.status, /SHA-256 ready/,
     'CSV import must produce a source digest in a secure browser context: ' + JSON.stringify(importDiagnostic));
+  const beforeAnalysis = await page.evaluate(() => ({
+    buttonDisabled: document.querySelector('#nbAnalyze')?.disabled,
+    selectedType: document.querySelector('#nbType')?.value,
+    columnMapping: [...document.querySelectorAll('#nbMapping [data-map]')].map(node => ({ key: node.dataset.map, value: node.value })),
+    status: document.querySelector('#nbDataStatus')?.textContent || '',
+    parsedRows: window.NovaBusiness?.snapshot?.().dataset?.rowCount ?? null
+  }));
+  assert.equal(beforeAnalysis.buttonDisabled, false,
+    'Analyze must be enabled after a successful import: ' + JSON.stringify(beforeAnalysis));
   await page.locator('#nbAnalyze').click();
-  await page.waitForFunction(() => window.NovaBusiness?.snapshot?.().analysis?.total === 212000, null, { timeout: 7000 });
+  await page.waitForFunction(() => {
+    const analysis = window.NovaBusiness?.snapshot?.().analysis;
+    const status = document.querySelector('#nbDataStatus')?.textContent || '';
+    return analysis?.total === 212000 || status.startsWith('Analysis failed:');
+  }, null, { timeout: 10000 });
+  const analysisDiagnostic = await page.evaluate(() => ({
+    analysis: window.NovaBusiness?.snapshot?.().analysis || null,
+    dataset: window.NovaBusiness?.snapshot?.().dataset ? {
+      name: window.NovaBusiness.snapshot().dataset.name,
+      rowCount: window.NovaBusiness.snapshot().dataset.rowCount,
+      type: window.NovaBusiness.snapshot().dataset.type
+    } : null,
+    status: document.querySelector('#nbDataStatus')?.textContent || '',
+    buttonDisabled: document.querySelector('#nbAnalyze')?.disabled
+  }));
+  assert.equal(analysisDiagnostic.analysis?.total, 212000,
+    'Imported demo expense analysis must match expected total: ' + JSON.stringify({ beforeAnalysis, analysisDiagnostic }));
   await page.locator('#nbNav [data-view="proof"]').click();
   await page.locator('#nbProofExport').waitFor({ state: 'visible', timeout: 5000 });
 
