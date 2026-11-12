@@ -54,3 +54,44 @@ These are hypotheses. Each needs a narrow competitor comparison, working end-to-
 ## Commercial boundary
 
 No willingness-to-pay, market share, customer demand, acquisition interest, or competitive superiority has been demonstrated by this desk review. NOVA has no verified customer/revenue traction in the available evidence. Treat any buyer value as a hypothesis until a qualified reviewer validates the asset, rights, security, and replacement cost.
+
+
+## India-specific competitive check — 12 November 2026
+
+The market screen found direct Indian-language / India-oriented app-builder products. These overlap with NOVA's broad Hindi-English AI workspace and app-building positioning:
+
+| Product | Publicly stated capabilities | What it means for NOVA |
+|---|---|---|
+| [Paddlewheel India](https://paddlewheel.dev/in) | Says users can describe apps in 10 Indian languages; voice is early access; two free projects; GitHub private-repository sync; Netlify hosting in the user's account; app domains; INR payments in created apps. Public page lists Free, Pro $19/month and Ultimate $49/month; it says INR/UPI plan prices are planned, not live. | Direct India-market competition for language-led describe-to-app plus deploy and ownership. |
+| [BooDoo on Google Play](https://play.google.com/store/apps/details?hl=en_IN&id=ai.boodoo.app) | Listing says users can describe apps in Hindi or English by text/voice, approve a plan, publish a live app link, export readable code, use a database and pay via UPI/cards/netbanking. Listing updated 31 August 2026. | Direct overlap with NOVA's bilingual app-builder and India-first positioning. Listing claims are not independently tested here. |
+| [NavBharatAI](https://navbharatai.com/) / [About](https://navbharatai.com/about) | Public site says it supports Hindi/Hinglish/English app descriptions, live preview and publish, code export, AI assistants and UPI/card payments. | Direct overlap with Hindi/English chat + AI app creation + assistant ecosystem. Product claims were not independently tested here. |
+
+**Critical conclusion:** NOVA cannot claim that a Hindi-English AI workspace, voice-led app creation, code export, live preview, deployment, UPI or an app-builder-plus-assistant is exclusive in India. Public websites/app listings show competing claims. The next differentiation test must compare actual outputs, reliability, source evidence and portability on the same task—not repeat feature lists.
+
+## User pain signals — qualitative, non-representative
+
+Public user reviews reveal recurring complaint themes, but review platforms are self-selected and must not be treated as a statistically representative survey or proof that most users have the same experience.
+
+- **Credit/usage friction and costly rework:** selected Lovable Google Play reviews in August 2026 complain that repeated fixes consume credits, daily/monthly allowances limit editing and payment options feel difficult in India. The Google Play listing simultaneously shows a 4.6 rating and thousands of reviews; these individual comments are examples, not the whole user base. Source: https://play.google.com/store/apps/details?hl=en-IN&id=dev.lovable.build
+- **Crashes, token depletion, unresolved generated bugs and export/support frustration:** the Bolt.new Trustpilot profile displayed a 1.4 score from 198 reviews when inspected, and Trustpilot explicitly warns that the company has not invited reviews and the sample may not be representative. Recent individual reviews describe token use on repeated bug fixes, crashes and export issues. Source: https://www.trustpilot.com/review/bolt.new
+- **Developer-first experience and messy publishing:** TechRadar's 1 July 2026 v0 review describes a strong experience but says it is aimed more at developers and notes that publishing/deploying can be messy. Source: https://www.techradar.com/pro/software-services/vercel-v0-no-code-review
+
+### Product hypotheses worth testing from those pain signals
+
+1. Show the user an estimated action/credit cost before a change, then enforce a hard visible budget.
+2. Make every code change reviewable with a diff, test result and a one-click restore point.
+3. Separate "plan" from "build" and show whether files actually changed; never consume a user's generation budget for an unannounced no-op.
+4. Provide transparent export/restore and verify that the exported project runs independently.
+5. Offer clear local payment/plan terms only after legal, tax, provider and billing readiness.
+
+These are opportunity hypotheses, not claims that NOVA already delivers them or that competitors do not.
+
+## Pricing and willingness-to-pay evidence
+
+- Paddlewheel publicly lists a $0 Free tier (two projects and limited daily/monthly credits), $19/month Pro and $49/month Ultimate; its India page says INR-priced plans and UPI are still planned.
+- Selected Lovable India Play Store reviews complain about credit limits and lack of UPI. This is evidence of friction reported by individual users, not measured willingness to pay.
+- No permission-based NOVA interviews, paid conversions, price tests or customer revenue have been evidenced. **NOVA willingness-to-pay remains unknown.**
+
+## Research limits and next benchmark
+
+This review is a public-web snapshot, not a full competitive teardown. Product listings describe vendor claims, review sites can be biased, and feature availability can change. Before claiming differentiation, run the same Hindi/English app-building task against NOVA, Paddlewheel, BooDoo, NavBharatAI, Lovable and v0; record time, usable output rate, edits required, test pass rate, export reproducibility, cost per successful result and language fidelity. Do not publish results until that benchmark is actually run.

@@ -63,3 +63,18 @@
 ## Latest CI checkpoint — 12 November 2026
 
 PR #98 current head `671f6dcec0842106ba1b0a5a946bd69c01001abb` passed Main #43207317636 and Browser #43207318043 on the same SHA. This clears the automated workflow gate for this candidate only. The CTO objections about stale Staging, physical-device testing, public API abuse controls, Auth deletion/retention, backups/load/monitoring and full integration/portability remain open. CFO, founder and legal objections remain as listed above. Overall decision remains **NO-GO for production release and NO-GO for buyer-ready claims**.
+
+
+## Additional direct India competition and evidence — 12 November 2026
+
+The latest public-source review identified Paddlewheel India, BooDoo and NavBharatAI advertising substantial overlap with NOVA's Hindi-English / Indian-language app-builder and assistant positioning. Their own pages/listings describe Indian-language prompts or voice, live app preview/publish, code export/ownership, assistants and Indian payment methods. These are vendor-stated features, not independent technical tests; they nevertheless defeat a broad claim that those capabilities are unique to NOVA.
+
+- Paddlewheel India: https://paddlewheel.dev/in
+- BooDoo listing: https://play.google.com/store/apps/details?hl=en_IN&id=ai.boodoo.app
+- NavBharatAI: https://navbharatai.com/ and https://navbharatai.com/about
+
+Selected public reviews on Lovable and Bolt also report credit exhaustion during rework, repeat fixes, crashes, export and support friction. These samples are user-generated and self-selected; no market-wide rate or prevalence is inferred. Lovable Play Store: https://play.google.com/store/apps/details?hl=en-IN&id=dev.lovable.build. Bolt Trustpilot explicitly warns its reviews may not be representative: https://www.trustpilot.com/review/bolt.new.
+
+**New founder/product objection:** a generic Hindi-English AI builder is not defensible in India. NOVA needs a reproducible workflow advantage (e.g. transparent change-budget + test/diff/restore evidence) and a benchmark against direct Indian competitors before any differentiated positioning is credible.
+
+**New CFO objection:** selected reviews suggest some users dislike credit limits and non-local payment choices, but this does not prove NOVA can charge a viable price. Local payment support and willingness-to-pay remain untested. No pricing or revenue claims should be made.

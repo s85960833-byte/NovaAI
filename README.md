@@ -130,3 +130,6 @@ The current PR branch head `671f6dcec0842106ba1b0a5a946bd69c01001abb` passed Mai
 - [Buyer pitch deck outline](NOVA_PITCH_DECK.md)
 
 These documents describe candidate source and available evidence; they do not prove deployment, ownership, legal compliance, provider rights or buyer demand. Release remains NO-GO while live Staging and external verification gates remain open.
+
+- [Preliminary cost-to-replicate report](COST_TO_REPLICATE.md)
+- [India market and differentiation research](MARKET_AND_DIFFERENTIATION_RESEARCH.md)

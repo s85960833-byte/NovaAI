@@ -62,3 +62,10 @@ Hindi-English AI workspace for learning, building and assistant workflows.
 - Tier 2 ₹10–20 crore is an aspiration, not a present valuation or guarantee.
 - No verified customer, revenue, buyer interest or independent appraisal.
 - Any numbers in the Valuation Memo are clearly labeled scenarios, not forecasts.
+
+
+## Market reality update — 12 November 2026
+
+Direct Indian products [Paddlewheel](https://paddlewheel.dev/in), [BooDoo](https://play.google.com/store/apps/details?hl=en_IN&id=ai.boodoo.app) and [NavBharatAI](https://navbharatai.com/) publicly advertise overlapping Hindi/Indian-language app creation, live preview/deploy, code export and assistant/payment capabilities. NOVA does not claim these as exclusive. Selected Lovable/Bolt reviews mention credit/rework and reliability/export friction, but self-selected reviews do not establish overall market prevalence or willingness to pay.
+
+The preliminary gross rebuild-labour estimate is ₹35–105 lakh, using a 1,500–2,280 hour scope model and published India agency rates. This is not independent appraisal or guaranteed buyer savings. ₹15–20 lakh remains unsupported as fair price; current buyer-readiness estimate is 37/100. See COST_TO_REPLICATE.md and MARKET_AND_DIFFERENTIATION_RESEARCH.md.

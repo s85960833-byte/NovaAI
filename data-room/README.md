@@ -40,3 +40,6 @@
 - No customers, revenue, buyer interest, SLA, full IP clearance or independent valuation evidenced.
 
 **Handling:** keep secrets, personal data, credentials, confidential datasets and private logs out of GitHub.
+
+- [Cost-to-replicate report](../COST_TO_REPLICATE.md) — modelled estimate, not independent appraisal.
+- [India competition/user-review evidence](../MARKET_AND_DIFFERENTIATION_RESEARCH.md) — desk research, no exclusivity claim.

@@ -39,3 +39,9 @@
 - No customer/revenue/retention/buyer interest/independent valuation/full IP clearance claims.
 
 Never place secrets, passwords, service-role keys, personal data, raw customer datasets or private support logs in this repository.
+
+
+## Competitive evidence and cost model update — 12 November 2026
+- [India competition and user-review research](MARKET_AND_DIFFERENTIATION_RESEARCH.md): Paddlewheel, BooDoo and NavBharatAI overlap with broad positioning; user-review signals are qualitative only.
+- [Cost-to-replicate report](COST_TO_REPLICATE.md): modelled gross parity labour ₹35.1–104.7 lakh; not independent appraisal or asset value.
+- [Buyer-readiness scorecard](BUYER_READINESS_SCORECARD.md): revised weighted estimate 36.8/100 ≈ 37/100.
