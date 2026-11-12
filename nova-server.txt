@@ -37,12 +37,29 @@ app.use((q, r, next) => {
 // Bounded per-IP request windows run before body parsing so abusive API traffic
 // cannot repeatedly spend CPU/memory in JSON decoding before being throttled.
 const { rateWindow } = require('./nova-rate-limit');
+const { createSupabaseUserMiddleware } = require('./nova-api-auth');
+const apiAuthRequired = E.NOVA_API_AUTH_REQUIRED === '1';
+const requireNovaUser = apiAuthRequired
+  ? createSupabaseUserMiddleware({
+      supabaseUrl: E.SUPABASE_URL,
+      publishableKey: E.SUPABASE_PUBLISHABLE_KEY
+    })
+  : (q, r, next) => next();
+if (apiAuthRequired) console.log('NOVA API account authentication is REQUIRED');
+else console.warn('NOVA API account authentication is DISABLED; enable NOVA_API_AUTH_REQUIRED=1 before public customer traffic');
+
 const hits = new Map();
 app.use('/api', (q, r, next) => {
   const now = Date.now(), a = rateWindow(hits, q.ip, now, 6e4);
   if (!a) return r.status(503).json({ error: 'Rate limit capacity reached; retry shortly' });
   if (a.length >= 60) return r.status(429).json({ error: 'Too many requests' });
   a.push(now); hits.set(q.ip, a); next();
+});
+// Public read-only bootstrap/feed endpoints stay available. All other API routes
+// require a verified Supabase user when the staged auth gate is enabled.
+app.use('/api', (q, r, next) => {
+  if (q.path === '/config' || q.path === '/feed') return next();
+  return requireNovaUser(q, r, next);
 });
 
 app.use(express.json({ limit: '6mb' }));
@@ -358,7 +375,7 @@ app.post('/api/image', (q, r) => {
   pruneImageJobs();
   if (imageJobs.size >= 80) return r.status(503).json({ error: 'The image queue is busy. Please retry shortly.' });
   const id = require('crypto').randomUUID();
-  const job = { id, ip: q.ip, status: 'queued', image: null, error: null, provider: null, createdAt: now, updatedAt: now };
+  const job = { id, ip: q.ip, userId: q.novaUser?.id || null, status: 'queued', image: null, error: null, provider: null, createdAt: now, updatedAt: now };
   imageJobs.set(id, job);
   setImmediate(async () => {
     job.status = 'processing'; job.updatedAt = Date.now();
@@ -376,8 +393,8 @@ app.post('/api/image', (q, r) => {
 app.get('/api/image/status/:id', (q, r) => {
   pruneImageJobs();
   const job = imageJobs.get(String(q.params.id || ''));
-  // UUID job IDs are unguessable; do not bind polling to q.ip because Render/client proxies may rotate IPs between requests.
-  if (!job) return r.status(404).json({ error: 'Image job not found' });
+  // Keep job polling portable across changing client IPs, but bind authenticated jobs to their owner.
+  if (!job || (job.userId && job.userId !== q.novaUser?.id)) return r.status(404).json({ error: 'Image job not found' });
   if (job.status === 'done') return r.json({ status: 'done', image: job.image, provider: job.provider });
   if (job.status === 'error') return r.status(502).json({ status: 'error', error: job.error || 'Image generation failed' });
   r.json({ status: job.status, updatedAt: job.updatedAt });
