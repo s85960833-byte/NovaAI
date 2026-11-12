@@ -12,6 +12,40 @@ function normalizeSupabaseAuthUrl(value) {
   return url.origin + '/auth/v1/user';
 }
 
+async function readBoundedAuthUser(response, maxBytes = 64 * 1024) {
+  if (response.body && typeof response.body.getReader === 'function') {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let bytes = 0;
+    let text = '';
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        bytes += value.byteLength;
+        if (bytes > maxBytes) throw new Error('Supabase Auth response exceeded the size limit');
+        text += decoder.decode(value, { stream: true });
+      }
+      text += decoder.decode();
+    } catch (error) {
+      try { await reader.cancel(); } catch {}
+      throw error;
+    }
+    return JSON.parse(text);
+  }
+
+  // The fallback supports minimal test doubles; real Node fetch responses use the
+  // bounded streaming branch above.
+  if (typeof response.text === 'function') {
+    const text = await response.text();
+    if (new TextEncoder().encode(text).byteLength > maxBytes) throw new Error('Supabase Auth response exceeded the size limit');
+    return JSON.parse(text);
+  }
+  const user = await readBoundedAuthUser(response);
+  if (new TextEncoder().encode(JSON.stringify(user)).byteLength > maxBytes) throw new Error('Supabase Auth response exceeded the size limit');
+  return user;
+}
+
 function createSupabaseUserMiddleware({ supabaseUrl, publishableKey, fetchImpl = globalThis.fetch, timeoutMs = 5000 } = {}) {
   const authUserUrl = normalizeSupabaseAuthUrl(supabaseUrl);
   if (typeof publishableKey !== 'string' || !publishableKey.trim()) {
