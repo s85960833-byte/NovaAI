@@ -42,7 +42,11 @@
 
 See `.env.example` for the current variable-name list. It is a template, not proof every integration is configured. Values must be generated and stored by the receiving operator. No secret values belong in the Data Room.
 
-## 5. Rollback and continuity
+## 5. Database backup and restore
+
+Follow [BACKUP_AND_RESTORE.md](BACKUP_AND_RESTORE.md). The process is documented only; no export or restore drill has been executed. A logical SQL dump alone does not include Auth users or Storage objects. Do not claim database portability until an isolated restore has been verified.
+
+## 6. Rollback and continuity
 
 - Keep the previous known-good Production commit and deployment available until acceptance.
 - Record database backup timestamps and tested restore instructions.
@@ -50,7 +54,7 @@ See `.env.example` for the current variable-name list. It is a template, not pro
 - Keep incident contacts and support obligations explicit in the transaction documents.
 - Never delete the source account, database or prior backups until the buyer verifies access and restoration.
 
-## 6. Current handover blockers
+## 7. Current handover blockers
 
 - No verified custom domain, payment account, email delivery provider or analytics account in this review.
 - Full license and asset provenance audit is incomplete.

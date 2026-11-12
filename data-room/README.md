@@ -51,3 +51,5 @@
 - Automated deterministic-output checks in `../scripts/demo-data.test.cjs`.
 - Samples are fictional and not customer/user/testimonial or business-outcome evidence.
 - [Supervised feedback outreach templates](../BUYER_OUTREACH_TEMPLATES.md) — not acquisition, paid trial or purchase solicitation.
+
+- [Supabase Backup and Restore Runbook](../BACKUP_AND_RESTORE.md) — documented only; no restore evidence.

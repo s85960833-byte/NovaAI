@@ -1,60 +1,72 @@
 # NOVA Status — Current Source of Truth
 
-**Status date:** 12 November 2026  
+**Status date:** 12 November 2026, 19:43 IST  
 **Repository:** https://github.com/s85960833-byte/NovaAI  
 **Production:** https://novaai-4auo.onrender.com  
-**Production dashboard:** https://dashboard.render.com/web/srv-dbidhpc9v7es73d6ia80  
+**Production dashboard:** https://dashboard.render.com/web/srv-dbidhpc9v7es73eogao0  
 **PR #98:** https://github.com/s85960833-byte/NovaAI/pull/98  
 **Candidate branch:** `fix/nova-home-learn-first-mobile-20261109`
 
-## Phase status
-- Phase 1 audit: **IN PROGRESS** — code/routes/auth/provider boundaries, npm lockfile metadata, Supabase RLS, Render status/logs, CI and browser viewport artefact reviewed. Current-head live Staging, real Android/mic and operational restore/load evidence remain open.
-- Phase 2 differentiation: **NOT PROVEN** — Indian competitors overlap with broad Hindi/English app-builder claims; no moat or head-to-head benchmark.
-- Phase 3 asset value: **PARTIAL** — architecture, API, cost, roadmap, transfer and Data Room docs; durable core quotas/spend caps, production Auth, full account deletion/retention, billing, SDK/webhooks/plugins and restore proof incomplete.
-- Phase 4 buyer package: **PARTIAL** — Buyer Map, pitch materials, cost model, valuation, objection review, Data Room, feedback-only outreach templates and synthetic BI demo fixtures exist. No buyer interest/contact channel.
-- Phase 5 buyer objections: **NOT PASSED** — CTO/CFO/founder/legal blockers remain.
-- Phase 6 valuation: **PARTIAL** — modelled labour parity ₹35.1–104.7 lakh; independent quotes/comparables absent; ₹15–20 lakh fair value unsupported; ₹10–20 crore scenario only.
+## Current phase status
 
-## Exact CI status
-- Last fully green exact SHA: `0615457f15fb7998ec221e4f6daf464b6256be2b`, Main #43234738243 and Browser #43234738226 successful.
-- Candidate `e263a1530eb1cecb3940f14ed76be31a1ad8050c` adds synthetic BI datasets and a deterministic test step; Main #43237105986 was still running at the last check and Browser #43237105954 was queued. Do not count these as passed until the workflow conclusions finish.
-- Main release-only live checks remain skipped for the Draft PR. CI does not prove Render deployment or physical-device behavior.
+- Phase 1 — Total audit: **IN PROGRESS**. Source/routes/auth/provider boundaries, npm lockfile metadata, Supabase RLS, Render history/logs, CI and browser viewport artifact reviewed. Physical Android/mic, current Staging, restore/load and full live UI audit remain open.
+- Phase 2 — Exclusive value engine: **NOT PROVEN**. Paddlewheel, NavBharatAI and BooDoo overlap with broad India-language app-building claims. No unique moat or same-task benchmark.
+- Phase 3 — Asset value: **PARTIAL**. Architecture/API/roadmap/transfer/Data Room, synthetic demo data and secure download routes exist in candidate. Durable quotas/spend caps, billing, SDK/webhooks/plugins, full account deletion/retention and restore proof remain incomplete.
+- Phase 4 — Buyer package: **PARTIAL**. Buyer Map (24 categories), preview pitch, demo/outreach-for-feedback templates, cost/valuation/objection docs and Data Room exist. No buyer interest or adult-operated transaction/contact channel.
+- Phase 5 — Buyer objections: **NOT PASSED**.
+- Phase 6 — Valuation: **PARTIAL**. ₹35.1–104.7 lakh gross labour scenario only, not independent valuation; ₹15–20 lakh fair asset value unsupported; ₹10–20 crore scenario only.
 
-## Render status
-- Production service `srv-dbidhpc9v7es73d6ia80`, branch main, Free/Singapore/one instance; latest live deployment `dep-dbom7bbm8hqs73ec2gi0` on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. Health Check Path blank. Production unchanged.
-- Staging service `srv-dbqm035g1s2s73eogao0` has correct PR branch and Auto Deploy enabled, but last Live deployment `dep-dbqnenhe35nc73f81k4g` remains old SHA `195739a04895de364a5af22aa61f930d5d782cbb`. Health Check Path blank; auto-deploy has not advanced.
-- Old Staging self-test had health/static/PWA OK, but config/AI chat 503 without a model provider key. This is not current-candidate evidence.
+## Exact verified CI — 12 November 2026
+- Main workflow [#43237549696](https://github.com/s85960833-byte/NovaAI/actions/runs/43237549696): **success**, 45 successful steps, zero failures, SHA `da689a57ca544e2f4be6811307e23b7f683d8790`.
+- Browser workflow [#43237549642](https://github.com/s85960833-byte/NovaAI/actions/runs/43237549642): **success**, 16 successful steps, zero failures, same exact SHA.
+- The NOVA BI calculation tests, synthetic demo-data tests, allowlisted demo-download runtime smoke, path-traversal rejection, Docker image smoke and five-viewport mobile regression all passed in the respective workflows.
+- Main release-only live/Production steps remain skipped while the PR is unmerged. CI does not prove deployment or physical device behavior.
 
-## Supabase read-only evidence
-- Project `qrfwsewppafhxibdboam` ACTIVE_HEALTHY, PostgreSQL 17, all 11 public tables RLS-enabled, 24 policies, no anon table grants, zero Security/Health Advisor lints; 13 performance INFO unused-index notes.
-- `nova-bi-api` ACTIVE v14 with JWT verification. Live Auth email/session/two-account tests, deletion and restore not verified.
+## Render
+- Production service `srv-dbidhpc9v7es73d6ia80`, main, Free/Singapore/one instance; latest Live `dep-dbom7bbm8hqs73ec2gi0` on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. Production unchanged.
+- Staging service `srv-dbqm035g1s2s73eogao0` has correct PR branch and Auto Deploy enabled, but latest Live `dep-dbqnenhe35nc73f81k4g` remains old SHA `195739a04895de364a5af22aa61f930d5d782cbb`; Health Check Path blank.
+- Candidate is not live-verified on Staging or Production.
+
+## Supabase
+- Project `qrfwsewppafhxibdboam`, PostgreSQL 17.11, ACTIVE_HEALTHY, region eu-west-1.
+- 11/11 public tables RLS-enabled; 24 policies; no anon table grants; Security/Health Advisors zero lints; 13 Performance Advisor INFO unused-index notices.
+- `nova-bi-api` ACTIVE v14, JWT verification enabled.
+- Project metadata did not expose its plan. Supabase documentation says daily managed backups cover Pro/Team/Enterprise; Free projects should export data manually.
+- `BACKUP_AND_RESTORE.md` now documents CLI backup/isolated restore and its limitations. **No backup export or restore drill has been run.** Standard CLI dumps do not include Auth users, Storage objects or Edge Function secrets.
 
 ## Completed
-- Exact pre-sample commit CI was green; README guard failure on an intermediate docs commit was diagnosed and fixed.
-- Architecture/API/running-cost/roadmap/scorecard/Data Room/pitch/buyer/transfer/legal/license docs updated.
-- India competitor overlaps researched; no exclusivity claims.
-- Synthetic sample CSVs added with automated deterministic-output tests.
-- A secure, allowlisted sample-download route and NOVA BI download links are being added in the current follow-up candidate; runtime smoke tests cover allowlist and path traversal.
+- India competitor/user-pain review and honest no-exclusivity positioning.
+- Architecture/API/cost/roadmap/scorecard/Data Room/buyer docs.
+- Synthetic BI sample CSVs, deterministic calculation tests, download UI and three-file allowlist route.
+- Latest exact Main and Browser CI passed.
+- Owner-controlled backup/restore procedure documented from official Supabase references.
 - No paid spend, Production merge/deploy, or secret retrieval.
 
 ## Next / blocked
-1. Verify both workflows on the latest exact PR SHA and fix any test failures.
+1. Push backup runbook and Transfer/Data Room cross-links; run CI on the new exact SHA.
 2. Owner: Staging Dashboard → Settings → Health Checks → set `/health` → Save.
-3. Diagnose Render Staging Auto Deploy, then smoke-test the current candidate at the existing Staging URL.
-4. Enable Express Auth on Staging only; test missing/invalid/expired/valid tokens.
-5. Owner tests actual Android full width, drawer, touch, keyboard and microphone.
-6. Add durable quotas/spend caps, full account deletion/retention, monitoring, backup/restore, provider-rights and final legal/IP evidence.
-7. Run a real same-task benchmark and obtain permitted user research; do not assert a moat or willingness-to-pay before evidence.
+3. Diagnose Staging Auto Deploy and bring exact candidate to existing Staging URL.
+4. Enable Express Auth on Staging only; test missing/invalid/expired/valid sessions and provider endpoints.
+5. Owner tests physical Android full width, drawer, touch, keyboard and microphone.
+6. Implement durable quotas/spend caps, full account deletion/retention, monitoring and provider-rights/legal/IP remediation.
+7. Conduct and document an isolated backup restore including separately handled Auth and Storage before claiming portability.
+
+## Owner/external blockers
+- Health Check Path requires owner dashboard action.
+- Live AI test requires an authorized provider key entered privately in Render. No paid credits or spend.
+- Physical Android/mic testing needs the actual handset.
+- Hosted Auth email/session, two-account isolation, complete deletion, provider invoices/contracts and account transfer need operator evidence.
+- Support/grievance contact, age/consent policy, contributor assignments, IP chain of title and final legal review require responsible adult operator and qualified professionals.
+- The user is a minor; any commercial approach, purchase, sale, ownership transfer, contract or payment must be handled by a responsible adult with qualified counsel. Current outreach templates are non-paid feedback requests only.
 
 ## Decisions
-- PR #98 remains Draft/unmerged. Production remains unchanged until all release gates pass and the owner explicitly approves.
-- No paid APIs, image credits, infrastructure, billing or plan upgrade.
-- No claim of customers, revenue, exclusive technology, fair valuation, uptime SLA, certification or production security.
-- Synthetic/non-sensitive data only; no customer, employee or confidential data in previews.
-- All outreach templates are for adult-supervised, non-paid product feedback, not a sale or paid trial.
+- PR #98 stays Draft/unmerged; Production remains unchanged until all gates and explicit final release approval.
+- No paid API, image credit, infrastructure, plan upgrade or billing activation.
+- Do not claim customers, revenue, exclusive features, fair valuation, uptime SLA, certification or production security without evidence.
+- Synthetic/non-sensitive demo data only; no confidential/customer data onboarding.
 
-## Current estimates
-- Overall S-tier Definition of Done: **28%** qualitative.
-- Buyer-readiness: **36.8/100 ≈ 37/100**, internal weighted estimate, not an appraisal.
+## Estimates
+- Overall S-Tier Definition of Done: **29%** qualitative.
+- Buyer-readiness: **36.8/100 ≈ 37/100**, weighted internal estimate, not appraisal.
 - Tier 1 ₹15–20 lakh fair asset value unsupported.
-- Tier 2 ₹10–20 crore only aspirational; depends on sustained paid ARR, retention, growth, margins, clean IP/provider rights and independent valuation.
+- Tier 2 ₹10–20 crore aspirational only; requires sustained paid ARR, retention, growth, margins, clean IP/provider rights and independent valuation.

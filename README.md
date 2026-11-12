@@ -143,3 +143,8 @@ These documents describe candidate source and available evidence; they do not pr
 - [Team tasks demo CSV](samples/demo-team-tasks.csv)
 
 All sample rows are fictional, labelled demo data and validated against the same analysis functions used by NOVA BI. They are not customer outcomes, testimonials or benchmarks.
+
+
+## Database backup and restore
+
+- [Supabase backup/restore runbook](BACKUP_AND_RESTORE.md) documents owner-controlled CLI export and isolated restore steps. No real backup or restore drill has been run; a SQL dump alone does not include Supabase Auth users or Storage objects.

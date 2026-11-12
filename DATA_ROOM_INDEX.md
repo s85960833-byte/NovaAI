@@ -51,3 +51,7 @@ Never place secrets, passwords, service-role keys, personal data, raw customer d
 - [NOVA BI sample data guide](samples/README.md) explains the three fictional CSVs and the exact expected arithmetic.
 - CI test `scripts/demo-data.test.cjs` checks expense budgets/trends, client contribution, team task metrics, risk heuristics and digital-twin scenario arithmetic against the production calculation module.
 - Sample data are fictional and must not be described as real user, customer, employee or financial results.
+
+
+## Backup and recovery
+- [Supabase Backup and Restore Runbook](BACKUP_AND_RESTORE.md) — documented procedure only; no backup export or restore drill executed. SQL dump alone does not transfer Auth users or Storage objects.
