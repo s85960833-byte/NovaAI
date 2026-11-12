@@ -18,4 +18,10 @@ test('bounds deletion tombstones and normalizes malformed identifiers',()=>{
  assert.deepEqual(mergeDeletedIds([null,'','x'.repeat(200)],['local'],2),['x'.repeat(120),'local']);
 });
 
-test('selects the newest chats from the newest-first workspace list',()=>{\n const {selectRecentChats}=require('../nova-sync-merge.js');\n const chats=Array.from({length:50},(_,i)=>({id:String(i)}));\n assert.deepEqual(selectRecentChats(chats,40),chats.slice(0,40));\n assert.deepEqual(selectRecentChats(chats,5),chats.slice(0,5));\n assert.deepEqual(selectRecentChats(null,40),[]);\n});\n
+test('selects the newest chats from the newest-first workspace list',()=>{
+ const {selectRecentChats}=require('../nova-sync-merge.js');
+ const chats=Array.from({length:50},(_,i)=>({id:String(i)}));
+ assert.deepEqual(selectRecentChats(chats,40),chats.slice(0,40));
+ assert.deepEqual(selectRecentChats(chats,5),chats.slice(0,5));
+ assert.deepEqual(selectRecentChats(null,40),[]);
+});
