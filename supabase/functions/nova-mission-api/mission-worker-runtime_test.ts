@@ -208,3 +208,27 @@ Deno.test("worker snapshots and freezes caller-owned claims before awaiting", as
     throw new Error("Caller mutation altered the in-flight worker claim");
   }
 });
+
+
+Deno.test("hostile claim proxies and accessor properties fail closed", async () => {
+  let callbacks = 0;
+  const deps = {
+    registry: registry(),
+    async assertLeaseCurrent() { callbacks++; return true; },
+    async persistProof() { callbacks++; return {} as never; },
+  };
+  const hostileProxy = new Proxy({ ...claim }, {
+    ownKeys() { throw new Error("proxy trap"); },
+  });
+  const proxyResult = await processClaimedMissionTask(hostileProxy, deps);
+  const accessorClaim = Object.defineProperty({ ...claim }, "workerId", {
+    enumerable: true,
+    get() { throw new Error("getter must not execute"); },
+  });
+  const accessorResult = await processClaimedMissionTask(accessorClaim, deps);
+  if (proxyResult.status !== "denied" || proxyResult.reason !== "invalid_claim" ||
+      accessorResult.status !== "denied" || accessorResult.reason !== "invalid_claim" ||
+      callbacks !== 0) {
+    throw new Error("Hostile claim object reached trusted worker callbacks");
+  }
+});
