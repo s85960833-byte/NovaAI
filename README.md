@@ -10,12 +10,12 @@ Production preview: https://novaai-4auo.onrender.com
 
 ## Release status — 12 November 2026
 
-<badge>Staging verified; Production release held</badge>
+<badge>Latest PR revision pending Staging verification; Production release held</badge>
 
 - Production `main` remains at commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`, served by Render deployment `dep-dbom7bbm8hqs73ec2gi0` (Live). PR #98 is still Draft and has not been merged.
 - PR #98 contains the Learn-first bilingual mobile workspace updates and backend diagnostic improvements. Its current branch is `fix/nova-home-learn-first-mobile-20261109`.
-- Free Render staging service `novaai-pr98-staging` runs from that PR branch. Build/install and Node server startup were verified in Render logs; the internal live self-test verified the health endpoint, frontend, manifest, PWA icon, service worker, news feed and live data retrieval.
-- GitHub verification and browser workflows passed syntax/security, PostgreSQL tenant RLS, Deno checks, local routes/PWA, browser/account flows, Company Cloud mobile flows and five-viewport responsive/drawer checks. PR workflows skip production-only live smoke tests while the PR remains unmerged.
+- Free Render staging service `novaai-pr98-staging` is configured for that PR branch, but its latest recorded deployment is still commit `195739a04895de364a5af22aa61f930d5d782cbb`, older than the current PR head `04836d54a2071f06c1bc33e725feeab126c3173c`. The older deployment's build/start and internal live self-test verified the health endpoint, frontend, manifest, PWA icon, service worker, news feed and live data retrieval; these results do **not** verify the latest PR revision.
+- GitHub verification and browser workflows passed syntax/security, PostgreSQL tenant RLS, Deno checks, local routes/PWA, browser/account flows, Company Cloud mobile flows and five-viewport responsive/drawer checks. PR workflows skip production-only live smoke tests while the PR remains unmerged. Chromium viewport tests do not replace physical Android-device testing.
 - AI chat is not enabled on staging until a server-side model provider is configured. Physical Android handset and real microphone capture are not yet verified. Direct external HTTP inspection from the review environment was unavailable; Render deployment and internal self-test logs are the available staging evidence.
 - The app is not approved for Production release or customer onboarding until provider configuration, physical-device checks, and the remaining privacy/authentication controls are reviewed.
 
