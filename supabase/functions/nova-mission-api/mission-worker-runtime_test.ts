@@ -115,3 +115,39 @@ Deno.test("invalid worker claims are denied before callbacks", async () => {
     throw new Error("Invalid claim reached trusted callbacks");
   }
 });
+
+Deno.test("worker rejects a concurrent duplicate run in the same isolate", async () => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  let executions = 0, persisted = 0;
+  const r = new MissionTaskRegistry();
+  r.register("test.safe-check", schema, {
+    async execute() { executions++; await gate; return { output: { ok: true }, evidence: {} }; },
+  }, {
+    id: "test.independent-verifier", version: "1.0.0",
+    async verify() { return { passed: true, verifierId: "test.independent-verifier",
+      verifierVersion: "1.0.0", checks: [{ id: "ok", passed: true }],
+      observedAt: "2026-11-12T12:00:00.000Z" }; },
+  });
+  const deps = {
+    registry: r,
+    async assertLeaseCurrent() { return true; },
+    async persistProof() {
+      persisted++;
+      return { proofId: "66666666-6666-4666-8666-666666666666",
+        attestationId: "77777777-7777-4777-8777-777777777777", digest: "b".repeat(64) };
+    },
+  };
+  const first = processClaimedMissionTask(claim, deps);
+  await Promise.resolve();
+  const second = await processClaimedMissionTask(claim, deps);
+  if (second.status !== "denied" || second.reason !== "lease_not_current") {
+    release();
+    throw new Error("Concurrent duplicate run was not denied");
+  }
+  release();
+  const firstResult = await first;
+  if (firstResult.status !== "completed" || executions !== 1 || persisted !== 1) {
+    throw new Error("Concurrent duplicate executed or persisted more than once");
+  }
+});
