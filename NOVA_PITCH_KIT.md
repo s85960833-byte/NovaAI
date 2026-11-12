@@ -77,3 +77,9 @@ A follow-up patch now merges remote and local chat histories by their shared seq
 - The two-minute product walkthrough is in [PITCH_SCRIPT.md](PITCH_SCRIPT.md).
 - The sample files and expected illustrative results are in [samples/README.md](samples/README.md).
 - [Feedback outreach templates](BUYER_OUTREACH_TEMPLATES.md) are strictly for non-paid, adult-supervised product feedback; they are not an acquisition offer, paid pilot or purchase solicitation.
+
+
+## Additional internal review materials
+- [Why evaluate NOVA?](WHY_EVALUATE_NOVA.md)
+- [Buyer and technical FAQ](BUYER_FAQ.md)
+- [Selected improvement register](IMPROVEMENT_REGISTER.md)

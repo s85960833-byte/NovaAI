@@ -48,3 +48,9 @@
 - Demo data are not customer results, user counts, testimonials or benchmarks.
 
 Never place secrets, passwords, service-role keys, personal data, raw customer datasets or private support logs in this repository.
+
+
+## Buyer evaluation support
+- [Why evaluate NOVA?](WHY_EVALUATE_NOVA.md) — internal evaluation brief, not a sale offer.
+- [Buyer and technical FAQ](BUYER_FAQ.md) — capability, data, security, billing, ownership and valuation limitations.
+- [Selected improvement register](IMPROVEMENT_REGISTER.md) — only selected workstreams and evidence; not user-validated scoring.

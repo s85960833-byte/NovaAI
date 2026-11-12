@@ -47,3 +47,7 @@
 - [Feedback-only outreach templates](../BUYER_OUTREACH_TEMPLATES.md), not purchase solicitation.
 
 **Handling:** keep secrets, personal data, credentials, confidential datasets and private logs out of GitHub.
+
+- [Why evaluate NOVA?](../WHY_EVALUATE_NOVA.md)
+- [Buyer and technical FAQ](../BUYER_FAQ.md)
+- [Selected improvement register](../IMPROVEMENT_REGISTER.md)

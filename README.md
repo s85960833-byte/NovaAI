@@ -150,3 +150,10 @@ All sample rows are fictional, labelled demo data and validated against the same
 ## Database backup and restore
 
 - [Supabase backup/restore runbook](BACKUP_AND_RESTORE.md) documents owner-controlled CLI export and isolated restore steps. No real backup or restore drill has been run; a SQL dump alone does not include Supabase Auth users or Storage objects.
+
+
+## Buyer evaluation and internal review materials
+
+- [Why evaluate NOVA?](WHY_EVALUATE_NOVA.md) — evidence-limited asset overview; not an offer or valuation.
+- [Buyer and technical FAQ](BUYER_FAQ.md) — answers current capability and limitation questions.
+- [Selected improvement register](IMPROVEMENT_REGISTER.md) — chosen workstreams, internal value/effort/risk scores and evidence status.

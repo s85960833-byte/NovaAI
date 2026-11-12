@@ -78,3 +78,9 @@
 - README, top-level Data Room index, Technical Data Room, buyer objection review and pitch deck evidence references are synchronized to the latest candidate.
 - Backup/restore process is documented; no export/restore was executed.
 - This documentation update does not close the live Staging, Production, Auth, device, provider-rights, ownership, privacy or legal blockers.
+
+
+## Buyer-pack additions — 12 November 2026
+
+- Added an evidence-limited “Why evaluate NOVA?” brief, Buyer/Technical FAQ and selected Improvement Register; all are internal evaluation materials, not acquisition offers.
+- The scorecard remains 37/100 and no exclusivity, fair sale price, revenue or buyer interest is claimed.
