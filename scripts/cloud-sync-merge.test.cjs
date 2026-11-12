@@ -44,3 +44,17 @@ test('prefers the local document when both devices have one',()=>{
  const {mergeChatDocument}=require('../nova-sync-merge.js');
  assert.deepEqual(mergeChatDocument({doc:{n:'remote.pdf',t:'remote'}},{doc:{n:'local.pdf',t:'local'}}),{n:'local.pdf',t:'local'});
 });
+
+test('uses newer field timestamps so explicit empty values sync as deletions',()=>{
+ const {mergeSnapshotField}=require('../nova-sync-merge.js');
+ assert.deepEqual(mergeSnapshotField('',200,'old memory',100,1500),{value:'',updatedAt:200});
+ assert.deepEqual(mergeSnapshotField('remote',100,'local edit',200,1500),{value:'local edit',updatedAt:200});
+});
+test('loads legacy remote field values when the local field is empty and timestamps are absent',()=>{
+ const {mergeSnapshotField}=require('../nova-sync-merge.js');
+ assert.deepEqual(mergeSnapshotField('legacy remote',0,'',0,800),{value:'legacy remote',updatedAt:0});
+});
+test('keeps local field values on timestamp ties and bounds text',()=>{
+ const {mergeSnapshotField}=require('../nova-sync-merge.js');
+ assert.deepEqual(mergeSnapshotField('remote value',100,'local value',100,5),{value:'local',updatedAt:100});
+});
