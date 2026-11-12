@@ -283,3 +283,10 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Staging request logs and HTTP request/latency metrics are empty. Memory samples exist but CPU/request evidence is incomplete. Repeated app startup/SIGTERM log pairs appear on the Free service; do not infer uptime or customer traffic from them.
 - Production deploy `c3cee61906b88ff111b3a645db55c9c2503cd8f7` completed successfully on 9 November; app logs show successful startup and graceful shutdown. A historical 8 November `Cannot find module 'toidentifier'` crash occurred before that successful redeploy. Production request/latency metrics are empty; no usage/uptime claim is justified.
 - Staging Health Check Path remains blank and staging is not on the current PR head. Provider-backed chat, latest-head staging smoke, real Auth email, two-device sync, physical Android/microphone, account deletion/retention, legal/API-rights, asset provenance and restore-drill evidence remain release blockers.
+
+
+## Exact latest-head CI confirmation — 12 November 2026
+
+- Latest PR head before this status update: `0871085f0154de6ce83879f28a9b743530cb2ec0`.
+- Main verification workflow #43202802253 **PASS** (44/44 steps); Browser verification workflow #43202802244 **PASS** (16/16 steps), both on the exact same SHA.
+- This confirms the SEO, audit, support-runbook, cleanup and Render-evidence documentation commits also pass automated verification. It does not change the release blockers or substitute for the current-head staging and physical-device checks.
