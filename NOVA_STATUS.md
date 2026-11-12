@@ -1,17 +1,18 @@
 # NOVA Status — Current Source of Truth
 
-Last verified: 12 November 2026 (UTC; latest candidate CI refresh)
+Last verified: 12 November 2026 (UTC; exact-head CI and Render Staging recheck)
 Repository: https://github.com/s85960833-byte/NovaAI
 Production: https://novaai-4auo.onrender.com (main branch; unchanged)
 Candidate: PR #98 — https://github.com/s85960833-byte/NovaAI/pull/98
 Candidate branch: `fix/nova-home-learn-first-mobile-20261109`
-Latest fully CI-verified code-bearing revision: `1634a1f9563c190d83119a680af811a688120c7d`
+Latest exact PR head with passing Main + Browser CI: `15208ab028074f9c18deebd80934da8df2846922` (documentation-only refresh atop code-bearing revision `1634a1f9563c190d83119a680af811a688120c7d`)
 
 ## Exact-head CI evidence
 
 - PR #98 is Open, Draft, unmerged, and targets `main`. Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; no candidate merge or Production deployment has occurred.
-- Main verification [run 43219060678](https://github.com/s85960833-byte/NovaAI/actions/runs/43219060678) passed on exact code head `1634a1f`: 44 successful steps, 4 release/live steps skipped, 0 failed.
-- Browser verification [run 43219060826](https://github.com/s85960833-byte/NovaAI/actions/runs/43219060826) passed on the same exact head: 16 successful steps, 0 skipped, 0 failed.
+- Main verification [run 43219573881](https://github.com/s85960833-byte/NovaAI/actions/runs/43219573881) passed on exact PR head `15208ab`: 44 successful steps, 4 release/live steps skipped, 0 failed.
+- Browser verification [run 43219573641](https://github.com/s85960833-byte/NovaAI/actions/runs/43219573641) passed on the same exact head: 16 successful steps, 0 skipped, 0 failed.
+- Both push-triggered and pull-request-triggered workflows completed successfully on `15208ab`; older superseded runs that were canceled during rapid commits are not counted as failures.
 - The candidate fixed a rate-limit key mismatch: Live Search and image-generation counters previously looked up the authenticated user key but wrote the timestamp array under the IP key. Both now read and write the same user/IP key; regression assertions were added. Both exact-head CI workflows passed after this fix.
 - New API-auth test step passed on exact head. It covers HTTPS-only Supabase URL validation, missing/malformed/oversized bearer tokens, valid user identity mapping, invalid/expired token rejection, malformed/oversized Auth response, upstream outage fail-closed behavior, startup configuration checks, auth gate ordering before JSON parsing, browser bearer-token forwarding, image-job owner binding and user-scoped live/image rate keys.
 - Main coverage also includes dependency SBOM, syntax, provider defaults, Markdown injection escaping, mode registry, Cloud Sync merge/conflict, bounded IP rate window/timezone, environment/container configuration, accessibility, HTTPS provider URLs, safe redirects/bounded reads, AI Horde privacy, PDF.js mitigation, PostgreSQL migration + tenant RLS, Deno Edge Function type-check/invitation tests, BI calculations/CSV validation, 60-case AI evaluation, npm dependency audit, local routes/PWA, graceful shutdown and Docker build/health.
@@ -39,8 +40,9 @@ Latest fully CI-verified code-bearing revision: `1634a1f9563c190d83119a680af811a
 ## Staging / Production
 
 - Staging service: `srv-dbqm035g1s2s73eogao0`, https://novaai-pr98-staging.onrender.com
-- Staging Auto Deploy is enabled and tracks the candidate branch, but latest recorded Live deployment remains old commit `195739a04895de364a5af22aa61f930d5d782cbb`, not the candidate.
+- Staging Auto Deploy is enabled and tracks the candidate branch, but latest recorded Live deployment remains old commit `195739a04895de364a5af22aa61f930d5d782cbb`, not the candidate. Latest deploy/build events on 12 November ended successfully for this old revision; no later candidate deployment is recorded.
 - Render Staging Health Check Path is blank. Owner must set `/health` in Staging Dashboard → Settings → Health Checks and save. The connected Render tools do not expose a Health Check Path update action; do not bypass this step with a manual deploy.
+- Render app logs show successful process starts on port 10000 and clean SIGTERM/graceful-shutdown messages; no fatal stack trace appears in the inspected sample. Root cause of repeated process restarts is not established. Render HTTP/latency/resource metrics returned empty data, and direct staging HTTP checks could not resolve the hostname from the current audit environment; live health is therefore unverified, not passed.
 - Production service remains on deployed commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; Production has not been changed by this PR.
 
 ## Remaining release blockers
