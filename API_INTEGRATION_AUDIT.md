@@ -93,3 +93,11 @@ Supabase project URL and browser client setup are present in the frontend/accoun
 - Open-Meteo source code is AGPL-3.0, while its weather data is CC BY 4.0. Nova currently calls the hosted API and does not include the Open-Meteo server source in its dependency tree. Do not copy/self-host or modify its server without a separate AGPL compatibility review. API data still needs attribution.
 - The uncontracted `proxy.cors.dev` Yahoo relay was removed from the code. Direct Yahoo chart endpoints remain undocumented/unofficial and are not approved for a monetized or buyer-transfer release; remove or replace that path with a documented licensed market-data API before commercial launch.
 - `lhttp()` now accepts HTTPS URLs only, rejects URL credentials, IP-literal/local/private-style hostnames and non-443 ports, restricts redirects to the original hostname (maximum 3), blocks redirects for non-GET requests, and reads response bodies as a bounded stream (3 MiB) before buffering. Unit tests were added; await current CI before counting them as passed. DNS resolution rebinding and non-`lhttp` outbound requests remain separate review items.
+
+
+## Latest chat streaming and runtime configuration review — 12 November 2026
+
+- Chat output is now capped by `LLM_MAX_OUTPUT_TOKENS` (default 2,048, hard maximum 4,096). A client disconnect aborts the upstream provider request, and downstream backpressure is respected.
+- Non-OK provider error bodies are capped at 1 MiB before reading.
+- `.env.example` now documents every active Express server `E.NAME` variable. `NOVA_BI_SITE_URL` is documented separately as a Supabase Edge Function setting.
+- Regression tests: `test:timezone`, `test:provider-http`, `test:image-privacy`, `test:env-example`.
