@@ -210,3 +210,12 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Staging Render still serves old SHA `195739a04895de364a5af22aa61f930d5d782cbb`; its Health Check Path is still blank. Owner action remains: set `/health` in the existing Staging service Settings → Health Checks, save, then confirm. Auto Deploy is enabled; do not manually trigger a deploy while enabled.
 - Account review reconfirmed: NOVA Account provides cloud-backup deletion but not self-service Supabase Auth account deletion. Account deletion, retention schedule, final privacy/terms, provider rights, durable public API quotas and billable endpoint protections remain release blockers.
 - No paid services, paid API credits, provider keys or production database changes were created or modified. Keep Production protected and do not promote until all release gates pass.
+
+
+## Cloud-sync deletion consistency fix — 12 November 2026
+
+- Follow-up review found that empty saved memory/custom instructions and an explicitly removed document could be resurrected from an older cloud snapshot. Added per-field local update timestamps for saved memory and custom instructions; newer empty values now propagate as deletions, while an untouched new device can still load a legacy remote value.
+- Added document merge semantics that respect an explicit local `doc: null` deletion instead of restoring the remote attachment. Remote document content is still loaded when the local chat has no document field.
+- Added unit coverage for timestamp conflict resolution, empty-value deletion, legacy snapshot loading, document deletion and local/remote document precedence.
+- Candidate head `3720d278c151194f9213c55a352d528ec5f05f1c`: Main verification run #43201234510 **PASS**; Browser verification run #43201234633 **PASS**. The Main cloud-sync regression step passed on this exact head; the Browser workflow passed account, Company Cloud and mobile/drawer checks.
+- The status-document commit itself must receive fresh CI before it is counted as latest-head evidence. PR remains Draft and unmerged; Production remains unchanged.
