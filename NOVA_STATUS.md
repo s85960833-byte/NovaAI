@@ -5,18 +5,18 @@ Repository: https://github.com/s85960833-byte/NovaAI
 Production URL: https://novaai-4auo.onrender.com
 Production branch: main
 Current candidate: PR #98 — fix/nova-home-learn-first-mobile-20261109
-Candidate head inspected: 037421cf429959860aba00da5134d1fd304f9a3a
+Candidate head inspected: d87b771eea09460d915e25829e4b4abfdb0ca7b2
 
 ## Done (evidence-backed)
 - PR #98 remains open, Draft, and unmerged. Production main is unchanged by this candidate.
-- Main verification run 43187222508 and browser verification run 43187397043 passed on candidate head 037421c (re-run IDs 43187397022 and 43187397043 were reported successful in the latest review).
+- Previous candidate head 037421c passed main verification run 43187397022 and browser verification run 43187397043. New documentation-only commit d87b771 is now running main verification 43194759663 and browser verification 43194759669; results are pending.
 - Five Chromium viewport screenshots were inspected: 360x800, 390x844, 412x915, 760x1024, 1280x800. This is emulation, not physical-device certification.
 - `.env.example` exists; `.gitignore` excludes local env/secrets and common credential files.
 - Privacy Notice and Terms drafts exist and explicitly disclose incomplete controls; they are not final legal documents.
 - Architecture and support/incident draft documents exist for NOVA BI; broader product and transfer documentation is incomplete.
 - Production Render URL and existing service identity are documented in README / prior release records.
 
-## In progress
+## Phase 1 audit findings (static inspection; not a complete runtime audit)\n- Active backend currently declares 28 Express routes across config, chat, search, image, voice transcription, live data, feeds and static/PWA assets.\n- Main frontend is a single `index.html` plus modular browser scripts; the HTML has a viewport meta tag and English document language, but no description meta tag, canonical URL or H1 was detected. These are SEO/discoverability gaps to review.\n- 49 static buttons and 13 inputs were detected; all 13 inputs have a nearby/explicit label attribute, while only 21 buttons carry an aria-label/title attribute. Text-labelled buttons may be accessible, but a rendered accessibility audit is still required.\n- No HTML form, dialog role, privacy/terms link, or cookie-consent UI was detected in the main HTML. This is not proof that no consent controls exist in scripts or routes; verify rendered app and actual storage/cookie use before implementing.\n- Security controls found in the active backend include baseline headers/CSP, per-IP in-memory API throttling, a 6 MB JSON body limit, `/health`, and provider URL validation in a separate module. CSP still explicitly allows inline styles and broad HTTPS connections (documented limitation).\n- Package lock records a small dependency graph; visible license metadata is predominantly MIT/ISC/BSD-3-Clause/Apache-2.0. This is only an initial lockfile scan, not a completed provenance or license audit.\n- No Dockerfile, root-level product architecture guide, dependency license report, backup/restore guide, alternative-host guide, Transfer Pack, Data Room index or `NOVA_STATUS.md` existed before this audit; this status file is the first such tracker.\n\n## In progress
 - Phase 1 total audit: repository inventory, security, routes, UI states, accessibility, performance, SEO, data flows, integrations, live deployment and operational controls.
 - License and dependency provenance audit.
 - Ownership and transferability evidence audit.
@@ -32,7 +32,7 @@ Candidate head inspected: 037421cf429959860aba00da5134d1fd304f9a3a
 7. Research competitor capabilities and user pain points before claiming uniqueness or pricing.
 
 ## Blocked / owner-dependent
-- Staging currently serves old commit 195739a, not candidate head 037421c. Render Health Check Path is blank; owner must set `/health` in the existing Staging Dashboard and deploy latest commit there.
+- Staging currently serves old commit 195739a, not candidate head d87b771. Render Health Check Path is blank; owner must set `/health` in the existing Staging Dashboard and deploy latest commit there.
 - AI Chat live verification needs a permitted server-side provider key plus explicit model in the existing Staging Environment. Do not share secrets in chat or commit them. Respect provider age/terms requirements. No paid usage is authorized.
 - Physical Android touch/layout/microphone checks require the actual handset.
 - Real Auth email, two-user sync, deletion/retention, image generation and live third-party provider checks remain incomplete.
