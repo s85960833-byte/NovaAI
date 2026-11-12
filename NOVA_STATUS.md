@@ -342,3 +342,12 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Research indicates the more plausible no-customer asset buyers would be smaller Indian software agencies, vertical SaaS vendors, managed service providers and training providers that can reuse a verified codebase. Large enterprises and existing AI platforms already have overlapping capabilities and would face a strong build-versus-buy objection.
 - PR #98 candidate 3897fe351b0b6d02b580e22a69746a7d58e5bc9e passed Main CI 47/47 and Browser CI 16/16. Production remains unchanged; Staging remains stale and owner Health Check Path action remains open.
 - No buyer outreach, contact, sale claim or price claim was made.
+
+
+## Buyer map exact-head verification — 12 November 2026
+
+- Candidate 553e438524bdba2255b569300ae24310af6ff2f2 passed Main workflow #43206448707 (**47/47**) and Browser workflow #43206448581 (**16/16**).
+- BUYER_MAP.md now lists 24 buyer categories, illustrative companies, use cases, relative fit and the remaining proof required. It explicitly states that no listed company is a confirmed prospect and no acquisition interest has been evidenced.
+- DATA_ROOM_INDEX.md now includes the Buyer Map and current evidence state.
+- PR #98 remains Draft and unmerged. Production is unchanged. Staging remains stale at 195739a04895de364a5af22aa61f930d5d782cbb; Health Check Path is blank.
+- Overall Definition-of-Done progress: **21% estimated**. Buyer-readiness: **35/100 estimated**. These are internal qualitative estimates, not an independent valuation.

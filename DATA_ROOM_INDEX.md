@@ -38,8 +38,9 @@
 
 ## Current evidence checkpoint
 
-- PR #98 candidate 3897fe351b0b6d02b580e22a69746a7d58e5bc9e is Draft and unmerged.
+- PR #98 candidate 553e438524bdba2255b569300ae24310af6ff2f2 is Draft and unmerged.
 - Main CI: 47/47 steps passed. Browser CI: 16/16 steps passed on the same candidate.
+- BUYER_MAP.md documents 24 illustrative buyer categories; no company is a confirmed prospect and no interest is claimed.
 - Production main and Production Render were not changed by this candidate.
 - Staging still needs current-head deployment and live smoke verification; Health Check Path was blank at last Render inspection.
 - No verified customers, revenue, active users, testimonials, uptime SLA, commercial API rights, independent valuation or buyer interest are represented.
