@@ -18,7 +18,9 @@ The checked-in `.env.example` declares these variables (values are blank or safe
 - Search: `TAVILY_KEY`, `BRAVE_KEY`
 - Speech: `STT_MODEL`, `STT_OFF`
 - Image: `IMAGE_OFF`, `ALLOW_PAID_IMAGE`, `IMAGE_KEY`, `IMAGE_MODEL`, `IMAGE_BASE`, `POLLI_KEY`, `HORDE_API_KEY`, `HORDE_BASE`
+- Runtime controls: `PORT`, `LIVE_CONCURRENCY`, `LLM_MAX_HISTORY`, `LLM_MAX_INPUT_TOKENS`, `LLM_MAX_OUTPUT_TOKENS`, `LLM_TIMEOUT_MS`, `LLM_VISION_BUDGET`
 - Diagnostics: `SELFTEST_ON_START`, `LIVE_SELFTEST_ENABLED`
+- Supabase Edge Function setting: `NOVA_BI_SITE_URL` (configure in Supabase Functions secrets, not as a provider credential)
 
 Supabase project URL and browser client setup are present in the frontend/account modules. No Supabase service-role secret is declared in the public example. Credential validity, owner identity, project billing, project region, data-processing terms, Auth email settings and Edge Function deployment were not verified.
 
