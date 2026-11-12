@@ -79,3 +79,8 @@ The latest PR candidate `c3ddc3e32423a219c2c456cd92c1cba42b87ed88` passed Main 4
 ## Candidate enhancement — portable Action Proof
 
 The PR candidate adds a SHA-256 digest of the exact uploaded CSV bytes and an exportable JSON bundle linking that digest to the column mapping, row counts, calculation version, software checks and calculated analysis. This can support reproducibility checks when a reviewer retains the original input; it is not a digital signature or identity attestation. The raw CSV bytes are not included in the bundle, but derived labels/values may be, so inspect before sharing. New exact-head unit/Chromium tests are pending.
+
+
+## Demonstration assets — synthetic data only
+
+The preview includes three fictional CSV files under `samples/`: expenses, client revenue/direct costs, and team tasks. All names and rows are synthetic. The calculation tests verify arithmetic but do not establish real-world savings, employee productivity or customer profitability. Review the sample guide at `samples/README.md` before presenting the demo.

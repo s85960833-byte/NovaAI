@@ -169,3 +169,13 @@ All sample rows are fictional, labelled demo data and validated against the same
 ## NOVA BI portable Action Proof
 
 The current PR candidate adds a SHA-256 source-file digest and a portable JSON proof bundle containing the digest, column mapping, row counts, calculation version, software-check results and calculated analysis. The source CSV bytes are not embedded. The analysis may include user-provided labels/values and source-row references; inspect it before sharing. A SHA-256 digest is not a signature or a guarantee of browser integrity. The new unit and browser verification are pending on the latest candidate.
+
+
+## Synthetic NOVA BI demo data
+
+- [Demo data guide](samples/README.md)
+- [Expenses CSV](samples/demo-expenses.csv)
+- [Client profitability CSV](samples/demo-clients.csv)
+- [Team tasks CSV](samples/demo-team-tasks.csv)
+
+The examples are fictional and tested against NOVA BI calculation functions. They are not real customers, outcomes, testimonials, savings or traction.

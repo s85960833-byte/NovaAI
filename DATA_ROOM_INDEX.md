@@ -63,3 +63,9 @@ Never place secrets, passwords, service-role keys, personal data, raw customer d
 ## Source-provenance improvement
 - The candidate adds an exact uploaded-CSV SHA-256 digest and portable Action Proof JSON bundle. It does not embed the raw CSV; derived analysis may still include user-provided labels/values and row references.
 - SHA-256 is an integrity identifier, not a digital signature or identity attestation. The related unit and Chromium checks must pass on the exact head before claiming verification.
+
+
+## Synthetic demo assets
+- [NOVA BI demo data guide](samples/README.md) documents fictional expenses, clients and task data with expected deterministic calculations.
+- The Main CI's `scripts/demo-data.test.cjs` validates parsing and calculations against the same core module. The browser proof test independently compares the imported file's SHA-256 with Node's hash.
+- Do not represent synthetic outputs as real customer or business results.

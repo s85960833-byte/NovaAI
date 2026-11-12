@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright';
 
-const base = process.env.NOVAAI_URL || 'http://127.0.0.1:8787';
+const base = process.env.NOVAAI_URL || 'http://localhost:8787';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 412, height: 915 } });
 const errors = [];
@@ -37,7 +37,19 @@ try {
   const expectedDigest = 'sha256:' + createHash('sha256').update(fixtureBytes).digest('hex');
 
   await page.locator('#nbFile').setInputFiles(fixturePath);
-  await page.waitForFunction(() => document.querySelector('#nbDataStatus')?.textContent.includes('SHA-256 ready'), null, { timeout: 7000 });
+  await page.waitForFunction(() => {
+    const status = document.querySelector('#nbDataStatus')?.textContent || '';
+    return /SHA-256 ready|SHA-256 unavailable|Import failed:/.test(status);
+  }, null, { timeout: 10000 });
+  const importDiagnostic = await page.evaluate(() => ({
+    status: document.querySelector('#nbDataStatus')?.textContent || '(missing status element)',
+    secureContext: window.isSecureContext,
+    cryptoAvailable: typeof window.crypto !== 'undefined',
+    subtleAvailable: !!window.crypto?.subtle,
+    digestAvailable: typeof window.crypto?.subtle?.digest === 'function'
+  }));
+  assert.match(importDiagnostic.status, /SHA-256 ready/,
+    'CSV import must produce a source digest in a secure browser context: ' + JSON.stringify(importDiagnostic));
   await page.locator('#nbAnalyze').click();
   await page.waitForFunction(() => window.NovaBusiness?.snapshot?.().analysis?.total === 212000, null, { timeout: 7000 });
   await page.locator('#nbNav [data-view="proof"]').click();

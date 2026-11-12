@@ -101,3 +101,12 @@
 - The proof screen shows the digest and warns that derived output may contain user-provided values.
 - Unit test checks the standard `abc` SHA-256 test vector and deterministic demo-file digest. A Chromium workflow test imports the expense CSV, calculates the result, checks the digest against Node's independent SHA-256 implementation and downloads the portable bundle.
 - The code change and tests are in the next candidate change; no CI pass or live behavior is claimed until the exact next SHA passes.
+
+
+## Browser source-proof regression — 12 November 2026
+
+- On exact head `b9415d5d79d2a32512ea8c953e93aa352eb80f43`, Main CI passed but Browser CI failed only at `scripts/bi-proof-browser.mjs` while waiting for CSV import to report `SHA-256 ready`.
+- Preceding Chromium checks passed: account/privacy/sync, BI CSV calculations, risk, scenario, workflow proposal, Action Proof export and Company Cloud mobile flows. The failing check did not expose the final import status, secure-context flag or WebCrypto availability.
+- Updated the browser proof test to use `localhost`, wait for terminal import state, and report status + `isSecureContext` + WebCrypto capability before asserting SHA success. This is a diagnostic/test hardening change; it does not weaken the SHA requirement.
+- Current browser rerun is pending. Do not claim SHA proof is verified until the exact new head passes.
+- Existing synthetic CSV fixtures and deterministic Node tests are in `samples/` and `scripts/demo-data.test.cjs`; they are fictional only.
