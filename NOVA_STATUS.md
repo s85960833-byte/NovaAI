@@ -149,3 +149,11 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - AI Horde submit/check responses are capped at 256 KiB and status response at 12 MiB.
 - Added binary response cap tests to `scripts/provider-http.test.cjs`.
 - LLM chat response remains streamed intentionally; its output-token/time and client-abort behavior need a separate review. Direct provider response caps and tests must pass latest CI before being counted as verified.
+
+
+## Environment configuration completeness — 12 November 2026
+
+- Scanned all `E.NAME` references in the active `nova-server.txt` and compared them with `.env.example`.
+- Added previously undocumented runtime controls: `PORT`, `LIVE_CONCURRENCY`, `LLM_MAX_HISTORY`, `LLM_MAX_INPUT_TOKENS`, `LLM_MAX_OUTPUT_TOKENS`, `LLM_TIMEOUT_MS`, `LLM_VISION_BUDGET`; documented `NOVA_BI_SITE_URL` separately for Supabase Edge Function secrets.
+- Added `scripts/env-example.test.cjs`, `npm run test:env-example`, and a CI check to prevent missing server environment variables from being omitted in future.
+- Updated API integration inventory. Latest CI must pass before counting the new check as verified.
