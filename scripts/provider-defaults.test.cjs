@@ -21,8 +21,9 @@ test('retired Groq and stale pinned OpenRouter defaults are absent', () => {
   assert.doesNotMatch(source, /meta-llama\/llama-3\.3-70b-instruct:free/);
 });
 
-test('npm start loads an optional local .env file on the supported Node 22 runtime', () => {
+test('Render start command stays stable and local startup loads an optional .env file', () => {
   const packageJson = JSON.parse(fs.readFileSync(new URL('../package.json', 'file://' + __filename), 'utf8'));
   assert.equal(packageJson.engines.node, '22.x');
-  assert.equal(packageJson.scripts.start, 'node --env-file-if-exists=.env nova-server.txt');
+  assert.equal(packageJson.scripts.start, 'node nova-server.txt');
+  assert.equal(packageJson.scripts['start:local'], 'node --env-file-if-exists=.env nova-server.txt');
 });
