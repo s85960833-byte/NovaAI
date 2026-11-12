@@ -1,4 +1,4 @@
-import { createMissionProofEnvelope, type MissionProofEnvelope } from "./mission-proof.ts";
+import { canonicalizeMissionProof, createMissionProofEnvelope, type MissionProofEnvelope } from "./mission-proof.ts";
 import {
   MissionTaskRegistry,
   type MissionTaskDescriptor,
@@ -43,6 +43,41 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const WORKER_ID = /^[A-Za-z0-9._:-]{1,120}$/;
 const inFlight = new Set<string>();
 
+const CLAIM_KEYS = new Set([
+  "missionId", "taskId", "runId", "ownerId", "workerId", "leaseToken",
+  "taskType", "inputSchemaVersion", "input",
+]);
+
+function snapshotClaim(value: unknown): MissionWorkerClaim | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) return null;
+  const keys = Reflect.ownKeys(value);
+  if (keys.length !== CLAIM_KEYS.size ||
+      keys.some((key) => typeof key !== "string" || !CLAIM_KEYS.has(key))) return null;
+  for (const key of keys as string[]) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor || !descriptor.enumerable || !("value" in descriptor)) return null;
+  }
+  try {
+    const snapshot: unknown = JSON.parse(canonicalizeMissionProof(value));
+    if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return null;
+    return snapshot as MissionWorkerClaim;
+  } catch {
+    return null;
+  }
+}
+
+function freezeClaim(value: MissionWorkerClaim): MissionWorkerClaim {
+  const freeze = (item: unknown): void => {
+    if (!item || typeof item !== "object" || Object.isFrozen(item)) return;
+    for (const child of Object.values(item as Record<string, unknown>)) freeze(child);
+    Object.freeze(item);
+  };
+  freeze(value);
+  return value;
+}
+
 function validClaim(claim: MissionWorkerClaim): boolean {
   return !!claim && [claim.missionId, claim.taskId, claim.runId, claim.ownerId, claim.leaseToken]
     .every((value) => typeof value === "string" && UUID.test(value)) &&
@@ -61,12 +96,16 @@ export async function processClaimedMissionTask(
   claim: MissionWorkerClaim,
   dependencies: MissionWorkerRuntimeDependencies,
 ): Promise<MissionWorkerResult> {
-  if (!validClaim(claim) || !dependencies ||
+  const snapshot = snapshotClaim(claim);
+  if (!snapshot || !validClaim(snapshot) || !dependencies ||
       typeof dependencies.assertLeaseCurrent !== "function" ||
       typeof dependencies.persistProof !== "function" ||
       !(dependencies.registry instanceof MissionTaskRegistry)) {
     return { status: "denied", reason: "invalid_claim" };
   }
+  // All asynchronous callbacks receive this immutable snapshot, never the
+  // caller-owned claim object which could otherwise be mutated mid-execution.
+  claim = freezeClaim(snapshot);
 
   const key = claim.runId;
   if (inFlight.has(key)) return { status: "denied", reason: "lease_not_current" };
