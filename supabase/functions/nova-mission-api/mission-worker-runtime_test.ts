@@ -156,7 +156,8 @@ Deno.test("worker rejects a concurrent duplicate run in the same isolate", async
 Deno.test("worker snapshots and freezes caller-owned claims before awaiting", async () => {
   let release!: () => void;
   const gate = new Promise<void>((resolve) => { release = resolve; });
-  let leaseChecks = 0, persistedClaim: MissionWorkerClaim | null = null;
+  let leaseChecks = 0;
+  const persisted = { claim: null as MissionWorkerClaim | null };
   const mutableClaim = { ...claim, input: { stable: "before" } };
   const r = new MissionTaskRegistry();
   const inputSchema: MissionTaskInputSchema = {
@@ -191,7 +192,7 @@ Deno.test("worker snapshots and freezes caller-owned claims before awaiting", as
       return true;
     },
     async persistProof({ claim: received }) {
-      persistedClaim = received;
+      persisted.claim = received;
       return { proofId: "66666666-6666-4666-8666-666666666666",
         attestationId: "77777777-7777-4777-8777-777777777777", digest: "c".repeat(64) };
     },
@@ -202,8 +203,8 @@ Deno.test("worker snapshots and freezes caller-owned claims before awaiting", as
   release();
   const result = await pending;
   if (result.status !== "completed" || leaseChecks !== 2 ||
-      persistedClaim?.workerId !== "worker.test-1" ||
-      persistedClaim?.input.stable !== "before") {
+      persisted.claim?.workerId !== "worker.test-1" ||
+      persisted.claim?.input.stable !== "before") {
     throw new Error("Caller mutation altered the in-flight worker claim");
   }
 });
