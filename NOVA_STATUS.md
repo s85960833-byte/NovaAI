@@ -252,3 +252,12 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Whole Definition of Done: approximately **14%** (rough estimate; includes later phases not started).
 - Preliminary buyer-readiness: **28/100** (evidence-based working score, not a valuation or sale recommendation).
 - PR #98 remains Open, Draft and unmerged. No paid service/API use or production mutation was performed.
+
+
+## Latest Phase 1 CI verification — 12 November 2026
+
+- Candidate head `0a48f4c2bc1a9b34a240433dfd4adac0dcb9b261` passed Main workflow #43201970588 and Browser workflow #43201971052.
+- This candidate includes SEO metadata, canonical/Open Graph/Twitter tags, `/robots.txt`, `/sitemap.xml`, local runtime smoke assertions, removal of two obsolete artifacts, support-runbook blocker wording and `PHASE1_AUDIT.md`.
+- Main CI passed the local SEO/runtime assertions, PostgreSQL tenant-RLS migration suite, Deno type-check/tests, dependency audit, browser smoke, Company Cloud mobile browser workflows and five-viewport mobile/drawer regression. Browser CI passed account UI, privacy/opt-in sync, Company Cloud and mobile/drawer regression.
+- These checks are not production smoke tests or physical Android validation. Live provider and deployed Edge Function tests remain skipped for the unmerged PR.
+- PR #98 remains Open, Draft and unmerged. Staging still requires owner configuration of Health Check Path `/health`; latest recorded staging deploy remains stale. Production remains untouched.
