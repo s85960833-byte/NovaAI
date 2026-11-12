@@ -1202,7 +1202,7 @@ if (E.SELFTEST_ON_START === '1') {
       if (providerConfigured) {
         await probe('AI chat', '/api/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: (config && config.data.model) || E.LLM_MODEL, stream: false, max_tokens: 16, messages: [{ role: 'user', content: 'Reply exactly NOVAAI_OK.' }] }), timeout: 60000 }, (r, j) => r.ok && !!(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content));
       } else {
-        results.push({ name: 'AI chat', ok: false, status: 503, note: 'Skipped: set LLM_KEY, GROQ_API_KEY, or OPENROUTER_API_KEY in Render to enable real AI chat.' });
+        results.push({ name: 'AI chat', ok: false, status: 503, note: 'Skipped: set LLM_KEY with LLM_MODEL, GROQ_API_KEY with GROQ_MODEL, or OPENROUTER_API_KEY in Render to enable real AI chat.' });
       }
       if (config && config.data.providers && config.data.providers.tavily) {
         await probe('Tavily search route', '/api/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: 'NASA' }), timeout: 15000 }, (r, j) => r.ok && Array.isArray(j.results));
