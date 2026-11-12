@@ -151,3 +151,59 @@ Deno.test("worker rejects a concurrent duplicate run in the same isolate", async
     throw new Error("Concurrent duplicate executed or persisted more than once");
   }
 });
+
+
+Deno.test("worker snapshots and freezes caller-owned claims before awaiting", async () => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  let leaseChecks = 0, persistedClaim: MissionWorkerClaim | null = null;
+  const mutableClaim = { ...claim, input: { stable: "before" } };
+  const r = new MissionTaskRegistry();
+  const inputSchema: MissionTaskInputSchema = {
+    version: 1,
+    validate(value): value is Readonly<Record<string, unknown>> {
+      return !!value && typeof value === "object" && !Array.isArray(value) &&
+        (value as Record<string, unknown>).stable === "before";
+    },
+  };
+  r.register("test.safe-check", inputSchema, {
+    async execute(task) {
+      if (task.input.stable !== "before") throw new Error("Input snapshot changed");
+      await gate;
+      return { output: { ok: true }, evidence: {} };
+    },
+  }, {
+    id: "test.independent-verifier", version: "1.0.0",
+    async verify() { return { passed: true, verifierId: "test.independent-verifier",
+      verifierVersion: "1.0.0", checks: [{ id: "ok", passed: true }],
+      observedAt: "2026-11-12T12:00:00.000Z" }; },
+  });
+  const pending = processClaimedMissionTask(mutableClaim, {
+    registry: r,
+    async assertLeaseCurrent(received) {
+      leaseChecks++;
+      if (received.workerId !== "worker.test-1" || received.input.stable !== "before") {
+        throw new Error("Lease callback observed mutated claim");
+      }
+      if (!Object.isFrozen(received) || !Object.isFrozen(received.input)) {
+        throw new Error("Lease callback received a mutable claim");
+      }
+      return true;
+    },
+    async persistProof({ claim: received }) {
+      persistedClaim = received;
+      return { proofId: "66666666-6666-4666-8666-666666666666",
+        attestationId: "77777777-7777-4777-8777-777777777777", digest: "c".repeat(64) };
+    },
+  });
+  await Promise.resolve();
+  mutableClaim.workerId = "attacker.changed";
+  mutableClaim.input.stable = "after";
+  release();
+  const result = await pending;
+  if (result.status !== "completed" || leaseChecks !== 2 ||
+      persistedClaim?.workerId !== "worker.test-1" ||
+      persistedClaim?.input.stable !== "before") {
+    throw new Error("Caller mutation altered the in-flight worker claim");
+  }
+});
