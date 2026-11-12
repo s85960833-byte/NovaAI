@@ -83,3 +83,8 @@ A follow-up patch now merges remote and local chat histories by their shared seq
 - [Why evaluate NOVA?](WHY_EVALUATE_NOVA.md)
 - [Buyer and technical FAQ](BUYER_FAQ.md)
 - [Selected improvement register](IMPROVEMENT_REGISTER.md)
+
+
+## Latest exact candidate verification
+
+PR #98 exact candidate `76e89066d04f00e991b7a49b59cb93c4839a6ab7` passed Main #43251147719 and Browser #43251147695; duplicate exact-head runs also passed. Main has four skipped live/release checks and Staging remains on an older commit. Browser tests verify synthetic BI calculations, source SHA-256 proof and currency-suffixed amount-column mapping. This does not replace live Staging or physical Android testing.

@@ -55,3 +55,10 @@
 - [Account deletion/data-lifecycle review](../ACCOUNT_DELETION_REVIEW.md) — read-only schema evidence and required safe deletion design; no destructive action executed.
 
 - Candidate source provenance: local CSV SHA-256 and portable Action Proof JSON bundle; tests added, latest exact-head CI pending.
+
+
+## Buyer and release references
+- [Buyer/technical FAQ](../BUYER_FAQ.md) — current deployment, authentication, quota, ownership and product limitations.
+- [Non-paid feedback outreach templates](../BUYER_OUTREACH_TEMPLATES.md) — not an acquisition or payment solicitation.
+- [Selected improvement register](../IMPROVEMENT_REGISTER.md) — internal judgement, not measured user research.
+- [Current NOVA status](../NOVA_STATUS.md) — exact SHA, CI evidence and release blockers.

@@ -1,112 +1,90 @@
 # NOVA Status — Current Source of Truth
 
-**Status date:** 12 November 2026, 19:43 IST  
+**Last exact CI verification:** 12 November 2026  
 **Repository:** https://github.com/s85960833-byte/NovaAI  
 **Production:** https://novaai-4auo.onrender.com  
-**Production dashboard:** https://dashboard.render.com/web/srv-dbidhpc9v7es73eogao0  
+**Production dashboard:** https://dashboard.render.com/web/srv-dbidhpc9v7es73d6ia80  
 **PR #98:** https://github.com/s85960833-byte/NovaAI/pull/98  
-**Candidate branch:** `fix/nova-home-learn-first-mobile-20261109`
+**Candidate branch:** `fix/nova-home-learn-first-mobile-20261109`  
+**Verified code candidate:** `76e89066d04f00e991b7a49b59cb93c4839a6ab7`
 
-## Current phase status
+## Phase status
 
-- Phase 1 — Total audit: **IN PROGRESS**. Source/routes/auth/provider boundaries, npm lockfile metadata, Supabase RLS, Render history/logs, CI and browser viewport artifact reviewed. Physical Android/mic, current Staging, restore/load and full live UI audit remain open.
-- Phase 2 — Exclusive value engine: **NOT PROVEN**. Paddlewheel, NavBharatAI and BooDoo overlap with broad India-language app-building claims. No unique moat or same-task benchmark.
-- Phase 3 — Asset value: **PARTIAL**. Architecture/API/roadmap/transfer/Data Room, synthetic demo data and secure download routes exist in candidate. Durable quotas/spend caps, billing, SDK/webhooks/plugins, full account deletion/retention and restore proof remain incomplete.
-- Phase 4 — Buyer package: **PARTIAL**. Buyer Map (24 categories), preview pitch, demo/outreach-for-feedback templates, cost/valuation/objection docs and Data Room exist. No buyer interest or adult-operated transaction/contact channel.
+- Phase 1 — Total audit: **IN PROGRESS**. Source/routes/auth/provider boundaries, npm metadata, Supabase RLS, Render history/logs, CI and browser viewport artifacts reviewed. Current-head Staging/live HTTP, physical Android/microphone, restore/load and complete live UI checks remain open.
+- Phase 2 — Exclusive value engine: **NOT PROVEN**. Paddlewheel, NavBharatAI and BooDoo overlap with broad India-language app-building; NavBharatAI also publicly claims failed-build fee protection and rupee pay-as-you-go billing. No unique moat or same-task benchmark.
+- Phase 3 — Asset value: **PARTIAL**. Architecture/API/roadmap/transfer/Data Room, synthetic demo data, allowlisted download routes, SHA-256 source proof and CSV auto-mapping improvements exist in candidate. Durable quotas/spend caps, billing, SDK/webhooks/plugins, full account deletion/retention and restore proof remain incomplete.
+- Phase 4 — Buyer package: **PARTIAL**. Buyer Map (24 categories), preview pitch, non-paid feedback templates, cost/valuation/objection docs and Data Room exist. No buyer interest or adult-managed transaction/contact channel.
 - Phase 5 — Buyer objections: **NOT PASSED**.
 - Phase 6 — Valuation: **PARTIAL**. ₹35.1–104.7 lakh gross labour scenario only, not independent valuation; ₹15–20 lakh fair asset value unsupported; ₹10–20 crore scenario only.
 
-## Exact verified CI — 12 November 2026
-- Main workflow [#43237549696](https://github.com/s85960833-byte/NovaAI/actions/runs/43237549696): **success**, 45 successful steps, zero failures, SHA `da689a57ca544e2f4be6811307e23b7f683d8790`.
-- Browser workflow [#43237549642](https://github.com/s85960833-byte/NovaAI/actions/runs/43237549642): **success**, 16 successful steps, zero failures, same exact SHA.
-- The NOVA BI calculation tests, synthetic demo-data tests, allowlisted demo-download runtime smoke, path-traversal rejection, Docker image smoke and five-viewport mobile regression all passed in the respective workflows.
-- Main release-only live/Production steps remain skipped while the PR is unmerged. CI does not prove deployment or physical device behavior.
+## Exact-head CI evidence — 12 November 2026
 
-## Render
-- Production service `srv-dbidhpc9v7es73d6ia80`, main, Free/Singapore/one instance; latest Live `dep-dbom7bbm8hqs73ec2gi0` on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. Production unchanged.
-- Staging service `srv-dbqm035g1s2s73eogao0` has correct PR branch and Auto Deploy enabled, but latest Live `dep-dbqnenhe35nc73f81k4g` remains old SHA `195739a04895de364a5af22aa61f930d5d782cbb`; Health Check Path blank.
-- Candidate is not live-verified on Staging or Production.
+- Main workflow [#43251147719](https://github.com/s85960833-byte/NovaAI/actions/runs/43251147719): **success** on SHA `76e89066d04f00e991b7a49b59cb93c4839a6ab7`; 45 successful steps, 0 failed, 4 live/release-only steps skipped.
+- Browser workflow [#43251147695](https://github.com/s85960833-byte/NovaAI/actions/runs/43251147695): **success** on the same SHA; all 16 workflow steps succeeded.
+- Duplicate exact-SHA retry pair [#43251164087](https://github.com/s85960833-byte/NovaAI/actions/runs/43251164087) and [#43251164091](https://github.com/s85960833-byte/NovaAI/actions/runs/43251164091) also completed successfully.
+- Main passing steps include Node/browser security tests, npm SBOM generation/validation, dependency audit, PostgreSQL migrations/RLS, Deno type checks, BI calculations, synthetic demo data calculations, local API/runtime smoke, Docker image build and health smoke, Chromium interaction tests and five-viewport mobile/drawer regression.
+- Main skipped steps: deployed NOVA BI Edge Function auth/CORS smoke, wait-for-merged-revision on Render, live Production/provider smoke and live free-image smoke. These are not passes.
+- Browser proof test verifies SHA-256 of the exact uploaded expense CSV against an independent Node hash, exported Action Proof JSON metadata and no raw CSV bytes in the portable bundle.
+- Browser regression exposed that `Amount (INR)` was not auto-mapped. Candidate safely matches exact headers first, then currency-suffixed prefix/suffix variants. Browser CI verifies this mapping and the resulting ₹2,12,000 sample calculation.
+- Two prior Browser CI failures were diagnosed, not bypassed: first the test did not report import/security-context state; second diagnostics identified the unmapped amount header. Both are addressed on the green exact SHA.
 
-## Supabase
-- Project `qrfwsewppafhxibdboam`, PostgreSQL 17.11, ACTIVE_HEALTHY, region eu-west-1.
+## Render Production
+
+- Service `srv-dbidhpc9v7es73d6ia80`; branch `main`; Free/Singapore/one instance.
+- Latest Live deployment `dep-dbom7bbm8hqs73ec2gi0` on commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`.
+- Production was not changed, merged or redeployed. Direct live HTTP response and uptime remain unverified from this review environment. Health Check Path is blank.
+
+## Render Staging
+
+- Service `srv-dbqm035g1s2s73eogao0`; URL https://novaai-pr98-staging.onrender.com; PR branch configured, Auto Deploy enabled; Free/Singapore/one instance.
+- Latest Live deployment remains `dep-dbqnenhe35nc73f81k4g` on old SHA `195739a04895de364a5af22aa61f930d5d782cbb`, not the candidate.
+- Health Check Path remains blank. Connected Render tools cannot update it; Auto Deploy has not moved to PR head.
+- Old deployment logs recorded AI chat 503 because no model key was configured. This is not current-candidate evidence.
+
+## Supabase read-only review
+
+- Project `qrfwsewppafhxibdboam`, PostgreSQL 17.11, ACTIVE_HEALTHY, eu-west-1.
 - 11/11 public tables RLS-enabled; 24 policies; no anon table grants; Security/Health Advisors zero lints; 13 Performance Advisor INFO unused-index notices.
-- `nova-bi-api` ACTIVE v14, JWT verification enabled.
-- Project metadata did not expose its plan. Supabase documentation says daily managed backups cover Pro/Team/Enterprise; Free projects should export data manually.
-- `BACKUP_AND_RESTORE.md` now documents CLI backup/isolated restore and its limitations. **No backup export or restore drill has been run.** Standard CLI dumps do not include Auth users, Storage objects or Edge Function secrets.
+- `nova-bi-api` ACTIVE v14 with JWT verification.
+- Live Auth email/token tests, two-account isolation, full deletion/retention, backup export/restore remain unverified.
 
-## Completed
-- India competitor/user-pain review and honest no-exclusivity positioning.
-- Architecture/API/cost/roadmap/scorecard/Data Room/buyer docs.
-- Synthetic BI sample CSVs, deterministic calculation tests, download UI and three-file allowlist route.
-- Latest exact Main and Browser CI passed.
-- Owner-controlled backup/restore procedure documented from official Supabase references.
-- No paid spend, Production merge/deploy, or secret retrieval.
+## Completed in this candidate
 
-## Next / blocked
-1. Push backup runbook and Transfer/Data Room cross-links; run CI on the new exact SHA.
-2. Owner: Staging Dashboard → Settings → Health Checks → set `/health` → Save.
-3. Diagnose Staging Auto Deploy and bring exact candidate to existing Staging URL.
-4. Enable Express Auth on Staging only; test missing/invalid/expired/valid sessions and provider endpoints.
-5. Owner tests physical Android full width, drawer, touch, keyboard and microphone.
-6. Implement durable quotas/spend caps, full account deletion/retention, monitoring and provider-rights/legal/IP remediation.
-7. Conduct and document an isolated backup restore including separately handled Auth and Storage before claiming portability.
+- India competitor research updated with NavBharatAI public pricing/failure-handling policy; no unique pricing claim.
+- Cost-to-replicate report labels ₹35.1–104.7 lakh as gross modelled replacement labour, not fair market value.
+- Synthetic demo samples, deterministic Node tests and allowlisted downloads.
+- Source CSV SHA-256 digest and portable Action Proof export; raw CSV bytes are omitted, and the bundle is not digitally signed.
+- Fixed currency-suffixed CSV auto-mapping and added Browser regression evidence.
+- Exact-head Main and Browser CI both passed twice.
+- No paid spend, Production change, merge or secret retrieval.
+
+## Next / owner actions
+
+1. Owner: Staging Dashboard → Settings → Health Checks → set `/health` → Save.
+2. Diagnose Staging Auto Deploy and deploy exact candidate to the same Staging URL.
+3. Run current-head Staging health/routes/provider/account smoke. Enable Express API authentication on Staging only; test missing/invalid/expired/valid tokens.
+4. Owner tests actual Android full width, drawer, touch targets, keyboard and microphone.
+5. Implement durable quotas/spend caps, full Auth account deletion/retention, monitoring, backup/restore, provider-rights remediation and final legal/IP review.
+6. Run identical-task competitor benchmark; no differentiation claim until independently reproducible.
 
 ## Owner/external blockers
-- Health Check Path requires owner dashboard action.
-- Live AI test requires an authorized provider key entered privately in Render. No paid credits or spend.
-- Physical Android/mic testing needs the actual handset.
-- Hosted Auth email/session, two-account isolation, complete deletion, provider invoices/contracts and account transfer need operator evidence.
-- Support/grievance contact, age/consent policy, contributor assignments, IP chain of title and final legal review require responsible adult operator and qualified professionals.
-- The user is a minor; any commercial approach, purchase, sale, ownership transfer, contract or payment must be handled by a responsible adult with qualified counsel. Current outreach templates are non-paid feedback requests only.
+
+- Health Check Path and Staging deployment require Render dashboard owner action.
+- AI test requires an approved provider key entered privately in Render; no paid spend.
+- Physical Android/microphone testing requires the actual handset.
+- Provider contracts/invoices, account-transfer rights, legal operator identity, support/grievance contact, age/consent policy, contributor assignments and IP chain of title require responsible adult operator and qualified professionals.
+- Acquire/Partner contact route is not implemented without a verified adult-managed business contact and privacy/support owner.
 
 ## Decisions
-- PR #98 stays Draft/unmerged; Production remains unchanged until all gates and explicit final release approval.
-- No paid API, image credit, infrastructure, plan upgrade or billing activation.
-- Do not claim customers, revenue, exclusive features, fair valuation, uptime SLA, certification or production security without evidence.
-- Synthetic/non-sensitive demo data only; no confidential/customer data onboarding.
+
+- PR #98 stays Draft/unmerged; Production stays unchanged until all gates and explicit owner approval.
+- No paid API, paid image, infrastructure, plan upgrade, payment or billing activation.
+- Do not claim customers, revenue, exclusivity, fair valuation, uptime SLA, certification, production security or buyer interest without evidence.
+- Synthetic/non-sensitive demo data only; no confidential/customer-data onboarding.
 
 ## Estimates
-- Overall S-Tier Definition of Done: **29%** qualitative.
-- Buyer-readiness: **36.8/100 ≈ 37/100**, weighted internal estimate, not appraisal.
-- Tier 1 ₹15–20 lakh fair asset value unsupported.
-- Tier 2 ₹10–20 crore aspirational only; requires sustained paid ARR, retention, growth, margins, clean IP/provider rights and independent valuation.
 
-
-## Latest CI and documentation synchronization — 12 November 2026
-
-- Current PR #98 exact head `c3ddc3e32423a219c2c456cd92c1cba42b87ed88` passed Main [#43238989690](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989690) 45/45 and Browser [#43238989457](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989457) 16/16.
-- README, top-level Data Room index, Technical Data Room, buyer objection review and pitch deck evidence references are synchronized to the latest candidate.
-- Backup/restore process is documented; no export/restore was executed.
-- This documentation update does not close the live Staging, Production, Auth, device, provider-rights, ownership, privacy or legal blockers.
-
-
-## Buyer-pack additions — 12 November 2026
-
-- Added an evidence-limited “Why evaluate NOVA?” brief, Buyer/Technical FAQ and selected Improvement Register; all are internal evaluation materials, not acquisition offers.
-- The scorecard remains 37/100 and no exclusivity, fair sale price, revenue or buyer interest is claimed.
-
-
-## Account deletion/data-lifecycle blocker — 12 November 2026
-
-- Read-only live Postgres catalog query found eight public FKs to `auth.users(id)`: six RESTRICT (BI analyses, datasets, memberships, organisation creators, workflow approvals and workflow proposals), one audit actor SET NULL and one workspace snapshot CASCADE.
-- The account UI only deletes `nova_user_workspaces`; no full Auth account deletion flow exists.
-- No deletion code or schema changes were applied. A blind delete endpoint could fail on RESTRICT keys or harm shared tenant/audit records.
-- `ACCOUNT_DELETION_REVIEW.md` records the exact catalog evidence and safe deletion requirements. Full deletion/retention/session revocation remains a critical NO-GO blocker.
-
-
-## SHA-256 Action Proof enhancement — pending verification
-
-- Added a browser-safe `sha256Hex` helper using Web Crypto and exact File ArrayBuffer bytes.
-- NOVA BI analysis metadata now carries the source-file SHA-256, row counts, column mapping and calculation version. The portable JSON bundle contains proof + analysis but not raw CSV bytes.
-- The proof screen shows the digest and warns that derived output may contain user-provided values.
-- Unit test checks the standard `abc` SHA-256 test vector and deterministic demo-file digest. A Chromium workflow test imports the expense CSV, calculates the result, checks the digest against Node's independent SHA-256 implementation and downloads the portable bundle.
-- The code change and tests are in the next candidate change; no CI pass or live behavior is claimed until the exact next SHA passes.
-
-
-## Browser source-proof regression — 12 November 2026
-
-- On exact head `b9415d5d79d2a32512ea8c953e93aa352eb80f43`, Main CI passed but Browser CI failed only at `scripts/bi-proof-browser.mjs` while waiting for CSV import to report `SHA-256 ready`.
-- Preceding Chromium checks passed: account/privacy/sync, BI CSV calculations, risk, scenario, workflow proposal, Action Proof export and Company Cloud mobile flows. The failing check did not expose the final import status, secure-context flag or WebCrypto availability.
-- Updated the browser proof test to use `localhost`, wait for terminal import state, and report status + `isSecureContext` + WebCrypto capability before asserting SHA success. This is a diagnostic/test hardening change; it does not weaken the SHA requirement.
-- Current browser rerun is pending. Do not claim SHA proof is verified until the exact new head passes.
-- Existing synthetic CSV fixtures and deterministic Node tests are in `samples/` and `scripts/demo-data.test.cjs`; they are fictional only.
+- Overall S-Tier Definition of Done: **30%** qualitative cross-phase estimate.
+- Buyer-readiness: **36.8/100 ≈ 37/100**, weighted internal estimate; not appraisal.
+- Tier 1 ₹15–20 lakh fair asset value: unsupported today.
+- Tier 2 ₹10–20 crore: aspirational only; requires sustained audited paid ARR, retention, growth, margins, clean IP/provider rights and independent valuation.

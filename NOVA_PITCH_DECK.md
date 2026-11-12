@@ -84,3 +84,11 @@ The PR candidate adds a SHA-256 digest of the exact uploaded CSV bytes and an ex
 ## Demonstration assets — synthetic data only
 
 The preview includes three fictional CSV files under `samples/`: expenses, client revenue/direct costs, and team tasks. All names and rows are synthetic. The calculation tests verify arithmetic but do not establish real-world savings, employee productivity or customer profitability. Review the sample guide at `samples/README.md` before presenting the demo.
+
+
+## Latest verification and competitive qualification — 12 November 2026
+
+- Candidate `76e89066d04f00e991b7a49b59cb93c4839a6ab7` passed Main #43251147719 and Browser #43251147695 on the exact same SHA; duplicate retries passed too.
+- Browser verifies imported CSV SHA-256, portable proof bundle and auto-mapping of `Amount (INR)`.
+- NavBharatAI publicly claims clarifying questions before spend, rupee-wallet UPI/card pay-as-you-go, no charge for failed builds and stop-build charges based on work retained. These vendor claims show that simple transparent billing is not unique to NOVA.
+- The ₹35.1–104.7 lakh replacement-labour model is not fair-value or guaranteed buyer savings; ₹15–20 lakh remains unsupported. Buyer-readiness remains 37/100.

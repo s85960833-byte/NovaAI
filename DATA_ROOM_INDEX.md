@@ -69,3 +69,10 @@ Never place secrets, passwords, service-role keys, personal data, raw customer d
 - [NOVA BI demo data guide](samples/README.md) documents fictional expenses, clients and task data with expected deterministic calculations.
 - The Main CI's `scripts/demo-data.test.cjs` validates parsing and calculations against the same core module. The browser proof test independently compares the imported file's SHA-256 with Node's hash.
 - Do not represent synthetic outputs as real customer or business results.
+
+
+## Latest exact candidate evidence — 12 November 2026
+- [NOVA Status](NOVA_STATUS.md): candidate `76e8906`, Main #43251147719 and Browser #43251147695 passed on the same SHA; duplicate retries #43251164087/#43251164091 also passed. Main skips four live/release checks.
+- [Buyer and Technical FAQ](BUYER_FAQ.md) records deployment, security, billing and data limitations.
+- [Selected Improvement Register](IMPROVEMENT_REGISTER.md) lists evidence-backed changes and internal priority ratings.
+- Browser CI verifies source CSV SHA-256 Action Proof export and currency-suffixed `Amount (INR)` auto-mapping. It is not physical Android proof or a signed provenance attestation.

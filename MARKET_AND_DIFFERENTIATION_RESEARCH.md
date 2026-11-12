@@ -95,3 +95,25 @@ These are opportunity hypotheses, not claims that NOVA already delivers them or 
 ## Research limits and next benchmark
 
 This review is a public-web snapshot, not a full competitive teardown. Product listings describe vendor claims, review sites can be biased, and feature availability can change. Before claiming differentiation, run the same Hindi/English app-building task against NOVA, Paddlewheel, BooDoo, NavBharatAI, Lovable and v0; record time, usable output rate, edits required, test pass rate, export reproducibility, cost per successful result and language fidelity. Do not publish results until that benchmark is actually run.
+
+
+## Additional direct competitor pricing / failure-handling evidence — 12 November 2026
+
+NavBharatAI's current public app-builder and pricing pages state:
+- It asks clarifying questions when a request is vague before spending wallet funds.
+- Users top up a rupee wallet using UPI/card and pay based on work actually used; there is no compulsory monthly subscription for building.
+- Failed builds are not charged under its stated rules.
+- If a user stops a build, charges depend on the work retained and whether a working preview was reached.
+- Its terms also state a minimum user age of 18 and describe usage metering, refund/credit rules and statutory-rights qualifications.
+
+Sources (vendor statements; not independently audited):
+- https://navbharatai.com/ai-app-builder
+- https://navbharatai.com/pricing
+- https://navbharatai.com/terms
+- https://navbharatai.com/about
+
+**Differentiation consequence:** NOVA cannot claim transparent usage budgets, charging only for kept work, failed-build fee protection, clarifying questions before generation or rupee-wallet pay-as-you-go as unique. A possible NOVA workflow remains the auditable link between exact uploaded source bytes, transformation/version, validated calculation, software tests and export bundle. Its SHA-256 bundle is not signed, is not identity attestation, and is not yet shown better than competitors.
+
+## Reproducibility test added to the candidate
+
+The candidate verifies a sample expense CSV's exact SHA-256 digest independently in Node and Chromium, exports the digest with row counts/mapping/calculation version/results, and deliberately omits raw CSV bytes from the bundle. Browser CI also exposed and fixed the auto-mapper's failure to select `Amount (INR)`; currency-suffixed names are now matched by safe prefix/suffix after exact matches. This is implementation/test evidence, not a market-unique claim.

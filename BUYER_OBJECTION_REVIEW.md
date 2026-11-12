@@ -83,3 +83,12 @@ Selected public reviews on Lovable and Bolt also report credit exhaustion during
 ## New legal/privacy objection — live account deletion blocker
 
 A read-only live Postgres catalog query found six public foreign-key references to Supabase Auth users using `ON DELETE RESTRICT`, one audit actor reference using `SET NULL`, and one optional workspace backup reference using `CASCADE`. The current account UI deletes only the workspace backup; it does not delete the Auth identity. A blind deletion endpoint could fail on authored BI records or damage shared tenant history if cascades were added without policy. Ownership transfer, authorship/approval treatment, session revocation, Storage deletion and retention remain unresolved. See [ACCOUNT_DELETION_REVIEW.md](ACCOUNT_DELETION_REVIEW.md). Decision remains **NO-GO for customer onboarding and buyer-ready claims**.
+
+
+## Additional current India competitor objection — 12 November 2026
+
+NavBharatAI publicly describes an app builder that asks clarifying questions before spend, uses a rupee wallet/UPI/card pay-as-you-go model, does not charge for failed builds, and bases stop-build charges on work retained. These are its public claims, not an independent billing audit. Sources: https://navbharatai.com/ai-app-builder, https://navbharatai.com/pricing, https://navbharatai.com/terms.
+
+**Founder objection:** NOVA's proposed Change Budget, failed-edit protection and Hindi/English prompt workflow cannot be sold as unique. The only narrower differentiator currently under test is portable evidence linking exact input bytes, mapping/version, calculation and software tests. It remains unsigned and unbenchmarked.
+**CTO objection:** A client-generated SHA-256 digest can reveal an input mismatch when independently recomputed, but it does not authenticate who uploaded a file or prove that the analysis code was untampered. A signed attestation or independent verifier is not implemented.
+**CFO objection:** Competitor billing claims do not prove NOVA unit economics. NOVA has no measured provider cost/task, support cost, payment fees, paid conversion or retention. No pricing recommendation is approved.

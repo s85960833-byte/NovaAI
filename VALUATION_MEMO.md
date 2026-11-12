@@ -69,3 +69,10 @@ At ₹499/month realized revenue, the arithmetic is about 5,600–11,200 account
 ## Evidence limitations
 
 This memo relies on repository, CI and public-source review as of 12 November 2026. It does not establish market demand, traction, completed security audit, legal compliance, exclusive IP or buyer willingness to pay.
+
+
+## Competitive pricing-policy update — 12 November 2026
+
+NavBharatAI's public pages describe clarifying questions before spend, rupee-wallet pay-as-you-go, no charge for failed builds and stop-build charges based on work retained. These are vendor-stated policies and not an independent billing audit. They show that transparent generation pricing and failure handling are already claimed by a direct competitor; NOVA cannot use them as a unique moat. Sources: https://navbharatai.com/ai-app-builder and https://navbharatai.com/pricing.
+
+The latest exact candidate `76e89066d04f00e991b7a49b59cb93c4839a6ab7` passed Main and Browser CI. This raises automated quality evidence but does not change the fair-value conclusion: current Staging is stale, release/live checks are skipped, and independent cost/ownership/legal/provider diligence remains incomplete.

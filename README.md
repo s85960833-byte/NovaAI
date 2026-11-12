@@ -179,3 +179,10 @@ The current PR candidate adds a SHA-256 source-file digest and a portable JSON p
 - [Team tasks CSV](samples/demo-team-tasks.csv)
 
 The examples are fictional and tested against NOVA BI calculation functions. They are not real customers, outcomes, testimonials, savings or traction.
+
+
+## Latest candidate verification — 12 November 2026
+
+Candidate `76e89066d04f00e991b7a49b59cb93c4839a6ab7` passes Main #43251147719 and Browser #43251147695 on the exact same SHA; duplicate exact-head runs also succeeded. Main skips four live/release checks. Staging still runs an older commit and Production was not redeployed. See [NOVA_STATUS.md](NOVA_STATUS.md).
+
+The NOVA BI preview now auto-maps currency-suffixed headers such as `Amount (INR)`. The SHA-256 Action Proof browser test and synthetic demo calculation tests passed on that candidate.

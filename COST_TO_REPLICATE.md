@@ -55,3 +55,8 @@ Therefore:
 - ₹15–20 lakh is **not validated as a fair price** by this report.
 - This estimate cannot be used in a pitch as guaranteed savings.
 - To establish a defensible price, an independent agency must validate the hours and a qualified reviewer must clear ownership, rights, technical risk and transferability.
+
+
+## Rate-source qualification
+
+The Clutch range is a displayed price band for selected directory-listed firms, not a statistically sampled India-wide average. Actual rates vary by company, seniority, delivery model, project size, negotiation and scope. The hours model and converted labour range therefore remain illustrative only.

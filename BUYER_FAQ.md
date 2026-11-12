@@ -14,7 +14,7 @@ No unique market position is proven. Paddlewheel, NavBharatAI and BooDoo publicl
 No. PR #98 is Draft/unmerged; Staging still serves old commit `195739a`; latest candidate has not been verified live. Production remains on its earlier deployment.
 
 **What tests have passed?**  
-On exact candidate `c3ddc3e32423a219c2c456cd92c1cba42b87ed88`, Main CI passed 45/45 steps and Browser CI passed 16/16. Main skips live/Production release checks while the PR is unmerged. Chromium is not physical Android testing.
+On exact candidate `76e89066d04f00e991b7a49b59cb93c4839a6ab7`, Main workflow [#43251147719](https://github.com/s85960833-byte/NovaAI/actions/runs/43251147719) passed with 45 successful steps and 4 skipped live/release steps; Browser workflow [#43251147695](https://github.com/s85960833-byte/NovaAI/actions/runs/43251147695) passed all 16 steps. Duplicate Main/Browser retries also passed. Skipped Main steps include deployed BI Edge Function auth/CORS, wait-for-merged-live, live Production/provider smoke and live free-image smoke. Chromium is not physical Android testing.
 
 ## Data and privacy
 
@@ -72,4 +72,8 @@ The current “Delete cloud backup” control deletes only the optional NOVA wor
 
 ## What does NOVA Action Proof contain?
 
-The candidate enhancement adds the SHA-256 digest of the exact uploaded CSV file bytes, selected column mapping, source/accepted row counts, calculation version, software-check results and calculated analysis to a portable JSON bundle. The original CSV bytes are not placed in the bundle. The analysis can still contain user-provided labels/values and source-row references, so review it before sharing. A SHA-256 digest is a file-integrity identifier, not a digital signature or proof of who created the file. New unit and Chromium tests are pending on the latest PR commit.
+The candidate enhancement adds the SHA-256 digest of the exact uploaded CSV file bytes, selected column mapping, source/accepted row counts, calculation version, software-check results and calculated analysis to a portable JSON bundle. The original CSV bytes are not placed in the bundle. The analysis can still contain user-provided labels/values and source-row references, so review it before sharing. A SHA-256 digest is a file-integrity identifier, not a digital signature or proof of who created the file. Unit and Chromium tests passed on exact candidate `76e8906`. The digest is not a digital signature or identity attestation.
+
+
+**Does transparent build pricing make NOVA unique?**  
+No. NavBharatAI publicly describes rupee-wallet pay-as-you-go pricing, clarifying questions before spend, no charge for failed builds and stop-build charges based on work retained. These are vendor-stated policies, not an independent billing audit. NOVA has no measured unit economics and makes no exclusive pricing claim.
