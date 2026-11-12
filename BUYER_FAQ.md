@@ -63,3 +63,8 @@ No reliable fair market value has been established. The ₹15–20 lakh target i
 
 **Can I speak to an acquisition contact?**  
 A verified adult-managed buyer/contact process is not established. Current outreach templates are for non-paid product feedback only, not acquisition or purchase negotiation.
+
+
+## Account deletion clarification
+
+The current “Delete cloud backup” control deletes only the optional NOVA workspace snapshot. It is not full Supabase Auth account deletion. Six live NOVA BI/Auth foreign-key relationships use `ON DELETE RESTRICT`; a complete safe deletion workflow must protect shared tenant data and audit history. No complete user-facing account-deletion flow or published retention schedule is available. See [ACCOUNT_DELETION_REVIEW.md](ACCOUNT_DELETION_REVIEW.md).

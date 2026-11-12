@@ -78,3 +78,8 @@ Selected public reviews on Lovable and Bolt also report credit exhaustion during
 **New founder/product objection:** a generic Hindi-English AI builder is not defensible in India. NOVA needs a reproducible workflow advantage (e.g. transparent change-budget + test/diff/restore evidence) and a benchmark against direct Indian competitors before any differentiated positioning is credible.
 
 **New CFO objection:** selected reviews suggest some users dislike credit limits and non-local payment choices, but this does not prove NOVA can charge a viable price. Local payment support and willingness-to-pay remain untested. No pricing or revenue claims should be made.
+
+
+## New legal/privacy objection — live account deletion blocker
+
+A read-only live Postgres catalog query found six public foreign-key references to Supabase Auth users using `ON DELETE RESTRICT`, one audit actor reference using `SET NULL`, and one optional workspace backup reference using `CASCADE`. The current account UI deletes only the workspace backup; it does not delete the Auth identity. A blind deletion endpoint could fail on authored BI records or damage shared tenant history if cascades were added without policy. Ownership transfer, authorship/approval treatment, session revocation, Storage deletion and retention remain unresolved. See [ACCOUNT_DELETION_REVIEW.md](ACCOUNT_DELETION_REVIEW.md). Decision remains **NO-GO for customer onboarding and buyer-ready claims**.

@@ -157,3 +157,10 @@ All sample rows are fictional, labelled demo data and validated against the same
 - [Why evaluate NOVA?](WHY_EVALUATE_NOVA.md) — evidence-limited asset overview; not an offer or valuation.
 - [Buyer and technical FAQ](BUYER_FAQ.md) — answers current capability and limitation questions.
 - [Selected improvement register](IMPROVEMENT_REGISTER.md) — chosen workstreams, internal value/effort/risk scores and evidence status.
+
+
+## Account deletion and data lifecycle
+
+- [Account deletion/data-lifecycle review](ACCOUNT_DELETION_REVIEW.md) records the live foreign-key evidence: six BI/Auth references use RESTRICT, audit-event actor references SET NULL and workspace backup rows CASCADE.
+- The current **Delete cloud backup** button removes only the cloud chat snapshot; it does not delete the Auth account or all tenant data.
+- Full account deletion and retention are not implemented. Do not onboard real customer/confidential data or claim complete deletion.

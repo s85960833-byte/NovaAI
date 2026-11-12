@@ -54,3 +54,7 @@ Never place secrets, passwords, service-role keys, personal data, raw customer d
 - [Why evaluate NOVA?](WHY_EVALUATE_NOVA.md) — internal evaluation brief, not a sale offer.
 - [Buyer and technical FAQ](BUYER_FAQ.md) — capability, data, security, billing, ownership and valuation limitations.
 - [Selected improvement register](IMPROVEMENT_REGISTER.md) — only selected workstreams and evidence; not user-validated scoring.
+
+
+## Account deletion and data lifecycle
+- [Account deletion/data-lifecycle review](ACCOUNT_DELETION_REVIEW.md) — live catalog found 6 RESTRICT, 1 SET NULL and 1 CASCADE FK to Auth users; full account deletion is not implemented.

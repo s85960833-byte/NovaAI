@@ -51,3 +51,5 @@
 - [Why evaluate NOVA?](../WHY_EVALUATE_NOVA.md)
 - [Buyer and technical FAQ](../BUYER_FAQ.md)
 - [Selected improvement register](../IMPROVEMENT_REGISTER.md)
+
+- [Account deletion/data-lifecycle review](../ACCOUNT_DELETION_REVIEW.md) — read-only schema evidence and required safe deletion design; no destructive action executed.

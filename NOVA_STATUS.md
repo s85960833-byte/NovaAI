@@ -84,3 +84,11 @@
 
 - Added an evidence-limited “Why evaluate NOVA?” brief, Buyer/Technical FAQ and selected Improvement Register; all are internal evaluation materials, not acquisition offers.
 - The scorecard remains 37/100 and no exclusivity, fair sale price, revenue or buyer interest is claimed.
+
+
+## Account deletion/data-lifecycle blocker — 12 November 2026
+
+- Read-only live Postgres catalog query found eight public FKs to `auth.users(id)`: six RESTRICT (BI analyses, datasets, memberships, organisation creators, workflow approvals and workflow proposals), one audit actor SET NULL and one workspace snapshot CASCADE.
+- The account UI only deletes `nova_user_workspaces`; no full Auth account deletion flow exists.
+- No deletion code or schema changes were applied. A blind delete endpoint could fail on RESTRICT keys or harm shared tenant/audit records.
+- `ACCOUNT_DELETION_REVIEW.md` records the exact catalog evidence and safe deletion requirements. Full deletion/retention/session revocation remains a critical NO-GO blocker.

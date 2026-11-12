@@ -84,3 +84,10 @@ Do not describe every substantive obligation as already commenced on 12 November
 - G.S.R. 846(E), DPDP Rules: https://www.meity.gov.in/static/uploads/2025/11/53450e6e5dc0bfa85ebd78686cadad39.pdf
 - MeitY official DPDP Rules listing and corrigendum: https://www.meity.gov.in/documents/act-and-policies/digital-personal-data-protection-rules-2025-gDOxUjMtQWa
 - MeitY explanatory note (helpful summary, not the Rules themselves): https://www.meity.gov.in/writereaddata/files/Explanatory-Note-DPDP-Rules-2025.pdf
+
+
+## Live account-deletion foreign-key finding — 12 November 2026
+
+A read-only catalog query on project `qrfwsewppafhxibdboam` found eight public-table foreign keys to `auth.users(id)`: six RESTRICT, one SET NULL and one CASCADE. RESTRICT covers NOVA BI analyses, datasets, memberships, organisation creators, workflow approvals and proposals. The only CASCADE is the optional `nova_user_workspaces` row; the audit-event actor uses SET NULL.
+
+The account UI's **Delete cloud backup** action deletes only the optional workspace snapshot. It does not delete the Auth identity or BI tenant data. A generic Auth-delete call can fail while RESTRICT relationships remain; cascading organisation deletion could destroy other members' information. A complete safe deletion workflow, session revocation, ownership transfer, audit treatment, Storage deletion and retention policy are **not implemented or verified**. See [ACCOUNT_DELETION_REVIEW.md](ACCOUNT_DELETION_REVIEW.md). Do not claim full deletion or onboard confidential/customer data.
