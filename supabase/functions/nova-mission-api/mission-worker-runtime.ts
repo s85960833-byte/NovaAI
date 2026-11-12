@@ -64,7 +64,8 @@ function snapshotClaim(value: unknown): MissionWorkerClaim | null {
     if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return null;
     return snapshot as MissionWorkerClaim;
   } catch {
-    // Proxies, accessors, cycles, non-JSON values and hostile traps all fail closed.
+    // Hostile proxies, throwing traps, malformed descriptors and non-JSON
+    // nested values are ordinary invalid input, never uncaught worker errors.
     return null;
   }
 }
