@@ -46,6 +46,9 @@ Production preview: https://novaai-4auo.onrender.com
 Only non-paid, adult-supervised buyer-interest conversations and synthetic-data previews are appropriate. Do not accept payments, deposits, customer data or confidential information. Any ownership, IP transfer, payment, contract or sale discussion must be handled by a responsible adult with qualified legal review.
 
 ## Key documents
+- [Market and differentiation evidence review](MARKET_AND_DIFFERENTIATION_RESEARCH.md)
+- [Buyer transfer pack checklist](TRANSFER_PACK.md)
+- [Preliminary valuation memo](VALUATION_MEMO.md)
 
 - [Phase 1 product and technical audit](PHASE1_AUDIT.md)
 - [Buyer interest brief](BUYER_INTEREST_BRIEF.md)
