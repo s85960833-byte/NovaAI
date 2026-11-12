@@ -8,7 +8,8 @@
     "test:cloud-sync": "node --test scripts/cloud-sync-merge.test.cjs",
     "start:local": "node --env-file-if-exists=.env nova-server.txt",
     "test:timezone": "node --test scripts/timezone.test.cjs",
-    "test:provider-http": "node --test scripts/provider-http.test.cjs"
+    "test:provider-http": "node --test scripts/provider-http.test.cjs",
+    "test:image-privacy": "node --test scripts/image-privacy.test.cjs"
   },
   "engines": {
     "node": "22.x"
