@@ -12,7 +12,7 @@ Production preview: https://novaai-4auo.onrender.com
 
 <badge>Latest PR revision pending Staging verification; Production release held</badge>
 
-- Production `main` remains at commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`, served by Render deployment `dep-dbom7bbm8hqs73ec2gi0` (Live). PR #98 is still Draft and has not been merged.
+- Repository `main` currently points to `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render still serves commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7` via deployment `dep-dbom7bbm8hqs73ec2gi0` (Live). PR #98 is still Draft and has not been merged.
 - PR #98 contains the Learn-first bilingual mobile workspace updates and backend diagnostic improvements. Its current branch is `fix/nova-home-learn-first-mobile-20261109`.
 - Free Render staging service `novaai-pr98-staging` is configured for that PR branch, but its latest recorded deployment is still commit `195739a04895de364a5af22aa61f930d5d782cbb`, older than the latest revision shown on [PR #98](https://github.com/s85960833-byte/NovaAI/pull/98). The older deployment's build/start and internal live self-test verified the health endpoint, frontend, manifest, PWA icon, service worker, news feed and live data retrieval; these results do **not** verify the latest PR revision.
 - The previous PR candidate passed GitHub verification and browser workflows, including syntax/security, PostgreSQL tenant RLS, Deno checks, local routes/PWA, browser/account flows, Company Cloud mobile flows and five-viewport responsive/drawer checks. The current PR head includes SEO metadata and crawler endpoints; check its exact-head CI before counting it as passed. PR workflows skip production-only live smoke tests while the PR remains unmerged. Chromium viewport tests do not replace physical Android-device testing.
@@ -106,7 +106,7 @@ The repository includes a production-oriented Docker image and a local Compose d
 4. Verify `http://localhost:3000/health` and inspect logs with `docker compose logs -f nova`.
 5. Stop with `docker compose down`.
 
-The image installs production dependencies only, runs as the unprivileged `node` user, excludes local secrets from the build context and includes a health check. Do not publish the image with embedded secrets. For an external container host, set the same environment variables in that host's secret manager, expose port 3000 (or configure its assigned port), and configure persistent backups for any external database. No second-host deployment has been performed or claimed.
+The image installs production dependencies only, runs as the unprivileged `node` user, excludes local secrets from the build context and includes a health check. Do not publish the image with embedded secrets. For an external container host, set the same environment variables in that host's secret manager, configure its assigned `PORT`, expose/map that container port, and configure persistent backups for any external database. The image health check follows `PORT`. No second-host deployment has been performed or claimed.
 
 ### Render native Node deployment
 

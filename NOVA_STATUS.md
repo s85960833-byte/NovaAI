@@ -303,3 +303,10 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Candidate head at this update: a6217ad5fec592028bc05a0f35301b1aafc34e15. Exact-head Main CI is queued/pending; earlier code candidate 5bd48bf had Browser workflow success, while its Main workflow was cancelled. Do not count the current head as CI-passed until both workflows finish.
 - Production main remains bdbeb20881f9b6cef51ff5a9d8a3b80131079a50; no merge or Production deployment. Staging still runs 195739a04895de364a5af22aa61f930d5d782cbb; Health Check Path remains blank.
 - External review environment could not fetch Production or Staging pages. Live UI/SEO checks, actual Android/microphone checks, and current-head Staging verification remain open.
+
+
+## Docker portability and exact-head CI — 12 November 2026
+
+- PR candidate `eb258ba4e81a873537aaa8a53576955a726bcff3` passed Main workflow #43204227081 and Browser workflow #43204226838. Main passed Docker configuration/secret-exclusion tests, SBOM generation/validation, Docker image build and container health smoke, plus the existing database, browser and five-viewport checks. Browser workflow passed account and mobile/drawer checks.
+- The Docker smoke test initially failed because fixed host port 8787 was already occupied by the local server test. The branch now uses an ephemeral host port; the Docker build and container health smoke passed. The follow-up patch makes the image health check honor an externally assigned `PORT` and exercises a non-default container port.
+- Production remains on Render deployment `dep-dbom7bbm8hqs73ec2gi0` / commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; repository `main` is `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`. No Production changes were made.

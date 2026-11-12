@@ -22,7 +22,7 @@ NOVA is an India-oriented Hindi-English AI web workspace:
 
 ## Verified engineering evidence
 
-- Current main commit: `94be54b3e94f2dbccb039425b51d936565ab9eed`.
+- Repository `main` currently points to `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render still serves `c3cee61906b88ff111b3a645db55c9c2503cd8f7` via live deployment `dep-dbom7bbm8hqs73ec2gi0`.
 - Render deployment `dep-dbo5sdbm8hqs73fkvnrg` is `live` for that commit. Render logs confirm successful build, app process startup and port 10000.
 - GitHub Actions run [#42476098568](https://github.com/s85960833-byte/NovaAI/actions/runs/42476098568) completed successfully. It passed syntax/security checks, PostgreSQL migration and RLS integration tests, Deno and deployed Edge Function checks, BI calculation/CSV tests, AI evaluation fixture validation, dependency audit, local runtime/PWA tests, Chromium browser tests, mobile viewport regression tests and the live smoke gate.
 - The live smoke gate in that run occurred before the latest deployment. A fresh post-deployment live smoke verification is still required; direct HTTP checks from the current review environment were unavailable.
@@ -65,3 +65,8 @@ Code review of `nova-account.js` and `nova-app.js` found that when a chat with t
 ## Cloud-sync patch status — 8 November 2026
 
 A follow-up patch now merges remote and local chat histories by their shared sequence overlap rather than globally deduplicating identical message text. This preserves legitimate repeated messages (for example, the same short reply sent twice) while appending local messages that follow the remote overlap. This is still a candidate code change, not a verified release: automated regression, browser, two-device concurrency, document-conflict, deletion/tombstone and live hosted-account tests have not yet passed. The implementation retains the local document when both copies differ because the current snapshot schema has no reliable per-document version or timestamp; memory/custom-instruction conflict resolution also remains limited. Do not claim conflict-safe multi-device sync until those tests and versioned conflict handling are complete.
+
+
+## Cloud-sync verification update — 12 November 2026
+
+The current PR candidate adds regression coverage for newest-chat selection, overlapping message histories, timestamp-based memory/custom-instruction edits and explicit clears, plus explicit document deletion. Main and Browser CI have passed on candidate `eb258ba4e81a873537aaa8a53576955a726bcff3`. These are code-level tests only: real two-device Supabase concurrency, recovery after interruption and account deletion/retention remain unverified. Do not claim fully conflict-safe multi-device sync.

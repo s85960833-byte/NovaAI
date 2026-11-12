@@ -44,7 +44,7 @@
 6. **Production evidence is limited.** Production still serves `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. The review environment could not fetch the live URL directly. Render logs show successful startup on the last recorded deploy, but available request logs/HTTP metrics were empty; this is not uptime or user-traffic evidence.
 7. **Physical-device checks remain outstanding.** Chromium emulation cannot verify real Android full-width rendering, touch behavior, microphone permission/capture or device-specific performance.
 8. **No commercial readiness.** No checkout, server-side subscription entitlements, invoices/refunds, customer support operations, custom domain, monitoring/error-tracking service, tested restore drill or SLA is evidenced.
-9. **Portability and handover are incomplete.** No Dockerfile, alternate-host deployment runbook, one-day transfer pack or verified database backup/restore drill was found in the reviewed tree.
+9. **Portability and handover are incomplete.** A Node 22 Dockerfile, Compose file, .dockerignore, local/OCI deployment notes and transfer checklist now exist. Static configuration/secret-exclusion tests and a Docker image build plus container /health smoke test have passed on candidate `eb258ba4e81a873537aaa8a53576955a726bcff3`. No second-host deployment or database backup/restore drill has been run; portability remains partial.
 10. **SEO and accessibility coverage is partial.** This patch adds basic search/social metadata and crawler files. A full keyboard/screen-reader audit, dynamic control labels, SEO indexing and real social-preview validation remain outstanding.
 
 ## Current staging and production state
@@ -81,3 +81,10 @@
 - Market scan shows existing app builders and AI workspaces already cover major requested baseline features such as prompt-to-app, code handoff, deployment, databases, agents and research. No broad uniqueness claim is supportable from this scan; the differentiator must be narrowed to a measurable workflow and user evidence.
 - Production remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; Staging remains on `195739a04895de364a5af22aa61f930d5d782cbb`. Staging Health Check Path is blank. Live HTTP inspection and usable request/latency metrics were unavailable in this review.
 - Phase 1 remains IN PROGRESS and Production release remains NO-GO. Staging deployment, Android/microphone, live provider/auth, account deletion/retention, API commercial rights, asset provenance, final legal review and backup/restore are not verified.
+
+
+## Container verification update — 12 November 2026
+
+- Candidate `eb258ba4e81a873537aaa8a53576955a726bcff3` built the production Docker image successfully and passed the container `/health` smoke test using an ephemeral host port.
+- The CI smoke test currently exercises the default container port 3000. The image health check is being made `PORT`-aware and the test is extended to run on container port 3001 before portability is counted as verified.
+- This is a local CI container test, not deployment to a second hosting provider.
