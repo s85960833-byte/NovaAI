@@ -268,7 +268,8 @@ async function generateFreeImage(prompt, body) {
       }
     } catch (e) { /* continue to the community fallback */ }
   }
-  // Free community queue. Anonymous requests have the lowest priority and may take several minutes.
+  // AI Horde requires an operator-provisioned key. Keep dataset sharing disabled;
+  // prompts still leave NOVA and are processed by third-party workers.
   if (!E.HORDE_API_KEY) throw new Error('No free image provider is currently configured');
   const base = secureProviderBase('HORDE_BASE', E.HORDE_BASE, 'https://aihorde.net/api/v2');
   const headers = { 'Content-Type': 'application/json', apikey: E.HORDE_API_KEY, 'Client-Agent': 'NovaAI:1.0:https://novaai-4auo.onrender.com' };
@@ -276,7 +277,7 @@ async function generateFreeImage(prompt, body) {
     method: 'POST', headers,
     body: JSON.stringify({
       prompt, params: { width: 512, height: 512, n: 1, steps: 20, cfg_scale: 7 },
-      nsfw: false, censor_nsfw: true, replacement_filter: true, r2: false, shared: true
+      nsfw: false, censor_nsfw: true, replacement_filter: true, r2: false, shared: false
     }),
     signal: AbortSignal.timeout(12000)
   });
