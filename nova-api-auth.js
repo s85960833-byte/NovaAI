@@ -29,6 +29,7 @@ function createSupabaseUserMiddleware({ supabaseUrl, publishableKey, fetchImpl =
     try {
       const response = await fetchImpl(authUserUrl, {
         method: 'GET',
+        redirect: 'error',
         headers: {
           apikey: publishableKey,
           Authorization: 'Bearer ' + match[1],
