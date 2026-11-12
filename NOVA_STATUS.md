@@ -261,3 +261,16 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Main CI passed the local SEO/runtime assertions, PostgreSQL tenant-RLS migration suite, Deno type-check/tests, dependency audit, browser smoke, Company Cloud mobile browser workflows and five-viewport mobile/drawer regression. Browser CI passed account UI, privacy/opt-in sync, Company Cloud and mobile/drawer regression.
 - These checks are not production smoke tests or physical Android validation. Live provider and deployed Edge Function tests remain skipped for the unmerged PR.
 - PR #98 remains Open, Draft and unmerged. Staging still requires owner configuration of Health Check Path `/health`; latest recorded staging deploy remains stale. Production remains untouched.
+
+
+## Latest continuation — SEO, cleanup and exact-head verification — 12 November 2026
+
+- Candidate code head `0a48f4c2bc1a9b34a240433dfd4adac0dcb9b261` passed Main workflow #43201970588 (**success**) and Browser workflow #43201971052 (**success**) on the exact same SHA. Main completed all 44 steps; Browser completed all 16 steps.
+- Added homepage meta description, canonical URL, Open Graph and Twitter summary metadata; added `/robots.txt` and `/sitemap.xml` endpoints and local runtime smoke assertions. This does not prove search-engine indexing or social-preview rendering; those require deployed/live verification.
+- Removed two obsolete files from the PR branch: an empty HTML artifact and an unreferenced, explicitly untested legacy starter server. The active entry point remains `nova-server.txt`.
+- Reviewed dynamic `innerHTML` call sites across main app, modes, account, Company Cloud, NOVA BI and Agents. User/model-derived content is escaped in reviewed rendering paths; this is source-level spot-check evidence, not a complete DOM-XSS certification.
+- Market scan of AI app builders/workspaces found established competitors already offer prompt-to-app generation, GitHub/code handoff, hosting, databases, agents and research/workspace features. No broad exclusivity claim is justified by this initial scan. Differentiation must be narrowed to a measurable workflow and tested against official product documentation and real users.
+- PR #98 remains Open, Draft and unmerged. Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production change.
+- Staging still serves `195739a04895de364a5af22aa61f930d5d782cbb`; its Health Check Path remains blank. Owner action is unchanged: set `/health` in the existing Staging service Settings → Health Checks, save, and confirm. Auto Deploy is enabled; do not manually trigger a deploy.
+- Live URL retrieval from the review environment was unavailable and Render request/HTTP metrics returned no usable traffic evidence. No uptime, traffic or SEO-indexing claim is made.
+- Current blockers remain: latest-head Staging deployment/smoke, owner Health Check setting, physical Android/microphone tests, provider-backed chat and vendor rights, unauthenticated public AI routes/durable quotas, Auth account deletion and retention, final legal review, asset provenance, portability and transfer pack.
