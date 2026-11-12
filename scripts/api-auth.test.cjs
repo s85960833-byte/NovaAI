@@ -50,7 +50,7 @@ test('valid Supabase user is attached to the request without trusting client cla
     publishableKey: 'sb_publishable_test',
     fetchImpl: async (url, options) => {
       request = { url, options };
-      return { ok: true, status: 200, json: async () => ({ id: 'user-123', email: 'verified@example.test', user_metadata: { role: 'admin' } }) };
+      return new Response(JSON.stringify({ id: 'user-123', email: 'verified@example.test', user_metadata: { role: 'admin' } }), { status: 200 });
     }
   });
   const result = await run(middleware, 'Bearer signed.jwt.token');
@@ -81,6 +81,15 @@ test('invalid tokens are rejected and upstream failures fail closed', async () =
   const malformedResult = await run(malformedUser, 'Bearer token.without.user.id');
   assert.equal(malformedResult.res.statusCode, 401);
   assert.equal(malformedResult.nextCalled, false);
+
+  const oversized = createSupabaseUserMiddleware({
+    supabaseUrl: 'https://project.supabase.co',
+    publishableKey: 'sb_publishable_test',
+    fetchImpl: async () => new Response(JSON.stringify({ id: 'user-123', user_metadata: { note: 'x'.repeat(70000) } }), { status: 200 })
+  });
+  const oversizedResult = await run(oversized, 'Bearer valid-looking.token');
+  assert.equal(oversizedResult.res.statusCode, 503);
+  assert.equal(oversizedResult.nextCalled, false);
 
   const unavailable = createSupabaseUserMiddleware({
     supabaseUrl: 'https://project.supabase.co',
