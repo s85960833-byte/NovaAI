@@ -36,6 +36,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Check backend and frontend syntax
         run: node scripts/check.mjs
+      - name: Verify free-provider model defaults and deprecation safety
+        run: node --test scripts/provider-defaults.test.cjs
       - name: Test Markdown link escaping against attribute injection
         run: node --test scripts/security-markdown.test.cjs
       - name: Check isolated mode registry
