@@ -11,7 +11,8 @@
     "test:provider-http": "node --test scripts/provider-http.test.cjs",
     "test:image-privacy": "node --test scripts/image-privacy.test.cjs",
     "test:env-example": "node --test scripts/env-example.test.cjs",
-    "test:a11y": "node --test scripts/accessibility-markup.test.cjs"
+    "test:a11y": "node --test scripts/accessibility-markup.test.cjs",
+    "test:container-config": "node --test scripts/container-config.test.cjs"
   },
   "engines": {
     "node": "22.x"
