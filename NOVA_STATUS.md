@@ -139,3 +139,13 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - AI Horde fallback already requires `HORDE_API_KEY`; anonymous/no-key requests are rejected before submission. The request still sends the prompt to third-party workers, so it is not private from the provider.
 - Added `scripts/image-privacy.test.cjs`, `npm run test:image-privacy`, and a CI regression step.
 - Updated API audit and privacy draft to disclose the third-party worker processing and remaining Pollinations rights/retention uncertainty. Privacy notice remains a draft and must not be published as final.
+
+
+## Direct provider response limits — 12 November 2026
+
+- Added `readBoundedBuffer()` to `nova-http.js`.
+- Speech transcription provider response text is capped at 1 MiB.
+- Optional paid image provider JSON is capped at 16 MiB; Pollinations binary images are capped at 8 MiB.
+- AI Horde submit/check responses are capped at 256 KiB and status response at 12 MiB.
+- Added binary response cap tests to `scripts/provider-http.test.cjs`.
+- LLM chat response remains streamed intentionally; its output-token/time and client-abort behavior need a separate review. Direct provider response caps and tests must pass latest CI before being counted as verified.
