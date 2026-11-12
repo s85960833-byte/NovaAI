@@ -111,3 +111,13 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Exact timezone unit test source was independently executed with Node 22 in a clean temporary directory: 4 tests passed, 0 failed. GitHub CI for latest branch head `5d2978b` was still running at last check; this local test does not replace the full workflow.
 - Live Search already receives browser timezone; this closes the mismatch between Live Search and ordinary chat. The app continues to use the user's saved city preference for weather; no precise GPS location is sent.
 - No Production or Staging deploy has occurred. Latest Staging revision remains `195739a`; Production remains unchanged.
+
+
+## Continued audit — 12 November 2026
+
+- Latest successful browser workflow for candidate head `6a33298`: run 43196389896 passed. Main workflow for that head was cancelled by a subsequent push before completion; do not count its main suite as passed.
+- Added `DEPENDENCY_LICENSE_AUDIT.md`: all 72 locked npm package records and their lockfile-declared licences are listed. Counts: MIT 66, Apache-2.0 3, ISC 2, BSD-3-Clause 1; no missing licence metadata and no GPL/AGPL identifiers in the npm lockfile. This is only npm lock metadata, not full code/asset/Deno legal clearance.
+- Added `nova-http.js` and hardened `lhttp()`: outbound provider requests now require HTTPS public hostnames, disallow URL credentials, IP-literal/localhost/private-style hostnames and non-443 ports, restrict redirects to the original host, limit redirects to 3, block redirected non-GET requests, and stream response bodies with a 3 MiB cap before buffering. This addresses the previously documented redirect and late-size-check weaknesses for this helper's call sites; DNS resolution rebinding and non-`lhttp` fetches remain separate review items.
+- Added `scripts/provider-http.test.cjs` and CI command to test unsafe URLs, cross-host redirects and response size limits. These tests are not yet counted as passed until the latest GitHub workflow completes.
+- Fixed chat timezone metadata: NOVA consumes `body.tz` to build local date/time context and deletes it before forwarding the model request, avoiding a non-standard provider payload field.
+- Staging remains on old SHA `195739a`; no Staging or Production deploy was made. PR remains Draft and unmerged.
