@@ -48,6 +48,8 @@ jobs:
         run: node --test scripts/rate-limit.test.cjs
       - name: Test validated per-user timezone context
         run: npm run test:timezone
+      - name: Verify server environment variables are documented
+        run: npm run test:env-example
       - name: Test HTTPS-only secret-bearing provider endpoints
         run: node --test scripts/provider-url.test.cjs
       - name: Test safe provider redirects and bounded response reads
