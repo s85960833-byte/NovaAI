@@ -91,7 +91,7 @@ jobs:
       - name: Type-check trusted NOVA Mission proof API
         run: deno check --config supabase/functions/nova-mission-proof-api/deno.json --no-lock supabase/functions/nova-mission-proof-api/index.ts
       - name: Test existing-account company invitation lookup
-        run: deno test --config supabase/functions/nova-bi-api/deno.json supabase/functions/nova-bi-api/invitations_test.ts supabase/functions/nova-bi-api/cors_test.ts supabase/functions/nova-bi-api/request-input_test.ts
+        run: deno test --config supabase/functions/nova-bi-api/deno.json supabase/functions/nova-bi-api/invitations_test.ts supabase/functions/nova-bi-api/cors_test.ts supabase/functions/nova-bi-api/request-input_test.ts && deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-cors_test.ts
       - name: Test NOVA Mission API validation, starter planner and approvals
         run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-input_test.ts supabase/functions/nova-mission-api/mission-planner_test.ts supabase/functions/nova-mission-api/mission-approval_test.ts supabase/functions/nova-mission-api/mission-proof_test.ts
       - name: Test trusted Mission verifier request authentication
