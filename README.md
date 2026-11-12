@@ -81,3 +81,30 @@ Only non-paid, adult-supervised buyer-interest conversations and synthetic-data 
 - Provider secrets belong in Render Environment, never browser JavaScript or GitHub. Optional provider integrations are documented in `.env.example`. Paid image generation remains disabled unless separately approved; `ALLOW_PAID_IMAGE=false`.
 - `GET /health` reports process liveness only. It intentionally does not depend on AI/search vendors, so Render can distinguish a running web service from optional provider availability.
 - The operator-only live provider test is disabled by default. Keep `SELFTEST_ON_START=0` and `LIVE_SELFTEST_ENABLED=0` outside a supervised verification window.
+
+
+## Container deployment (alternative to Render)
+
+The repository includes a production-oriented Docker image and a local Compose definition. This is an alternative packaging path for any host that accepts OCI/Docker containers; provider-specific networking, secrets, domain, backups and pricing still need to be configured and verified with that host.
+
+### Local setup
+
+1. Install Node.js 22 and npm.
+2. Copy `.env.example` to `.env` and add only provider keys you are authorized to use. Keep `.env` private.
+3. Run `npm ci`.
+4. Run `npm run start:local`.
+5. Open `http://localhost:3000` and confirm `http://localhost:3000/health` returns an OK response.
+
+### Docker setup
+
+1. Install Docker Engine and the Docker Compose plugin.
+2. Copy `.env.example` to `.env` and set the required server-side configuration.
+3. Run `docker compose up --build -d`.
+4. Verify `http://localhost:3000/health` and inspect logs with `docker compose logs -f nova`.
+5. Stop with `docker compose down`.
+
+The image installs production dependencies only, runs as the unprivileged `node` user, excludes local secrets from the build context and includes a health check. Do not publish the image with embedded secrets. For an external container host, set the same environment variables in that host's secret manager, expose port 3000 (or configure its assigned port), and configure persistent backups for any external database. No second-host deployment has been performed or claimed.
+
+### Render native Node deployment
+
+Use the existing Render web service, connect the existing repository and intended branch, set the build command to `npm ci`, the start command to `node nova-server.txt`, health check path to `/health`, and add secrets in the Render Environment page. The current Production service and its URL must not be changed during staging validation. For a new service or any billing/ownership action, obtain owner approval first.
