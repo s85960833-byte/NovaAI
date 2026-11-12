@@ -82,3 +82,8 @@ A follow-up patch now merges remote and local chat histories by their shared seq
 ## Current release decision
 
 **LIMITED DISCOVERY ONLY. NOT READY FOR PAID SALE OR PRODUCTION CUSTOMER ONBOARDING.** Keep all previews synthetic/non-sensitive, adult-supervised and non-paid. No payment, deposit, paid trial, customer onboarding or confidential-data processing. Any purchase, ownership, IP, account-transfer, payment or contract discussion must be handled by a responsible adult with qualified legal review.
+
+
+## Latest exact-head checkpoint — 12 November 2026
+
+PR #98 head `671f6dcec0842106ba1b0a5a946bd69c01001abb` passed Main #43207317636 and Browser #43207318043 on the exact same SHA. Staging remains on older commit `195739a04895de364a5af22aa61f930d5d782cbb` and Health Check Path is blank. Production remains unchanged. Decision remains **LIMITED DISCOVERY ONLY / NO-GO for paid sale or production onboarding** until the remaining release and legal gates are closed.

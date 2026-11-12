@@ -111,3 +111,8 @@ The image installs production dependencies only, runs as the unprivileged `node`
 ### Render native Node deployment
 
 Use the existing Render web service, connect the existing repository and intended branch, set the build command to `npm ci`, the start command to `node nova-server.txt`, health check path to `/health`, and add secrets in the Render Environment page. The current Production service and its URL must not be changed during staging validation. For a new service or any billing/ownership action, obtain owner approval first.
+
+
+## Exact-head CI checkpoint — 12 November 2026
+
+The current PR branch head `671f6dcec0842106ba1b0a5a946bd69c01001abb` passed Main workflow [#43207317636](https://github.com/s85960833-byte/NovaAI/actions/runs/43207317636) and Browser workflow [#43207318043](https://github.com/s85960833-byte/NovaAI/actions/runs/43207318043), both on the exact same commit. PR #98 remains Draft and unmerged. The current head is not yet deployed to Staging; Production remains unchanged. CI success is not a live deployment or physical-device certification.

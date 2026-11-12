@@ -52,3 +52,12 @@
 - Never store API keys, passwords, database URLs with credentials, service-role keys, personal data, user content or private support logs here.
 - Do not share externally until a responsible adult and qualified counsel review ownership, privacy, third-party rights and recipient access.
 - Asset transfer, account ownership, payment, contracts or IP assignment must be handled by a responsible adult with qualified legal support.
+
+
+## Exact-head evidence update — 12 November 2026
+
+- PR #98 head `671f6dcec0842106ba1b0a5a946bd69c01001abb`: Main #43207317636 and Browser #43207318043 both passed on the exact same SHA.
+- Market/differentiation research now cites official Lovable, v0 and Bolt documentation. Broad app-builder features are not unique; no exclusivity claim is approved.
+- Docker packaging and static configuration checks are present; external-host deployment is unverified.
+- Staging remains on `195739a04895de364a5af22aa61f930d5d782cbb`, Health Check Path blank; current PR head not live-verified.
+- Production remains unchanged. Buyer discovery remains limited and no price, revenue, customer or buyer-interest claim is made.

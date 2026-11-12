@@ -76,3 +76,8 @@ The current PR candidate adds regression coverage for newest-chat selection, ove
 The PR candidate passed Main CI 47/47 and Browser CI 16/16. The same candidate contains Docker packaging and health smoke coverage, a read-only Supabase security audit and a 24-category buyer map. This does not mean the candidate is deployed: Staging still serves the older commit and its health-check path is blank. The current production URL is unchanged.
 
 The buyer map is illustrative only. No company is a confirmed prospect, no buyer interest is evidenced, and no outreach or sale discussion has occurred. Discovery remains adult-supervised, non-paid and limited to non-sensitive/synthetic data.
+
+
+## Exact-head CI update — 12 November 2026
+
+The latest candidate head `671f6dcec0842106ba1b0a5a946bd69c01001abb` passed Main workflow #43207317636 and Browser workflow #43207318043. PR #98 remains Draft and unmerged; Staging is still stale and no latest-head hosted test is claimed. All limitations above remain in force. This brief is for supervised, non-paid product discovery only and is not an offer or price indication.

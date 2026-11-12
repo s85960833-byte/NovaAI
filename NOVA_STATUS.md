@@ -361,3 +361,15 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Production main remains bdbeb20881f9b6cef51ff5a9d8a3b80131079a50; Production Render remains c3cee61906b88ff111b3a645db55c9c2503cd8f7. PR #98 remains Draft and unmerged.
 - Staging remains on 195739a04895de364a5af22aa61f930d5d782cbb; Health Check Path remains blank. No current-head staging/live smoke is claimed.
 - Overall Definition-of-Done progress: **22% estimated**. Buyer-readiness: **36/100 estimated**. These are internal qualitative estimates, not an appraisal.
+
+
+## Current exact-head checkpoint — 12 November 2026, 16:45 IST
+
+- PR #98 branch head: `671f6dcec0842106ba1b0a5a946bd69c01001abb`; PR remains Draft, Open and unmerged.
+- Exact-head Main workflow #43207317636: **success**. Exact-head Browser workflow #43207318043: **success**. Both runs reference the same SHA above. This verifies only the checks in those workflows, not production readiness.
+- Added a market/differentiation review based on official Lovable, v0 and Bolt product documentation. Existing platforms already offer many baseline app-builder, backend, Git and deployment capabilities. NOVA makes no broad exclusivity or category-first claim; differentiation remains a hypothesis until user testing and repeatable comparisons.
+- Added a non-root Node 22 Docker image, Compose setup, secret-excluding build context and static CI checks. Container config checks do not prove a successful external-host deployment or operational portability.
+- Render Staging remains on `195739a04895de364a5af22aa61f930d5d782cbb`; Health Check Path is still blank. The latest PR head has not been deployed to Staging. Auto Deploy is enabled, but current deployment evidence is stale.
+- Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production merge or deploy was performed.
+- Live blockers: current-head Staging deployment and smoke; owner Health Check configuration; physical Android/microphone checks; public AI route authentication and durable quotas; provider commercial rights; account deletion/retention; backup/restore and load evidence; full asset/IP/legal review.
+- Overall Definition-of-Done progress: **23% estimated**. Buyer-readiness: **37/100 estimated**. These are internal qualitative estimates, not a formal appraisal.

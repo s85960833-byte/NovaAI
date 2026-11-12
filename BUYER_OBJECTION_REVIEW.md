@@ -58,3 +58,8 @@
 ## Current decision
 
 **NO-GO for production release and NO-GO for a buyer-ready claim.** Keep PR #98 Draft, keep Production unchanged, and do not represent NOVA as worth ₹15–20 lakh or ₹10–20 crore on the current evidence.
+
+
+## Latest CI checkpoint — 12 November 2026
+
+PR #98 current head `671f6dcec0842106ba1b0a5a946bd69c01001abb` passed Main #43207317636 and Browser #43207318043 on the same SHA. This clears the automated workflow gate for this candidate only. The CTO objections about stale Staging, physical-device testing, public API abuse controls, Auth deletion/retention, backups/load/monitoring and full integration/portability remain open. CFO, founder and legal objections remain as listed above. Overall decision remains **NO-GO for production release and NO-GO for buyer-ready claims**.
