@@ -1,17 +1,18 @@
 # NOVA Status — Current Source of Truth
 
-Last verified: 12 November 2026 (UTC)
+Last verified: 12 November 2026 (UTC; latest candidate CI refresh)
 Repository: https://github.com/s85960833-byte/NovaAI
 Production: https://novaai-4auo.onrender.com (main branch; unchanged)
 Candidate: PR #98 — https://github.com/s85960833-byte/NovaAI/pull/98
 Candidate branch: `fix/nova-home-learn-first-mobile-20261109`
-Latest fully CI-verified code-bearing revision: `0f319523d557847a138639c03d3221b8c71d0aea`
+Latest fully CI-verified code-bearing revision: `1634a1f9563c190d83119a680af811a688120c7d`
 
 ## Exact-head CI evidence
 
 - PR #98 is Open, Draft, unmerged, and targets `main`. Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; no candidate merge or Production deployment has occurred.
-- Main verification [run 43217735855](https://github.com/s85960833-byte/NovaAI/actions/runs/43217735855) passed on exact code head `0f31952`: 44 successful steps, 4 release/live steps skipped, 0 failed.
-- Browser verification [run 43217735831](https://github.com/s85960833-byte/NovaAI/actions/runs/43217735831) passed on the same exact head: 16 successful steps, 0 skipped, 0 failed.
+- Main verification [run 43219060678](https://github.com/s85960833-byte/NovaAI/actions/runs/43219060678) passed on exact code head `1634a1f`: 44 successful steps, 4 release/live steps skipped, 0 failed.
+- Browser verification [run 43219060826](https://github.com/s85960833-byte/NovaAI/actions/runs/43219060826) passed on the same exact head: 16 successful steps, 0 skipped, 0 failed.
+- The candidate fixed a rate-limit key mismatch: Live Search and image-generation counters previously looked up the authenticated user key but wrote the timestamp array under the IP key. Both now read and write the same user/IP key; regression assertions were added. Both exact-head CI workflows passed after this fix.
 - New API-auth test step passed on exact head. It covers HTTPS-only Supabase URL validation, missing/malformed/oversized bearer tokens, valid user identity mapping, invalid/expired token rejection, malformed/oversized Auth response, upstream outage fail-closed behavior, startup configuration checks, auth gate ordering before JSON parsing, browser bearer-token forwarding, image-job owner binding and user-scoped live/image rate keys.
 - Main coverage also includes dependency SBOM, syntax, provider defaults, Markdown injection escaping, mode registry, Cloud Sync merge/conflict, bounded IP rate window/timezone, environment/container configuration, accessibility, HTTPS provider URLs, safe redirects/bounded reads, AI Horde privacy, PDF.js mitigation, PostgreSQL migration + tenant RLS, Deno Edge Function type-check/invitation tests, BI calculations/CSV validation, 60-case AI evaluation, npm dependency audit, local routes/PWA, graceful shutdown and Docker build/health.
 - The four skipped Main CI steps are deployed NOVA BI Edge Function auth/CORS smoke, waiting for a merged revision on Render, live Production website/provider smoke, and live free image-generation smoke. Skipped does not mean passed.
@@ -63,5 +64,5 @@ Open the [Staging Render Dashboard](https://dashboard.render.com/web/srv-dbqm035
 
 ## Scope and estimate
 
-Overall S-tier Definition of Done: approximately 24% complete (working estimate across product, security, operations, legal/IP and buyer evidence).
+Overall S-tier Definition of Done: approximately 25% complete (working estimate across product, security, operations, legal/IP and buyer evidence; latest CI is green, but Staging/physical/legal/usage-control gates remain open).
 Buyer-readiness: approximately 37/100 (qualitative internal estimate, not an appraisal).
