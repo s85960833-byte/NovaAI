@@ -310,3 +310,12 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - PR candidate `eb258ba4e81a873537aaa8a53576955a726bcff3` passed Main workflow #43204227081 and Browser workflow #43204226838. Main passed Docker configuration/secret-exclusion tests, SBOM generation/validation, Docker image build and container health smoke, plus the existing database, browser and five-viewport checks. Browser workflow passed account and mobile/drawer checks.
 - The Docker smoke test initially failed because fixed host port 8787 was already occupied by the local server test. The branch now uses an ephemeral host port; the Docker build and container health smoke passed. The follow-up patch makes the image health check honor an externally assigned `PORT` and exercises a non-default container port.
 - Production remains on Render deployment `dep-dbom7bbm8hqs73ec2gi0` / commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; repository `main` is `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`. No Production changes were made.
+
+
+## Docker assigned-port fix and exact-head CI — 12 November 2026
+
+- Candidate `d2d4df673059e2e0fad9eb17fe37aedbd6d14a93`: Main workflow #43205002855 **PASS**; Browser workflow #43205002327 **PASS**.
+- Main CI passed production dependency SBOM generation/validation, Docker configuration and secret-exclusion tests, production image build, and a live container `/health` smoke test with `PORT=3001` and an ephemeral host port. The image health check now follows `PORT`; the earlier fixed-port collision and over-escaped test-regex failures are corrected.
+- Existing Main tests also passed: PostgreSQL tenant RLS, Deno Edge Function checks, BI calculation/CSV validation, AI fixture, dependency audit, local routes/PWA, graceful shutdown, Chromium workspace/PDF checks, Company Cloud browser tests and five-viewport mobile/drawer regression. Browser CI passed account/privacy/opt-in sync and mobile/drawer tests.
+- This verifies a local Docker image and its health route only. No second-host deployment, production rollout, database restore drill, physical Android or microphone test is claimed.
+- PR #98 remains Draft and unmerged. Repository `main` is `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render still serves `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. Staging remains on `195739a04895de364a5af22aa61f930d5d782cbb`, with Health Check Path blank.
