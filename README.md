@@ -8,15 +8,16 @@ NOVA is an India-oriented Hindi-English AI web workspace organized into three ar
 
 Production preview: https://novaai-4auo.onrender.com
 
-## Release status — 8 November 2026
+## Release status — 12 November 2026
 
-<badge>Limited discovery only</badge>
+<badge>Staging verified; Production release held</badge>
 
-- Current main commit: `94be54b3e94f2dbccb039425b51d936565ab9eed`.
-- Current Render deployment: `dep-dbo5sdbm8hqs73fkvnrg`, status `live`, serving commit `94be54b3e94f2dbccb039425b51d936565ab9eed`.
-- Render build succeeded, `node nova-server.txt` started and reported port 10000. The prior main verification run [#42476098568](https://github.com/s85960833-byte/NovaAI/actions/runs/42476098568) passed all CI steps, including source/security checks, PostgreSQL RLS integration, Deno and Edge Function checks, local runtime/PWA, dependency audit, Chromium browser tests, mobile layout checks and live smoke against the then-current production release.
-- A new post-deployment verification run is still required to prove the latest deployment's live HTTP behaviour. Direct HTTP verification from the current review environment was unavailable.
-- Physical Android testing, real Auth email delivery, redirect allow-list, two-real-account cloud-sync isolation, complete account deletion, backup/restore and full live AI accuracy/latency/cost evaluation are not yet verified.
+- Production `main` remains at commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`, served by Render deployment `dep-dbom7bbm8hqs73ec2gi0` (Live). PR #98 is still Draft and has not been merged.
+- PR #98 contains the Learn-first bilingual mobile workspace updates and backend diagnostic improvements. Its current branch is `fix/nova-home-learn-first-mobile-20261109`.
+- Free Render staging service `novaai-pr98-staging` runs from that PR branch. Build/install and Node server startup were verified in Render logs; the internal live self-test verified the health endpoint, frontend, manifest, PWA icon, service worker, news feed and live data retrieval.
+- GitHub verification and browser workflows passed syntax/security, PostgreSQL tenant RLS, Deno checks, local routes/PWA, browser/account flows, Company Cloud mobile flows and five-viewport responsive/drawer checks. PR workflows skip production-only live smoke tests while the PR remains unmerged.
+- AI chat is not enabled on staging until a server-side model provider is configured. Physical Android handset and real microphone capture are not yet verified. Direct external HTTP inspection from the review environment was unavailable; Render deployment and internal self-test logs are the available staging evidence.
+- The app is not approved for Production release or customer onboarding until provider configuration, physical-device checks, and the remaining privacy/authentication controls are reviewed.
 
 ## Data and privacy notes
 
@@ -58,16 +59,19 @@ Only non-paid, adult-supervised buyer-interest conversations and synthetic-data 
 - Provider secrets must remain server-side; never commit keys or expose them in browser code.
 
 
-## Cloud-sync limitation to disclose
+## Cloud-sync status and limitation
 
-A code review found that local chats with the same ID overwrite remote versions during sync, so newer messages from another device can be lost. Saved memory and custom instructions are imported only when the local values are empty. Cloud sync is therefore not conflict-safe yet; do not rely on it for important data or present it as production-ready. This must be fixed and regression-tested before customer onboarding.
+- The current client reads the remote snapshot before writing, merges message histories and deleted-chat tombstones, then uses an `updated_at` compare-and-swap update with bounded retries. Unit tests cover overlapping and divergent message histories and deletion tombstones.
+- This reduces stale whole-snapshot overwrites; it is not a full CRDT or per-message/field-level conflict-resolution system. Memory and custom-instruction fields do not have independent version histories.
+- Real concurrent two-device Supabase sync, recovery after network interruption, and user-level deletion/retention flows have not been verified end to end. Keep cloud sync optional, export local backups, and do not rely on it as the only copy of important data.
 
 
 ## Local and Render environment setup
 
 - Use Node.js 22 and run `npm install` followed by `npm start`.
 - Copy `.env.example` to `.env` for local development. The `.env` file is ignored by Git; never commit provider keys.
-- Server-side AI chat requires at least one of `LLM_KEY`, `GROQ_API_KEY`, or `OPENROUTER_API_KEY`. Configure the secret in Render's Environment settings, not in browser JavaScript or GitHub.
-- Optional provider integrations are documented in `.env.example`. Do not enable paid image generation unless a separate budget is explicitly approved; the example keeps `ALLOW_PAID_IMAGE=false`.
+- Server-side AI chat requires a configured provider key in Render Environment. For low-volume no-cost testing, OpenRouter's `openrouter/free` router selects a currently available free model; free usage is rate-limited and availability can change. See [OpenRouter free models](https://openrouter.ai/collections/free-models) and [free-model limits](https://openrouter.ai/pricing). Do not buy credits for this setup.
+- If using Groq, set `GROQ_MODEL` explicitly to a currently supported model and check its current billing terms; the server deliberately has no implicit Groq model default. Do not assume all provider models are free.
+- Provider secrets belong in Render Environment, never browser JavaScript or GitHub. Optional provider integrations are documented in `.env.example`. Paid image generation remains disabled unless separately approved; `ALLOW_PAID_IMAGE=false`.
 - `GET /health` reports process liveness only. It intentionally does not depend on AI/search vendors, so Render can distinguish a running web service from optional provider availability.
 - The operator-only live provider test is disabled by default. Keep `SELFTEST_ON_START=0` and `LIVE_SELFTEST_ENABLED=0` outside a supervised verification window.
