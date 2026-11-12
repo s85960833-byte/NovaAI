@@ -1,3 +1,20 @@
+# CURRENT CHECKPOINT — 12 November 2026 (Asia/Kolkata)
+
+**This checkpoint supersedes older status claims below.** It records the latest evidence observed before this documentation-only commit.
+
+- PR #98: Open / Draft / unmerged; base `main`; head before this record `fb59001baeb6a0a5e4659bad92a138ea6c096b49`; mergeable=true.
+- Exact-head Main workflow run [#43264137306](https://github.com/s85960833-byte/NovaAI/actions/runs/43264137306): completed **success**. Live NOVA BI Edge Function smoke, merged-revision wait, live website/provider smoke and live free-image smoke were **skipped**; skipped is not passed.
+- Exact-head Browser workflow run [#43264137297](https://github.com/s85960833-byte/NovaAI/actions/runs/43264137297): completed **success**. Browser/Playwright emulation is not physical Android or microphone verification.
+- Staging service `srv-dbqm035g1s2s73eogao0` still has latest Live deploy `dep-dbqnenhe35nc73f81k4g` on old SHA `195739a04895de364a5af22aa61f930d5d782cbb`; service remains configured for PR branch with Auto Deploy enabled. Health Check Path remains blank.
+- Latest available old-Staging logs (12 Nov, around 08:23 UTC) show `/health` 200, but `/api/config` 503 and AI Chat 503 because no AI provider key/model was configured in that Staging environment. These are old-SHA observations, not current-candidate live tests.
+- The same old-SHA provider self-test showed GDELT timeout (~4.5 s) with Google News fallback, Open-Meteo rate limit (429) with wttr.in fallback, CoinGecko rate limit (429) with Coinbase fallback, and a legacy Yahoo Finance proxy result. Provider commercial-use rights are still not cleared.
+- Staging HTTP request/latency/instance/CPU/memory metrics returned empty samples for the queried range. This is not uptime evidence. Repeated process SIGTERM logs were followed by graceful shutdown; root cause is not established.
+- Production remains on `main`, Live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; no Production merge or deploy occurred.
+- Auth remains disabled by default (`NOVA_API_AUTH_REQUIRED=0`). Live missing/invalid/expired/valid token tests, mail/redirect/two-account tests, durable quotas, monthly usage, plan entitlements, provider spend caps, deletion/retention, physical Android/microphone, provider rights, ownership chain, backup/restore, load/rollback, legal review and buyer/moat evidence remain open.
+- **Decision: NO-GO for Production and NO-GO for buyer-ready claims.** Keep PR #98 Draft/unmerged. No paid services or APIs were added.
+
+---
+
 # LATEST CHECKPOINT — 12 November 2026 (Asia/Kolkata)
 
 **Current PR #98 head:** `7cf01b9f9e31c421e3b32db270f67fe653c8acc5`  
