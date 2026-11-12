@@ -46,6 +46,8 @@ jobs:
         run: npm run test:cloud-sync
       - name: Test bounded per-IP rate window
         run: node --test scripts/rate-limit.test.cjs
+      - name: Test validated per-user timezone context
+        run: npm run test:timezone
       - name: Test HTTPS-only secret-bearing provider endpoints
         run: node --test scripts/provider-url.test.cjs
       - name: Test PDF.js untrusted-document eval mitigation
