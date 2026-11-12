@@ -48,6 +48,7 @@ Supabase project URL and browser client setup are present in the frontend/accoun
 - Live retrieval has an additional process-local per-IP limit of 24 requests/minute and a concurrency cap.
 - Image generation has a separate limit of 3 requests per IP per 10 minutes and a bounded in-memory queue. Image job state is process-local and not durable across restarts.
 - Provider-backed AI chat and speech routes are unauthenticated at the Express layer. This is a release blocker before any billable provider key is enabled for public traffic.
+- The general `lhttp()` path now has bounded streaming reads, and direct speech/image provider responses have explicit response-size caps. LLM streaming remains intentionally streamed to the client; apply output-token/time limits and client-abort propagation in the remaining API hardening pass.
 - OpenRouter free-model use is subject to upstream daily/minute limits. A free-tier account has no OpenRouter spend-control features; paid model requests can incur per-token charges.
 - Vendor rate limits and error fallbacks do not replace a hard product-side usage budget.
 
