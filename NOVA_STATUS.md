@@ -170,3 +170,11 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Chat now caps output tokens, aborts upstream on client disconnect, respects downstream backpressure and bounds non-OK provider error bodies.
 - Current branch head may advance when documentation updates land; re-run latest-head CI before Staging.
 - Staging remains on old SHA `195739a`; no Production changes. Physical Android/microphone verification still blocked on an owner-supplied handset check.
+
+
+## Accessibility pass — 12 November 2026
+
+- Static HTML audit found 22 icon-only/empty-label buttons with no accessible name.
+- Added explicit `aria-label` values to those controls: Home, Photo Solver, Chat Archive, Image Studio, Live Voice, Settings, Memory Settings, AI Model Settings, Export, Delete Chats, Privacy, Keyboard Shortcuts, provider settings save/close/share, memory save/close, camera, photo-help link, photo solve, confirm and cancel.
+- Added `scripts/accessibility-markup.test.cjs`, `npm run test:a11y`, and a CI step. This static check only covers buttons in `index.html`; dynamic buttons in JavaScript components still need rendered accessibility review.
+- Previous candidate `7f6adcd` had Main and Browser CI pass. New accessibility code/test changes require fresh latest-head CI.
