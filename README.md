@@ -61,3 +61,13 @@ Only non-paid, adult-supervised buyer-interest conversations and synthetic-data 
 ## Cloud-sync limitation to disclose
 
 A code review found that local chats with the same ID overwrite remote versions during sync, so newer messages from another device can be lost. Saved memory and custom instructions are imported only when the local values are empty. Cloud sync is therefore not conflict-safe yet; do not rely on it for important data or present it as production-ready. This must be fixed and regression-tested before customer onboarding.
+
+
+## Local and Render environment setup
+
+- Use Node.js 22 and run `npm install` followed by `npm start`.
+- Copy `.env.example` to `.env` for local development. The `.env` file is ignored by Git; never commit provider keys.
+- Server-side AI chat requires at least one of `LLM_KEY`, `GROQ_API_KEY`, or `OPENROUTER_API_KEY`. Configure the secret in Render's Environment settings, not in browser JavaScript or GitHub.
+- Optional provider integrations are documented in `.env.example`. Do not enable paid image generation unless a separate budget is explicitly approved; the example keeps `ALLOW_PAID_IMAGE=false`.
+- `GET /health` reports process liveness only. It intentionally does not depend on AI/search vendors, so Render can distinguish a running web service from optional provider availability.
+- The operator-only live provider test is disabled by default. Keep `SELFTEST_ON_START=0` and `LIVE_SELFTEST_ENABLED=0` outside a supervised verification window.
