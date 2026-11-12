@@ -963,7 +963,7 @@ async function runLive(qraw, o = {}) {
     catch (e) { const fallback = await gnews(qq, { lang, n: (x && x.n) || 10 }); if (!fallback.length) throw e; return { items: fallback, via: 'google-news-fallback' }; }
   }, 17000);
   const ws = (qq, x) => T('web-search', () => webSearch(qq, { lang, ...(x || {}) }).then(r => ({ items: r.items, via: r.via })), 18000);
-  const feedT = (cat, filt) => T('feeds:' + cat, () => feedCat(cat, 14).then(r => { let it = r.items; if (filt) { const k = toks(filt); const sc = it.map(x => [x, jac(k, toks(x.title + ' ' + x.snippet))]).filter(z => z[1] > 0.05).sort((a, b) => b[1] - a[1]); it = sc.map(z => z[0]); } if (!it.length) throw new Error('no matching items'); return { items: it }; }));
+  const feedT = (cat, filt) => T('feeds:' + cat, () => feedCat(cat, 14).then(r => { let it = r.items; if (filt) { const k = toks(filt); const sc = it.map(x => [x, jac(k, toks(x.title + ' ' + x.snippet))]).filter(z => z[1] > 0.05).sort((a, b) => b[1] - a[1]); it = sc.map(z => z[0]); } return { items: it, ...(it.length ? {} : { note: 'No relevant articles matched this topic in the selected feeds.' }) }; }));
   // time & place
   if (f.time) { intents.push('time'); const pl = placeFrom(q, ''); T('time', () => timeIn(pl, tz).then(b => ({ blocks: [b] })), 9000); }
   if (f.weather) { intents.push('weather'); const pl = placeFrom(q, o.place); if (!pl) notes.push('Weather was requested but no city was given and none is saved; ask the person which city.'); else T('weather', () => weather(pl, lang).then(b => ({ blocks: [b] })), 15000); }
