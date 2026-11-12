@@ -26,11 +26,11 @@ test('selects the newest chats from the newest-first workspace list',()=>{
  assert.deepEqual(selectRecentChats(null,40),[]);
 });
 
-test('propagates explicit empty memory and custom-instruction values',()=>{
- const {mergeSnapshotText}=require('../nova-sync-merge.js');
- assert.equal(mergeSnapshotText('', 'previous memory', 1500), '');
- assert.equal(mergeSnapshotText('', 'previous instructions', 800), '');
- assert.equal(mergeSnapshotText(undefined, 'local fallback', 20), 'local fallback');
+test('propagates explicit empty memory and custom-instruction values by timestamp',()=>{
+ const {mergeSnapshotField}=require('../nova-sync-merge.js');
+ assert.deepEqual(mergeSnapshotField('',200,'previous memory',100,1500),{value:'',updatedAt:200});
+ assert.deepEqual(mergeSnapshotField('',300,'previous instructions',100,800),{value:'',updatedAt:300});
+ assert.deepEqual(mergeSnapshotField(undefined,0,'local fallback',200,20),{value:'local fallback',updatedAt:200});
 });
 test('does not resurrect a document explicitly removed on the local device',()=>{
  const {mergeChatDocument}=require('../nova-sync-merge.js');
