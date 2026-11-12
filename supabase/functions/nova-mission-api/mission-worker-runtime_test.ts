@@ -263,3 +263,23 @@ Deno.test("worker rejects accessor, symbol, extra-key and proxy claims before tr
   }
   if (callbacks !== 0) throw new Error("Malformed claim reached trusted callbacks");
 });
+
+
+Deno.test("worker converts throwing proxy claim traps into a fail-closed denial", async () => {
+  let callbacks = 0;
+  const hostile = new Proxy({}, {
+    getPrototypeOf() { throw new Error("hostile proxy trap"); },
+  }) as MissionWorkerClaim;
+  const result = await processClaimedMissionTask(hostile, {
+    registry: registry(),
+    async assertLeaseCurrent() { callbacks++; return true; },
+    async persistProof() {
+      callbacks++;
+      return { proofId: "66666666-6666-4666-8666-666666666666",
+        attestationId: "77777777-7777-4777-8777-777777777777", digest: "d".repeat(64) };
+    },
+  });
+  if (result.status !== "denied" || result.reason !== "invalid_claim" || callbacks !== 0) {
+    throw new Error("Throwing proxy trap escaped the fail-closed claim boundary");
+  }
+});
