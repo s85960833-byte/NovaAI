@@ -50,6 +50,8 @@ jobs:
         run: npm run test:timezone
       - name: Verify server environment variables are documented
         run: npm run test:env-example
+      - name: Test production container configuration and secret exclusions
+        run: npm run test:container-config
       - name: Verify static buttons expose accessible names
         run: npm run test:a11y
       - name: Test HTTPS-only secret-bearing provider endpoints
