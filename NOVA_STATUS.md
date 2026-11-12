@@ -5,14 +5,14 @@ Repository: https://github.com/s85960833-byte/NovaAI
 Production: https://novaai-4auo.onrender.com (main branch; unchanged)
 Candidate: PR #98 — https://github.com/s85960833-byte/NovaAI/pull/98
 Candidate branch: `fix/nova-home-learn-first-mobile-20261109`
-Latest fully CI-verified code-bearing revision: `345b277fb28713f60a4969bb7b3d4e0bdd505b12`
+Latest fully CI-verified code-bearing revision: `98d53df88730a9437ce9a38b7f26130a397bc8e3`
 
 ## Exact-head CI evidence
 
 - PR #98 is Open, Draft, unmerged, and targets `main`. Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; no candidate merge or Production deployment has occurred.
-- Main verification [run 43216405031](https://github.com/s85960833-byte/NovaAI/actions/runs/43216405031) passed on exact code head `345b277`: 44 successful steps, 4 release/live steps skipped, 0 failed.
-- Browser verification [run 43216404999](https://github.com/s85960833-byte/NovaAI/actions/runs/43216404999) passed on the same exact head: 16 successful steps, 0 skipped, 0 failed.
-- New API-auth test step passed on exact head. It covers HTTPS-only Supabase URL validation, missing/malformed/oversized bearer tokens, valid user identity mapping, invalid/expired token rejection, malformed Auth response, upstream outage fail-closed behavior, startup configuration checks, auth gate ordering before JSON parsing, browser bearer-token forwarding, image-job owner binding and user-scoped live/image rate keys.
+- Main verification [run 43217291880](https://github.com/s85960833-byte/NovaAI/actions/runs/43217291880) passed on exact code head `98d53df`: 44 successful steps, 4 release/live steps skipped, 0 failed.
+- Browser verification [run 43217291738](https://github.com/s85960833-byte/NovaAI/actions/runs/43217291738) passed on the same exact head: 16 successful steps, 0 skipped, 0 failed.
+- New API-auth test step passed on exact head. It covers HTTPS-only Supabase URL validation, missing/malformed/oversized bearer tokens, valid user identity mapping, invalid/expired token rejection, malformed/oversized Auth response, upstream outage fail-closed behavior, startup configuration checks, auth gate ordering before JSON parsing, browser bearer-token forwarding, image-job owner binding and user-scoped live/image rate keys.
 - Main coverage also includes dependency SBOM, syntax, provider defaults, Markdown injection escaping, mode registry, Cloud Sync merge/conflict, bounded IP rate window/timezone, environment/container configuration, accessibility, HTTPS provider URLs, safe redirects/bounded reads, AI Horde privacy, PDF.js mitigation, PostgreSQL migration + tenant RLS, Deno Edge Function type-check/invitation tests, BI calculations/CSV validation, 60-case AI evaluation, npm dependency audit, local routes/PWA, graceful shutdown and Docker build/health.
 - The four skipped Main CI steps are deployed NOVA BI Edge Function auth/CORS smoke, waiting for a merged revision on Render, live Production website/provider smoke, and live free image-generation smoke. Skipped does not mean passed.
 - Browser emulation is not physical Android certification. CI does not prove live credentials, email delivery, real microphone capture or handset layout.
@@ -27,7 +27,7 @@ Latest fully CI-verified code-bearing revision: `345b277fb28713f60a4969bb7b3d4e0
 
 ## Express API authentication work
 
-- Added `nova-api-auth.js`: validates a configured HTTPS Supabase project origin, accepts only bounded Bearer tokens, verifies each token server-side through Supabase Auth `/auth/v1/user`, rejects invalid sessions with 401 and returns 503 on Auth service outages.
+- Added `nova-api-auth.js`: validates a configured HTTPS Supabase project origin, accepts only bounded Bearer tokens, verifies each token server-side through Supabase Auth `/auth/v1/user`, caps the streamed Auth user response at 64 KiB, rejects invalid sessions with 401 and returns 503 on Auth service outages.
 - When `NOVA_API_AUTH_REQUIRED=1`, middleware protects all `/api/*` routes except read-only `/api/config` and `/api/feed`; it runs before JSON body parsing. Missing `SUPABASE_URL` or `SUPABASE_PUBLISHABLE_KEY` fails startup.
 - Browser account code forwards the current Supabase access token to same-origin protected API calls; server verification remains authoritative.
 - Image jobs are bound to the authenticated user when the gate is enabled, preventing cross-account polling.
