@@ -1,12 +1,12 @@
 # NOVA Status — Current Source of Truth
 
-**Last exact CI verification:** 12 November 2026  
+**Last exact CI verification:** 12 November 2026 (updated after current-head verification)  
 **Repository:** https://github.com/s85960833-byte/NovaAI  
 **Production:** https://novaai-4auo.onrender.com  
 **Production dashboard:** https://dashboard.render.com/web/srv-dbidhpc9v7es73d6ia80  
 **PR #98:** https://github.com/s85960833-byte/NovaAI/pull/98  
 **Candidate branch:** `fix/nova-home-learn-first-mobile-20261109`  
-**Verified code candidate:** `76e89066d04f00e991b7a49b59cb93c4839a6ab7`
+**Verified code candidate:** `76e89066d04f00e991b7a49b59cb93c4839a6ab7` (functional code; latest PR head `0afe73fa8093034e341329b6dc7e3e3d0fad5758` is a documentation-only follow-up)
 
 ## Phase status
 
@@ -16,6 +16,15 @@
 - Phase 4 — Buyer package: **PARTIAL**. Buyer Map (24 categories), preview pitch, non-paid feedback templates, cost/valuation/objection docs and Data Room exist. No buyer interest or adult-managed transaction/contact channel.
 - Phase 5 — Buyer objections: **NOT PASSED**.
 - Phase 6 — Valuation: **PARTIAL**. ₹35.1–104.7 lakh gross labour scenario only, not independent valuation; ₹15–20 lakh fair asset value unsupported; ₹10–20 crore scenario only.
+
+## Latest PR-head verification — 12 November 2026
+
+- Current PR #98 head: `0afe73fa8093034e341329b6dc7e3e3d0fad5758` (documentation-only follow-up to the code candidate `76e8906`).
+- Main workflow [#43253211824](https://github.com/s85960833-byte/NovaAI/actions/runs/43253211824): **success** on exact head `0afe73f`; 45 successful steps, 0 failed, 4 live/release-only steps skipped.
+- Browser workflow [#43253211819](https://github.com/s85960833-byte/NovaAI/actions/runs/43253211819): **success** on exact head `0afe73f`; all 17 steps successful, 0 skipped, 0 failed.
+- Duplicate Browser retry [#43253192075](https://github.com/s85960833-byte/NovaAI/actions/runs/43253192075) also passed. Duplicate Main retry [#43253191880](https://github.com/s85960833-byte/NovaAI/actions/runs/43253191880) was still in progress at checkpoint and is not required to rely on because the primary exact-head Main run passed.
+- PR remains Open, Draft, unmerged. No review submissions or PR comments were present at this checkpoint.
+- CI does not establish deployed Staging/Production behavior: the four live/release-only checks above were skipped.
 
 ## Exact-head CI evidence — 12 November 2026
 
