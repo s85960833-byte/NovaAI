@@ -385,3 +385,20 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production merge/deploy was performed.
 - Release blockers remain: current-head Staging smoke; physical Android/microphone checks; public AI route auth and durable quotas; provider commercial rights; account deletion/retention; backup/restore drill; complete source/asset/IP and legal review; real operating evidence.
 - Overall Definition-of-Done progress: **23% estimated**. Buyer-readiness: **37/100 estimated**. These are internal qualitative estimates, not an independent appraisal.
+
+
+## Current continuation checkpoint — 12 November 2026, 17:30 IST
+
+- Verified current PR #98 head: `d28f4dd9e721c74deff97e4182b69582632eb980`. PR is Open, Draft, mergeable, and unmerged.
+- Exact-head Main workflow #43211508585: success; 47 steps total, 43 succeeded, 4 intentionally skipped release/live checks, 0 failed.
+- Exact-head Browser workflow #43211508549: success; 16/16 succeeded.
+- Main skipped checks are explicitly: deployed NOVA BI Edge Function auth/CORS smoke; wait for merged bilingual revision to become live on Render; live website/provider smoke; free image generation smoke. These have NOT been proven by CI.
+- Repo tree currently contains 120 tracked files, including Dockerfile, docker-compose.yml, .env.example, dependency license audit, API/Supabase security audits, Phase 1 audit, market/differentiation research, Buyer Map, Buyer Objection Review, pitch kit/readiness/script, Data Room index, Transfer Pack, Valuation Memo, privacy/terms drafts and 27+ test/support scripts.
+- Staging Render service `srv-dbqm035g1s2s73eogao0` is connected to the PR branch with Auto Deploy enabled, but latest Live deploy is still `195739a04895de364a5af22aa61f930d5d782cbb`. Health Check Path is blank. No connector operation is available to update this setting; owner must do it in the dashboard.
+- Owner action (still pending): Staging Dashboard → Settings → Health Checks → set `/health` → Save Changes. Then re-check Auto Deploy. Do not manually deploy while Auto Deploy is enabled.
+- Production remains unchanged: main `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`, Render deployed SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No production merge/deploy.
+- Code review confirms Express exposes `/api/transcribe`, `/api/chat/completions`, `/api/search`, `/api/image`, `/api/live`, and feed endpoints. Current global API throttling is process-local per-IP (60 requests/minute); this is not account authentication, durable tenant quotas, or spend caps. Do not expose paid provider traffic publicly until these controls are implemented and tested.
+- Still not proven: physical Android/microphone UX; live current-head staging; provider commercial rights; durable auth/quotas; full account deletion and retention; restore drill; load/uptime evidence; complete source/asset/IP provenance and legal review; customer traction or buyer demand.
+- Buyer materials exist as draft/evidence-based documents but are not a finished validated sales process. 24 buyer categories are illustrative only; no confirmed prospects.
+- Overall Definition-of-Done progress remains **23% estimated**; buyer-readiness **37/100 estimated**. Qualitative internal estimates, not independent appraisal.
+- Release decision remains **NO-GO** for Production. Keep PR #98 Draft until blockers are resolved.
