@@ -131,3 +131,11 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Current dependency inventory document lists 72 npm lockfile package records and declared licences. Deno dependency provenance, third-party assets, and contributor IP remain open.
 - Current PR is still Draft and unmerged. Staging deployment remains old SHA `195739a`; Production main remains untouched.
 - Remaining direct `fetch()` integrations (speech, LLM streaming, image providers, Horde polling) are being audited separately; the generic `lhttp()` protections do not automatically cover them.
+
+
+## Image-provider privacy review — 12 November 2026
+
+- Found AI Horde request payload had `shared:true`, which opts into sharing generated content with LAION for dataset improvement. Changed to `shared:false`.
+- AI Horde fallback already requires `HORDE_API_KEY`; anonymous/no-key requests are rejected before submission. The request still sends the prompt to third-party workers, so it is not private from the provider.
+- Added `scripts/image-privacy.test.cjs`, `npm run test:image-privacy`, and a CI regression step.
+- Updated API audit and privacy draft to disclose the third-party worker processing and remaining Pollinations rights/retention uncertainty. Privacy notice remains a draft and must not be published as final.
