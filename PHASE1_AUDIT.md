@@ -111,3 +111,12 @@ Project qrfwsewppafhxibdboam, PostgreSQL 17.11, eu-west-1, ACTIVE_HEALTHY. No da
 - Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production merge or deploy was performed.
 - Live blockers: current-head Staging deployment and smoke; owner Health Check configuration; physical Android/microphone checks; public AI route authentication and durable quotas; provider commercial rights; account deletion/retention; backup/restore and load evidence; full asset/IP/legal review.
 - Overall Definition-of-Done progress: **23% estimated**. Buyer-readiness: **37/100 estimated**. These are internal qualitative estimates, not a formal appraisal.
+
+
+## Visual review of the exact-head browser artifact — 12 November 2026
+
+- Reviewed the PNG screenshots from Main CI run [#43260317789](https://github.com/s85960833-byte/NovaAI/actions/runs/43260317789), artifact `nova-integrated-browser-verification`, generated from code-bearing SHA `be4287fde83d7adcca5a41b13674d29f31383af6`.
+- Screenshots reviewed: 360×800, 390×844, 412×915, 760×1024 and 1280×800.
+- At the three phone-width emulated viewports, the workspace fills the screenshot width and stacks the Learn/Build cards vertically; no half-width page clipping or obvious horizontal cut-off was visible in the captured first screen.
+- At 1280×800, the desktop layout uses a left navigation rail and three side-by-side workspace cards. At 760×1024, the layout returns to a stacked/tablet presentation.
+- This is a visual spot-check of CI-generated local Chromium screenshots, not a live Render screenshot, physical Android certification, touch/keyboard test or microphone test. The mobile live-release gate remains open until the latest candidate is deployed and the owner's actual phone is checked.
