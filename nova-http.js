@@ -19,8 +19,8 @@ function safeRedirectTarget(raw, originalHost = '') {
   return target;
 }
 
-async function readBoundedText(response, maxBytes = 3 * 1024 * 1024) {
-  if (!response.body) return '';
+async function readBoundedBuffer(response, maxBytes = 3 * 1024 * 1024) {
+  if (!response.body) return Buffer.alloc(0);
   const reader = response.body.getReader();
   const chunks = [];
   let total = 0;
@@ -38,7 +38,11 @@ async function readBoundedText(response, maxBytes = 3 * 1024 * 1024) {
   } finally {
     reader.releaseLock();
   }
-  return Buffer.concat(chunks, total).toString('utf8');
+  return Buffer.concat(chunks, total);
 }
 
-module.exports = { safeRedirectTarget, readBoundedText };
+async function readBoundedText(response, maxBytes = 3 * 1024 * 1024) {
+  return (await readBoundedBuffer(response, maxBytes)).toString('utf8');
+}
+
+module.exports = { safeRedirectTarget, readBoundedBuffer, readBoundedText };
