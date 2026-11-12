@@ -368,7 +368,8 @@ app.post('/api/image', (q, r) => {
   const unsafeImagePrompt = /\b(?:firearm|gun|rifle|pistol|knife|sword|explosive|bomb|weapon|porn|pornography|nude|nudity|sexual|erotic|gore|graphic violence|self-harm|suicide)\b/i;
   if (unsafeImagePrompt.test(prompt)) return r.status(400).json({ error: 'This image prompt is not supported. Choose a safe, non-graphic subject.' });
   if (E.IMAGE_OFF) return r.status(404).end();
-  const now = Date.now(), a = rateWindow(imageJobHits, q.ip, now, 10 * 60 * 1000);
+  const now = Date.now(), imageRateKey = q.novaUser?.id ? 'user:' + q.novaUser.id : 'ip:' + q.ip;
+  const a = rateWindow(imageJobHits, imageRateKey, now, 10 * 60 * 1000);
   if (!a) return r.status(503).json({ error: 'Image rate-limit capacity reached; retry shortly' });
   if (a.length >= 3) return r.status(429).json({ error: 'Image generation limit reached. Please try again later.' });
   a.push(now); imageJobHits.set(q.ip, a);
@@ -1112,7 +1113,8 @@ const LIVE_MAX = Number(E.LIVE_CONCURRENCY) || 5;
 app.post('/api/live', async (q, r) => {
   const b = q.body || {}, text = String(b.q || '').trim().slice(0, 500);
   if (!text) return r.status(400).json({ ok: false, error: 'No question' });
-  const nw = Date.now(), a = rateWindow(liveHits, q.ip, nw, 6e4);
+  const nw = Date.now(), liveRateKey = q.novaUser?.id ? 'user:' + q.novaUser.id : 'ip:' + q.ip;
+  const a = rateWindow(liveHits, liveRateKey, nw, 6e4);
   if (!a) return r.status(503).json({ ok: false, error: 'Live-search rate-limit capacity reached; retry shortly.' });
   if (a.length >= 24) return r.status(429).json({ ok: false, error: 'Too many live searches. Please wait a minute.' });
   if (liveActive >= LIVE_MAX) return r.status(429).json({ ok: false, error: 'Live search is busy. Try again in a few seconds.' });
