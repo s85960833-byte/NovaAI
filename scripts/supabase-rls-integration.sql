@@ -1379,7 +1379,29 @@ reset role;
 set role authenticated;
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false);
 do $mission_attestation_outsider_read$
+declare
+  v_owner uuid := '11111111-1111-4111-8111-111111111111';
 begin
+  -- The second authenticated account must not read any core Mission record
+  -- owned by the first account, including child rows and approval metadata.
+  if exists(select 1 from public.nova_missions where owner_id=v_owner) then
+    raise exception 'Cross-account mission header leak detected';
+  end if;
+  if exists(select 1 from public.nova_mission_tasks where owner_id=v_owner) then
+    raise exception 'Cross-account mission task leak detected';
+  end if;
+  if exists(select 1 from public.nova_mission_events where owner_id=v_owner) then
+    raise exception 'Cross-account mission event leak detected';
+  end if;
+  if exists(select 1 from public.nova_mission_proofs where owner_id=v_owner) then
+    raise exception 'Cross-account mission proof leak detected';
+  end if;
+  if exists(select 1 from public.nova_mission_approvals where owner_id=v_owner) then
+    raise exception 'Cross-account mission approval leak detected';
+  end if;
+  if exists(select 1 from public.nova_mission_execution_runs where owner_id=v_owner) then
+    raise exception 'Cross-account mission execution-run leak detected';
+  end if;
   if exists(select 1 from public.nova_mission_proof_attestations
       where verifier_id='nova.integration-verifier') then
     raise exception 'Cross-account proof attestation leak detected';
@@ -1387,6 +1409,9 @@ begin
   if exists(select 1 from public.nova_mission_action_receipts
       where action_key like 'action-%-fixture-001') then
     raise exception 'Cross-account action receipt leak detected';
+  end if;
+  if exists(select 1 from public.nova_mission_action_resolutions where owner_id=v_owner) then
+    raise exception 'Cross-account action resolution leak detected';
   end if;
 end $mission_attestation_outsider_read$;
 reset role;
