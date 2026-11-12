@@ -29,7 +29,7 @@ function render(){
 function cleanSnapshot(){
  const raw=window.NovaWorkspaceActions?.getAccountSnapshot?.();
  if(!raw||typeof raw!=='object')throw new Error('NOVA workspace is not ready yet.');
- const payload={schema_version:1,chats:Array.isArray(raw.chats)?raw.chats.slice(-40):[],deletedChatIds:Array.isArray(raw.deletedChatIds)?raw.deletedChatIds.map(String).slice(-2000):[],mem:String(raw.mem||'').slice(0,1500),ci:String(raw.ci||'').slice(0,800)};
+ const payload={schema_version:1,chats:Array.isArray(raw.chats)?raw.chats.slice(0,40):[],deletedChatIds:Array.isArray(raw.deletedChatIds)?raw.deletedChatIds.map(String).slice(-2000):[],mem:String(raw.mem||'').slice(0,1500),ci:String(raw.ci||'').slice(0,800)};
  const bytes=new TextEncoder().encode(JSON.stringify(payload)).length;
  if(bytes>700000)throw new Error('Your cloud backup is too large. Export a local backup and remove large documents before syncing.');
  return payload;
