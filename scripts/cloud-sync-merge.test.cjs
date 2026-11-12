@@ -25,3 +25,22 @@ test('selects the newest chats from the newest-first workspace list',()=>{
  assert.deepEqual(selectRecentChats(chats,5),chats.slice(0,5));
  assert.deepEqual(selectRecentChats(null,40),[]);
 });
+
+test('propagates explicit empty memory and custom-instruction values',()=>{
+ const {mergeSnapshotText}=require('../nova-sync-merge.js');
+ assert.equal(mergeSnapshotText('', 'previous memory', 1500), '');
+ assert.equal(mergeSnapshotText('', 'previous instructions', 800), '');
+ assert.equal(mergeSnapshotText(undefined, 'local fallback', 20), 'local fallback');
+});
+test('does not resurrect a document explicitly removed on the local device',()=>{
+ const {mergeChatDocument}=require('../nova-sync-merge.js');
+ assert.equal(mergeChatDocument({doc:{n:'remote.pdf',t:'remote text'}},{doc:null}),null);
+});
+test('uses remote document when the local chat has no document field',()=>{
+ const {mergeChatDocument}=require('../nova-sync-merge.js');
+ assert.deepEqual(mergeChatDocument({doc:{n:'remote.pdf',t:'remote text'}}, {id:'chat-1'}),{n:'remote.pdf',t:'remote text'});
+});
+test('prefers the local document when both devices have one',()=>{
+ const {mergeChatDocument}=require('../nova-sync-merge.js');
+ assert.deepEqual(mergeChatDocument({doc:{n:'remote.pdf',t:'remote'}},{doc:{n:'local.pdf',t:'local'}}),{n:'local.pdf',t:'local'});
+});
