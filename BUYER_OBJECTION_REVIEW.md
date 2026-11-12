@@ -62,7 +62,7 @@
 
 ## Latest CI checkpoint — 12 November 2026
 
-PR #98 current head `671f6dcec0842106ba1b0a5a946bd69c01001abb` passed Main #43207317636 and Browser #43207318043 on the same SHA. This clears the automated workflow gate for this candidate only. The CTO objections about stale Staging, physical-device testing, public API abuse controls, Auth deletion/retention, backups/load/monitoring and full integration/portability remain open. CFO, founder and legal objections remain as listed above. Overall decision remains **NO-GO for production release and NO-GO for buyer-ready claims**.
+PR #98 head `c3ddc3e32423a219c2c456cd92c1cba42b87ed88` passed Main [#43238989690](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989690) (45/45 steps) and Browser [#43238989457](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989457) (16/16 steps) on the exact same SHA. This clears automated CI for the candidate only. It does not clear current-head Staging/live verification, Auth, abuse protection, account deletion/retention, backup/restore, load/monitoring, provider/commercial rights, source/media ownership or legal review. Overall decision remains **NO-GO for production release and NO-GO for buyer-ready claims**.
 
 
 ## Additional direct India competition and evidence — 12 November 2026

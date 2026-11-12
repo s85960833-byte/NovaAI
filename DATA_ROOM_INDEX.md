@@ -1,6 +1,6 @@
 # NOVA AI — Data Room Index
 
-**Status:** Internal documentation index only; not evidence of ownership, compliance, revenue or buyer readiness.
+**Status:** Internal documentation index only; not evidence of ownership, legal compliance, revenue or buyer readiness.
 
 ## Technical
 - [Architecture](ARCHITECTURE.md)
@@ -11,47 +11,40 @@
 - [Support and incident runbook](SUPPORT_AND_INCIDENT_RUNBOOK.md)
 
 ## Security, privacy and rights
-- [Supabase security audit](SUPABASE_SECURITY_AUDIT.md) — limited configuration review, not penetration test.
+- [Supabase security audit](SUPABASE_SECURITY_AUDIT.md) — configuration review only, not a penetration test.
 - [API/provider integration audit](API_INTEGRATION_AUDIT.md) — NOT PASSED; commercial use and transfer rights unresolved.
-- [Dependency and asset licensing](DEPENDENCY_LICENSE_AUDIT.md) — npm metadata preliminary; media/Deno/source provenance incomplete.
-- [India DPDP/privacy review](INDIA_PRIVACY_COMPLIANCE_REVIEW.md) — final implementation/legal review needed.
-- [Privacy notice draft](PRIVACY_NOTICE_DRAFT.md), [Terms draft](TERMS_OF_USE_DRAFT.md).
+- [Dependency and asset licensing](DEPENDENCY_LICENSE_AUDIT.md) — npm metadata inventory only; Deno/media/source provenance incomplete.
+- [India DPDP/privacy review](INDIA_PRIVACY_COMPLIANCE_REVIEW.md) — implementation and qualified legal review required.
+- [Privacy notice draft](PRIVACY_NOTICE_DRAFT.md) and [Terms draft](TERMS_OF_USE_DRAFT.md).
 
 ## Operations and handover
-- [Running costs](RUNNING_COSTS.md) — total costs unknown; invoices not reviewed.
-- [Transfer Pack](TRANSFER_PACK.md) — draft; backups, ownership chain and account transfer unverified.
+- [Running costs](RUNNING_COSTS.md) — total cost unknown; invoices not reviewed.
+- [Transfer Pack](TRANSFER_PACK.md) — draft; ownership chain, restore and account transfer unverified.
+- [Supabase backup/restore runbook](BACKUP_AND_RESTORE.md) — documented only; no export or restore drill performed. SQL dump alone does not include Auth users or Storage objects.
 - [Technical Data Room sub-index](data-room/README.md)
 - [Current NOVA status](NOVA_STATUS.md)
 
 ## Buyer materials
 - [Market and differentiation review](MARKET_AND_DIFFERENTIATION_RESEARCH.md) — no exclusive claim approved.
-- [Buyer Map](BUYER_MAP.md) — 24 illustrative buyer categories, no confirmed prospects.
-- [Pitch kit](NOVA_PITCH_KIT.md), [pitch deck outline](NOVA_PITCH_DECK.md), [demo script](PITCH_SCRIPT.md) — supervised non-paid discovery only.
+- [Buyer Map](BUYER_MAP.md) — 24 illustrative categories, no confirmed prospects.
+- [Pitch kit](NOVA_PITCH_KIT.md), [pitch deck outline](NOVA_PITCH_DECK.md), [demo script](PITCH_SCRIPT.md) — non-paid, adult-supervised discovery only.
+- [Buyer feedback outreach templates](BUYER_OUTREACH_TEMPLATES.md) — feedback only, not sale/purchase solicitation.
 - [Buyer objection review](BUYER_OBJECTION_REVIEW.md) — serious blockers remain.
-- [Buyer readiness scorecard](BUYER_READINESS_SCORECARD.md) — 38/100 qualitative internal estimate.
-- [Valuation Memo](VALUATION_MEMO.md) — Tier 1 ₹15–20 lakh unsupported; Tier 2 ₹10–20 crore hypothetical only.
+- [Buyer readiness scorecard](BUYER_READINESS_SCORECARD.md) — 36.8/100 ≈ 37/100 qualitative estimate, not appraisal.
+- [Valuation Memo](VALUATION_MEMO.md) — ₹15–20 lakh fair value unsupported; ₹10–20 crore scenario only.
+- [Cost-to-replicate report](COST_TO_REPLICATE.md) — modelled hours and public rate inputs, not an independent appraisal.
 
-## Evidence checkpoint
-- PR #98 exact pre-documentation head `2639072565c7e270b03131890152694e187c0fdb`: Main and Browser CI passed; four live/release checks skipped in Main.
-- Browser artifact: five CSS viewport screenshots and SPDX SBOM.
-- Staging is behind candidate; Health Check Path blank.
-- Production unchanged on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`.
-- No customer/revenue/retention/buyer interest/independent valuation/full IP clearance claims.
-
-Never place secrets, passwords, service-role keys, personal data, raw customer datasets or private support logs in this repository.
-
-
-## Competitive evidence and cost model update — 12 November 2026
-- [India competition and user-review research](MARKET_AND_DIFFERENTIATION_RESEARCH.md): Paddlewheel, BooDoo and NavBharatAI overlap with broad positioning; user-review signals are qualitative only.
-- [Cost-to-replicate report](COST_TO_REPLICATE.md): modelled gross parity labour ₹35.1–104.7 lakh; not independent appraisal or asset value.
-- [Buyer-readiness scorecard](BUYER_READINESS_SCORECARD.md): revised weighted estimate 36.8/100 ≈ 37/100.
-
+## Latest exact-head evidence — 12 November 2026
+- PR #98 head `c3ddc3e32423a219c2c456cd92c1cba42b87ed88`; Main [#43238989690](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989690) passed 45/45; Browser [#43238989457](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989457) passed 16/16.
+- Main skips live/Production release checks while PR remains Draft/unmerged.
+- CI covers synthetic BI calculations, allowlisted sample CSV downloads + path-traversal rejection, Docker health smoke and browser/mobile regression.
+- Staging still serves old `195739a04895de364a5af22aa61f930d5d782cbb`, Health Check Path blank.
+- Production remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; no Production change occurred.
+- Physical Android/microphone, live Auth/two-account isolation, backup restore, provider rights, IP ownership, final legal review, customers/revenue and buyer interest are not evidenced.
 
 ## Synthetic demo evidence
-- [NOVA BI sample data guide](samples/README.md) explains the three fictional CSVs and the exact expected arithmetic.
-- CI test `scripts/demo-data.test.cjs` checks expense budgets/trends, client contribution, team task metrics, risk heuristics and digital-twin scenario arithmetic against the production calculation module.
-- Sample data are fictional and must not be described as real user, customer, employee or financial results.
+- [NOVA BI sample data guide](samples/README.md) documents three fictional CSVs and illustrative arithmetic.
+- CI test `scripts/demo-data.test.cjs` verifies expenses, client contribution, team tasks, risk heuristic and Digital Twin arithmetic against the calculation module.
+- Demo data are not customer results, user counts, testimonials or benchmarks.
 
-
-## Backup and recovery
-- [Supabase Backup and Restore Runbook](BACKUP_AND_RESTORE.md) — documented procedure only; no backup export or restore drill executed. SQL dump alone does not transfer Auth users or Storage objects.
+Never place secrets, passwords, service-role keys, personal data, raw customer datasets or private support logs in this repository.

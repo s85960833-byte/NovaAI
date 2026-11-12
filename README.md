@@ -10,14 +10,16 @@ Production preview: https://novaai-4auo.onrender.com
 
 ## Release status — 12 November 2026
 
-<badge>Latest PR revision pending Staging verification; Production release held</badge>
+<badge>PR candidate CI green; current-head Staging and Production verification still blocked</badge>
 
-- Repository `main` currently points to `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render still serves commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7` via deployment `dep-dbom7bbm8hqs73ec2gi0` (Live). PR #98 is still Draft and has not been merged.
-- PR #98 contains the Learn-first bilingual mobile workspace updates and backend diagnostic improvements. Its current branch is `fix/nova-home-learn-first-mobile-20261109`.
-- Free Render staging service `novaai-pr98-staging` is configured for that PR branch, but its latest recorded deployment is still commit `195739a04895de364a5af22aa61f930d5d782cbb`, older than the latest revision shown on [PR #98](https://github.com/s85960833-byte/NovaAI/pull/98). The older deployment's build/start and internal live self-test verified the health endpoint, frontend, manifest, PWA icon, service worker, news feed and live data retrieval; these results do **not** verify the latest PR revision.
-- Latest code-bearing PR revision `98d53df88730a9437ce9a38b7f26130a397bc8e3` passed Main CI [run 43217291880](https://github.com/s85960833-byte/NovaAI/actions/runs/43217291880) (44 successful steps, 4 release/live checks skipped) and Browser CI [run 43217291738](https://github.com/s85960833-byte/NovaAI/actions/runs/43217291738) (16 successful steps). Coverage includes the new staged Supabase API-auth tests, bounded Auth-user response parsing, PostgreSQL tenant RLS, Deno checks, local routes/PWA, account flows, Company Cloud mobile flows and five-viewport responsive/drawer checks. PR workflows skip production-only live smoke tests while the PR remains unmerged. Chromium viewport tests do not replace physical Android-device testing.
-- AI chat is not enabled on staging until a server-side model provider is configured. Physical Android handset and real microphone capture are not yet verified. Direct external HTTP inspection from the review environment was unavailable; Render deployment and internal self-test logs are the available staging evidence.
-- The app is not approved for Production release or customer onboarding until provider configuration, physical-device checks, and the remaining privacy/authentication controls are reviewed.
+- Repository `main` remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render remains on commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7` via live deployment `dep-dbom7bbm8hqs73ec2gi0`. PR #98 remains Draft and unmerged.
+- Latest PR candidate is `c3ddc3e32423a219c2c456cd92c1cba42b87ed88`. Main workflow [#43238989690](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989690) passed 45/45 steps; Browser workflow [#43238989457](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989457) passed 16/16 steps, both on the exact same SHA.
+- Main CI covers synthetic NOVA BI calculation fixtures/tests, allowlisted CSV downloads with path-traversal rejection, PostgreSQL RLS migration tests, Deno checks, dependency audit, local route/PWA smoke and Docker image health smoke. Browser CI covers account/Company Cloud and mobile viewport flows.
+- Main skips four live/Production release checks while the PR is unmerged. Skipped checks are not passes.
+- Staging service `novaai-pr98-staging` is configured for the PR branch, but its latest Live deployment still serves old commit `195739a04895de364a5af22aa61f930d5d782cbb`. Its Health Check Path is blank. The new sample-download feature is not live-verified.
+- Old Staging logs showed health/static/PWA routes passing but `/api/config` and AI chat returned 503 because no model provider key was configured. Provider timeouts/rate-limit fallbacks also appeared. These are old-build observations, not current-candidate test results.
+- Browser viewport screenshots are Chromium emulation, not physical Android or microphone certification. Actual handset tests, Auth email/two-account checks, durable quotas, account deletion/retention, provider rights, backup restore and legal/IP review remain open.
+- Production was not merged, changed or redeployed by this work. No paid services or API credits were purchased.
 
 ## Search and sharing metadata
 
@@ -116,7 +118,7 @@ Use the existing Render web service, connect the existing repository and intende
 
 ## Exact-head CI checkpoint — 12 November 2026
 
-The current PR branch head `671f6dcec0842106ba1b0a5a946bd69c01001abb` passed Main workflow [#43207317636](https://github.com/s85960833-byte/NovaAI/actions/runs/43207317636) and Browser workflow [#43207318043](https://github.com/s85960833-byte/NovaAI/actions/runs/43207318043), both on the exact same commit. PR #98 remains Draft and unmerged. The current head is not yet deployed to Staging; Production remains unchanged. CI success is not a live deployment or physical-device certification.
+The latest PR branch head `c3ddc3e32423a219c2c456cd92c1cba42b87ed88` passed Main workflow [#43238989690](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989690) (45/45 steps) and Browser workflow [#43238989457](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989457) (16/16 steps), both on this exact SHA. PR #98 remains Draft/unmerged. Staging still runs old commit `195739a04895de364a5af22aa61f930d5d782cbb`; Production remains unchanged on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. Main skips live/Production release checks while the PR is unmerged. CI is not proof of deployment or physical-device behavior.
 
 
 ## Additional architecture and diligence documents

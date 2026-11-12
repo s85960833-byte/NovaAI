@@ -70,3 +70,11 @@ Follow [BACKUP_AND_RESTORE.md](BACKUP_AND_RESTORE.md). The process is documented
 - Candidate 13f6f317f190d569776f07c92d2dbcb752862c5f passed Main CI 47/47 and Browser CI 16/16.
 - Live Supabase function files match the candidate repository source exactly; function is ACTIVE v14 with JWT verification. Live read-only policy inspection confirms owner/admin-only audit-event reads.
 - These are code/configuration checks only. No live two-account test, account deletion, backup export/restore or alternative-host deployment has been completed.
+
+
+## Latest exact candidate and recovery evidence — 12 November 2026
+
+- PR #98 candidate `c3ddc3e32423a219c2c456cd92c1cba42b87ed88` passed Main [#43238989690](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989690) 45/45 and Browser [#43238989457](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989457) 16/16. This is automated CI only, not proof of deployment or ownership.
+- Staging remains on old commit `195739a04895de364a5af22aa61f930d5d782cbb`; Production remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`.
+- `BACKUP_AND_RESTORE.md` documents Supabase CLI export and isolated restore, but no backup export or restore drill has occurred. Standard CLI SQL dumps do not include Auth user records or actual Storage objects; those need separate approved handling.
+- Older technical evidence notes in this file refer to historical candidate commits. This section is the current PR/CI status and supersedes older candidate SHA/CI references only.

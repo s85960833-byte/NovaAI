@@ -23,10 +23,10 @@ Hindi-English AI workspace for learning, building and assistant workflows.
 - Docker/Compose packaging, CI, PostgreSQL migration/RLS tests, browser regression and SBOM generation.
 
 ## Slide 4 — What has been tested
-- Exact candidate Main CI and Browser CI passed on pre-doc head `2639072565c7e270b03131890152694e187c0fdb`.
-- Browser tests include 360, 390, 412, 760 and 1280 CSS-pixel viewports.
-- Main includes syntax/security checks, migration/RLS, Deno, container health smoke and integration tests.
-- Four Main live/release checks were skipped; CI is not live-deployment proof.
+- Latest PR candidate `c3ddc3e32423a219c2c456cd92c1cba42b87ed88`: Main [#43238989690](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989690) passed 45/45; Browser [#43238989457](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989457) passed 16/16.
+- Main includes syntax/security, RLS migrations, Deno, vulnerability audit, deterministic synthetic NOVA BI demo-data tests, allowlisted demo downloads, path-traversal rejection and Docker health smoke.
+- Browser workflow covers account/Company Cloud/mobile interaction. Chromium screenshots are not physical Android certification.
+- Main live/Production release checks remain skipped while PR #98 is Draft/unmerged. CI is not live-deployment proof.
 - Physical Android and microphone checks remain outstanding.
 
 ## Slide 5 — Potential differentiation (hypotheses, not moat claims)
@@ -69,3 +69,8 @@ Hindi-English AI workspace for learning, building and assistant workflows.
 Direct Indian products [Paddlewheel](https://paddlewheel.dev/in), [BooDoo](https://play.google.com/store/apps/details?hl=en_IN&id=ai.boodoo.app) and [NavBharatAI](https://navbharatai.com/) publicly advertise overlapping Hindi/Indian-language app creation, live preview/deploy, code export and assistant/payment capabilities. NOVA does not claim these as exclusive. Selected Lovable/Bolt reviews mention credit/rework and reliability/export friction, but self-selected reviews do not establish overall market prevalence or willingness to pay.
 
 The preliminary gross rebuild-labour estimate is ₹35–105 lakh, using a 1,500–2,280 hour scope model and published India agency rates. This is not independent appraisal or guaranteed buyer savings. ₹15–20 lakh remains unsupported as fair price; current buyer-readiness estimate is 37/100. See COST_TO_REPLICATE.md and MARKET_AND_DIFFERENTIATION_RESEARCH.md.
+
+
+## Latest evidence update — 12 November 2026
+
+The latest PR candidate `c3ddc3e32423a219c2c456cd92c1cba42b87ed88` passed Main 45/45 and Browser 16/16. NOVA BI candidate code includes fictional expense/client/task CSVs, deterministic checks and a safe allowlist for the three downloads. Samples are not customer outcomes. The Supabase backup/restore procedure is documented, but no backup export or restore has been executed. Staging still serves the older `195739a` commit; these additions are not live-verified.

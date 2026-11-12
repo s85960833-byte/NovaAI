@@ -70,3 +70,11 @@
 - Buyer-readiness: **36.8/100 ≈ 37/100**, weighted internal estimate, not appraisal.
 - Tier 1 ₹15–20 lakh fair asset value unsupported.
 - Tier 2 ₹10–20 crore aspirational only; requires sustained paid ARR, retention, growth, margins, clean IP/provider rights and independent valuation.
+
+
+## Latest CI and documentation synchronization — 12 November 2026
+
+- Current PR #98 exact head `c3ddc3e32423a219c2c456cd92c1cba42b87ed88` passed Main [#43238989690](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989690) 45/45 and Browser [#43238989457](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989457) 16/16.
+- README, top-level Data Room index, Technical Data Room, buyer objection review and pitch deck evidence references are synchronized to the latest candidate.
+- Backup/restore process is documented; no export/restore was executed.
+- This documentation update does not close the live Staging, Production, Auth, device, provider-rights, ownership, privacy or legal blockers.
