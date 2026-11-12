@@ -373,3 +373,15 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production merge or deploy was performed.
 - Live blockers: current-head Staging deployment and smoke; owner Health Check configuration; physical Android/microphone checks; public AI route authentication and durable quotas; provider commercial rights; account deletion/retention; backup/restore and load evidence; full asset/IP/legal review.
 - Overall Definition-of-Done progress: **23% estimated**. Buyer-readiness: **37/100 estimated**. These are internal qualitative estimates, not a formal appraisal.
+
+
+## Exact-head CI and staging recheck — 12 November 2026, 17:12 IST
+
+- Current PR #98 head is `eaf549f84aad43b8a1602ed9f9b91fd543056870`; PR remains Open, Draft and unmerged.
+- Main workflow #43208114793 and Browser workflow #43208114583 both completed successfully on this exact SHA. Main job contains 47 steps: 43 succeeded, 4 intentionally skipped (live website/provider/image checks and deployed Edge Function checks because the PR is not merged/deployed). Browser job: 16/16 succeeded. No failed steps.
+- Main CI also skipped the deployed NOVA BI Edge Function smoke because this is not a production release. Do not describe these runs as 47/47 executed tests.
+- Staging Render service `srv-dbqm035g1s2s73eogao0` still has Auto Deploy enabled but its latest Live deployment is `195739a04895de364a5af22aa61f930d5d782cbb`; Health Check Path is blank. The PR head is not live on Staging.
+- Staging owner action remains: Render Dashboard → Settings → Health Checks → set `/health` → Save Changes. Do not manually deploy; verify whether Auto Deploy picks up the PR head after health configuration.
+- Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production merge/deploy was performed.
+- Release blockers remain: current-head Staging smoke; physical Android/microphone checks; public AI route auth and durable quotas; provider commercial rights; account deletion/retention; backup/restore drill; complete source/asset/IP and legal review; real operating evidence.
+- Overall Definition-of-Done progress: **23% estimated**. Buyer-readiness: **37/100 estimated**. These are internal qualitative estimates, not an independent appraisal.
