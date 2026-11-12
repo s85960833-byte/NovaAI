@@ -5,11 +5,14 @@ Repository: https://github.com/s85960833-byte/NovaAI
 Production URL: https://novaai-4auo.onrender.com
 Production branch: main
 Current candidate: PR #98 — fix/nova-home-learn-first-mobile-20261109
-Candidate head audited: 059d6fabaa4aa880d2dd057b990db95c3957c498
+Candidate code head audited: 5176c0e57cff1cc3e6c7bf418bad2b1e6b7ac97c
+Latest API-audit documentation commit: a5d621da59635a087b446bc12f49398a19d261c8
 
 ## Done (evidence-backed)
 - PR #98 remains open, Draft, and unmerged. GitHub currently reports it mergeable; production main remains unchanged by this candidate.
-- Main verification run 43194899049 passed on candidate head 059d6fa. Browser verification run 43194899149 passed on the same head. A subsequent browser rerun 43195092562 also passed; main rerun 43195092459 is still in progress at the time of this update.
+- Main verification run 43194899049 and rerun 43195092459 passed on functional candidate 059d6fa. Browser verification runs 43194899149 and 43195092562 passed on that same candidate.
+- Both workflows passed on documentation/status candidate 5176c0e (main 43195438932; browser 43195439000). A later rerun on 5176c0e: browser 43195643483 passed; main 43195643405 was still in progress at the last check.
+- New API integration inventory and vendor-terms review added as API_INTEGRATION_AUDIT.md in commit a5d621d. Latest commit's Main run 43195820427 is pending and Browser run 43195820563 is in progress; do not count these as passed.
 - Five Chromium viewport screenshots were previously inspected: 360x800, 390x844, 412x915, 760x1024 and 1280x800. This is browser emulation, not physical Android certification.
 - .env.example exists; .gitignore excludes local env/secrets and common credential files. The active runtime is Node.js 22 with start command node nova-server.txt.
 - Privacy Notice and Terms drafts exist and explicitly disclose incomplete controls; they are not final legal documents.
@@ -21,7 +24,8 @@ Candidate head audited: 059d6fabaa4aa880d2dd057b990db95c3957c498
 - Static scan found 49 buttons and 13 inputs; all 13 inputs had a nearby/explicit label attribute. Only 21 buttons had an aria-label/title attribute; text-labelled buttons may still be accessible, so a rendered accessibility audit remains required.
 - No privacy/terms link or consent UI was detected in the main HTML. This is not proof no scripted controls exist; verify rendered app and actual storage/cookie use before implementing consent UI.
 - Backend security controls include baseline headers/CSP, a per-IP in-memory API throttle, a 6 MB JSON body limit, /health, and HTTPS/credential/query/fragment validation for configured provider base URLs. CSP still allows inline styles and broad HTTPS connections.
-- General /api routes, including AI chat, are not authenticated in the Express server. The current global limit is 60 requests/minute per IP and is in-memory; it resets on process restart and is not a durable per-account quota. Do not configure a paid provider key or expose a billable provider until authentication/abuse controls and hard spend limits are designed and tested.
+- General /api routes, including AI chat and speech transcription, are not authenticated in the Express server. The current global limit is 60 requests/minute per IP and is in-memory; it resets on process restart and is not a durable per-account quota. Live retrieval has a separate 24/minute per-IP limit; image generation has 3 per 10 minutes. Do not configure a paid provider key or expose a billable provider until authentication/abuse controls and hard spend limits are designed and tested.
+- API integration audit is now documented in API_INTEGRATION_AUDIT.md. It identifies commercial-use/terms risks for Open-Meteo free tier, Yahoo Finance's undocumented endpoint, ESPN's undocumented endpoint, TheSportsDB free API and publisher RSS reuse. Vendor key validity, exact account quotas and transfer rights remain unverified; overall API audit is NOT PASSED.
 - Account cloud sync is OFF by default and requires explicit opt-in. The confirmation explains that up to 40 chats (up to 150 messages each), extracted document text, saved memory and custom instructions may be synced; image attachments are excluded. The table is protected by per-user RLS. Turning sync off stops future sync but does not delete the cloud copy; the separate delete-backup control removes that row.
 - Self-service account deletion and a published retention schedule are not implemented. The draft Privacy Notice correctly treats this as a launch blocker.
 - Company Cloud Edge Function enforces authenticated user context, configured-site CORS, bounded JSON request bodies, per-user API/invitation rate limits and membership checks. Live deployed Edge Function auth/CORS and email delivery remain unverified.
@@ -44,7 +48,7 @@ Candidate head audited: 059d6fabaa4aa880d2dd057b990db95c3957c498
 7. Research competitors and user pain points before claiming uniqueness or pricing.
 
 ## Blocked / owner-dependent
-- Staging still serves old commit 195739a04895de364a5af22aa61f930d5d782cbb, not candidate head 059d6fabaa4aa880d2dd057b990db95c3957c498. Render Health Check Path is blank; owner must set /health in the existing Staging Dashboard and deploy latest commit there.
+- Staging still serves old commit 195739a04895de364a5af22aa61f930d5d782cbb, not candidate head a5d621da59635a087b446bc12f49398a19d261c8. Render Health Check Path is blank; owner must set /health in the existing Staging Dashboard and deploy latest commit there.
 - Live AI Chat testing requires a permitted server-side provider key and explicit model in existing Staging Environment. Never share secrets in chat or commit them. Use only provider terms/age-eligible access and no paid credits.
 - Physical Android full-width layout, touch, drawer and real microphone capture require the actual handset.
 - Real Auth confirmation/reset email, two-device sync, account deletion/retention, live image generation and third-party provider checks remain incomplete.
@@ -61,8 +65,8 @@ Candidate head audited: 059d6fabaa4aa880d2dd057b990db95c3957c498
 - Acquisition value ₹10–20 crore is a target, not a present valuation or guarantee.
 
 ## Current readiness snapshot
-- Candidate main CI: PASS on run 43194899049; same-SHA rerun 43195092459 still in progress at update time.
-- Candidate browser CI: PASS on runs 43194899149 and 43195092562.
+- Candidate main CI: PASS on runs 43194899049 and 43195092459 for 059d6fa; PASS on 5176c0e run 43195438932; rerun 43195643405 was still in progress at last check; latest audit-doc run 43195820427 pending.
+- Candidate browser CI: PASS on 43194899149 and 43195092562 for 059d6fa; PASS on 5176c0e runs 43195439000 and 43195643483; latest audit-doc run 43195820563 in progress.
 - Staging latest-head verification: BLOCKED.
 - Physical Android: NOT VERIFIED.
 - Provider-backed live AI: NOT VERIFIED.
