@@ -19,6 +19,7 @@ The checked-in `.env.example` declares these variables (values are blank or safe
 - Speech: `STT_MODEL`, `STT_OFF`
 - Image: `IMAGE_OFF`, `ALLOW_PAID_IMAGE`, `IMAGE_KEY`, `IMAGE_MODEL`, `IMAGE_BASE`, `POLLI_KEY`, `HORDE_API_KEY`, `HORDE_BASE`
 - Runtime controls: `PORT`, `LIVE_CONCURRENCY`, `LLM_MAX_HISTORY`, `LLM_MAX_INPUT_TOKENS`, `LLM_MAX_OUTPUT_TOKENS`, `LLM_TIMEOUT_MS`, `LLM_VISION_BUDGET`
+- Staged Express API authentication: `NOVA_API_AUTH_REQUIRED`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`
 - Diagnostics: `SELFTEST_ON_START`, `LIVE_SELFTEST_ENABLED`
 - Supabase Edge Function setting: `NOVA_BI_SITE_URL` (configure in Supabase Functions secrets, not as a provider credential)
 
@@ -49,7 +50,7 @@ Supabase project URL and browser client setup are present in the frontend/accoun
 - Express applies a process-local per-IP limit of 60 requests/minute to `/api/*` before JSON parsing; JSON body limit is 6 MB. This limit resets on process restart and does not provide durable per-user quotas or a monthly spend cap.
 - Live retrieval has an additional process-local per-IP limit of 24 requests/minute and a concurrency cap.
 - Image generation has a separate limit of 3 requests per IP per 10 minutes and a bounded in-memory queue. Image job state is process-local and not durable across restarts.
-- Provider-backed AI chat and speech routes are unauthenticated at the Express layer. This is a release blocker before any billable provider key is enabled for public traffic.
+- The candidate now contains a feature-gated Supabase Auth middleware for `/api/*` except public read-only `/api/config` and `/api/feed`. When `NOVA_API_AUTH_REQUIRED=1`, the server verifies each Bearer token against the Supabase Auth `/auth/v1/user` endpoint, rejects invalid tokens before JSON parsing, fails startup if required Supabase settings are missing, forwards the browser's current access token, and binds image-job polling to the authenticated user. The gate is intentionally **disabled by default** (`NOVA_API_AUTH_REQUIRED=0`) until Staging and the account-required UX are verified. Therefore, the deployed/current configuration remains unauthenticated until the operator enables the flag; this is still a release blocker for public billable traffic.
 - The general `lhttp()` path now has bounded streaming reads, and direct speech/image provider responses have explicit response-size caps. LLM streaming remains intentionally streamed to the client; apply output-token/time limits and client-abort propagation in the remaining API hardening pass.
 - OpenRouter free-model use is subject to upstream daily/minute limits. A free-tier account has no OpenRouter spend-control features; paid model requests can incur per-token charges.
 - Vendor rate limits and error fallbacks do not replace a hard product-side usage budget.
@@ -101,3 +102,14 @@ Supabase project URL and browser client setup are present in the frontend/accoun
 - Non-OK provider error bodies are capped at 1 MiB before reading.
 - `.env.example` now documents every active Express server `E.NAME` variable. `NOVA_BI_SITE_URL` is documented separately as a Supabase Edge Function setting.
 - Regression tests: `test:timezone`, `test:provider-http`, `test:image-privacy`, `test:env-example`.
+
+
+## Candidate API authentication gate — 12 November 2026
+
+- Added `nova-api-auth.js`: HTTPS-origin-only Supabase Auth verification, bounded Bearer token parsing, server-side user lookup, timeout, 401 for invalid/missing credentials, and 503 fail-closed behavior for Auth service outages.
+- `nova-server.txt` applies the gate to all API routes except `/api/config` and `/api/feed`, before JSON body parsing. Missing Supabase configuration prevents startup when the gate is enabled.
+- `nova-account.js` attaches the current Supabase access token to same-origin protected API requests; the server verifies it independently.
+- Image-generation job records are associated with the verified user when authentication is enabled; a different user receives 404 when polling another user's job.
+- The default remains `NOVA_API_AUTH_REQUIRED=0` to avoid silently breaking the current optional-account/guest experience before Staging and product UX verification. **Do not treat this as secured in a deployment until the flag is enabled and live tests pass.**
+- This change does not implement durable per-user quotas, subscription entitlements, a monthly usage budget or hard spend caps. Existing IP limits are process-local and insufficient for commercial release.
+- CI tests cover URL validation, missing/malformed tokens, valid-user mapping, invalid tokens, upstream outages, startup fail-closed configuration, route-gate ordering, and browser token forwarding. CI results must be checked on the exact PR head before release.
