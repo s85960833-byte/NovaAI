@@ -97,7 +97,7 @@
 - NOVA Business Intelligence Edge Function imports `@supabase/server` through Deno configuration. Its dependency tree and licences are managed separately from npm and must be inventoried from Deno lock/import metadata before resale clearance.
 - Render, Supabase hosted services, jsDelivr, AI/search/news/weather/finance/sports providers, and any provider-proxied assets are service dependencies, not npm packages.
 - The entry animation is stored as base64 text parts under `assets/entry-video/`. Its underlying video provenance, creator, music/audio rights and assignment evidence have not yet been independently verified.
-- The repository includes legacy-looking files `nova-server.js`, `index.htmlnova-ai-1.html` and `index.htmlnova-ai-1.htmlnova-ai.html`. Production starts `nova-server.txt`; the other files are not proven active or legally cleared. Preserve until owner confirms archival/deletion policy.
+- A Phase 1 cleanup removed two obsolete artifacts from the PR branch: an empty HTML file and an unreferenced, explicitly untested starter server stored under an HTML-like filename. Production entry point remains `nova-server.txt`. The historical commit remains available in Git history; the removed files are not part of the candidate release.
 
 ## Resale interpretation
 
