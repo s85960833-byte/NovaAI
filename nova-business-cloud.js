@@ -181,5 +181,22 @@ function open(){ensureClient();returnFocus=document.activeElement;overlay.classL
 function close(){if(!overlay.classList.contains('show'))return;overlay.classList.remove('show');const target=returnFocus?.isConnected?returnFocus:document.querySelector('#nmContent [data-quick="openCompanyCloud"]');if(target)target.focus();else document.querySelector('#nrSidebarLinks [data-k="agents"]')?.focus();returnFocus=null}
 $('ncbClose').addEventListener('click',close);overlay.addEventListener('click',e=>{if(e.target===overlay)close()});overlay.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();return}if(e.key==='Tab'){const items=[...overlay.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x=>x.offsetParent!==null);if(!items.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
 window.addEventListener('nova:ui-language-changed',()=>{if(overlay.classList.contains('show'))render()});
-window.NovaBusinessCloud=Object.freeze({open,close,getClient:ensureClient,version:'0.2.0'});
+async function missionApi(path,method='GET',payload,idempotencyKey){
+ if(typeof path!=='string'||!/^(?:missions(?:\/[0-9a-f-]{36}(?:\/plan|\/cancel|\/tasks\/[0-9a-f-]{36}\/approval)?)?|approvals\/[0-9a-f-]{36}\/decision)$/i.test(path))throw new Error('Invalid mission API path.');
+ if(!['GET','POST'].includes(method))throw new Error('Unsupported mission API method.');
+ const c=ensureClient(),{data:{session},error:sessionError}=await c.auth.getSession();
+ if(sessionError)throw sessionError;
+ if(!session?.access_token)throw new Error('Sign in to your NOVA account before opening Mission Control.');
+ const headers={apikey:CFG.key,Authorization:'Bearer '+session.access_token};
+ if(payload!==undefined)headers['Content-Type']='application/json';
+ if(idempotencyKey)headers['Idempotency-Key']=String(idempotencyKey);
+ const response=await fetch(CFG.url+'/functions/v1/nova-mission-api/'+path,{
+  method,headers,body:payload===undefined?undefined:JSON.stringify(payload),
+  signal:AbortSignal.timeout(20000)
+ });
+ let result={};try{result=await response.json()}catch{}
+ if(!response.ok)throw new Error(result.error||('Mission request failed ('+response.status+')'));
+ return result;
+}
+window.NovaBusinessCloud=Object.freeze({open,close,getClient:ensureClient,missionApi,version:'0.3.0'});
 })();

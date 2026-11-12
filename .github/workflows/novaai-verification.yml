@@ -3,7 +3,7 @@ permissions:
   contents: read
 on:
   push:
-    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101, feature-indian-future-ui, feature-nova-next-ui-20261101, feature/nova-business-intelligence, feature/nova-bi-reconciled-20261106, feature/nova-integrated-release-20261106]
+    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101, feature-indian-future-ui, feature-nova-next-ui-20261101, feature/nova-business-intelligence, feature/nova-bi-reconciled-20261106, feature/nova-integrated-release-20261106, feature/nova-mission-engine-v1]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -42,6 +42,8 @@ jobs:
         run: node scripts/modes-check.mjs
       - name: Test cloud sync message merge and conflict overlap
         run: npm run test:cloud-sync
+      - name: Test NOVA Mission Engine lifecycle and proof verification
+        run: npm run test:mission-core
       - name: Test bounded per-IP rate window
         run: node --test scripts/rate-limit.test.cjs
       - name: Test HTTPS-only secret-bearing provider endpoints
@@ -49,8 +51,14 @@ jobs:
       - name: Test PDF.js untrusted-document eval mitigation
         run: node --test scripts/pdf-security.test.cjs
       - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
-      - name: Apply NOVA BI migrations and verify tenant RLS in PostgreSQL
+        timeout-minutes: 8
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=45 -o Acquire::https::Timeout=45 update
+            sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=45 -o Acquire::https::Timeout=45 install -y --no-install-recommends postgresql-client
+          fi
+          psql --version
+      - name: Apply NOVA BI + Mission Engine migrations and run PostgreSQL RLS/integration tests
         env:
           PGHOST: 127.0.0.1
           PGPORT: 5432
@@ -58,16 +66,60 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: nova_bi_test
         run: bash scripts/test-supabase-migrations.sh
+      - name: Stress concurrent NOVA mission action reservations
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: nova_bi_test
+        run: bash scripts/test-mission-concurrency.sh
       - name: Install pinned Deno runtime from npm
         run: |
           npm install --global deno@2.9.6
           deno --version | grep -F 'deno 2.9.6'
       - name: Install authenticated NOVA BI Edge Function dependencies
         run: deno install --config supabase/functions/nova-bi-api/deno.json
+      - name: Install NOVA Mission API dependencies
+        run: deno install --config supabase/functions/nova-mission-api/deno.json
+      - name: Install NOVA trusted proof API dependencies
+        run: deno install --config supabase/functions/nova-mission-proof-api/deno.json
       - name: Type-check authenticated NOVA BI Edge Function
         run: deno check --config supabase/functions/nova-bi-api/deno.json --no-lock supabase/functions/nova-bi-api/index.ts
-      - name: Test existing-account company invitation lookup
+      - name: Type-check authenticated NOVA Mission API
+        run: deno check --config supabase/functions/nova-mission-api/deno.json --no-lock supabase/functions/nova-mission-api/index.ts
+      - name: Type-check trusted NOVA Mission proof API
+        run: deno check --config supabase/functions/nova-mission-proof-api/deno.json --no-lock supabase/functions/nova-mission-proof-api/index.ts
+      - name: Test existing-account company invitation lookup and NOVA BI request security
         run: deno test --config supabase/functions/nova-bi-api/deno.json supabase/functions/nova-bi-api/invitations_test.ts supabase/functions/nova-bi-api/cors_test.ts supabase/functions/nova-bi-api/request-input_test.ts
+      - name: Test NOVA Mission API exact-origin CORS policy
+        run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-cors_test.ts
+      - name: Test NOVA Mission API validation, starter planner and approvals
+        run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-input_test.ts supabase/functions/nova-mission-api/mission-planner_test.ts supabase/functions/nova-mission-api/mission-approval_test.ts supabase/functions/nova-mission-api/mission-proof_test.ts
+      - name: Test trusted Mission verifier request authentication
+        run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-proof-auth_test.ts
+      - name: Test trusted Mission proof API request shape
+        run: deno test --config supabase/functions/nova-mission-proof-api/deno.json supabase/functions/nova-mission-proof-api/mission-proof-request_test.ts
+      - name: Test fail-closed Mission worker task registry
+        run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-task-registry_test.ts
+      - name: Test lease-fenced Mission worker runtime
+        run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-worker-runtime_test.ts
+      - name: Test task-specific Mission evidence verifiers
+        run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-task-verifiers_test.ts
+      - name: Type-check runtime Mission tool gateway
+        run: deno check --config supabase/functions/nova-mission-api/deno.json --no-lock supabase/functions/nova-mission-api/mission-tool-gateway.ts
+      - name: Type-check and test runtime Mission permission policy
+        run: |
+          deno check --config supabase/functions/nova-mission-api/deno.json --no-lock supabase/functions/nova-mission-api/mission-permission-policy.ts
+          deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-permission-policy_test.ts
+      - name: Test fail-closed runtime Mission tool gateway
+        run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-tool-gateway_test.ts
+      - name: Type-check trusted Mission gateway database adapter
+        run: deno check --config supabase/functions/nova-mission-api/deno.json --no-lock supabase/functions/nova-mission-api/mission-tool-gateway-adapter.ts
+      - name: Type-check fail-closed Mission worker runtime
+        run: deno check --config supabase/functions/nova-mission-api/deno.json --no-lock supabase/functions/nova-mission-api/mission-worker-runtime.ts
+      - name: Test trusted Mission gateway database adapter
+        run: deno test --config supabase/functions/nova-mission-api/deno.json supabase/functions/nova-mission-api/mission-tool-gateway-adapter_test.ts
       - name: Smoke-test deployed NOVA BI Edge Function auth and CORS
         if: github.ref == 'refs/heads/main'
         run: node scripts/supabase-edge-smoke.mjs
@@ -86,15 +138,21 @@ jobs:
           node scripts/runtime-smoke.mjs || { echo '--- NOVA server startup log ---'; cat /tmp/novaai-test.log; exit 1; }
       - name: Verify graceful server shutdown
         run: node scripts/shutdown-smoke.mjs
-      - name: Install Devanagari fonts for visual regression screenshots
+      - name: Check Devanagari font availability for visual regression screenshots
         run: |
-          sudo apt-get update
-          sudo apt-get install -y fonts-noto-core
-          fc-match 'Noto Sans Devanagari' | grep -q 'Noto Sans Devanagari'
+          if command -v fc-match >/dev/null 2>&1 && fc-match 'Noto Sans Devanagari' | grep -q 'Noto Sans Devanagari'; then
+            echo "Noto Sans Devanagari is available"
+          else
+            echo "::warning::Noto Sans Devanagari unavailable; Chromium will use its fallback font"
+          fi
       - name: Install Playwright Chromium for Company Cloud browser tests
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
+      - name: Verify NOVA Mission Control with a mocked authenticated API
+        env:
+          NOVAAI_URL: http://127.0.0.1:8787
+        run: node scripts/mission-ui-smoke.mjs
       - name: Verify responsive workspace interactions and PDF.js worker in Chromium
         run: node scripts/browser-smoke.mjs
       - name: Test Company Cloud mobile browser workflows

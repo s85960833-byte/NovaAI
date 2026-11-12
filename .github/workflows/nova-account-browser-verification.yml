@@ -8,13 +8,14 @@ on:
       - index.html
       - nova-app.js
       - nova-account.js
+      - nova-suite.js
       - nova-business-cloud.js
       - nova-server.txt
       - scripts/**
       - supabase/migrations/**
       - .github/workflows/nova-account-browser-verification.yml
   push:
-    branches: [feature/nova-account-cloud-sync-20261108]
+    branches: [feature/nova-account-cloud-sync-20261108, feature/nova-mission-engine-v1]
   workflow_dispatch:
 concurrency:
   group: nova-account-browser-${{ github.ref }}
@@ -32,21 +33,27 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Check syntax, privacy disclosures, account UI and RLS migration
         run: node scripts/check.mjs
-      - name: Install Devanagari fonts
+      - name: Check Devanagari font availability
         run: |
-          sudo apt-get update
-          sudo apt-get install -y fonts-noto-core
-          fc-match 'Noto Sans Devanagari' | grep -q 'Noto Sans Devanagari'
+          if command -v fc-match >/dev/null 2>&1 && fc-match 'Noto Sans Devanagari' | grep -q 'Noto Sans Devanagari'; then
+            echo "Noto Sans Devanagari is available"
+          else
+            echo "::warning::Noto Sans Devanagari unavailable; Chromium will use its fallback font"
+          fi
       - name: Install Playwright Chromium
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Start local NOVA test server
         run: |
           LLM_KEY=test LLM_MODEL=test-model PORT=8787 node nova-server.txt > /tmp/nova-account-test.log 2>&1 &
           echo $! > /tmp/nova-account-test.pid
       - name: Verify local routes and account PWA asset
         run: node scripts/runtime-smoke.mjs
+      - name: Verify NOVA Mission Control with a mocked authenticated API
+        env:
+          NOVAAI_URL: http://127.0.0.1:8787
+        run: node scripts/mission-ui-smoke.mjs
       - name: Verify account UI, privacy and opt-in cloud sync in Chromium
         env:
           NOVAAI_URL: http://127.0.0.1:8787

@@ -1,0 +1,304 @@
+-- NOVA Mission Engine persistence and append-only proof history.
+-- Browser users can read only their own missions. Writes are reserved for the trusted
+-- server-side execution layer using the service_role key; never expose that key to clients.
+
+create table if not exists public.nova_missions (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  title text not null check (char_length(btrim(title)) between 1 and 200),
+  description text not null default '' check (char_length(description) <= 10000),
+  workspace text not null default 'agents'
+    check (workspace in ('learn','build','agents','intelligence')),
+  state text not null default 'draft'
+    check (state in ('draft','planned','running','waiting_approval','verifying','completed','failed','cancelled')),
+  version integer not null default 0 check (version >= 0),
+  attempts integer not null default 0 check (attempts >= 0),
+  idempotency_key text check (idempotency_key is null or char_length(idempotency_key) between 1 and 160),
+  plan_json jsonb not null default '{}'::jsonb
+    check (jsonb_typeof(plan_json) = 'object' and octet_length(plan_json::text) <= 100000),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (id, owner_id),
+  unique (owner_id, idempotency_key)
+);
+
+create table if not exists public.nova_mission_tasks (
+  id uuid primary key default gen_random_uuid(),
+  mission_id uuid not null,
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  sequence integer not null check (sequence > 0),
+  title text not null check (char_length(btrim(title)) between 1 and 200),
+  status text not null default 'planned'
+    check (status in ('planned','running','waiting_approval','verifying','completed','failed','cancelled')),
+  attempts integer not null default 0 check (attempts >= 0),
+  input_json jsonb not null default '{}'::jsonb
+    check (jsonb_typeof(input_json) = 'object' and octet_length(input_json::text) <= 50000),
+  result_json jsonb not null default '{}'::jsonb
+    check (jsonb_typeof(result_json) = 'object' and octet_length(result_json::text) <= 50000),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (mission_id, sequence),
+  unique (id, mission_id, owner_id),
+  foreign key (mission_id, owner_id)
+    references public.nova_missions(id, owner_id) on delete cascade
+);
+
+create table if not exists public.nova_mission_events (
+  id uuid primary key default gen_random_uuid(),
+  mission_id uuid not null,
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  sequence bigint not null check (sequence > 0),
+  event_type text not null check (char_length(btrim(event_type)) between 1 and 120),
+  from_state text,
+  to_state text not null
+    check (to_state in ('draft','planned','running','waiting_approval','verifying','completed','failed','cancelled')),
+  actor_id uuid references auth.users(id) on delete set null,
+  payload_json jsonb not null default '{}'::jsonb
+    check (jsonb_typeof(payload_json) = 'object' and octet_length(payload_json::text) <= 20000),
+  created_at timestamptz not null default now(),
+  unique (mission_id, sequence),
+  foreign key (mission_id, owner_id)
+    references public.nova_missions(id, owner_id) on delete cascade
+);
+
+create table if not exists public.nova_mission_proofs (
+  id uuid primary key default gen_random_uuid(),
+  mission_id uuid not null,
+  task_id uuid,
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  proof_type text not null check (char_length(btrim(proof_type)) between 1 and 80),
+  summary text not null check (char_length(btrim(summary)) between 1 and 2000),
+  verification_status text not null default 'pending'
+    check (verification_status in ('pending','passed','failed','not_applicable')),
+  evidence_json jsonb not null default '{}'::jsonb
+    check (jsonb_typeof(evidence_json) = 'object' and octet_length(evidence_json::text) <= 50000),
+  verified_at timestamptz,
+  created_at timestamptz not null default now(),
+  foreign key (mission_id, owner_id)
+    references public.nova_missions(id, owner_id) on delete cascade,
+  foreign key (task_id, mission_id, owner_id)
+    references public.nova_mission_tasks(id, mission_id, owner_id) on delete cascade,
+  check (
+    (verification_status = 'passed' and verified_at is not null)
+    or (verification_status <> 'passed' and verified_at is null)
+  )
+);
+
+-- A mission cannot enter the completed state unless a passing proof record exists.
+create or replace function public.nova_require_verified_mission_completion()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.state = 'completed' and old.state is distinct from 'completed'
+     and not exists (
+       select 1 from public.nova_mission_proofs p
+       where p.mission_id = new.id
+         and p.owner_id = new.owner_id
+         and p.verification_status = 'passed'
+         and p.verified_at is not null
+     ) then
+    raise exception 'Mission completion requires at least one passing proof record'
+      using errcode = '23514';
+  end if;
+  return new;
+end;
+$$;
+revoke all on function public.nova_require_verified_mission_completion() from public, anon, authenticated;
+drop trigger if exists nova_mission_completion_requires_proof on public.nova_missions;
+create trigger nova_mission_completion_requires_proof
+before update of state on public.nova_missions
+for each row execute function public.nova_require_verified_mission_completion();
+
+create or replace function public.nova_create_mission(
+  p_owner_id uuid,
+  p_title text,
+  p_description text default '',
+  p_workspace text default 'agents',
+  p_idempotency_key text default null,
+  p_plan_json jsonb default '{}'::jsonb
+)
+returns uuid
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_mission_id uuid;
+  v_existing_title text;
+  v_existing_description text;
+  v_existing_workspace text;
+  v_existing_plan jsonb;
+begin
+  if current_user <> 'service_role' then
+    raise exception 'Mission creation is restricted to the trusted server role'
+      using errcode = '42501';
+  end if;
+
+  if p_idempotency_key is not null then
+    select id, title, description, workspace, plan_json
+      into v_mission_id, v_existing_title, v_existing_description, v_existing_workspace, v_existing_plan
+    from public.nova_missions
+    where owner_id = p_owner_id and idempotency_key = p_idempotency_key;
+    if v_mission_id is not null then
+      if v_existing_title is distinct from pg_catalog.btrim(p_title)
+         or v_existing_description is distinct from coalesce(p_description, '')
+         or v_existing_workspace is distinct from coalesce(p_workspace, 'agents')
+         or v_existing_plan is distinct from coalesce(p_plan_json, '{}'::jsonb) then
+        raise exception 'Mission idempotency key is already used for a different request'
+          using errcode = '23505';
+      end if;
+      return v_mission_id;
+    end if;
+  end if;
+
+  insert into public.nova_missions(
+    owner_id, title, description, workspace, idempotency_key, plan_json
+  ) values (
+    p_owner_id, pg_catalog.btrim(p_title), coalesce(p_description, ''),
+    coalesce(p_workspace, 'agents'), p_idempotency_key, coalesce(p_plan_json, '{}'::jsonb)
+  )
+  on conflict (owner_id, idempotency_key) do nothing
+  returning id into v_mission_id;
+
+  if v_mission_id is null then
+    select id, title, description, workspace, plan_json
+      into v_mission_id, v_existing_title, v_existing_description, v_existing_workspace, v_existing_plan
+    from public.nova_missions
+    where owner_id = p_owner_id and idempotency_key = p_idempotency_key;
+    if v_existing_title is distinct from pg_catalog.btrim(p_title)
+       or v_existing_description is distinct from coalesce(p_description, '')
+       or v_existing_workspace is distinct from coalesce(p_workspace, 'agents')
+       or v_existing_plan is distinct from coalesce(p_plan_json, '{}'::jsonb) then
+      raise exception 'Mission idempotency key is already used for a different request'
+        using errcode = '23505';
+    end if;
+    return v_mission_id;
+  end if;
+
+  insert into public.nova_mission_events(
+    mission_id, owner_id, sequence, event_type, from_state, to_state, actor_id, payload_json
+  ) values (
+    v_mission_id, p_owner_id, 1, 'mission.created', null, 'draft', p_owner_id, '{}'::jsonb
+  );
+  return v_mission_id;
+end;
+$$;
+revoke all on function public.nova_create_mission(uuid,text,text,text,text,jsonb) from public, anon, authenticated;
+grant execute on function public.nova_create_mission(uuid,text,text,text,text,jsonb) to service_role;
+create or replace function public.nova_save_mission_plan(
+  p_owner_id uuid,
+  p_mission_id uuid,
+  p_plan_json jsonb,
+  p_tasks jsonb
+)
+returns uuid
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_state text;
+  v_task_count integer;
+  v_next_event_sequence bigint;
+begin
+  if current_user <> 'service_role' then
+    raise exception 'Mission planning is restricted to the trusted server role'
+      using errcode = '42501';
+  end if;
+  if p_plan_json is null or pg_catalog.jsonb_typeof(p_plan_json) <> 'object'
+     or pg_catalog.octet_length(p_plan_json::text) > 100000 then
+    raise exception 'Mission plan must be a JSON object up to 100 KB'
+      using errcode = '23514';
+  end if;
+  if p_tasks is null or pg_catalog.jsonb_typeof(p_tasks) <> 'array' then
+    raise exception 'Mission tasks must be a JSON array' using errcode = '23514';
+  end if;
+  v_task_count := pg_catalog.jsonb_array_length(p_tasks);
+  if v_task_count < 1 or v_task_count > 20 then
+    raise exception 'Mission plan must contain between 1 and 20 tasks' using errcode = '23514';
+  end if;
+  if exists (
+    select 1
+    from pg_catalog.jsonb_array_elements(p_tasks) as item(value)
+    where pg_catalog.jsonb_typeof(item.value) <> 'object'
+       or pg_catalog.char_length(pg_catalog.btrim(coalesce(item.value->>'title',''))) not between 1 and 200
+       or (item.value ? 'description' and pg_catalog.jsonb_typeof(item.value->'description') <> 'string')
+       or pg_catalog.char_length(coalesce(item.value->>'description','')) > 2000
+  ) then
+    raise exception 'Mission task titles and descriptions are invalid' using errcode = '23514';
+  end if;
+
+  select state into v_state
+  from public.nova_missions
+  where id = p_mission_id and owner_id = p_owner_id
+  for update;
+  if not found then
+    raise exception 'Mission not found' using errcode = 'P0002';
+  end if;
+  if v_state <> 'draft' then
+    raise exception 'Only draft missions can receive a starter plan' using errcode = '55000';
+  end if;
+  if exists (select 1 from public.nova_mission_tasks where mission_id = p_mission_id and owner_id = p_owner_id) then
+    raise exception 'Mission already contains tasks' using errcode = '55000';
+  end if;
+
+  insert into public.nova_mission_tasks(mission_id, owner_id, sequence, title, status, input_json)
+  select p_mission_id, p_owner_id, item.ordinality::integer,
+         pg_catalog.btrim(item.value->>'title'), 'planned',
+         pg_catalog.jsonb_build_object('description', coalesce(item.value->>'description',''))
+  from pg_catalog.jsonb_array_elements(p_tasks) with ordinality as item(value, ordinality);
+
+  update public.nova_missions
+  set state = 'planned', plan_json = p_plan_json, version = version + 1, updated_at = pg_catalog.now()
+  where id = p_mission_id and owner_id = p_owner_id;
+
+  select coalesce(max(sequence), 0) + 1 into v_next_event_sequence
+  from public.nova_mission_events where mission_id = p_mission_id;
+  insert into public.nova_mission_events(
+    mission_id, owner_id, sequence, event_type, from_state, to_state, actor_id, payload_json
+  ) values (
+    p_mission_id, p_owner_id, v_next_event_sequence, 'mission.planned', 'draft', 'planned',
+    p_owner_id, pg_catalog.jsonb_build_object('task_count', v_task_count, 'plan_type', p_plan_json->>'kind')
+  );
+  return p_mission_id;
+end;
+$$;
+revoke all on function public.nova_save_mission_plan(uuid,uuid,jsonb,jsonb) from public, anon, authenticated;
+grant execute on function public.nova_save_mission_plan(uuid,uuid,jsonb,jsonb) to service_role;
+create index if not exists nova_missions_owner_updated_idx
+  on public.nova_missions(owner_id, updated_at desc);
+create index if not exists nova_mission_tasks_mission_status_idx
+  on public.nova_mission_tasks(mission_id, status, sequence);
+create index if not exists nova_mission_events_owner_created_idx
+  on public.nova_mission_events(owner_id, created_at desc);
+create index if not exists nova_mission_proofs_owner_created_idx
+  on public.nova_mission_proofs(owner_id, created_at desc);
+
+alter table public.nova_missions enable row level security;
+alter table public.nova_mission_tasks enable row level security;
+alter table public.nova_mission_events enable row level security;
+alter table public.nova_mission_proofs enable row level security;
+
+revoke all on public.nova_missions, public.nova_mission_tasks,
+  public.nova_mission_events, public.nova_mission_proofs from anon, public, authenticated;
+grant select on public.nova_missions, public.nova_mission_tasks,
+  public.nova_mission_events, public.nova_mission_proofs to authenticated;
+grant select, insert, update on public.nova_missions, public.nova_mission_tasks to service_role;
+grant select, insert on public.nova_mission_events, public.nova_mission_proofs to service_role;
+
+drop policy if exists nova_missions_select_own on public.nova_missions;
+create policy nova_missions_select_own on public.nova_missions
+for select to authenticated using (owner_id = (select auth.uid()));
+
+drop policy if exists nova_mission_tasks_select_own on public.nova_mission_tasks;
+create policy nova_mission_tasks_select_own on public.nova_mission_tasks
+for select to authenticated using (owner_id = (select auth.uid()));
+
+drop policy if exists nova_mission_events_select_own on public.nova_mission_events;
+create policy nova_mission_events_select_own on public.nova_mission_events
+for select to authenticated using (owner_id = (select auth.uid()));
+
+drop policy if exists nova_mission_proofs_select_own on public.nova_mission_proofs;
+create policy nova_mission_proofs_select_own on public.nova_mission_proofs
+for select to authenticated using (owner_id = (select auth.uid()));

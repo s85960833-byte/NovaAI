@@ -28,6 +28,9 @@
     } catch (_) {}
   };
   if (hasPlayed()) {
+    // Upgrade legacy/session/cookie markers to the current persistent marker
+    // before removing the gate, so future reloads remain one-time as well.
+    rememberPlayed();
     gate.remove();
     return;
   }
