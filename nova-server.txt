@@ -13,7 +13,7 @@ const fs = require('fs');
 const E = process.env;
 const { secureProviderBase } = require('./nova-provider-url');
 const { formatCurrentDateTime } = require('./nova-timezone');
-const { safeRedirectTarget, readBoundedText } = require('./nova-http');
+const { safeRedirectTarget, readBoundedBuffer, readBoundedText } = require('./nova-http');
 const BASE = secureProviderBase('LLM_BASE', E.LLM_BASE, 'https://openrouter.ai/api/v1');
 const app = express();
 app.disable('x-powered-by');
@@ -78,7 +78,7 @@ app.post('/api/transcribe', express.raw({ type: () => true, limit: '8mb' }), asy
             method: 'POST', headers: { Authorization: 'Bearer ' + provider.key },
             body: form, signal: AbortSignal.timeout(30000)
           });
-          const text = await u.text();
+          const text = await readBoundedText(u, 1024 * 1024);
           if (u.ok) {
             let j = {}; try { j = JSON.parse(text); } catch (e) {}
             const transcript = String(j.text || '').trim();
@@ -243,7 +243,7 @@ async function generateFreeImage(prompt, body) {
         body: JSON.stringify({ model: E.IMAGE_MODEL, prompt, size: '1024x1024', response_format: 'b64_json' }),
         signal: AbortSignal.timeout(60000)
       });
-      const j = await u.json().catch(() => ({}));
+      let j = {}; try { j = JSON.parse(await readBoundedText(u, 16 * 1024 * 1024)); } catch (e) { if (u.ok) throw e; }
       const b = j.data && j.data[0] && j.data[0].b64_json;
       if (u.ok && b) return { image: 'data:image/png;base64,' + b, provider: 'configured-image-provider' };
     } catch (e) { console.warn('Optional image provider failed:', String(e && e.message || e).slice(0, 120)); }
@@ -263,7 +263,7 @@ async function generateFreeImage(prompt, body) {
       });
       const type = String(u.headers.get('content-type') || '').split(';')[0];
       if (u.ok && /^image\//.test(type)) {
-        const buf = Buffer.from(await u.arrayBuffer());
+        const buf = await readBoundedBuffer(u, 8 * 1024 * 1024);
         if (buf.length > 1000) return { image: 'data:' + type + ';base64,' + buf.toString('base64'), provider: 'pollinations' };
       }
     } catch (e) { /* continue to the community fallback */ }
@@ -281,7 +281,7 @@ async function generateFreeImage(prompt, body) {
     }),
     signal: AbortSignal.timeout(12000)
   });
-  const accepted = await submit.json().catch(() => ({}));
+  let accepted = {}; try { accepted = JSON.parse(await readBoundedText(submit, 256 * 1024)); } catch (e) { /* handled by the response check below */ }
   if (!submit.ok || !accepted.id) throw new Error('Free community image queue rejected the request');
   let complete = false;
   // AI Horde keeps asynchronous requests for up to ten minutes; poll the lightweight check route.
@@ -290,7 +290,7 @@ async function generateFreeImage(prompt, body) {
     const check = await fetch(base + '/generate/check/' + encodeURIComponent(accepted.id), {
       headers, signal: AbortSignal.timeout(8000)
     });
-    const state = await check.json().catch(() => ({}));
+    let state = {}; try { state = JSON.parse(await readBoundedText(check, 256 * 1024)); } catch (e) { /* handled by the response check below */ }
     if (!check.ok || state.faulted) throw new Error('Free community image generation failed');
     if (state.done || Number(state.finished) >= 1) { complete = true; break; }
   }
@@ -298,7 +298,7 @@ async function generateFreeImage(prompt, body) {
   const status = await fetch(base + '/generate/status/' + encodeURIComponent(accepted.id), {
     headers, signal: AbortSignal.timeout(12000)
   });
-  const result = await status.json().catch(() => ({}));
+  let result = {}; try { result = JSON.parse(await readBoundedText(status, 12 * 1024 * 1024)); } catch (e) { /* handled by the response check below */ }
   const generated = result.generations && result.generations[0] && result.generations[0].img;
   if (!status.ok || !generated) throw new Error('Free community image result was empty');
   // AI Horde returns base64 WebP when R2 URL delivery is disabled. Never fetch
