@@ -7,7 +7,8 @@
     "test:mobile-layout": "playwright test tests/mobile-layout.spec.mjs",
     "test:cloud-sync": "node --test scripts/cloud-sync-merge.test.cjs",
     "start:local": "node --env-file-if-exists=.env nova-server.txt",
-    "test:timezone": "node --test scripts/timezone.test.cjs"
+    "test:timezone": "node --test scripts/timezone.test.cjs",
+    "test:provider-http": "node --test scripts/provider-http.test.cjs"
   },
   "engines": {
     "node": "22.x"
