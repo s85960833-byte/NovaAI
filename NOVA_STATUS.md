@@ -290,3 +290,16 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Latest PR head before this status update: `0871085f0154de6ce83879f28a9b743530cb2ec0`.
 - Main verification workflow #43202802253 **PASS** (44/44 steps); Browser verification workflow #43202802244 **PASS** (16/16 steps), both on the exact same SHA.
 - This confirms the SEO, audit, support-runbook, cleanup and Render-evidence documentation commits also pass automated verification. It does not change the release blockers or substitute for the current-head staging and physical-device checks.
+
+
+## Container, market and buyer-diligence documentation — 12 November 2026
+
+- Added a Node 22 production Dockerfile, Docker Compose service and .dockerignore; the image uses production dependencies only, runs as the non-root node user, excludes local secret files and checks /health.
+- Added scripts/container-config.test.cjs, test:container-config and a CI step for static verification of Docker runtime settings and secret exclusions. This is configuration-level validation only; no Docker image build or second-host deployment has been executed yet.
+- README now documents Node 22 local setup, Docker Compose setup, Render native deployment and the generic OCI-container-host path. A concrete second-provider deployment is not yet verified.
+- Added MARKET_AND_DIFFERENTIATION_RESEARCH.md based on official Lovable, v0 and Bolt product documentation. It explicitly rejects unsupported broad uniqueness claims and lists four unvalidated differentiation hypotheses.
+- Added TRANSFER_PACK.md with an evidence-based asset inventory, safe handover sequence, secret rotation, backup/restore and legal/IP review checklist. It is a draft; account ownership, domain, provider contract transfer and contributor IP chain are not independently verified.
+- Added VALUATION_MEMO.md. It concludes that ₹15–20 lakh is not supported by current evidence; no independent replacement-cost estimate or comparable transaction set exists. Revenue-multiple table is arithmetic only, not a market multiple recommendation. ₹10–20 crore remains a traction-dependent aspiration, not a current valuation.
+- Candidate head at this update: a6217ad5fec592028bc05a0f35301b1aafc34e15. Exact-head Main CI is queued/pending; earlier code candidate 5bd48bf had Browser workflow success, while its Main workflow was cancelled. Do not count the current head as CI-passed until both workflows finish.
+- Production main remains bdbeb20881f9b6cef51ff5a9d8a3b80131079a50; no merge or Production deployment. Staging still runs 195739a04895de364a5af22aa61f930d5d782cbb; Health Check Path remains blank.
+- External review environment could not fetch Production or Staging pages. Live UI/SEO checks, actual Android/microphone checks, and current-head Staging verification remain open.
