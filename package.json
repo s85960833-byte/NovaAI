@@ -13,6 +13,7 @@
     "test:env-example": "node --test scripts/env-example.test.cjs",
     "test:a11y": "node --test scripts/accessibility-markup.test.cjs",
     "test:container-config": "node --test scripts/container-config.test.cjs",
+    "test:api-auth": "node --test scripts/api-auth.test.cjs",
     "sbom:validate": "node scripts/validate-sbom.mjs"
   },
   "engines": {
