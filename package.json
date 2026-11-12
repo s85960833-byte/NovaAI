@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "nova-server.txt",
   "scripts": {
-    "start": "node --env-file-if-exists=.env nova-server.txt",
+    "start": "node nova-server.txt",
     "test:mobile-layout": "playwright test tests/mobile-layout.spec.mjs",
-    "test:cloud-sync": "node --test scripts/cloud-sync-merge.test.cjs"
+    "test:cloud-sync": "node --test scripts/cloud-sync-merge.test.cjs",
+    "start:local": "node --env-file-if-exists=.env nova-server.txt"
   },
   "engines": {
     "node": "22.x"
