@@ -73,3 +73,20 @@ Latest API-audit documentation commit: a5d621da59635a087b446bc12f49398a19d261c8
 - Account deletion/retention and final legal policies: INCOMPLETE.
 - Ownership/IP transferability and traction evidence: INCOMPLETE.
 - Overall acquisition readiness score: NOT YET SCORED; baseline evidence collection is underway.
+
+
+## API terms follow-up — 12 November 2026
+
+- Updated API_INTEGRATION_AUDIT.md with official terms checks: Open-Meteo free tier is non-commercial; its paid API subscription licence is non-transferable; TheSportsDB prohibits API resale without specific permission; Groq requires users to be 18+ and has restrictions on transfer/assignment; Yahoo Finance endpoint rights remain undocumented.
+- Open-Meteo public prices were not numerically published on the page reviewed; only call-volume tiers are listed. No unsupported price estimate was inserted.
+- Current API audit remains NOT PASSED. No keys, paid services, or accounts were created or modified.
+- Latest known CI for branch head before this documentation update: main run 43195860425 and browser run 43195860522 were still in progress. The new documentation commit must receive fresh CI before being counted as passed.
+- PR remains Draft and unmerged; Staging remains on 195739a; Health Check Path remains blank. Production unchanged.
+
+## Current continuation point
+
+Done: initial source inventory; code-level route/provider/security review; initial API inventory; vendor terms follow-up; API_INTEGRATION_AUDIT.md.
+In progress: full frontend/accessibility/mobile audit; provider commercial suitability; account deletion/retention design; staging verification; physical Android verification.
+Next: verify CI on latest head, complete page and component inventory, review every dependency/license and external asset, document exact blockers, then prepare only safe changes with tests.
+Blocked: owner-side Render health path and staging deploy; real device/microphone test; private provider account validity and legal eligibility/consent checks.
+Decisions: no Production merge/deploy; no paid API spend; no new repository or deployment URL; do not enable billable public APIs before durable quotas and vendor rights are established.
