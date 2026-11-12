@@ -15,6 +15,7 @@ test('Groq chat is enabled only when a model ID is explicitly configured', () =>
   assert.match(source, /if \(E\.GROQ_API_KEY && E\.GROQ_MODEL\) providers\.push/);
   assert.match(source, /const providerConfigured = !!\(\(E\.LLM_KEY && E\.LLM_MODEL\) \|\| \(E\.GROQ_API_KEY && E\.GROQ_MODEL\) \|\| E\.OPENROUTER_API_KEY\)/);
   assert.match(source, /if \(E\.LLM_KEY && E\.LLM_MODEL\) providers\.push/);
+  assert.match(source, /Skipped: set LLM_KEY with LLM_MODEL, GROQ_API_KEY with GROQ_MODEL, or OPENROUTER_API_KEY/);
   assert.match(source, /if \(E\.OPENROUTER_API_KEY && \(!E\.LLM_KEY \|\| !E\.LLM_MODEL \|\| E\.OPENROUTER_API_KEY !== E\.LLM_KEY\)\) providers\.push/);
   assert.match(source, /const llmChatConfigured = !!\(E\.LLM_KEY && E\.LLM_MODEL\)/);
   assert.match(source, /: \[E\.GROQ_MODEL\]/);
