@@ -120,3 +120,11 @@ Project qrfwsewppafhxibdboam, PostgreSQL 17.11, eu-west-1, ACTIVE_HEALTHY. No da
 - At the three phone-width emulated viewports, the workspace fills the screenshot width and stacks the Learn/Build cards vertically; no half-width page clipping or obvious horizontal cut-off was visible in the captured first screen.
 - At 1280×800, the desktop layout uses a left navigation rail and three side-by-side workspace cards. At 760×1024, the layout returns to a stacked/tablet presentation.
 - This is a visual spot-check of CI-generated local Chromium screenshots, not a live Render screenshot, physical Android certification, touch/keyboard test or microphone test. The mobile live-release gate remains open until the latest candidate is deployed and the owner's actual phone is checked.
+
+
+## Repository secret-hygiene spot-check — 12 November 2026
+
+- Scanned all 78 files changed in PR #98, covering 3,639 added patch lines, for common exposed credential formats (OpenAI-style keys, Supabase secret keys, AWS access-key IDs, private-key headers, GitHub tokens, Slack tokens and long Bearer credentials). No matches were found in added lines.
+- Reviewed `.env.example`: secret fields are blank; it contains only non-secret defaults and the public Supabase project URL. No secret values were read from Render or Supabase.
+- Reviewed `.dockerignore`: it excludes `.env`, `.env.*`, private-key/certificate files and credential JSON, while explicitly allowing `.env.example`. Dockerfile/Compose copy and env-file behavior are covered by CI configuration tests.
+- This is a scan of the current PR's added diff and selected build/config files only. It does not establish that all Git history, all unchanged files, every external service, or account secret stores are clean. GitHub secret-scanning configuration and historical remediation still require owner verification.
