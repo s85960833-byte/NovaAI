@@ -13,7 +13,9 @@ test('OpenRouter defaults to its dynamic free-model router', () => {
 test('Groq chat is enabled only when a model ID is explicitly configured', () => {
   assert.match(source, /const groqChatConfigured = !!\(E\.GROQ_API_KEY && E\.GROQ_MODEL\)/);
   assert.match(source, /if \(E\.GROQ_API_KEY && E\.GROQ_MODEL\) providers\.push/);
-  assert.match(source, /const providerConfigured = !!\(E\.LLM_KEY \|\| \(E\.GROQ_API_KEY && E\.GROQ_MODEL\) \|\| E\.OPENROUTER_API_KEY\)/);
+  assert.match(source, /const providerConfigured = !!\(\(E\.LLM_KEY && E\.LLM_MODEL\) \|\| \(E\.GROQ_API_KEY && E\.GROQ_MODEL\) \|\| E\.OPENROUTER_API_KEY\)/);
+  assert.match(source, /if \(E\.LLM_KEY && E\.LLM_MODEL\) providers\.push/);
+  assert.match(source, /const llmChatConfigured = !!\(E\.LLM_KEY && E\.LLM_MODEL\)/);
   assert.match(source, /: \[E\.GROQ_MODEL\]/);
 });
 
