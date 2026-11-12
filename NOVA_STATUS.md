@@ -157,3 +157,16 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Added previously undocumented runtime controls: `PORT`, `LIVE_CONCURRENCY`, `LLM_MAX_HISTORY`, `LLM_MAX_INPUT_TOKENS`, `LLM_MAX_OUTPUT_TOKENS`, `LLM_TIMEOUT_MS`, `LLM_VISION_BUDGET`; documented `NOVA_BI_SITE_URL` separately for Supabase Edge Function secrets.
 - Added `scripts/env-example.test.cjs`, `npm run test:env-example`, and a CI check to prevent missing server environment variables from being omitted in future.
 - Updated API integration inventory. Latest CI must pass before counting the new check as verified.
+
+
+## Latest verified CI and audit update — 12 November 2026
+
+- Candidate head `7f6adcd7819aa41eff61a12cb2a01f364b742f9b`: Main verification run #43198052144 **success**; Browser verification run #43198052142 **success**.
+- Main CI confirms: backend/frontend syntax, provider defaults, Markdown escaping, mode registry, sync merge/conflict, rate limit, timezone tests, env example completeness, provider URL tests, provider HTTP redirect/size tests, AI Horde privacy test, PDF.js mitigation, PostgreSQL tenant RLS, Deno Edge Function typecheck, invitation lookup, BI calculations/CSV validation, 60-case AI fixture, dependency audit, local routes/PWA, graceful shutdown, Playwright Chromium and five-viewport mobile/drawer tests all passed.
+- Deliberately skipped in CI because the PR is not deployed/merged: deployed Edge Function live auth/CORS smoke, live website/provider smoke, free image provider live smoke. These are not counted as passes.
+- Browser workflow also passed account UI/privacy/opt-in sync, Company Cloud auth listener, mobile layout/drawer and graceful shutdown.
+- The 60-case AI fixture passes its structure/validation check; it is not the requested 300-question live-model accuracy benchmark.
+- Added external runtime inventory for Supabase JS, PDF.js, math.js, Nerdamer, KaTeX, Fraunces and Nunito. Exact CDN hashes/SRI, exact Nerdamer 1.1.13 licence archive and entry-video provenance remain open.
+- Chat now caps output tokens, aborts upstream on client disconnect, respects downstream backpressure and bounds non-OK provider error bodies.
+- Current branch head may advance when documentation updates land; re-run latest-head CI before Staging.
+- Staging remains on old SHA `195739a`; no Production changes. Physical Android/microphone verification still blocked on an owner-supplied handset check.
