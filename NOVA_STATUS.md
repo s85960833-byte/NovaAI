@@ -90,3 +90,13 @@ In progress: full frontend/accessibility/mobile audit; provider commercial suita
 Next: verify CI on latest head, complete page and component inventory, review every dependency/license and external asset, document exact blockers, then prepare only safe changes with tests.
 Blocked: owner-side Render health path and staging deploy; real device/microphone test; private provider account validity and legal eligibility/consent checks.
 Decisions: no Production merge/deploy; no paid API spend; no new repository or deployment URL; do not enable billable public APIs before durable quotas and vendor rights are established.
+
+
+## Outbound network review — 12 November 2026
+
+- Reviewed all server `lhttp()` call sites in `nova-server.txt`. This pass found fixed provider URLs and query-encoded user search/place terms; no direct arbitrary user-supplied URL fetch parameter was identified in these call sites.
+- Defense-in-depth gap: `lhttp()` follows redirects without restricting destination host/protocol, and buffers response text before checking the 3 MB limit. Treat SSRF/response-memory protection as incomplete until redirects are constrained and response reads are bounded while streaming.
+- Finance fallback uses `proxy.cors.dev` to relay a Yahoo Finance chart endpoint after upstream errors. This adds an uncontracted intermediary and does not establish commercial rights; documented as a commercial release blocker in API_INTEGRATION_AUDIT.md.
+- Weather fallback `wttr.in` has no verified commercial licence, quota or SLA in this audit. It is not approved for monetized use.
+- No production code changed in this review step; audit documents only.
+- API audit remains NOT PASSED. No paid accounts, keys or services were activated.
