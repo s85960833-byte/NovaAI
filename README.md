@@ -68,8 +68,9 @@ Only non-paid, adult-supervised buyer-interest conversations and synthetic-data 
 
 ## Local and Render environment setup
 
-- Use Node.js 22 and run `npm install` followed by `npm start`.
-- Copy `.env.example` to `.env` for local development. The `.env` file is ignored by Git; never commit provider keys.
+- Use Node.js 22 and run `npm install`.
+- For local development, copy `.env.example` to `.env` and run `npm run start:local`; this loads the optional local file without changing Render's required start command. The `.env` file is ignored by Git; never commit provider keys.
+- Render continues to use `node nova-server.txt` and receives secrets only from its Environment settings.
 - Server-side AI chat requires a configured provider key in Render Environment. For low-volume no-cost testing, OpenRouter's `openrouter/free` router selects a currently available free model; free usage is rate-limited and availability can change. See [OpenRouter free models](https://openrouter.ai/collections/free-models) and [free-model limits](https://openrouter.ai/pricing). Do not buy credits for this setup.
 - If using Groq, set `GROQ_MODEL` explicitly to a currently supported model and check its current billing terms; the server deliberately has no implicit Groq model default. Do not assume all provider models are free.
 - Provider secrets belong in Render Environment, never browser JavaScript or GitHub. Optional provider integrations are documented in `.env.example`. Paid image generation remains disabled unless separately approved; `ALLOW_PAID_IMAGE=false`.
