@@ -1015,7 +1015,7 @@ async function runLive(qraw, o = {}) {
   const used = [], failed = [], blocks = [], items = [], stale = [];
   settled.forEach((s, i) => {
     const name = tasks[i].name;
-    if (s.status === 'fulfilled') { const r = s.value.r || {}; used.includes(name) || used.push(name); const sm = (r.items && r.items.stale ? r.items.staleMin : 0) || Math.max(0, ...(r.blocks || []).map(b => b.stale ? b.staleMin || 0 : -1)); if ((r.items && r.items.stale) || (r.blocks || []).some(b => b.stale)) stale.push(name + ' (~' + sm + ' min old)'); (r.blocks || []).forEach(b => blocks.push(b)); (r.items || []).forEach(x => items.push(x)); if (r.via && !used.includes('via:' + r.via)) used.push('via:' + r.via); }
+    if (s.status === 'fulfilled') { const r = s.value.r || {}; if (typeof r.note === 'string' && r.note.trim()) notes.push(name + ': ' + r.note.trim()); used.includes(name) || used.push(name); const sm = (r.items && r.items.stale ? r.items.staleMin : 0) || Math.max(0, ...(r.blocks || []).map(b => b.stale ? b.staleMin || 0 : -1)); if ((r.items && r.items.stale) || (r.blocks || []).some(b => b.stale)) stale.push(name + ' (~' + sm + ' min old)'); (r.blocks || []).forEach(b => blocks.push(b)); (r.items || []).forEach(x => items.push(x)); if (r.via && !used.includes('via:' + r.via)) used.push('via:' + r.via); }
     else if (!failed.find(x => x.name === name)) failed.push({ name, why: String(s.reason && s.reason.message || s.reason).slice(0, 90) });
   });
   const ranked = rank(dedupe(items.filter(x => x.title && x.url)), q).slice(0, 14);
