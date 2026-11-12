@@ -2164,3 +2164,39 @@ begin
     raise exception 'Proof attestations must enforce one attestation per execution run';
   end if;
 end $mission_trusted_proof_privileges$;
+
+-- Browser-authenticated clients must never be able to write Mission Engine rows.
+do $mission_browser_write_privileges$
+declare
+  v_table text;
+  v_role text;
+  v_privilege text;
+begin
+  foreach v_table in array array[
+    'nova_missions',
+    'nova_mission_tasks',
+    'nova_mission_events',
+    'nova_mission_proofs',
+    'nova_mission_approvals',
+    'nova_mission_execution_runs',
+    'nova_mission_proof_attestations',
+    'nova_mission_action_receipts',
+    'nova_mission_action_resolutions'
+  ] loop
+    foreach v_role in array array['anon', 'authenticated'] loop
+      foreach v_privilege in array array[
+        'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER'
+      ] loop
+        if has_table_privilege(
+          v_role,
+          format('public.%I', v_table),
+          v_privilege
+        ) then
+          raise exception 'Browser role % unexpectedly has % privilege on public.%', 
+            v_role, v_privilege, v_table;
+        end if;
+      end loop;
+    end loop;
+  end loop;
+end
+$mission_browser_write_privileges$;
