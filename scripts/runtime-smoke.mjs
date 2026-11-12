@@ -58,4 +58,15 @@ console.log('PASS integrated per-IP API rate limit (60 allowed, 61st blocked)');
 await expect('SEO robots policy','/robots.txt',{},(r,b)=>r.ok&&b.includes('Allow: /')&&b.includes('Disallow: /api/')&&b.includes('/sitemap.xml'));
 await expect('SEO sitemap','/sitemap.xml',{},(r,b)=>r.ok&&b.includes('<urlset')&&b.includes('https://novaai-4auo.onrender.com/'));
 await expect('SEO page metadata','/',{},(r,b)=>r.ok&&b.includes('name="description"')&&b.includes('property="og:title"')&&b.includes('rel="canonical"'));
+
+for (const [name,header] of [
+  ['demo-expenses.csv','Date,Category,Amount (INR)'],
+  ['demo-clients.csv','Client,Revenue (INR),Direct Cost (INR)'],
+  ['demo-team-tasks.csv','Task,Team,Status,Created Date,Completed Date,Due Date']
+]) {
+  await expect('synthetic demo CSV '+name,'/demo-data/'+name,{},(r,b)=>r.ok&&r.headers.get('x-nova-demo-data')==='synthetic'&&r.headers.get('content-type')?.includes('text/csv')&&r.headers.get('content-disposition')?.includes('attachment')&&b.startsWith(header));
+}
+await expect('demo CSV allowlist blocks unknown names','/demo-data/not-a-demo.csv',{},(r,b)=>r.status===404&&JSON.parse(b).error==='Demo file not found');
+await expect('demo CSV allowlist blocks path traversal','/demo-data/%2e%2e%2fnova-server.txt',{},r=>r.status===404);
+
 console.log('PASS local runtime smoke tests');

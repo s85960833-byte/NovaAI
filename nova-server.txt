@@ -458,6 +458,22 @@ app.get('/nova-business-core.js', (q, r) => r.set('Cache-Control', 'no-cache').t
 app.get('/nova-business.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business.js')));
 app.get('/nova-business-cloud.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business-cloud.js')));
 app.get('/nova-account.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-account.js')));
+// Only fixed, synthetic sample CSV files are downloadable. Never interpolate
+// user-controlled paths into sendFile; the map is the complete allowlist.
+const NOVA_DEMO_CSV = Object.freeze({
+  'demo-expenses.csv': 'demo-expenses.csv',
+  'demo-clients.csv': 'demo-clients.csv',
+  'demo-team-tasks.csv': 'demo-team-tasks.csv'
+});
+app.get('/demo-data/:name', (q, r) => {
+  const filename = NOVA_DEMO_CSV[q.params.name];
+  if (!filename) return r.status(404).json({ error: 'Demo file not found' });
+  r.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  r.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+  r.setHeader('X-NOVA-Demo-Data', 'synthetic');
+  r.setHeader('Cache-Control', 'public, max-age=300');
+  return r.sendFile(path.join(__dirname, 'samples', filename));
+});
 app.get('/', (q, r) => r.set('Cache-Control', 'no-store, no-cache, must-revalidate').sendFile(path.join(__dirname, 'index.html')));
 // ===================== LIVE INTELLIGENCE (keyless connectors + optional keys) =====================
 // Every connector returns normalized sources: { title, url, publisher, date, kind, connector, snippet, eventDate? }
