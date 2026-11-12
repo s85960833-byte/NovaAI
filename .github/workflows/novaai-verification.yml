@@ -107,11 +107,19 @@ jobs:
         run: node scripts/shutdown-smoke.mjs
       - name: Build and smoke-test the production Docker image
         run: |
+          set -euo pipefail
           docker build --pull -t nova-ai:ci .
-          docker run --rm -d --name novaai-container-test -p 8787:3000 -e LLM_KEY=test -e LLM_MODEL=test-model nova-ai:ci
+          docker rm -f novaai-container-test >/dev/null 2>&1 || true
+          docker run --rm -d --name novaai-container-test -p 127.0.0.1::3000 -e LLM_KEY=test -e LLM_MODEL=test-model nova-ai:ci
           trap 'docker rm -f novaai-container-test >/dev/null 2>&1 || true' EXIT
+          host_port="$(docker port novaai-container-test 3000/tcp | head -n 1 | awk -F: '{print $NF}')"
+          if ! [[ "$host_port" =~ ^[0-9]+$ ]]; then
+            echo "Docker did not publish a valid ephemeral host port"
+            docker port novaai-container-test
+            exit 1
+          fi
           for attempt in $(seq 1 30); do
-            if curl --fail --silent http://127.0.0.1:8787/health; then
+            if curl --fail --silent "http://127.0.0.1:${host_port}/health"; then
               exit 0
             fi
             sleep 2
