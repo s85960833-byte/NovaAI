@@ -73,6 +73,15 @@ test('invalid tokens are rejected and upstream failures fail closed', async () =
   assert.equal(invalidResult.res.statusCode, 401);
   assert.equal(invalidResult.nextCalled, false);
 
+  const malformedUser = createSupabaseUserMiddleware({
+    supabaseUrl: 'https://project.supabase.co',
+    publishableKey: 'sb_publishable_test',
+    fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({ email: 'no-id@example.test' }) })
+  });
+  const malformedResult = await run(malformedUser, 'Bearer token.without.user.id');
+  assert.equal(malformedResult.res.statusCode, 401);
+  assert.equal(malformedResult.nextCalled, false);
+
   const unavailable = createSupabaseUserMiddleware({
     supabaseUrl: 'https://project.supabase.co',
     publishableKey: 'sb_publishable_test',
