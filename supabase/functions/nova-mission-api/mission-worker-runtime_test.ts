@@ -255,7 +255,7 @@ Deno.test("worker rejects accessor, symbol, extra-key and proxy claims before tr
   const hostileProxy = new Proxy({ ...claim }, {
     ownKeys() { throw new Error("proxy trap"); },
   }) as MissionWorkerClaim;
-  for (const candidate of [accessorClaim, symbolClaim, extraClaim, hostileProxy]) {
+  for (const candidate of [accessorClaim, symbolClaim, extraClaim, hostileProxy] as unknown as MissionWorkerClaim[]) {
     const result = await processClaimedMissionTask(candidate, dependencies);
     if (result.status !== "denied" || result.reason !== "invalid_claim") {
       throw new Error("Malformed claim was not rejected");
