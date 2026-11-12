@@ -23,10 +23,11 @@ This is a bounded desk review, not proof that no competitor anywhere has a parti
 - Lovable official Supabase integration: https://lovable.dev/en/supabase-integration
 - Supabase partner profile for Lovable: https://supabase.com/partners/catalog/lovable?tab=lovable
 - v0 official overview: https://v0.app/docs
-- v0 full-stack apps: https://v0.dev/docs/full-stack-apps
+- v0 full-stack apps: https://v0.app/docs/full-stack-apps
 - v0 Git integration and project FAQ: https://v0.app/docs/faqs
-- v0 deployments: https://v0.app/docs/deployments
-- Bolt official getting-started / product page: https://bolt.new/get-started
+- v0 agentic features: https://v0.app/docs/agentic-features
+- Bolt official product and Bolt Cloud: https://bolt.new/get-started
+- Bolt Cloud database, authentication and hosting guide: https://support.bolt.new/building/intro-bolt
 
 ## What this means for NOVA
 

@@ -10,7 +10,7 @@
 | Production hosting | https://dashboard.render.com/web/srv-dbidhpc9v7es73d6ia80 | Existing Production service; verify account ownership, team permissions and billing. |
 | Production app | https://novaai-4auo.onrender.com | Existing URL; current Production release must remain protected during review. |
 | Staging hosting | https://dashboard.render.com/web/srv-dbqm035g1s2s73eogao0 | Free staging service; not current PR head at last verification. |
-| Database/Auth | Supabase project referenced by repository configuration | Project ID, owner, region, plan, backups and transferability must be confirmed by the account owner. |
+| Database/Auth | Supabase project qrfwsewppafhxibdboam, PostgreSQL 17.11, eu-west-1 | ACTIVE_HEALTHY; 17 migrations; nova-bi-api ACTIVE v14 with JWT verification. Account ownership, plan, backups, restore and transferability still require owner verification. |
 | Domain/DNS | No custom domain verified in this review | No domain ownership claim. |
 | Email, analytics, payments | No production provider verified | Do not claim configured or transferable. |
 | Third-party AI/search providers | Names and environment-variable keys are documented in `.env.example` | Provider contracts, account ownership, commercial use and assignment terms must be individually verified. |
@@ -54,7 +54,15 @@ See `.env.example` for the current variable-name list. It is a template, not pro
 
 - No verified custom domain, payment account, email delivery provider or analytics account in this review.
 - Full license and asset provenance audit is incomplete.
-- Supabase backup/restore and account deletion/retention are not verified end-to-end.
+- Supabase read-only review: 11/11 public tables RLS-enabled, 24 policies, no anon table grants, audit SELECT limited to active owner/admin, and no Security/Health Advisor lints. Backup/restore and account deletion/retention remain unverified.
+- Docker image build and /health smoke pass in Main CI; no second-host deployment has been performed.
 - Staging does not yet run the latest PR revision; Health Check Path remains blank.
 - Commercial provider rights and account-transfer terms remain unverified.
 - No signed contributor IP-assignment schedule or legal review is available.
+
+
+## Latest technical evidence — 12 November 2026
+
+- Candidate 13f6f317f190d569776f07c92d2dbcb752862c5f passed Main CI 47/47 and Browser CI 16/16.
+- Live Supabase function files match the candidate repository source exactly; function is ACTIVE v14 with JWT verification. Live read-only policy inspection confirms owner/admin-only audit-event reads.
+- These are code/configuration checks only. No live two-account test, account deletion, backup export/restore or alternative-host deployment has been completed.

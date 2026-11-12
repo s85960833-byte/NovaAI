@@ -319,3 +319,18 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Existing Main tests also passed: PostgreSQL tenant RLS, Deno Edge Function checks, BI calculation/CSV validation, AI fixture, dependency audit, local routes/PWA, graceful shutdown, Chromium workspace/PDF checks, Company Cloud browser tests and five-viewport mobile/drawer regression. Browser CI passed account/privacy/opt-in sync and mobile/drawer tests.
 - This verifies a local Docker image and its health route only. No second-host deployment, production rollout, database restore drill, physical Android or microphone test is claimed.
 - PR #98 remains Draft and unmerged. Repository `main` is `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render still serves `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. Staging remains on `195739a04895de364a5af22aa61f930d5d782cbb`, with Health Check Path blank.
+
+
+## Supabase live configuration verification — 12 November 2026
+
+- Candidate 13f6f317f190d569776f07c92d2dbcb752862c5f passed Main workflow #43205363631 (47/47) and Browser workflow #43205364354 (16/16).
+- Read-only live Supabase catalog review: project qrfwsewppafhxibdboam, PostgreSQL 17.11, eu-west-1, ACTIVE_HEALTHY; 17 migration versions; 11/11 public base tables have RLS enabled; 24 policies; no public views; no anon table grants. The audit-events SELECT policy restricts access to active owners/admins. The rate-limit table has explicit deny-all RLS for anon/authenticated.
+- Eight SECURITY DEFINER functions use empty search_path; EXECUTE is denied to anon/authenticated and granted only to service_role. The Edge Function nova-bi-api is ACTIVE v14 with JWT verification. Its five primary source files (index.ts, cors.ts, invitations.ts, request-input.ts and deno.json) exactly match the repository candidate at audit time.
+- Supabase Security and Health Advisors returned no lints; Performance Advisor returned 13 informational unused-index notices. No database writes, migrations or index changes were performed. All inspected application tables report zero rows.
+- Docker image build and health smoke passed in CI on the candidate. This is not proof of deployment to another host.
+- Production remains unchanged (main bdbeb20881f9b6cef51ff5a9d8a3b80131079a50; Render c3cee61906b88ff111b3a645db55c9c2503cd8f7). Staging remains on 195739a04895de364a5af22aa61f930d5d782cbb and Health Check Path is blank.
+- Release remains NO-GO: live staging, physical Android/microphone, two-account Auth, backup/restore, account deletion/retention, API commercial rights, source/asset provenance and legal review remain open.
+
+### Current scorecard
+- Overall Definition-of-Done progress: **20% estimated**.
+- Buyer-readiness: **34/100 estimated**. Exact-head CI and live Supabase configuration evidence improved; no customer, revenue, unique moat or buyer interest is verified.

@@ -88,3 +88,14 @@
 - Candidate `eb258ba4e81a873537aaa8a53576955a726bcff3` built the production Docker image successfully and passed the container `/health` smoke test using an ephemeral host port.
 - The CI smoke test currently exercises the default container port 3000. The image health check is being made `PORT`-aware and the test is extended to run on container port 3001 before portability is counted as verified.
 - This is a local CI container test, not deployment to a second hosting provider.
+
+
+## Supabase live read-only review — 12 November 2026
+
+Project qrfwsewppafhxibdboam, PostgreSQL 17.11, eu-west-1, ACTIVE_HEALTHY. No database writes or secret retrieval were performed.
+
+- 17 migration versions are present. 11 public base tables all have RLS enabled; no public views; 24 public policies; no anon table grants. The only policy including anon is the explicit deny-all policy on nova_bi_rate_limits. The nova_bi_audit_events SELECT policy requires an active owner/admin membership.
+- Eight SECURITY DEFINER functions have empty search_path and are executable only by service_role, not anon/authenticated.
+- nova-bi-api is ACTIVE v14 with verify_jwt=true. Its five primary deployed files exactly match the candidate repository files at review time.
+- Security and Health Advisors returned no lints; Performance Advisor returned 13 informational unused-index findings. All inspected application tables report zero rows.
+- This does not replace two-real-account authorization tests, live signup/reset/email, backup/restore, deletion/retention or penetration testing. FORCE RLS is not enabled, so privileged table owners/service roles must remain server-side.
