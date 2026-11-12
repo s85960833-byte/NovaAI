@@ -30,12 +30,13 @@ Production preview: https://novaai-4auo.onrender.com
 - If enabled, the current snapshot stores up to 40 recent chats (up to 150 messages per chat), message text, extracted text from attached documents, saved memory and custom instructions. Image attachments themselves are excluded. Users should avoid syncing sensitive information.
 - Disabling sync stops future uploads but does not delete an existing cloud backup. The user must use the separate delete-cloud-backup control.
 - Real signup/confirmation/reset email delivery, Auth redirects and two-account isolation have not been verified end to end.
+- The candidate adds optional Supabase JWT verification for server API routes and browser access-token forwarding. It is feature-gated by `NOVA_API_AUTH_REQUIRED`; the safe default remains `0` until Staging and the sign-in-required experience are verified. Do not treat APIs as authenticated until the flag is enabled and live token tests pass.
 - A complete self-service account deletion and a published retention schedule are not available yet.
 
 ## Commercial and operational limits
 
 - No paying customers, revenue, traction, valuation or certification are represented.
-- Paid checkout, server-side subscription entitlements, cancellation/refunds, tax invoices and customer support operations are not ready.
+- Durable per-user/monthly API quotas, hard provider spend caps, paid checkout, server-side subscription entitlements, cancellation/refunds, tax invoices and customer support operations are not ready.
 - Render uses a Free plan in Singapore with one instance and no always-on guarantee or SLA.
 - NOVA BI / Company Cloud is an early preview only. Use synthetic data; do not submit confidential, personal, employee, student, regulated or customer data.
 - AI outputs and third-party provider availability can be inaccurate, delayed, rate-limited or unavailable.
