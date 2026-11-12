@@ -372,7 +372,7 @@ app.post('/api/image', (q, r) => {
   const a = rateWindow(imageJobHits, imageRateKey, now, 10 * 60 * 1000);
   if (!a) return r.status(503).json({ error: 'Image rate-limit capacity reached; retry shortly' });
   if (a.length >= 3) return r.status(429).json({ error: 'Image generation limit reached. Please try again later.' });
-  a.push(now); imageJobHits.set(q.ip, a);
+  a.push(now); imageJobHits.set(imageRateKey, a);
   pruneImageJobs();
   if (imageJobs.size >= 80) return r.status(503).json({ error: 'The image queue is busy. Please retry shortly.' });
   const id = require('crypto').randomUUID();
