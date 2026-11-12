@@ -46,8 +46,9 @@ app.use('/api', (q, r, next) => {
 app.use(express.json({ limit: '6mb' }));
 
 app.get('/api/config', (q, r) => {
+  const llmChatConfigured = !!(E.LLM_KEY && E.LLM_MODEL);
   const groqChatConfigured = !!(E.GROQ_API_KEY && E.GROQ_MODEL);
-  if (!E.LLM_KEY && !groqChatConfigured && !E.OPENROUTER_API_KEY) return r.status(503).end();
+  if (!llmChatConfigured && !groqChatConfigured && !E.OPENROUTER_API_KEY) return r.status(503).end();
   r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || (E.OPENROUTER_API_KEY ? 'openrouter/free' : 'free-provider-fallback'), image: !E.IMAGE_OFF, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: groqChatConfigured, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY, hordeImage: !!E.HORDE_API_KEY } });
 });
 
@@ -169,7 +170,7 @@ app.post('/api/chat/completions', async (q, r) => {
     body = fit(body, bud);
     const models = vis ? [VISION] : [E.LLM_MODEL, ...String(E.LLM_FALLBACK_MODELS || '').split(',').map(x => x.trim()).filter(Boolean)];
     const providers = [];
-    if (E.LLM_KEY) providers.push({ base: BASE, key: E.LLM_KEY, models });
+    if (E.LLM_KEY && E.LLM_MODEL) providers.push({ base: BASE, key: E.LLM_KEY, models });
     // Provider secrets stay in the Render environment. Groq model IDs are explicit:
     // this avoids silently selecting a retired or billable model after provider catalog changes.
     if (E.GROQ_API_KEY && E.GROQ_MODEL) providers.push({ base: secureProviderBase('GROQ_BASE', E.GROQ_BASE, 'https://api.groq.com/openai/v1'), key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL] });
@@ -1181,7 +1182,7 @@ if (E.SELFTEST_ON_START === '1') {
           return null;
         }
       }
-      const providerConfigured = !!(E.LLM_KEY || (E.GROQ_API_KEY && E.GROQ_MODEL) || E.OPENROUTER_API_KEY);
+      const providerConfigured = !!((E.LLM_KEY && E.LLM_MODEL) || (E.GROQ_API_KEY && E.GROQ_MODEL) || E.OPENROUTER_API_KEY);
       await probe('health', '/health', {}, (r, j) => r.ok && j.status === 'ok' && j.ready === true);
       const config = await probe('config', '/api/config', {}, (r, j) => r.ok && !!j.model || (!providerConfigured && r.status === 503));
       console.log('NOVA_SELFTEST_CONFIG ' + JSON.stringify(results[results.length - 1]));
