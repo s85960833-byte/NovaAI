@@ -198,3 +198,15 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Latest PR #98: Open, Draft, mergeable, unmerged. Production main untouched.
 - Staging remains deployed at old SHA `195739a04895de364a5af22aa61f930d5d782cbb`; Health Check Path still requires owner to set `/health` and deploy latest PR revision.
 - No production deploy, paid API use, provider secret changes or Supabase production mutation performed.
+
+
+## Latest continuation — 12 November 2026
+
+- Candidate head `1d0da18c274d3e747b0aa77f0534d4948d46d62f` includes a cloud-sync correctness fix: the workspace stores chats newest-first, but the previous `slice(-40)` selected the oldest 40. The snapshot now selects the first 40 newest chats, and merge application preserves the active device's newest-first ordering before appending remote-only chats.
+- Added `selectRecentChats()` to `nova-sync-merge.js` and regression coverage in `scripts/cloud-sync-merge.test.cjs`; account snapshot normalization now consistently keeps the first 40 records.
+- Latest code candidate Main workflow #43200017029 **PASS** and Browser workflow #43200017194 **PASS** on the exact same head `1d0da18`. Main coverage includes backend/frontend syntax, provider configuration, cloud-sync merge tests, timezone, environment example, static accessibility, outbound HTTP and image privacy tests, PostgreSQL tenant RLS migrations, Deno Edge Function typecheck, BI calculation/CSV tests, AI fixture validation, dependency audit, local routes/PWA, graceful shutdown, Chromium workflows and five-viewport mobile/drawer regression. Browser workflow covers account UI, opt-in sync, Company Cloud, mobile layout and drawer interactions.
+- These are CI/browser-emulation results only. Physical Android layout, touch behavior and microphone capture remain unverified. Live provider and deployed Edge Function checks are intentionally skipped for an unmerged PR.
+- Current PR #98 remains Open, Draft and unmerged; no production merge/deploy occurred. Production Render still serves `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; repository `main` is `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`.
+- Staging Render still serves old SHA `195739a04895de364a5af22aa61f930d5d782cbb`; its Health Check Path is still blank. Owner action remains: set `/health` in the existing Staging service Settings → Health Checks, save, then confirm. Auto Deploy is enabled; do not manually trigger a deploy while enabled.
+- Account review reconfirmed: NOVA Account provides cloud-backup deletion but not self-service Supabase Auth account deletion. Account deletion, retention schedule, final privacy/terms, provider rights, durable public API quotas and billable endpoint protections remain release blockers.
+- No paid services, paid API credits, provider keys or production database changes were created or modified. Keep Production protected and do not promote until all release gates pass.
