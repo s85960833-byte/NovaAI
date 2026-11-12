@@ -1,3 +1,39 @@
+# LATEST CHECKPOINT — 12 November 2026 (Asia/Kolkata)
+
+**Current PR #98 head:** `7cf01b9f9e31c421e3b32db270f67fe653c8acc5`  
+**Status:** Open / Draft / unmerged; GitHub currently reports mergeable.  
+**Production:** unchanged; keep NO-GO.  
+**Overall Definition-of-Done estimate:** 30% (qualitative). **Buyer-readiness:** 36.8/100 ≈ 37/100 (internal estimate, not appraisal).
+
+## Exact code and CI evidence
+- Last code-bearing candidate `be4287fde83d7adcca5a41b13674d29f31383af6`: Main CI [#43260317789](https://github.com/s85960833-byte/NovaAI/actions/runs/43260317789) passed (45 successful steps, 4 live/release-only checks skipped); Browser CI [#43260317846](https://github.com/s85960833-byte/NovaAI/actions/runs/43260317846) passed (17/17).
+- Follow-on candidate `ed597bd4af91119bba73527d1836c05a64a97a1a`: Main CI [#43263559802](https://github.com/s85960833-byte/NovaAI/actions/runs/43263559802) passed (49/49 steps, 0 failed); Browser CI [#43263559861](https://github.com/s85960833-byte/NovaAI/actions/runs/43263559861) passed (17/17).
+- Current head `7cf01b9` contains documentation-only additions since `ed597bd`: 8 added lines to `PHASE1_AUDIT.md`; no application code changed. Current Main [#43263961142](https://github.com/s85960833-byte/NovaAI/actions/runs/43263961142) and Browser [#43263960870](https://github.com/s85960833-byte/NovaAI/actions/runs/43263960870) were in progress at this checkpoint. Do not mark the latest head fully CI-passed until these finish.
+- PR diff scan covered 78 files / 3,639 added lines for common exposed credential patterns; no matches. `.env.example` secret values are blank; `.dockerignore` excludes `.env`, key/certificate files and credential JSON. This is not a full historical or external-account secrets audit.
+
+## Visual and privacy documentation
+- Reviewed CI screenshot artifact for 360×800, 390×844, 412×915, 760×1024 and 1280×800. Emulated mobile screenshots fill the viewport width; no obvious half-screen clipping in captured first screens. This is not live Render or physical Android proof.
+- `INDIA_PRIVACY_COMPLIANCE_REVIEW.md` records the official phased DPDP schedule: Act sections 6(9) and 27(1)(d), and Rules rule 4, scheduled for 13 Nov 2026; the main eighteen-month group including Act section 9 and Rules 10–11 scheduled for 13 May 2027. This is a commencement summary, not legal advice or compliance certification. Counsel review remains required.
+
+## Supabase and Render state
+- Latest read-only Supabase Security Advisor: 0 lints; Health Advisor: 0 lints; Performance Advisor: 13 INFO unused-index notices. No Supabase changes made.
+- Staging service `srv-dbqm035g1s2s73eogao0` remains on old Live SHA `195739a04895de364a5af22aa61f930d5d782cbb`, Health Check Path blank; CPU/HTTP/latency/instance metrics empty for queried period. Auth/session testing and live health are unverified.
+- Production `srv-dbidhpc9v7es73d6ia80` remains on `main`, latest Live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production merge or deploy occurred.
+- Public HTTP/DNS attempts from this audit environment could not resolve the Render hostnames. This is an environment limitation, not evidence that the sites are down or healthy.
+
+## Release blockers / next actions
+1. Owner must set Staging Health Check Path to `/health`: https://dashboard.render.com/web/srv-dbqm035g1s2s73eogao0 → Settings → Health Checks → Save. This requires owner dashboard access; the available Render connector cannot edit this field.
+2. Diagnose why Auto Deploy has not moved Staging to the PR branch head; do not manually trigger deployment while Auto Deploy is enabled.
+3. Deploy candidate to Staging and run live health/routes/provider/Auth tests (missing, invalid, expired, valid sessions) before any Production decision.
+4. Owner must physically test actual Android portrait width, drawer, touch targets, keyboard and microphone.
+5. Durable quotas/usage accounting/spend caps, account deletion/retention, provider commercial rights, full IP/assets/assignment chain, final privacy/terms review, second-host deployment, backup/restore, load/soak, monitoring/SLO and rollback drills remain incomplete.
+6. Acquire/Partner contact form remains unimplemented until an adult-managed verified operator/contact and privacy/support owner are supplied. Any contract or transaction requires responsible adult and qualified legal counsel.
+7. No unique exclusive moat, user traction, revenue, buyer interest or independent fair valuation is evidenced. Tier 1 ₹15–20 lakh unsupported today; Tier 2 ₹10–20 crore aspirational only.
+
+**Release decision: NO-GO for Production and NO-GO for buyer-ready claim.** Preserve PR #98 as Draft/unmerged. Do not state “✅ Nova AI buyer-ready” until every Definition-of-Done gate is genuinely evidenced.
+
+---
+
 ## Current verified checkpoint — 12 November 2026
 
 This section supersedes earlier checkpoint statements below wherever they describe a later/earlier candidate SHA or current CI/deployment state.
