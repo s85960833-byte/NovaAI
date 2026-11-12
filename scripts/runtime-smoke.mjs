@@ -55,4 +55,7 @@ for(let i=0;i<60;i++){
 const blocked=await req('/api/config',{headers:{'x-forwarded-for':rateLimitIp}});
 if(blocked.status!==429) throw new Error('API rate limit did not reject request 61: HTTP '+blocked.status);
 console.log('PASS integrated per-IP API rate limit (60 allowed, 61st blocked)');
+await expect('SEO robots policy','/robots.txt',{},(r,b)=>r.ok&&b.includes('Allow: /')&&b.includes('Disallow: /api/')&&b.includes('/sitemap.xml'));
+await expect('SEO sitemap','/sitemap.xml',{},(r,b)=>r.ok&&b.includes('<urlset')&&b.includes('https://novaai-4auo.onrender.com/'));
+await expect('SEO page metadata','/',{},(r,b)=>r.ok&&b.includes('name="description"')&&b.includes('property="og:title"')&&b.includes('rel="canonical"'));
 console.log('PASS local runtime smoke tests');
