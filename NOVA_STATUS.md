@@ -97,3 +97,14 @@
 - Buyer-readiness: **36.8/100 ≈ 37/100**, weighted internal estimate; not appraisal.
 - Tier 1 ₹15–20 lakh fair asset value: unsupported today.
 - Tier 2 ₹10–20 crore: aspirational only; requires sustained audited paid ARR, retention, growth, margins, clean IP/provider rights and independent valuation.
+
+
+## Additional checkpoint — 12 November 2026, 22:03 IST
+
+- PR head before this checkpoint: `c7b429a3e6c35518ddc87ea8f65caba2cbe725ef`; this commit adds `INDIA_COMPETITOR_SCAN_2026-11-12.md` with a public-claims scan of NavBharatAI, BooDoo, Paddlewheel India, Appio, AppCub, Craftable, AppMama, NeevCode and TrigCode AI.
+- Competitor scan conclusion: Hindi/Hinglish prompting, app generation, voice, preview, code export, deployment and assistant-plus-builder positioning cannot honestly be called exclusive. No independent same-task performance benchmark has been run.
+- Exact previous head `e5f59bfc0d7cade4c8030f0116237c5eaac0d0c7`: Main CI [#43253742450](https://github.com/s85960833-byte/NovaAI/actions/runs/43253742450) passed (45 steps, 4 live/release checks skipped); Browser CI [#43253742166](https://github.com/s85960833-byte/NovaAI/actions/runs/43253742166) passed (17 successful steps). New documentation commit will trigger fresh CI; do not assume it passed until checked.
+- Latest PR #98 remains Open/Draft/unmerged. GitHub currently reports `mergeable: false`; compare API says branch is 212 commits ahead and 0 behind main, but no definitive conflict diagnosis was returned. Do not merge.
+- Render Production service remains on main, latest Live commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; no production change.
+- Staging remains on old Live commit `195739a04895de364a5af22aa61f930d5d782cbb`; Health Check Path blank. Owner action still required: Staging Dashboard → Settings → Health Checks → set `/health` → Save. No manual deployment was triggered.
+- Buyer-readiness remains `36.8/100 ≈ 37/100`; overall Definition-of-Done estimate remains 30%. These are provisional internal estimates, not an appraisal.
