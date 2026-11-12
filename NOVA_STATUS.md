@@ -1,73 +1,74 @@
-# NOVA Status — Current Source of Truth
+# NOVA Status — Source of Truth
 
-Last verified: 12 November 2026 (UTC; exact-head CI, Supabase catalog audit and Render Staging recheck)
-Repository: https://github.com/s85960833-byte/NovaAI
-Production: https://novaai-4auo.onrender.com (main branch; unchanged)
-Candidate: PR #98 — https://github.com/s85960833-byte/NovaAI/pull/98
-Candidate branch: `fix/nova-home-learn-first-mobile-20261109`
-Latest exact PR head with passing Main + Browser CI: `aede698289f5891fa6ffc6d82f023745c00de70f` (documentation-only refresh atop code-bearing revision `1634a1f9563c190d83119a680af811a688120c7d`)
+**Last verified:** 12 Nov 2026, 13:38 UTC  
+**Repo:** https://github.com/s85960833-byte/NovaAI  
+**Production:** https://novaai-4auo.onrender.com  
+**Production Dashboard:** https://dashboard.render.com/web/srv-dbidhpc9v7es73d6ia80  
+**PR:** https://github.com/s85960833-byte/NovaAI/pull/98  
+**Candidate branch:** `fix/nova-home-learn-first-mobile-20261109`
 
-## Exact-head CI evidence
+## Phase status
+- Phase 1 audit: **IN PROGRESS** — source, route, CI, screenshot, Docker/SBOM and limited Supabase/Render review done; current-head live Staging and physical-device evidence missing.
+- Phase 2 differentiation: **NOT PROVEN** — evidence-first, bilingual learning/build, decision-trace and portable handoff are hypotheses; no exclusive claim.
+- Phase 3 asset engineering: **PARTIAL** — architecture, API, cost, roadmap, transfer and Data Room docs; durable quotas, subscriptions, SDK/webhooks/plugins, account deletion and restore proof missing.
+- Phase 4 buyer pack: **PARTIAL** — 24-category map, preview pitch kit, demo script, objection review and valuation memo exist. No buyer interest or verified buyer-contact channel.
+- Phase 5 buyer objection test: **NOT PASSED** — CTO/CFO/founder/legal blockers remain.
+- Phase 6 valuation: **PARTIAL** — cost-to-replicate and comparables undetermined; ₹15–20 lakh unsupported; ₹10–20 crore hypothetical only.
 
-- PR #98 is Open, Draft, unmerged, and targets `main`. Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; no candidate merge or Production deployment has occurred.
-- Main verification [run 43227502367](https://github.com/s85960833-byte/NovaAI/actions/runs/43227502367) passed on exact PR head `aede698`: 44 successful steps, 4 release/live steps skipped, 0 failed.
-- Browser verification [run 43227502372](https://github.com/s85960833-byte/NovaAI/actions/runs/43227502372) passed on the same exact head: 16 successful steps, 0 skipped, 0 failed.
-- Duplicate push-triggered Main and Browser runs [43227491170](https://github.com/s85960833-byte/NovaAI/actions/runs/43227491170) and [43227491149](https://github.com/s85960833-byte/NovaAI/actions/runs/43227491149) also passed on the same exact head.
-- Job-level inspection confirmed every executed step in both workflows succeeded. Main's four skipped steps remain the deployed NOVA BI Edge Function auth/CORS smoke, wait for a merged revision on Render, live Production website/provider smoke, and live free-image smoke.
-- The previous exact-head pair on `e3f39c4` also passed; latest validation is now recorded against the newer `aede698` head.
-- Both push-triggered and pull-request-triggered workflows completed successfully on `15208ab`; older superseded runs that were canceled during rapid commits are not counted as failures.
-- The candidate fixed a rate-limit key mismatch: Live Search and image-generation counters previously looked up the authenticated user key but wrote the timestamp array under the IP key. Both now read and write the same user/IP key; regression assertions were added. Both exact-head CI workflows passed after this fix.
-- New API-auth test step passed on exact head. It covers HTTPS-only Supabase URL validation, missing/malformed/oversized bearer tokens, valid user identity mapping, invalid/expired token rejection, malformed/oversized Auth response, upstream outage fail-closed behavior, startup configuration checks, auth gate ordering before JSON parsing, browser bearer-token forwarding, image-job owner binding and user-scoped live/image rate keys.
-- Main coverage also includes dependency SBOM, syntax, provider defaults, Markdown injection escaping, mode registry, Cloud Sync merge/conflict, bounded IP rate window/timezone, environment/container configuration, accessibility, HTTPS provider URLs, safe redirects/bounded reads, AI Horde privacy, PDF.js mitigation, PostgreSQL migration + tenant RLS, Deno Edge Function type-check/invitation tests, BI calculations/CSV validation, 60-case AI evaluation, npm dependency audit, local routes/PWA, graceful shutdown and Docker build/health.
-- The four skipped Main CI steps are deployed NOVA BI Edge Function auth/CORS smoke, waiting for a merged revision on Render, live Production website/provider smoke, and live free image-generation smoke. Skipped does not mean passed.
-- Browser emulation is not physical Android certification. CI does not prove live credentials, email delivery, real microphone capture or handset layout.
+## CI (exact pre-documentation candidate)
+- PR #98 was Open, Draft and unmerged.
+- Main run [43228795552](https://github.com/s85960833-byte/NovaAI/actions/runs/43228795552) passed on `2639072565c7e270b03131890152694e187c0fdb`.
+- Browser run [43228795499](https://github.com/s85960833-byte/NovaAI/actions/runs/43228795499) passed on same SHA (16 workflow steps).
+- Main skipped four live/release checks: deployed BI Edge Function auth/CORS, merged-revision wait, live Production/provider smoke and live free-image smoke.
+- Main artifact contains screenshots at 360×800, 390×844, 412×915, 760×1024 and 1280×800 plus SPDX SBOM. Screenshot inspection at 360/412/760/1280 showed full emulated viewport width; no real Android/mic test.
 
-## Supabase read-only audit
+## Render Production
+- Service `srv-dbidhpc9v7es73d6ia80`; main; Free; Singapore; 1 instance.
+- Latest Live deployment `dep-dbom7bbm8hqs73ec2gi0`, commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`.
+- Health Check Path blank. Direct public HTTP smoke/uptime not proven from review environment.
+- Production not changed, merged or deployed by this work.
 
-- Project `qrfwsewppafhxibdboam` is ACTIVE_HEALTHY, PostgreSQL 17.
-- Latest Security Advisor: zero lints. Latest Health Advisor: zero lints.
-- Performance Advisor: 13 INFO-level unused-index notices. No index was dropped; retain until representative query traffic supports safe removal.
-- NOVA BI Edge Function `nova-bi-api` is ACTIVE version 14 with `verify_jwt=true`. Its deployed code uses authenticated user context, exact-site-origin CORS, database-backed per-user rate limits and tenant-scoped operations. Live valid/invalid-token, email-delivery, redirect allow-list and two-account isolation tests remain outstanding.
-- No Supabase schema, user, project, secrets or deployment changes were made in the read-only audit.
+## Render Staging
+- Service `srv-dbqm035g1s2s73eogao0`; existing URL https://novaai-pr98-staging.onrender.com; candidate branch configured, Auto Deploy enabled, Free, Singapore, one instance.
+- Latest Live deploy `dep-dbqnenhe35nc73f81k4g` remains old SHA `195739a04895de364a5af22aa61f930d5d782cbb`.
+- Health Check Path blank; connected Render tools cannot update this field. Auto Deploy did not advance to PR head.
+- Old build logs show startup on port 10000 and clean SIGTERM; restart cause not established.
+- Old build internal self-test: health/static/PWA and some retrieval routes passed; config 503, AI chat 503 due to no model key, and some provider timeout/429 fallbacks. Not a current candidate test.
 
-## Express API authentication work
+## Supabase read-only review
+- Project `qrfwsewppafhxibdboam` ACTIVE_HEALTHY, PostgreSQL 17; 11/11 public tables RLS enabled; 24 policies; no anon table grants.
+- Security/Health Advisors zero lints; Performance Advisor 13 INFO unused-index notices, no indexes changed.
+- `nova-bi-api` ACTIVE v14 with JWT verification enabled.
+- Live Auth emails/tokens, two-account isolation, account deletion and backup restore remain unverified.
 
-- Added `nova-api-auth.js`: validates a configured HTTPS Supabase project origin, accepts only bounded Bearer tokens, verifies each token server-side through Supabase Auth `/auth/v1/user`, caps the streamed Auth user response at 64 KiB, rejects invalid sessions with 401 and returns 503 on Auth service outages.
-- When `NOVA_API_AUTH_REQUIRED=1`, middleware protects all `/api/*` routes except read-only `/api/config` and `/api/feed`; it runs before JSON body parsing. Missing `SUPABASE_URL` or `SUPABASE_PUBLISHABLE_KEY` fails startup.
-- Browser account code forwards the current Supabase access token to same-origin protected API calls; server verification remains authoritative.
-- Image jobs are bound to the authenticated user when the gate is enabled, preventing cross-account polling.
-- Live-search and image rate windows use authenticated user IDs when available, falling back to IP. These are process-local rate windows only, not durable monthly quotas.
-- The feature flag default is deliberately `NOVA_API_AUTH_REQUIRED=0`. It has **not** been enabled on Staging or Production; therefore the deployed Express API remains unauthenticated until an operator enables the flag and verifies live sessions. Do not enable public paid-provider traffic yet.
-- Durable per-user quotas, plan entitlements, monthly accounting and hard spend caps are not implemented.
+## Done
+- Exact-head Main/Browser CI green, with skipped live checks disclosed.
+- 360/412/760/1280px screenshots inspected.
+- Source route, API, auth, provider, license, BI and deployment boundaries reviewed.
+- Architecture/API/cost/roadmap/scorecard/Data Room materials created in this candidate documentation update.
+- No paid spend, Production merge/deploy or secrets retrieval.
 
-## Staging / Production
+## In progress / next
+1. Owner: Staging Dashboard → Settings → Health Checks → set `/health` → Save.
+2. Diagnose Staging Auto Deploy; deploy and smoke-test exact candidate at existing Staging URL.
+3. Enable Express auth on Staging only; verify missing/invalid/expired/valid tokens.
+4. Owner tests actual Android full width, drawer, touch, keyboard and microphone.
+5. Implement durable quotas/spend caps, full account deletion/retention, monitoring, backup/restore, provider rights and legal/IP evidence.
 
-- Staging service: `srv-dbqm035g1s2s73eogao0`, https://novaai-pr98-staging.onrender.com
-- Staging Auto Deploy is enabled and tracks the candidate branch, but the latest 8 deploy records still show Live deployment `dep-dbqnenhe35nc73f81k4g` on old commit `195739a04895de364a5af22aa61f930d5d782cbb`, not the candidate. Earlier records show repeated API-triggered deployments of `195739a` and `7dd7ad`; no candidate deployment is recorded.
-- Render Staging Health Check Path is blank. Owner must set `/health` in Staging Dashboard → Settings → Health Checks and save. The connected Render tools do not expose a Health Check Path update action; do not bypass this step with a manual deploy.
-- Latest Render log sample still corresponds to the old Staging deployment, not PR head `aede698`. It shows successful process starts on port 10000 and clean SIGTERM/graceful-shutdown messages, including repeated instance replacements during the day; no fatal stack trace appears in the inspected sample. The restart/replace cause is not established. Render HTTP/latency/resource metrics returned empty data, and direct staging HTTP checks could not resolve the hostname from the current audit environment; live health is therefore unverified, not passed.
-- Production service remains on deployed commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; Production has not been changed by this PR.
+## Blocked on owner/external evidence
+- Render health-check field requires owner dashboard access.
+- Live AI test requires approved provider key entered privately in Render; never send a key in chat and do not spend paid credits.
+- Actual handset/microphone test requires physical device.
+- Provider invoices/contracts, operator identity, support/grievance, age policy and IP assignments require responsible adult operator and qualified legal review.
 
-## Remaining release blockers
+## Decisions
+- Keep PR #98 Draft/unmerged and Production unchanged until every release gate passes.
+- No paid APIs, paid image, billing or service upgrades.
+- No unverified customer/revenue/uniqueness/valuation/SLA/certification/production security claims.
+- Synthetic/non-sensitive demo content only; no confidential customer data.
 
-1. Staging must run the latest candidate and pass live smoke. Enable the auth gate only on Staging first; test missing, invalid, expired and valid sessions and confirm sign-in UX before Production.
-2. Durable per-user quotas, monthly usage accounting, plan entitlements, abuse controls and hard provider spend caps remain incomplete. Process-local IP/user windows reset on restart and are not commercial usage controls.
-3. Physical Android full-width layout, touch interactions, drawer behavior and real microphone capture require owner handset testing.
-4. Self-service account deletion, complete retention workflow and published retention schedule are incomplete. Deleting cloud backup is not full account deletion.
-5. Provider commercial-use rights, quotas, key validity and transfer rights are not all cleared. See `API_INTEGRATION_AUDIT.md`; overall API audit remains NOT PASSED.
-6. Privacy Notice and Terms are drafts. Business operator, support/grievance details, age/consent policy and retention terms require owner evidence and qualified legal review.
-7. Full source, asset and IP provenance; ownership/assignment evidence; external-host deployment; backup/restore drill; two-device sync; live Auth email; uptime/load evidence; and rollback drill remain incomplete.
-8. No customer, revenue, traction, testimonial, buyer interest, certification, valuation or exclusivity evidence has been established. ₹10–20 crore remains an aspirational target, not a present valuation or guarantee.
-
-## Current release decision
-
-**NO-GO for Production.** Keep PR #98 Draft and unmerged. Do not change Production until latest-head Staging, live smoke, physical-device, Express API authentication/quota, data-lifecycle, provider-rights, legal/IP, rollback and owner-approval gates are satisfied.
-
-## Owner-dependent next action
-
-Open the [Staging Render Dashboard](https://dashboard.render.com/web/srv-dbqm035g1s2s73eogao0) and click **Settings**. After that, the next step is **Health Checks** → set `/health` → Save. Wait for owner confirmation before proceeding to the next click. Continue independent work while waiting.
-
-## Scope and estimate
-
-Overall S-tier Definition of Done: approximately 26% complete (working estimate across product, security, operations, legal/IP and buyer evidence; latest CI is green, but Staging/physical/legal/usage-control gates remain open).
-Buyer-readiness: approximately 38/100 (qualitative internal estimate, not an appraisal).
+## Estimates
+- Overall S-tier DoD: **27%** qualitative.
+- Buyer readiness: **38/100** weighted internal score, not appraisal.
+- Tier 1 ₹15–20 lakh: unsupported today.
+- Tier 2 ₹10–20 crore: aspiration only; would require sustained auditable paid ARR, retention, growth, margins, rights and independent valuation.
