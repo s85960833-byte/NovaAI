@@ -188,3 +188,13 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - All subsequent GitHub writes in this workflow must include `branch: fix/nova-home-learn-first-mobile-20261109` explicitly. Do not write to `main`.
 - Accessibility markup change: 22 previously unnamed static buttons now have `aria-label`; static audit confirms 49 buttons, 0 unnamed. `scripts/modes-check.mjs` was corrected to test attributes independently of order.
 - Candidate PR head observed at this continuation: `05797a1524c1105a77cf56444129e9abb0594ea5`. Latest CI run list observed: NOVA account and browser verification #43198934007 in_progress; NovaAI verification #43198934012 completed; NovaAI verification #43198739738 completed; NOVA account and browser verification #43198740168 completed.
+
+
+## CI failure triage — 12 November 2026
+
+- The main workflow on candidate `129813a5` failed at `Check isolated mode registry`; browser workflow on the same SHA passed.
+- Exact cause: `scripts/modes-check.mjs` had an over-escaped regular expression (`\\\\b` instead of regex word boundary `\\b`) for hidden `nPhoto` / `nArch` buttons. This was a test bug, not a UI regression; current `index.html` still marks both controls hidden and accessible.
+- Corrected the two assertions on candidate `8e5e7e7d7341ee21cf261c057dbdfcf4c3001621`. Fresh Main run #43199324844 and Browser run #43199325027 were in progress at the latest status check; do not count them as passed until completion.
+- Latest PR #98: Open, Draft, mergeable, unmerged. Production main untouched.
+- Staging remains deployed at old SHA `195739a04895de364a5af22aa61f930d5d782cbb`; Health Check Path still requires owner to set `/health` and deploy latest PR revision.
+- No production deploy, paid API use, provider secret changes or Supabase production mutation performed.
