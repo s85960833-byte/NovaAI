@@ -1,7 +1,7 @@
 # NOVA API & Third-Party Integration Audit
 
 Audit date: 12 November 2026 (Asia/Kolkata)
-Audited revision: PR #98 branch, head observed as `5176c0e57cff1cc3e6c7bf418bad2b1e6b7ac97c`
+Audited revision: PR #98 branch, current audit pass includes timezone, provider HTTP hardening, finance-relay removal and npm licence inventory; verify the exact current SHA on PR #98 before release
 Scope: static source/configuration inventory plus public vendor-documentation review. This is **not** proof that credentials are valid, an integration is live, or commercial rights have been granted.
 
 ## Executive decision
@@ -32,7 +32,7 @@ Supabase project URL and browser client setup are present in the frontend/accoun
 | Web search | Brave Search API, Tavily | DuckDuckGo HTML and Wikipedia search race as fallback | Primary commercial terms and account quotas must be checked. DuckDuckGo HTML is not a contracted search API. |
 | News / feeds | Google News RSS, GDELT, publisher RSS feeds (BBC, Al Jazeera, NPR, DW, UN, The Hindu, NDTV, Indian Express, Times of India, PIB, BBC Hindi, Navbharat Times, TechCrunch, The Verge, Ars Technica, MIT Technology Review, ScienceDaily, Nature, NASA, Phys.org, CNBC, Economic Times, Mint, ESPN, ESPNcricinfo, WHO, OpenAI, Google, NVIDIA, Microsoft, Apple, Hugging Face and others) | Per-category feed aggregation and cached results; GDELT failure can fall back to Google News RSS | Publisher feed availability is not a content-republication licence. Keep excerpts short, link to source, preserve attribution, and obtain rights review before commercial redistribution. |
 | Weather / air quality | Open-Meteo geocoding, forecast and air-quality APIs | wttr.in weather fallback | Open-Meteo explicitly limits free API use to non-commercial use; commercial use requires a subscription/licence. wttr.in is a public service without verified commercial licence, quota or SLA. Current implementation is not cleared for monetized use. |
-| Time | Server clock + IANA timezone formatting; optional geocoded place | Server clock | Chat system prompt currently injects India Standard Time; request-specific timezone is separately accepted by live retrieval. Full per-user timezone behavior needs integration testing. |
+| Time | Server clock + validated IANA timezone formatting; optional geocoded place | Asia/Kolkata fallback for invalid/missing timezone | Chat now accepts the browser's IANA timezone and injects local date/time plus UTC timestamp. The `tz` metadata is removed before the upstream model request. Automated unit coverage exists; full live-provider and physical-device verification remain pending. |
 | Finance / markets | Yahoo Finance chart endpoints (unofficial preview only), CoinGecko, Coinbase Exchange public market data, Frankfurter FX | CoinGecko/Coinbase and Frankfurter routes are present | Yahoo Finance endpoint is undocumented and Yahoo's published guidelines restrict some services from commercial/monetized use. Do not rely on Yahoo endpoints for a paid product. CoinGecko public rate varies (5–15 calls/min); Demo is 100 calls/min. Confirm exact plan, attribution, caching and redistribution rights. |
 | Sports | ESPN public site API endpoints; TheSportsDB free v1 key `123` | TheSportsDB fallback for supported leagues | ESPN endpoint is not a documented licensed API and prior server tests returned 403. TheSportsDB free API is documented for development; its terms say app-store publishing requires paid membership and third-party artwork has separate rights. Not commercially cleared. |
 | Research / reference | arXiv API, OpenAlex, Wikipedia/Wikimedia | arXiv + science RSS fallback for OpenAlex | Preserve source metadata/attribution; check dataset/API terms and rate limits before bulk use. |
@@ -43,7 +43,7 @@ Supabase project URL and browser client setup are present in the frontend/accoun
 
 ## Current controls observed in code
 
-- Provider keys are read from server environment variables; provider base URLs are validated as HTTPS in production and reject embedded credentials, query strings and fragments.
+- Provider keys are read from server environment variables; configured provider base URLs are validated as HTTPS in production and reject embedded credentials, query strings and fragments. The general `lhttp()` connector now rejects non-HTTPS/IP-literal/local-style/single-label hosts, limits redirects to the original hostname, and bounds streamed response bodies to 3 MiB.
 - Express applies a process-local per-IP limit of 60 requests/minute to `/api/*` before JSON parsing; JSON body limit is 6 MB. This limit resets on process restart and does not provide durable per-user quotas or a monthly spend cap.
 - Live retrieval has an additional process-local per-IP limit of 24 requests/minute and a concurrency cap.
 - Image generation has a separate limit of 3 requests per IP per 10 minutes and a bounded in-memory queue. Image job state is process-local and not durable across restarts.
