@@ -469,6 +469,7 @@ async function lhttp(url, o = {}) {
         }
         const location = r.headers.get('location');
         if (!location) throw new Error('provider redirect missing location');
+        try { await r.body?.cancel(); } catch { /* release redirect response body */ }
         target = safeRedirectTarget(new URL(location, target).href, originalHost);
       }
       if (r.status === 429) {
