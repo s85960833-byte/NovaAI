@@ -100,3 +100,14 @@ Decisions: no Production merge/deploy; no paid API spend; no new repository or d
 - Weather fallback `wttr.in` has no verified commercial licence, quota or SLA in this audit. It is not approved for monetized use.
 - No production code changed in this review step; audit documents only.
 - API audit remains NOT PASSED. No paid accounts, keys or services were activated.
+
+
+## Per-user timezone improvement — 12 November 2026
+
+- Added `nova-timezone.js` with IANA timezone validation and safe IST fallback.
+- `nova-app.js` now sends the browser's configured IANA timezone with AI chat requests (not GPS/location).
+- `nova-server.txt` injects the validated local date/time, timezone name and UTC timestamp into the system context.
+- Added `scripts/timezone.test.cjs`, `npm run test:timezone`, and a CI step in the main verification workflow.
+- Exact timezone unit test source was independently executed with Node 22 in a clean temporary directory: 4 tests passed, 0 failed. GitHub CI for latest branch head `5d2978b` was still running at last check; this local test does not replace the full workflow.
+- Live Search already receives browser timezone; this closes the mismatch between Live Search and ordinary chat. The app continues to use the user's saved city preference for weather; no precise GPS location is sent.
+- No Production or Staging deploy has occurred. Latest Staging revision remains `195739a`; Production remains unchanged.
