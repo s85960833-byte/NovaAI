@@ -5,13 +5,13 @@ Repository: https://github.com/s85960833-byte/NovaAI
 Production: https://novaai-4auo.onrender.com (main branch; unchanged)
 Candidate: PR #98 — https://github.com/s85960833-byte/NovaAI/pull/98
 Candidate branch: `fix/nova-home-learn-first-mobile-20261109`
-Latest fully CI-verified code-bearing revision: `98d53df88730a9437ce9a38b7f26130a397bc8e3`
+Latest fully CI-verified code-bearing revision: `0f319523d557847a138639c03d3221b8c71d0aea`
 
 ## Exact-head CI evidence
 
 - PR #98 is Open, Draft, unmerged, and targets `main`. Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; no candidate merge or Production deployment has occurred.
-- Main verification [run 43217291880](https://github.com/s85960833-byte/NovaAI/actions/runs/43217291880) passed on exact code head `98d53df`: 44 successful steps, 4 release/live steps skipped, 0 failed.
-- Browser verification [run 43217291738](https://github.com/s85960833-byte/NovaAI/actions/runs/43217291738) passed on the same exact head: 16 successful steps, 0 skipped, 0 failed.
+- Main verification [run 43217735855](https://github.com/s85960833-byte/NovaAI/actions/runs/43217735855) passed on exact code head `0f31952`: 44 successful steps, 4 release/live steps skipped, 0 failed.
+- Browser verification [run 43217735831](https://github.com/s85960833-byte/NovaAI/actions/runs/43217735831) passed on the same exact head: 16 successful steps, 0 skipped, 0 failed.
 - New API-auth test step passed on exact head. It covers HTTPS-only Supabase URL validation, missing/malformed/oversized bearer tokens, valid user identity mapping, invalid/expired token rejection, malformed/oversized Auth response, upstream outage fail-closed behavior, startup configuration checks, auth gate ordering before JSON parsing, browser bearer-token forwarding, image-job owner binding and user-scoped live/image rate keys.
 - Main coverage also includes dependency SBOM, syntax, provider defaults, Markdown injection escaping, mode registry, Cloud Sync merge/conflict, bounded IP rate window/timezone, environment/container configuration, accessibility, HTTPS provider URLs, safe redirects/bounded reads, AI Horde privacy, PDF.js mitigation, PostgreSQL migration + tenant RLS, Deno Edge Function type-check/invitation tests, BI calculations/CSV validation, 60-case AI evaluation, npm dependency audit, local routes/PWA, graceful shutdown and Docker build/health.
 - The four skipped Main CI steps are deployed NOVA BI Edge Function auth/CORS smoke, waiting for a merged revision on Render, live Production website/provider smoke, and live free image-generation smoke. Skipped does not mean passed.
