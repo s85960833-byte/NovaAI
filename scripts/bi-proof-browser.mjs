@@ -57,6 +57,12 @@ try {
     status: document.querySelector('#nbDataStatus')?.textContent || '',
     parsedRows: window.NovaBusiness?.snapshot?.().dataset?.rowCount ?? null
   }));
+  assert.equal(beforeAnalysis.selectedType, 'expenses',
+    'Expense demo must select the expense analysis mode: ' + JSON.stringify(beforeAnalysis));
+  assert.equal(beforeAnalysis.columnMapping.find(x => x.key === 'amount')?.value, 'Amount (INR)',
+    'Currency-suffixed amount headers must be auto-mapped safely: ' + JSON.stringify(beforeAnalysis));
+  assert.equal(beforeAnalysis.columnMapping.find(x => x.key === 'category')?.value, 'Category',
+    'Expense category should auto-map: ' + JSON.stringify(beforeAnalysis));
   assert.equal(beforeAnalysis.buttonDisabled, false,
     'Analyze must be enabled after a successful import: ' + JSON.stringify(beforeAnalysis));
   await page.locator('#nbAnalyze').click();
