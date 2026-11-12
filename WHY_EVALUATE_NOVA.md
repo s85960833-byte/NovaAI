@@ -50,3 +50,10 @@ The current ₹15–20 lakh Tier 1 target is **not substantiated as a fair asset
 ## Appropriate next step
 
 A responsible adult operator can supervise a non-paid, synthetic-data technical review after current-head Staging is verified. Do not accept payment, deposits, customer data or confidential information in the current state.
+
+
+## Source provenance evidence — candidate enhancement
+
+The current candidate adds a SHA-256 digest of the exact uploaded CSV file bytes to NOVA BI's local analysis metadata and portable Action Proof bundle. The bundle includes the source digest, column mapping, row counts, calculation version, checks and computed analysis; it does not embed the original CSV bytes. The analysis may still include user-provided labels/values and source-row references, so it must be inspected before sharing.
+
+A SHA-256 digest can help compare a retained input file with the file used for an analysis. It is **not** a digital signature, trusted timestamp, identity attestation or proof that a browser calculation was honest. The feature must pass the new unit and Chromium tests on the exact candidate before it is called verified.

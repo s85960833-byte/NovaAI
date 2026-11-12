@@ -53,3 +53,5 @@
 - [Selected improvement register](../IMPROVEMENT_REGISTER.md)
 
 - [Account deletion/data-lifecycle review](../ACCOUNT_DELETION_REVIEW.md) — read-only schema evidence and required safe deletion design; no destructive action executed.
+
+- Candidate source provenance: local CSV SHA-256 and portable Action Proof JSON bundle; tests added, latest exact-head CI pending.

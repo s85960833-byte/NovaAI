@@ -74,3 +74,8 @@ The preliminary gross rebuild-labour estimate is ₹35–105 lakh, using a 1,500
 ## Latest evidence update — 12 November 2026
 
 The latest PR candidate `c3ddc3e32423a219c2c456cd92c1cba42b87ed88` passed Main 45/45 and Browser 16/16. NOVA BI candidate code includes fictional expense/client/task CSVs, deterministic checks and a safe allowlist for the three downloads. Samples are not customer outcomes. The Supabase backup/restore procedure is documented, but no backup export or restore has been executed. Staging still serves the older `195739a` commit; these additions are not live-verified.
+
+
+## Candidate enhancement — portable Action Proof
+
+The PR candidate adds a SHA-256 digest of the exact uploaded CSV bytes and an exportable JSON bundle linking that digest to the column mapping, row counts, calculation version, software checks and calculated analysis. This can support reproducibility checks when a reviewer retains the original input; it is not a digital signature or identity attestation. The raw CSV bytes are not included in the bundle, but derived labels/values may be, so inspect before sharing. New exact-head unit/Chromium tests are pending.

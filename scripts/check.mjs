@@ -162,5 +162,15 @@ if (!html.includes('id="novaEntryGate"') || html.includes('id="novaEntryVideo"')
   throw new Error('NOVA crisp, non-interactive, persistent one-time motion intro is missing');
 }
 
+const businessUi = readFileSync('nova-business.js', 'utf8');
+if (!businessUi.includes("const rawBytes=await f.arrayBuffer()") ||
+    !businessUi.includes("core.sha256Hex(rawBytes)") ||
+    !businessUi.includes("sourceFileSha256:d.contentSha256||null") ||
+    !businessUi.includes("columnMapping:mapping") ||
+    !businessUi.includes("nova-action-proof-bundle.json") ||
+    !businessUi.includes("original CSV bytes")) {
+  throw new Error('NOVA Action Proof must export the source-file SHA-256, calculation metadata and a portable analysis bundle without embedding raw CSV bytes');
+}
+
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
 process.stdout.write('PASS NOVA video-first entry gate markup, interaction, asset integrity, and streaming route\n');

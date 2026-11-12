@@ -164,3 +164,8 @@ All sample rows are fictional, labelled demo data and validated against the same
 - [Account deletion/data-lifecycle review](ACCOUNT_DELETION_REVIEW.md) records the live foreign-key evidence: six BI/Auth references use RESTRICT, audit-event actor references SET NULL and workspace backup rows CASCADE.
 - The current **Delete cloud backup** button removes only the cloud chat snapshot; it does not delete the Auth account or all tenant data.
 - Full account deletion and retention are not implemented. Do not onboard real customer/confidential data or claim complete deletion.
+
+
+## NOVA BI portable Action Proof
+
+The current PR candidate adds a SHA-256 source-file digest and a portable JSON proof bundle containing the digest, column mapping, row counts, calculation version, software-check results and calculated analysis. The source CSV bytes are not embedded. The analysis may include user-provided labels/values and source-row references; inspect it before sharing. A SHA-256 digest is not a signature or a guarantee of browser integrity. The new unit and browser verification are pending on the latest candidate.

@@ -8,6 +8,18 @@ const core = require('../nova-business-core.js');
 
 const fixture = (name) => fs.readFileSync(path.join(__dirname, '..', 'samples', name), 'utf8');
 
+test('SHA-256 proof hashing matches a published test vector and is deterministic for demo files', async () => {
+  const expected = 'sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad';
+  assert.equal(await core.sha256Hex('abc'), expected);
+  assert.equal(await core.sha256Hex(Uint8Array.from([0x61, 0x62, 0x63])), expected);
+  assert.equal(await core.sha256Hex(Buffer.from('abc', 'utf8')), expected);
+  const fileBytes = Buffer.from(fixture('demo-expenses.csv'), 'utf8');
+  const first = await core.sha256Hex(fileBytes);
+  const second = await core.sha256Hex(fileBytes);
+  assert.match(first, /^sha256:[0-9a-f]{64}$/);
+  assert.equal(first, second);
+});
+
 test('synthetic expense fixture validates and exposes budget/spend review signals', () => {
   const parsed = core.parseCSV(fixture('demo-expenses.csv'));
   assert.equal(parsed.rowCount, 12);

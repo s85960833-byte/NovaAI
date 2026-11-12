@@ -68,3 +68,8 @@ A verified adult-managed buyer/contact process is not established. Current outre
 ## Account deletion clarification
 
 The current “Delete cloud backup” control deletes only the optional NOVA workspace snapshot. It is not full Supabase Auth account deletion. Six live NOVA BI/Auth foreign-key relationships use `ON DELETE RESTRICT`; a complete safe deletion workflow must protect shared tenant data and audit history. No complete user-facing account-deletion flow or published retention schedule is available. See [ACCOUNT_DELETION_REVIEW.md](ACCOUNT_DELETION_REVIEW.md).
+
+
+## What does NOVA Action Proof contain?
+
+The candidate enhancement adds the SHA-256 digest of the exact uploaded CSV file bytes, selected column mapping, source/accepted row counts, calculation version, software-check results and calculated analysis to a portable JSON bundle. The original CSV bytes are not placed in the bundle. The analysis can still contain user-provided labels/values and source-row references, so review it before sharing. A SHA-256 digest is a file-integrity identifier, not a digital signature or proof of who created the file. New unit and Chromium tests are pending on the latest PR commit.

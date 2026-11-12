@@ -55,6 +55,10 @@ jobs:
         env:
           NOVAAI_URL: http://127.0.0.1:8787
         run: node scripts/company-cloud-browser.mjs
+      - name: Verify NOVA BI source SHA-256 and portable proof bundle
+        env:
+          NOVAAI_URL: http://127.0.0.1:8787
+        run: node scripts/bi-proof-browser.mjs
       - name: Verify mobile layout and drawer regression
         run: npm run test:mobile-layout
       - name: Verify graceful shutdown

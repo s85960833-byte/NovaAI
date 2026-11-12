@@ -56,3 +56,8 @@ flowchart TD
 No stable versioned public API/OpenAPI contract, external SDK, webhook delivery/signature/retry system, or permissioned plugin framework. No durable Express user quotas, monthly usage ledger, plan entitlements or hard provider spend caps. No production subscription checkout, invoices, refund/cancellation/tax workflows. No complete account deletion/retention system. No proven monitoring/SLO, backup-restore drill or second-host deploy. Core app custom-domain white-label routing is not implemented.
 
 **Release rule:** Keep PR #98 Draft/unmerged until current-head Staging, live security, provider rights, data lifecycle, physical Android, backup/restore and owner approval gates pass.
+
+
+## NOVA BI source provenance
+
+The local CSV import candidate calculates a SHA-256 digest from the uploaded file's bytes and attaches it to the analysis and portable Action Proof JSON bundle with the selected column mapping, row counts, calculation version and software-check results. The original CSV bytes are not embedded in the bundle. This is a reproducible file digest, not a digital signature, trusted timestamp, identity proof or guarantee against a compromised browser.

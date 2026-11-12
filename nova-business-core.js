@@ -162,6 +162,19 @@
     for(const byte of bytes){hash^=BigInt(byte);hash=BigInt.asUintN(64,hash*1099511628211n)}
     return 'fnv1a64:'+hash.toString(16).padStart(16,'0');
   }
+  async function sha256Hex(value){
+    const subtle=globalThis.crypto&&globalThis.crypto.subtle;
+    if(!subtle||typeof subtle.digest!=='function')return null;
+    let bytes;
+    if(typeof value==='string')bytes=new TextEncoder().encode(value);
+    else if(value instanceof ArrayBuffer)bytes=new Uint8Array(value);
+    else if(ArrayBuffer.isView(value))bytes=new Uint8Array(value.buffer,value.byteOffset,value.byteLength);
+    else bytes=new TextEncoder().encode(JSON.stringify(value));
+    try{
+      const digest=await subtle.digest('SHA-256',bytes);
+      return 'sha256:'+Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');
+    }catch{return null}
+  }
   function makeProof(checks,metadata){
     if(!Array.isArray(checks))fail('Proof checks must be an array.');
     const items=checks.map((c,i)=>({id:text(c&&c.id)||'check-'+(i+1),label:text(c&&c.label)||'Check '+(i+1),passed:!!(c&&c.passed),evidence:text(c&&c.evidence)}));
@@ -169,5 +182,5 @@
   }
   function sortedMap(map){return [...map.entries()].map(([name,value])=>({name,value:round(value)})).sort((a,b)=>b.value-a.value)}
   function round(n,places){if(!Number.isFinite(n))fail('Calculation exceeded the supported numeric range.');const p=10**(places==null?2:places),result=Math.round((n+Number.EPSILON)*p)/p;if(!Number.isFinite(result))fail('Calculation exceeded the supported numeric range.');return result}
-  return Object.freeze({parseCSV,analyzeExpenses,analyzeClients,analyzeTasks,scoreProjectRisk,simulateScenario,makeProof,fingerprint,number,date,MAX_CSV_BYTES,MAX_ROWS,MAX_COLUMNS});
+  return Object.freeze({parseCSV,analyzeExpenses,analyzeClients,analyzeTasks,scoreProjectRisk,simulateScenario,makeProof,fingerprint,sha256Hex,number,date,MAX_CSV_BYTES,MAX_ROWS,MAX_COLUMNS});
 });

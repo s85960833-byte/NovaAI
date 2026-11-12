@@ -92,3 +92,12 @@
 - The account UI only deletes `nova_user_workspaces`; no full Auth account deletion flow exists.
 - No deletion code or schema changes were applied. A blind delete endpoint could fail on RESTRICT keys or harm shared tenant/audit records.
 - `ACCOUNT_DELETION_REVIEW.md` records the exact catalog evidence and safe deletion requirements. Full deletion/retention/session revocation remains a critical NO-GO blocker.
+
+
+## SHA-256 Action Proof enhancement — pending verification
+
+- Added a browser-safe `sha256Hex` helper using Web Crypto and exact File ArrayBuffer bytes.
+- NOVA BI analysis metadata now carries the source-file SHA-256, row counts, column mapping and calculation version. The portable JSON bundle contains proof + analysis but not raw CSV bytes.
+- The proof screen shows the digest and warns that derived output may contain user-provided values.
+- Unit test checks the standard `abc` SHA-256 test vector and deterministic demo-file digest. A Chromium workflow test imports the expense CSV, calculates the result, checks the digest against Node's independent SHA-256 implementation and downloads the portable bundle.
+- The code change and tests are in the next candidate change; no CI pass or live behavior is claimed until the exact next SHA passes.

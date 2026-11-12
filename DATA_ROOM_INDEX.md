@@ -58,3 +58,8 @@ Never place secrets, passwords, service-role keys, personal data, raw customer d
 
 ## Account deletion and data lifecycle
 - [Account deletion/data-lifecycle review](ACCOUNT_DELETION_REVIEW.md) — live catalog found 6 RESTRICT, 1 SET NULL and 1 CASCADE FK to Auth users; full account deletion is not implemented.
+
+
+## Source-provenance improvement
+- The candidate adds an exact uploaded-CSV SHA-256 digest and portable Action Proof JSON bundle. It does not embed the raw CSV; derived analysis may still include user-provided labels/values and row references.
+- SHA-256 is an integrity identifier, not a digital signature or identity attestation. The related unit and Chromium checks must pass on the exact head before claiming verification.
