@@ -57,3 +57,18 @@ test('empty provider results are treated as failures and all failures are report
 test('an empty provider list makes no calls', async () => {
   assert.deepEqual(await firstSuccessful([]), { value: null, provider: null, failures: [] });
 });
+
+const fs = require('node:fs');
+const path = require('node:path');
+const serverSource = fs.readFileSync(path.join(__dirname, '..', 'nova-server.txt'), 'utf8');
+const webSearchStart = serverSource.indexOf('async function webSearch(');
+const webSearchEnd = serverSource.indexOf('\nasync function onThisDay(', webSearchStart);
+const webSearchSource = serverSource.slice(webSearchStart, webSearchEnd);
+
+test('production web search uses sequential routing and no HTML search scraper', () => {
+  assert.ok(serverSource.includes("require('./nova-search-router')"));
+  assert.match(webSearchSource, /firstSuccessful\(primary\)/);
+  assert.match(webSearchSource, /firstSuccessful\(\[/);
+  assert.doesNotMatch(webSearchSource, /Promise\.any|ddg\(/);
+  assert.match(webSearchSource, /TAVILY_SHARED_CACHE_ALLOWED === '1'/);
+});
