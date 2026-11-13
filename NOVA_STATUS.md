@@ -1,3 +1,21 @@
+# CURRENT CHECKPOINT — 13 November 2026 (Asia/Kolkata)
+
+**This checkpoint supersedes older Staging and candidate-deployment statements below.**
+
+- PR #98 is Open / Draft / unmerged; branch `fix/nova-home-learn-first-mobile-20261109`; exact candidate SHA `2e4eb204ff99790b55aef426fa0c38fc9a313d30`.
+- Exact-head Main CI [#43339689519](https://github.com/s85960833-byte/NovaAI/actions/runs/43339689519) succeeded: 47 successful steps, 3 skipped, 0 failed. Browser CI [#43339689512](https://github.com/s85960833-byte/NovaAI/actions/runs/43339689512) succeeded: 17/17, 0 failed. Skipped Main checks are not passes.
+- **Staging deployment is now Live on the exact PR candidate.** Render deploy `dep-dbr6dul6e07s73ama50g`, SHA `2e4eb204ff99790b55aef426fa0c38fc9a313d30`, finished 13 Nov 2026 at 01:25:45 UTC. Render events reported build success; logs confirm Node 22.23.5, `npm install` audited 72 packages with 0 vulnerabilities, `Build successful`, `Nova AI running on port 10000`, and `Your service is live`. Staging URL: https://novaai-pr98-staging.onrender.com.
+- Staging is still Free/Singapore/one instance, branch-linked with Auto Deploy enabled. **Health Check Path remains blank**; connected Render tools expose no service-setting update for this field.
+- Runtime logs explicitly report `NOVA API account authentication is DISABLED` and `NovaAI startup audit flag: disabled`. Do not expose public customer traffic or billable provider calls until Auth, quotas and provider spend controls are verified.
+- Current candidate's live HTTP `/health`, `/api/config`, Auth and provider routes could not be verified from this audit environment: the external fetch tool could not access the Render hostname and shell DNS resolution failed. This is an environment limitation, not proof the service is down. No AI provider key was added. Old-SHA 12 Nov logs had `/api/config` and chat 503 for missing provider configuration; that is not current-candidate HTTP evidence.
+- A read-only Supabase catalog query for public tables/functions matching usage, quota, billing, plan, subscription or rate-limit found only NOVA BI's separate `nova_bi_rate_limits` table and `nova_bi_consume_rate_limit` function. No general NOVA usage/quota ledger exists. Do not repurpose the BI table/function for consumer chat/search quotas.
+- Supabase Security Advisor and Health Advisor returned 0 lints in this review. No database schema or user data was changed.
+- Production remains on `main`, latest known Live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; no merge or Production deploy was made.
+- Remaining release blockers: Render Health Check Path; live Staging HTTP/Auth/provider tests; durable consumer quotas, monthly usage, entitlements and provider hard-spend caps; safe complete Auth account deletion/retention; physical Android/touch/keyboard/microphone tests; provider rights; IP chain of title; legal/privacy review; backup/restore, monitoring/load/rollback; GitHub `main` branch protection; genuine user/revenue/buyer evidence.
+- **Decision: NO-GO for Production and NO-GO for buyer-ready claims.** Keep PR #98 Draft/unmerged. No paid service/API use or Production mutation.
+
+---
+
 # CURRENT CHECKPOINT — 12 November 2026 (Asia/Kolkata)
 
 **This checkpoint supersedes older status claims below.** It records the latest evidence observed before this documentation-only commit.
