@@ -65,6 +65,8 @@ jobs:
         run: node --test scripts/provider-url.test.cjs
       - name: Test safe provider redirects and bounded response reads
         run: npm run test:provider-http
+      - name: Verify equity market data requires a documented licensed provider
+        run: npm run test:market-data-policy
       - name: Verify AI Horde prompts are not shared for dataset training
         run: npm run test:image-privacy
       - name: Test PDF.js untrusted-document eval mitigation
