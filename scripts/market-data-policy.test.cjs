@@ -13,8 +13,13 @@ test('unofficial Yahoo Finance chart endpoints are not called by the server', ()
 });
 
 test('equity symbols fail closed with an explicit no-live-price message', () => {
-  assert.match(server, /Equity market quotes are unavailable: no documented, commercially licensed provider is configured/);
+  assert.match(server, /Listed-market instrument quotes are unavailable: no documented, commercially licensed provider is configured/);
   assert.match(server, /Do not guess or infer a live price/);
+});
+
+test('currency conversion remains on the dedicated FX route', () => {
+  assert.match(server, /if \\(syms\\.some\\(s => s\\[1\\] !== 'INR=X'\\)\\)/);
+  assert.match(server, /T\\('fx', \\(\\) => fxRate\\(q\\)/);
 });
 
 test('the built-in provider self-test does not report the unlicensed equity source as healthy', () => {
