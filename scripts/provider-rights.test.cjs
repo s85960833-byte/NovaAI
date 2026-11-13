@@ -52,8 +52,8 @@ test('commercially reusable open metadata carries attribution or licence notices
   assert.match(server, /license: 'CC0-1\.0 \(OpenAlex metadata\)'/);
   assert.match(server, /licenseNote: 'Most Wikipedias use CC BY-SA 4\.0; check page-level exceptions'/);
   assert.match(server, /publisher: 'USGS'/);
-  assert.match(server, /attribution: 'U\\.S\\. Geological Survey \\(USGS\\)'/);
-  assert.match(server, /Earthquake data courtesy of the U\\.S\\. Geological Survey \\(USGS\\)\\./);
+  assert.ok(server.includes("attribution: 'U.S. Geological Survey (USGS)'"));
+  assert.ok(server.includes("Earthquake data courtesy of the U.S. Geological Survey (USGS)."));
 });
 
 test('keyless GDELT route is used instead of Google News RSS for general fallback', () => {
