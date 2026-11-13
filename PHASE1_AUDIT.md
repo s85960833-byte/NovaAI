@@ -5,6 +5,35 @@
 **Branch:** `fix/nova-home-learn-first-mobile-20261109`  
 **Scope:** Source-level product, route, security, UX, documentation and Render configuration review. This is an in-progress audit, not a certification or a claim that all pages/features are defect-free.
 
+## New audit checkpoint — 13 November 2026
+
+### Updated deployment and verification evidence
+- Render Staging is Live on code-bearing app SHA `2e4eb204ff99790b55aef426fa0c38fc9a313d30` (deploy `dep-dbr6dul6e07s73ama50g`).
+- GitHub-hosted Staging smoke verified `GET /health` HTTP 200 with `ok=true`, `ready=true`, `status=ok`; homepage HTML and `/nova-entry.js`, `/nova-config.js` assets succeeded.
+- Staging `GET /api/config` returned HTTP 503 because no AI provider is configured. No AI chat, image, search-provider or paid-provider call was made by that smoke.
+- Runtime logs report `NOVA_API_AUTH_REQUIRED` is disabled. Render Staging Health Check Path remains blank.
+- Latest PR head when this checkpoint was authored: `a875ab19ae9df5c7a0598aa9845bc280343caf45`. Browser CI #43371767444 passed; Main CI #43371767554 remains in progress. Its sequential search-provider test completed successfully.
+- PR #98 is Open/Draft/unmerged; Production branch and deployment remain unchanged.
+
+### New confirmed Phase 1 findings
+- The API route and provider terms review is captured in `API_AUDIT_2026-11-13.md`. It documents each source-integrated API, credentials, route, authentication gate, rate limit, fallback, cache policy and unresolved vendor rights.
+- A source-derived feature guide with bilingual in-app help is captured in `FEATURES.md`.
+- Search router code previously used parallel `Promise.any` calls across configured Tavily and Brave providers. It has been replaced with sequential first-usable routing and a unit-tested helper. This prevents the router from starting multiple paid search provider requests concurrently for one question.
+- DuckDuckGo HTML result-page scraping has been removed from the general web search fallback; Wikimedia API is used as the reference fallback instead.
+- Tavily cross-user/shared output caching is now explicitly gated by `TAVILY_SHARED_CACHE_ALLOWED=1`, default `0`; do not set it to 1 without written vendor permission.
+- Provider terms review found Open-Meteo free tier non-commercial, CoinGecko keyless/free plan without commercial rights, TheSportsDB free API restricted to development and app-store publishing, and 18+ / non-transferable contractual terms for Tavily and Groq. These are not eligible for public production use under current operator circumstances without responsible-adult/vendor/legal review.
+- Brave results are not persisted in shared cache by the updated router. GDELT/Google News RSS/publisher RSS, wttr.in, Coinbase/Frankfurter, ESPN, Hacker News, EONET, Pollinations legacy endpoint and several other public endpoints still lack fully verified commercial/reuse/transfer terms.
+- Exa is listed in the master prompt but is not integrated in the current source.
+- No durable consumer quota table/function, monthly usage accounting, plan entitlements or global provider spend cap exists. The separate `nova_bi_rate_limits` object must not be repurposed for consumer API quotas.
+
+### Phase 1 status
+- **Done:** Source route inventory; environment variable/key inventory; first-party Auth middleware/code review; existing rate-limit and request-size controls; current Staging external health/static smoke; sequential search router fix; API rights and feature documentation.
+- **In progress:** Exact-head Main CI; remaining dynamic UI/error/loading/accessibility review; provider-by-provider rights verification and replacement decisions; route-level live Auth/provider tests.
+- **Blocked by owner/vendor:** Staging health-check setting; approved AI provider account/key privately configured on Staging; hosted Auth email/redirect configuration; physical Android and microphone tests; provider contracts and any 18+ vendor relationship.
+- **Release decision:** NO-GO. No Production change, paid service or paid API call.
+
+---
+
 ## Evidence reviewed
 
 - Repository tree: 107 tracked files before cleanup; 2 obsolete HTML artifacts were removed from this branch because one was empty and the other was an unreferenced, explicitly labelled untested starter server from the previous architecture.
