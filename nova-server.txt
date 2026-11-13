@@ -246,6 +246,7 @@ app.post('/api/chat/completions', async (q, r) => {
 });
 
 app.post('/api/search', async (q, r) => {
+  r.set('Cache-Control', 'no-store');
   const query = String((q.body && q.body.q) || '').trim().slice(0, 400);
   if (!query) return r.status(400).json({ error: 'Search query is required' });
   try {
@@ -600,12 +601,12 @@ const FEEDS = {
 const OFFICIAL_HOSTS = /(^|\.)(pib\.gov\.in|gov\.in|nic\.in|rbi\.org\.in|who\.int|un\.org|nasa\.gov|isro\.gov\.in|europa\.eu|whitehouse\.gov|usgs\.gov|noaa\.gov|imd\.gov\.in|worldbank\.org|imf\.org|openai\.com|blog\.google|nvidia\.com|microsoft\.com|apple\.com)$/i;
 const TOP_NEWS = /(bbc\.|reuters\.|apnews\.|thehindu\.|aljazeera\.|npr\.org|dw\.com|ndtv\.|indianexpress\.|nature\.com|science\.org|economist\.com|ft\.com|bloomberg\.|wsj\.com|nytimes\.|theguardian\.|hindustantimes\.|timesofindia\.|livemint\.|espn|cricinfo)/i;
 async function fetchFeed(name, url, kind) {
-  return cached('feed:' + url, 8 * 6e4, async () => {
-    const xml = await lhttp(url, { accept: 'application/rss+xml, application/atom+xml, text/xml, */*', timeout: 4500, tries: 2 });
-    const items = parseFeed(xml, name).slice(0, 15).map(x => ({ ...x, publisher: x.publisher || name, kind: kind || 'news', connector: 'rss:' + name }));
-    if (!items.length) throw new Error('no items');
-    return items;
-  });
+  // Publisher feed terms are not uniformly licensed for persistent result storage.
+  // Fetch transiently until each publisher explicitly permits caching.
+  const xml = await lhttp(url, { accept: 'application/rss+xml, application/atom+xml, text/xml, */*', timeout: 4500, tries: 2 });
+  const items = parseFeed(xml, name).slice(0, 15).map(x => ({ ...x, publisher: x.publisher || name, kind: kind || 'news', connector: 'rss:' + name }));
+  if (!items.length) throw new Error('no items');
+  return items;
 }
 async function feedCat(cat, limit = 12) {
   const list = FEEDS[cat] || [];
@@ -638,23 +639,21 @@ async function gnews(q, o = {}) {
   const L = o.lang === 'hi' ? ['hi', 'IN', 'IN:hi'] : ['en-IN', 'IN', 'IN:en'];
   const qq = q + (o.after ? ' after:' + o.after : '') + (o.before ? ' before:' + o.before : '') + (o.when ? ' when:' + o.when : '') + (o.site ? ' site:' + o.site : '');
   const url = 'https://news.google.com/rss/search?q=' + enc(qq) + '&hl=' + L[0] + '&gl=' + L[1] + '&ceid=' + L[2];
-  return cached('gn:' + url, 3 * 6e4, async () => {
-    const xml = await lhttp(url, { accept: 'application/rss+xml, text/xml', timeout: 4500, tries: 2 });
-    const it = parseFeed(xml, 'Google News').slice(0, o.n || 12).map(x => ({ ...x, snippet: '', kind: 'news', connector: 'google-news' }));
-    if (!it.length) throw new Error('no items');
-    return it;
-  });
+  // Google News result metadata is transient; do not persist it without explicit rights.
+  const xml = await lhttp(url, { accept: 'application/rss+xml, text/xml', timeout: 4500, tries: 2 });
+  const it = parseFeed(xml, 'Google News').slice(0, o.n || 12).map(x => ({ ...x, snippet: '', kind: 'news', connector: 'google-news' }));
+  if (!it.length) throw new Error('no items');
+  return it;
 }
 const gdDate = s => { const m = /^(\d{4})(\d\d)(\d\d)T?(\d\d)(\d\d)(\d\d)/.exec(s || ''); return m ? iso(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}Z`) : ''; };
 async function gdelt(q, o = {}) {
   let url = 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + enc(q) + '&mode=artlist&maxrecords=' + Math.min(15, Math.max(1, Number(o.n) || 10)) + '&format=json&sort=datedesc';
   url += (o.start && o.end) ? '&startdatetime=' + o.start + '&enddatetime=' + o.end : '&timespan=' + (o.timespan || '3d');
-  return cached('gd:' + url, 10 * 6e4, async () => {
-    const j = await lhttp(url, { json: true, timeout: 4500, tries: 1 });
-    const out = (j.articles || []).map(a => ({ title: lclean(a.title, 200), url: safeUrl(a.url), publisher: a.domain || host(a.url), date: gdDate(a.seendate), snippet: '', kind: 'news', connector: 'gdelt' })).filter(x => x.title && x.url);
-    if (!out.length) throw new Error('no items');
-    return out;
-  });
+  // Keep third-party search result records transient until provider terms are cleared.
+  const j = await lhttp(url, { json: true, timeout: 4500, tries: 1 });
+  const out = (j.articles || []).map(a => ({ title: lclean(a.title, 200), url: safeUrl(a.url), publisher: a.domain || host(a.url), date: gdDate(a.seendate), snippet: '', kind: 'news', connector: 'gdelt' })).filter(x => x.title && x.url);
+  if (!out.length) throw new Error('no items');
+  return out;
 }
 // ---- general web search: Tavily/Brave when keys exist, else DuckDuckGo, else Wikipedia ----
 async function tavily(q, o = {}) {
@@ -1117,6 +1116,7 @@ function finish(x) {
 const liveHits = new Map(); let liveActive = 0;
 const LIVE_MAX = Number(E.LIVE_CONCURRENCY) || 5;
 app.post('/api/live', async (q, r) => {
+  r.set('Cache-Control', 'no-store');
   const b = q.body || {}, text = String(b.q || '').trim().slice(0, 500);
   if (!text) return r.status(400).json({ ok: false, error: 'No question' });
   const nw = Date.now(), liveRateKey = q.novaUser?.id ? 'user:' + q.novaUser.id : 'ip:' + q.ip;
