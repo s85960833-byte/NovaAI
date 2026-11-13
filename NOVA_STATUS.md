@@ -1,3 +1,13 @@
+# EXACT-HEAD CI UPDATE — 13 November 2026
+
+- Latest PR head is `cca3a95bfb6d20e207306175e7e0258040800cb7`; this commit only records the Staging deployment/checkpoint and does not change application code.
+- Main CI [#43345996149](https://github.com/s85960833-byte/NovaAI/actions/runs/43345996149): completed **success**, 0 failed. Exact-head workflow job `verify` succeeded.
+- Browser CI [#43345996174](https://github.com/s85960833-byte/NovaAI/actions/runs/43345996174): completed **success**. Browser job and all 14 workflow steps succeeded.
+- The code-bearing parent `2e4eb204ff99790b55aef426fa0c38fc9a313d30` remains Live on Staging via Render deploy `dep-dbr6dul6e07s73ama50g`.
+- These results do not resolve the Staging health-check setting, live external HTTP/provider/Auth tests, durable consumer quotas, full account deletion, physical device verification, Production branch protection or other listed release blockers. Production remains unchanged.
+
+---
+
 # CURRENT CHECKPOINT — 13 November 2026 (Asia/Kolkata)
 
 **This checkpoint supersedes older Staging and candidate-deployment statements below.**
