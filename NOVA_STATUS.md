@@ -1,3 +1,38 @@
+# MASTER PROMPT EXECUTION CHECKPOINT — 13 November 2026 (Asia/Kolkata)
+
+**Master brief:** `Nova_AI_Master_Prompt.md` supplied by the user.  
+**PR:** #98 — Open / Draft / unmerged.  
+**Branch:** `fix/nova-home-learn-first-mobile-20261109`.  
+**Current candidate at checkpoint:** `a875ab19ae9df5c7a0598aa9845bc280343caf45`.  
+**Production:** unchanged; NO-GO.
+
+## Phase 1 — Total Audit and API Audit
+
+- **Completed:** Current Express API route inventory, environment-variable/secret inventory, process-local rate-limit inventory, Auth gate/code review, current Staging health/static external smoke, provider integrations/fallback inventory, first provider-terms review.
+- **Completed docs:** `API_AUDIT_2026-11-13.md` and `FEATURES.md` added to PR branch. Feature guide describes purpose, request flow, files, APIs, tests, known limits/costs and short Hindi/English in-app help.
+- **Completed search-cost fix:** Added `nova-search-router.js` and tests. Tavily/Brave providers now run sequentially and stop after first usable result. DuckDuckGo HTML scraping fallback removed; Wikimedia API remains as fallback. Tavily shared-cache permission gate defaults to `0`.
+- **CI:** Browser run [#43371767444](https://github.com/s85960833-byte/NovaAI/actions/runs/43371767444) passed. Main run [#43371767554](https://github.com/s85960833-byte/NovaAI/actions/runs/43371767554) is still running at this checkpoint; the new sequential search-provider test has passed. Do not mark full Main CI green yet.
+- **Staging:** Render deployment `dep-dbr6dul6e07s73ama50g` is Live on application SHA `2e4eb204ff99790b55aef426fa0c38fc9a313d30`. Main CI Staging smoke passed `/health` (HTTP 200, ready), homepage, `/nova-entry.js`, `/nova-config.js`. `/api/config` HTTP 503 indicates no AI provider configured. No paid provider call.
+- **Security/config:** Runtime Auth gate is disabled (`NOVA_API_AUTH_REQUIRED=0`). Staging Health Check Path is blank. The Render connector in this session has no write operation for the health-check setting.
+- **Provider rights:** The provider audit records non-commercial, restricted or unverified rights. Open-Meteo Free and CoinGecko keyless/free are not cleared for commercial use; TheSportsDB free tier is not suitable for published commercial app use; Tavily and Groq contractual access requires 18+ and has non-transferability conditions. Brave results are transient-use only and not transferable by default. Additional RSS, weather, finance, sports, image and research rights remain to be verified.
+- **No consumer billing infrastructure:** There is no durable NOVA consumer quota/usage ledger, subscription entitlement, monthly cost accounting, hard daily/monthly spend cap or alert-to-cache-only mechanism. Existing request counters are process-local. The separate NOVA BI rate-limit table is not a substitute.
+- **Still open:** Hosted missing/malformed/invalid/expired/valid token tests; Auth email/redirect and two-account isolation; full account deletion/retention; live AI/provider tests; physical Android/touch/keyboard/microphone; provider licenses/transfer approval; accessibility audit; backups/restore; load/monitoring/SLO/rollback; legal/IP review; independent market/willingness-to-pay/benchmark evidence.
+
+## Phase and overall status
+
+- Phase 1: **IN PROGRESS** — core inventory/docs and sequential router change complete; exact Main CI still running and external/auth/physical checks remain.
+- Phases 2–11: **NOT COMPLETE** — pricing, quotas/spend guard, provider bake-off, evaluation suite, market wedge/benchmark, paid validation, Instagram pack, buyer package, transfer/IP rights and valuation proof remain incomplete.
+- Overall Master Prompt Definition of Done: **not met**. No new percentage is claimed from incomplete evidence; the earlier 30% estimate was qualitative, not an instrumented measure.
+- Buyer-readiness: **not independently re-scored** in this checkpoint; no valuation or buyer-ready claim.
+- **Decision:** Keep PR #98 Draft/unmerged. Keep Production unchanged. No paid API, service, hosting upgrade or advertising spend.
+
+## Owner/vendor actions required — one at a time
+1. Set Staging Health Check Path to `/health`: Render Dashboard → [Staging service](https://dashboard.render.com/web/srv-dbqm035g1s2s73eogao0) → Settings → Health Checks → enter `/health` → Save.
+2. Only a responsible adult should manage any provider account or 18+ vendor contract. Do not create a minor-owned account or bypass the provider's age terms.
+3. If selecting a no-cost AI provider, the adult account owner must privately configure their own approved key in Staging Environment; do not send the secret in chat.
+
+---
+
 # STAGING SMOKE + EXACT CI — 13 November 2026
 
 - Current candidate at this checkpoint: `4a7e3d473f64b676734c5ecb04499e18e4fdc880`; it adds only a PR #98 Staging smoke step to `.github/workflows/novaai-verification.yml`. Application runtime source remains the code-bearing commit `2e4eb204ff99790b55aef426fa0c38fc9a313d30`.
