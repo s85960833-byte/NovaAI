@@ -359,3 +359,22 @@ This section supersedes earlier checkpoint statements below wherever they descri
 - New doc commit: `362c58c956f1d38ea067e71f993557eedbe9037a`. GitHub compare confirms this commit changed only `INDIA_PRIVACY_COMPLIANCE_REVIEW.md` (19 additions, 0 deletions). No application code changed and no deployment was triggered by this documentation edit.
 - PR #98 remains Open/Draft/unmerged and currently mergeable; Production remains untouched.
 - Remaining gating items are unchanged: Staging on old SHA, blank Staging Health Check Path, no live auth/session test, no physical Android test, incomplete durable quotas/account deletion/provider-rights/IP/legal/restore evidence.
+
+
+## Staging + provider-rights checkpoint — 13 November 2026
+
+- Latest reviewed PR head: `de78765aafe4300a3e92a453803dfe35693ca3ec`; PR #98 remains Open / Draft / unmerged.
+- Keyless provider rights changes are on the PR branch:
+  - DuckDuckGo HTML scraping, Yahoo Finance unofficial chart endpoints, and `proxy.cors.dev` have no active references in `nova-server.txt`.
+  - ESPN unofficial scoreboard, Open-Meteo free geocoding/weather, and the wttr.in weather fallback are disabled fail-closed.
+  - Curated publisher RSS sources have been removed from the active feed list; feed functions return no content pending publisher-by-publisher written commercial-use permissions.
+  - Google News RSS and TheSportsDB free sports fallback are also disabled pending appropriate rights.
+  - No source in this keyless list is approved for commercial redistribution based solely on public accessibility.
+- Added `docs/PROVIDER_RIGHTS_AUDIT.md`, `scripts/provider-rights.test.cjs`, npm command `test:provider-rights`, and a Main CI step. Static source inspection on the current PR head confirms the listed disallowed endpoint strings are absent and the routes fail closed. This is source inspection only, not a completed CI result.
+- Render Staging service `srv-dbqm035g1s2s73eogao0`: branch is the PR branch, plan is Free, Auto Deploy is enabled, and Health Check Path remains blank in the latest service read. Latest confirmed Live deploy is still `dep-dbra3et9fdbs73dosl7g` at old SHA `2459da827e825e5c07a20e22d69fb84367ad6a5f`; no Live deploy at current PR head was returned.
+- Latest app logs include `NOVA API account authentication is REQUIRED` and `Nova AI running on port 10000` at `2026-11-13T07:29:09Z`. The server would not start with Auth enabled if the required Supabase URL/publishable key were missing. This confirms the Auth gate at startup, but not a valid user session or email flow.
+- Staging `/api/config` was **not** successfully read in this execution; the external host could not be resolved from the execution network and the web reader could not access the Render host. Provider-key presence and HTTP 200 are therefore unverified. No real chat mode or live-search call was run; those routes also require an authenticated Supabase session.
+- The current-head GitHub workflow lookup returned no associated run. The new provider-rights CI step, overall Main CI, and Browser CI are not yet certified on the latest head.
+- No Render manual deploy was requested because Auto Deploy is enabled and a code push is expected to trigger it; no new deploy was visible in the latest deployment list. Do not claim Staging is updated until an exact-head Live deploy is recorded.
+- Owner action still required: Render Dashboard → Staging → Settings → Health Checks → set Health Check Path to `/health` → Save. Re-check deployment after that.
+- Production is unchanged; no merge, Production deploy, paid spend, payment setup, or Supabase schema mutation occurred. Definition of Done remains NOT MET.
