@@ -10,15 +10,15 @@ Production preview: https://novaai-4auo.onrender.com
 
 ## Release status — 13 November 2026
 
-**PR #98 remains Draft/unmerged. Production remains unchanged and release status is NO-GO.**
+**PR #98 is Open / Draft / unmerged. Production remains unchanged and NO-GO.**
 
-- Current PR head: `a875ab19ae9df5c7a0598aa9845bc280343caf45`. The latest Main verification [#43371767554](https://github.com/s85960833-byte/NovaAI/actions/runs/43371767554) is still running; the new sequential search-router test has passed. Browser verification [#43371767444](https://github.com/s85960833-byte/NovaAI/actions/runs/43371767444) passed.
-- Staging service `srv-dbqm035g1s2s73eogao0` is live on the code-bearing app commit `2e4eb204ff99790b55aef426fa0c38fc9a313d30` via deploy `dep-dbr6dul6e07s73ama50g`. GitHub-hosted Staging smoke passed `/health`, homepage and entry assets. `GET /api/config` returned HTTP 503 because no AI chat provider is configured.
-- Staging Auth is disabled (`NOVA_API_AUTH_REQUIRED=0`); Health Check Path remains blank. Physical Android/microphone testing and hosted Auth/session/isolation testing are not complete.
-- New audit documents: [API and Provider Rights Audit](API_AUDIT_2026-11-13.md) and [Feature / Engineering Guide](FEATURES.md).
-- Search cost fix on this branch: paid search providers are now attempted sequentially; the first usable response stops the chain. DuckDuckGo HTML scraping fallback was removed; Wikimedia API is the fallback. Tavily cross-user shared-result caching defaults OFF pending written permission.
-- Provider rights are not cleared globally. Open-Meteo free, CoinGecko keyless/free, TheSportsDB free, some publisher feeds, public finance/sports endpoints, and legacy image providers have non-commercial, restricted or unverified rights. Do not enable these for a commercial launch without the exact required license.
-- Production remains on `main`, last known Live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production merge/deploy, paid API spend or Supabase schema change was made.
+- Exact latest PR head: `d0fc94f4b5bf562dde75008b721faaaf9ff05984`. Main CI [#43372176067](https://github.com/s85960833-byte/NovaAI/actions/runs/43372176067): **49 successful, 3 skipped, 0 failed**. Browser CI [#43372175932](https://github.com/s85960833-byte/NovaAI/actions/runs/43372175932): **17/17 successful**. The three skipped Main checks are merged-Production wait, Production/provider smoke and live free-image smoke—not passes.
+- The new sequential search-provider routing test passed in Main CI. Tavily/Brave are attempted sequentially, first usable result ends the chain; DuckDuckGo HTML scraping was removed; Tavily cross-user cache is disabled by default.
+- Staging service `srv-dbqm035g1s2s73eogao0` remains Live on code-bearing app SHA `2e4eb204ff99790b55aef426fa0c38fc9a313d30` via deploy `dep-dbr6dul6e07s73ama50g`. External Staging smoke passed `/health`, homepage and entry assets. `GET /api/config` returned HTTP 503 because no AI chat provider is configured.
+- Staging Auth remains disabled (`NOVA_API_AUTH_REQUIRED=0`); Health Check Path is blank. This latest search-router code has not been confirmed deployed to Staging.
+- API/provider rights and feature inventory: [API and Provider Rights Audit](API_AUDIT_2026-11-13.md), [Feature / Engineering Guide](FEATURES.md), [Phase 1 Audit](PHASE1_AUDIT.md).
+- Several free/keyless/public provider paths are not licensed for commercial use or have transfer/caching restrictions. No paid API or provider call was made for this audit.
+- Production remains on `main`, last known Live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production merge/deploy, paid spend or Supabase schema change was made.
 
 ## Search and sharing metadata
 
