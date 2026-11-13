@@ -1,3 +1,22 @@
+# EXECUTION UPDATE — 13 November 2026 (Asia/Kolkata)
+
+- Re-read this file and re-queried PR #98 / Render. GitHub PR API reports current head `33bb3642913c129c771e3749ca24b1ad2f157d69`, Open / Draft / unmerged. The older top checkpoint SHA `624c58a...` is stale and must not be used as current evidence.
+- Render Staging service `srv-dbqm035g1s2s73eogao0` has Auto Deploy enabled and is Live on docs-only commit `2459da827e825e5c07a20e22d69fb84367ad6a5f`; prior app commit `2e4eb204...` is deactivated. This is not proof that current PR app code was freshly deployed.
+- Current Render config still has `healthCheckPath=""`; no provider environment values were inspected or changed. No payment account or paid provider was created.
+- New implementation in this update: persisted Quick / Standard / Detailed answer-mode selector in the existing chat top bar. The selected mode is injected into both full and compact system prompts. Standard is the backward-compatible default. It does not replace existing persona modes.
+- New contract test `scripts/answer-modes.test.cjs` and npm/CI steps are being added. Until exact-head CI completes, implementation is NOT marked passed.
+- Live Search code already returns source objects and `retrievedAt` from `/api/live`, and chat renderer displays source cards; this is source-code evidence only, not proof of a working provider call. Staging has no configured AI provider; live provider requests remain unverified.
+- Durable monetary Cost Guard is NOT implemented. Process-local request limits are not a hard spend cap. Payment gateway TEST flow is NOT implemented or verified. No gateway account was created.
+- Production remains unchanged on `main`; PR #98 remains Draft/unmerged. Definition of Done NOT MET.
+
+## Current work links
+- PR: https://github.com/s85960833-byte/NovaAI/pull/98
+- Staging: https://novaai-pr98-staging.onrender.com
+- Render settings: https://dashboard.render.com/web/srv-dbqm035g1s2s73eogao0
+- Production (unchanged): https://novaai-4auo.onrender.com
+
+---
+
 # CURRENT MASTER-PROMPT CHECKPOINT — 13 November 2026 (Asia/Kolkata)
 
 **Current PR #98 head:** `624c58ab05ed809182be3b075404dace7761cdc7` — Open / Draft / unmerged; GitHub reports mergeable.  
