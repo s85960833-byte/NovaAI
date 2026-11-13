@@ -160,6 +160,47 @@ jobs:
             test-results/
             package-lock.json
           if-no-files-found: ignore
+      - name: Smoke-test deployed PR #98 Staging health and frontend
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 98
+        timeout-minutes: 3
+        env:
+          NOVAAI_URL: https://novaai-pr98-staging.onrender.com
+        run: |
+          set -euo pipefail
+          health_status="000"
+          for attempt in $(seq 1 45); do
+            health_status="$(curl --silent --show-error --connect-timeout 5 --max-time 10 -o /tmp/nova-staging-health.json -w '%{http_code}' "$NOVAAI_URL/health" || true)"
+            if [ "$health_status" = "200" ]; then
+              break
+            fi
+            sleep 2
+          done
+          if [ "$health_status" != "200" ]; then
+            echo "Staging /health did not return HTTP 200 (last status: $health_status)"
+            exit 1
+          fi
+          node - /tmp/nova-staging-health.json <<'NODE'
+          const fs = require('node:fs');
+          const health = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (health.ok !== true || health.ready !== true || health.status !== 'ok') {
+            console.error('Staging health payload is not ready:', health);
+            process.exit(1);
+          }
+          console.log('Staging health payload is ready.');
+          NODE
+          curl --fail --silent --show-error --retry 3 --retry-delay 2 "$NOVAAI_URL/" -o /tmp/nova-staging-index.html
+          grep -Eqi '<!doctype html|<html' /tmp/nova-staging-index.html
+          for asset in nova-entry.js nova-config.js; do
+            curl --fail --silent --show-error --retry 3 --retry-delay 2 "$NOVAAI_URL/$asset" -o "/tmp/nova-staging-$asset"
+            test -s "/tmp/nova-staging-$asset"
+          done
+          config_status="$(curl --silent --show-error --connect-timeout 5 --max-time 10 -o /tmp/nova-staging-config.json -w '%{http_code}' "$NOVAAI_URL/api/config" || true)"
+          case "$config_status" in
+            200) echo "Staging /api/config is reachable." ;;
+            503) echo "::warning:: Staging /api/config reports no configured AI chat provider; provider calls were intentionally not made." ;;
+            *) echo "Unexpected Staging /api/config HTTP status: $config_status"; exit 1 ;;
+          esac
+          echo "Staging health, homepage and entry assets passed."
       - name: Wait for the merged bilingual revision to become live on Render
         if: github.ref == 'refs/heads/main'
         env:
