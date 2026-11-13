@@ -41,6 +41,8 @@ jobs:
           npm run sbom:validate
       - name: Check backend and frontend syntax
         run: node scripts/check.mjs
+      - name: Validate machine-readable feature registry and conservative release claims
+        run: npm run test:feature-registry
       - name: Verify free-provider model defaults and deprecation safety
         run: node --test scripts/provider-defaults.test.cjs
       - name: Test Markdown link escaping against attribute injection

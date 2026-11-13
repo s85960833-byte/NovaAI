@@ -1,0 +1,454 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-13",
+  "scope": "PR #98 source-derived implementation inventory; not a production-readiness certificate",
+  "enforcement": {
+    "inventoryContractTest": "scripts/feature-registry.test.cjs",
+    "wiredToRuntimeFeatureFlags": false,
+    "wiredToPricingPage": false,
+    "endToEndTruthEnforcement": false
+  },
+  "release": {
+    "productionReady": false,
+    "marketingClaimsAllowed": false,
+    "checkoutEnabled": false,
+    "freePlanEnabled": true,
+    "proPlanEnabled": false,
+    "ultraPlanEnabled": false,
+    "paidPriceINR": null,
+    "pricingBasis": "Not priced: provider costs, payment fees/tax treatment, usage mix and willingness-to-pay have not been measured."
+  },
+  "allowedStatuses": [
+    "implemented",
+    "preview",
+    "blocked",
+    "not_implemented"
+  ],
+  "features": [
+    {
+      "id": "assistant.chat",
+      "name": "AI Chat",
+      "area": "NOVA Agents",
+      "plan": "free_preview",
+      "status": "preview",
+      "productExposure": "existing_ui",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "conditional_provider_terms",
+      "sourceFiles": [
+        "index.html",
+        "nova-app.js",
+        "nova-server.txt"
+      ],
+      "testFiles": [
+        "scripts/runtime-smoke.mjs",
+        "scripts/api-auth.test.cjs"
+      ],
+      "routeMarkers": [
+        "app.post('/api/chat/completions'"
+      ],
+      "limits": [
+        "Staging has no AI provider configured; /api/config returns 503.",
+        "Provider model, pricing, quota and per-answer cost are not measured."
+      ]
+    },
+    {
+      "id": "search.live",
+      "name": "Live Search",
+      "area": "NOVA Agents",
+      "plan": "free_preview",
+      "status": "preview",
+      "productExposure": "existing_ui",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "conditional_or_restricted_by_provider",
+      "sourceFiles": [
+        "nova-server.txt",
+        "nova-search-router.js"
+      ],
+      "testFiles": [
+        "scripts/search-router.test.cjs",
+        "scripts/runtime-smoke.mjs"
+      ],
+      "routeMarkers": [
+        "app.post('/api/search'",
+        "app.post('/api/live'"
+      ],
+      "limits": [
+        "Tavily/Brave keys are not configured in Staging.",
+        "Brave result terms restrict persistent storage/redistribution; Tavily shared cache remains disabled pending vendor approval.",
+        "No live provider bake-off has been run."
+      ]
+    },
+    {
+      "id": "news.feeds",
+      "name": "News and Daily Feeds",
+      "area": "NOVA Agents",
+      "plan": "free_preview",
+      "status": "blocked",
+      "productExposure": "existing_ui",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "not_cleared_publisher_rights",
+      "sourceFiles": [
+        "nova-server.txt",
+        "nova-app.js"
+      ],
+      "testFiles": [
+        "scripts/runtime-smoke.mjs"
+      ],
+      "routeMarkers": [
+        "app.get('/api/feed'"
+      ],
+      "limits": [
+        "Feed access and public RSS URLs do not grant blanket article/snippet redistribution rights."
+      ]
+    },
+    {
+      "id": "weather.air_quality",
+      "name": "Weather and Air Quality",
+      "area": "NOVA Agents",
+      "plan": "free_preview",
+      "status": "blocked",
+      "productExposure": "existing_ui",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "not_cleared_free_open_meteo_is_noncommercial_wttrin_unverified",
+      "sourceFiles": [
+        "nova-server.txt"
+      ],
+      "testFiles": [
+        "scripts/runtime-smoke.mjs"
+      ],
+      "routeMarkers": [
+        "app.post('/api/live'"
+      ],
+      "limits": [
+        "Open-Meteo free API is non-commercial; wttr.in commercial rights are unverified."
+      ]
+    },
+    {
+      "id": "finance.market_data",
+      "name": "Finance, Crypto and Currency References",
+      "area": "NOVA Agents",
+      "plan": "free_preview",
+      "status": "blocked",
+      "productExposure": "restricted_or_fail_closed",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "not_cleared_for_keyless_crypto_or_market_data",
+      "sourceFiles": [
+        "nova-server.txt"
+      ],
+      "testFiles": [
+        "scripts/market-data-policy.test.cjs"
+      ],
+      "routeMarkers": [
+        "app.post('/api/live'"
+      ],
+      "limits": [
+        "Listed equities and commodities fail closed without a licensed provider.",
+        "CoinGecko keyless/free commercial rights, Coinbase data rights and Frankfurter downstream terms are not cleared."
+      ]
+    },
+    {
+      "id": "sports.schedules",
+      "name": "Sports Schedules and Scoreboards",
+      "area": "NOVA Agents",
+      "plan": "free_preview",
+      "status": "blocked",
+      "productExposure": "existing_ui",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "not_cleared_unofficial_espn_and_thesportsdb_free_restrictions",
+      "sourceFiles": [
+        "nova-server.txt"
+      ],
+      "testFiles": [
+        "scripts/runtime-smoke.mjs"
+      ],
+      "routeMarkers": [
+        "app.post('/api/live'"
+      ],
+      "limits": [
+        "ESPN endpoint is unofficial; TheSportsDB free terms are development-limited and not a commercial publishing clearance."
+      ]
+    },
+    {
+      "id": "research.public_data",
+      "name": "Research Metadata and Public Statistics",
+      "area": "NOVA Agents",
+      "plan": "free_preview",
+      "status": "preview",
+      "productExposure": "existing_ui",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "dataset_and_work_level_licences_vary",
+      "sourceFiles": [
+        "nova-server.txt"
+      ],
+      "testFiles": [
+        "scripts/runtime-smoke.mjs"
+      ],
+      "routeMarkers": [
+        "app.post('/api/live'"
+      ],
+      "limits": [
+        "OpenAlex work licences and World Bank dataset licences vary; arXiv paper text/assets are not automatically CC0."
+      ]
+    },
+    {
+      "id": "image.studio",
+      "name": "Image Studio",
+      "area": "NOVA Build",
+      "plan": "free_preview",
+      "status": "blocked",
+      "productExposure": "existing_ui",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "not_cleared_community_provider_rights",
+      "sourceFiles": [
+        "index.html",
+        "nova-app.js",
+        "nova-server.txt"
+      ],
+      "testFiles": [
+        "scripts/image-privacy.test.cjs",
+        "scripts/runtime-smoke.mjs"
+      ],
+      "routeMarkers": [
+        "app.post('/api/image'"
+      ],
+      "limits": [
+        "Jobs are in process memory, not a durable queue.",
+        "Pollinations/AI Horde output and model rights are not cleared for production; paid OpenAI image path is disabled."
+      ]
+    },
+    {
+      "id": "voice.speech_to_text",
+      "name": "Voice Input / Speech-to-Text",
+      "area": "NOVA Agents",
+      "plan": "free_preview",
+      "status": "blocked",
+      "productExposure": "existing_ui",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "provider_dependent_and_not_configured",
+      "sourceFiles": [
+        "index.html",
+        "nova-app.js",
+        "nova-server.txt"
+      ],
+      "testFiles": [
+        "scripts/api-auth.test.cjs",
+        "scripts/runtime-smoke.mjs"
+      ],
+      "routeMarkers": [
+        "app.post('/api/transcribe'"
+      ],
+      "limits": [
+        "No speech provider is configured in Staging.",
+        "Real Android microphone capture and language-quality coverage are unverified."
+      ]
+    },
+    {
+      "id": "account.cloud_sync",
+      "name": "Accounts and Optional Cloud Sync",
+      "area": "NOVA Agents",
+      "plan": "free_preview",
+      "status": "preview",
+      "productExposure": "existing_ui",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "supabase_auth_terms_and_data_lifecycle_review_required",
+      "sourceFiles": [
+        "nova-account.js",
+        "nova-api-auth.js",
+        "nova-sync-merge.js"
+      ],
+      "testFiles": [
+        "scripts/api-auth.test.cjs",
+        "scripts/cloud-sync-merge.test.cjs",
+        "scripts/company-cloud-browser.mjs"
+      ],
+      "limits": [
+        "Staging missing/malformed/invalid tokens return 401.",
+        "Valid/expired tokens, email delivery, redirect allow-list and hosted two-account isolation remain unverified.",
+        "Full Auth account deletion and retention are incomplete."
+      ]
+    },
+    {
+      "id": "pwa.offline_shell",
+      "name": "Installable PWA and Offline Shell",
+      "area": "NOVA Learn",
+      "plan": "free_preview",
+      "status": "implemented",
+      "productExposure": "existing_ui",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "first_party_code_and_asset_provenance_review_incomplete",
+      "sourceFiles": [
+        "index.html",
+        "nova-server.txt"
+      ],
+      "testFiles": [
+        "scripts/runtime-smoke.mjs",
+        "scripts/browser-smoke.mjs"
+      ],
+      "limits": [
+        "Offline behavior is limited to cached app-shell files, not offline AI.",
+        "Physical Android install/update/storage checks remain unverified."
+      ]
+    },
+    {
+      "id": "company.bi_preview",
+      "name": "NOVA Business Intelligence / Company Cloud Preview",
+      "area": "NOVA Build",
+      "plan": "preview_only",
+      "status": "preview",
+      "productExposure": "preview",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "customer_data_and_provider_legal_review_required",
+      "sourceFiles": [
+        "nova-business-core.js",
+        "nova-business.js"
+      ],
+      "testFiles": [
+        "scripts/business-intelligence.test.cjs",
+        "scripts/company-cloud-browser.mjs",
+        "scripts/demo-data.test.cjs"
+      ],
+      "limits": [
+        "Synthetic demo data only; not for confidential or personal company data.",
+        "Risk scores are heuristic and portable proof bundles are not signed attestations."
+      ]
+    },
+    {
+      "id": "code.workspace_sandbox",
+      "name": "Code Workspace and Isolated Sandbox",
+      "area": "NOVA Build",
+      "plan": "not_offered",
+      "status": "not_implemented",
+      "productExposure": "not_offered",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "not_assessed",
+      "sourceFiles": [
+        "index.html",
+        "nova-app.js"
+      ],
+      "testFiles": [
+        "scripts/browser-smoke.mjs"
+      ],
+      "limits": [
+        "Chat-based code assistance is not a secure isolated code execution workspace."
+      ]
+    },
+    {
+      "id": "prompt.studio",
+      "name": "Standalone Prompt Studio",
+      "area": "NOVA Build",
+      "plan": "not_offered",
+      "status": "not_implemented",
+      "productExposure": "not_offered",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "not_assessed",
+      "sourceFiles": [
+        "index.html",
+        "nova-app.js"
+      ],
+      "testFiles": [
+        "scripts/browser-smoke.mjs"
+      ],
+      "limits": [
+        "No separately verified Prompt Studio workflow or 60-case test set."
+      ]
+    },
+    {
+      "id": "build.app_builder",
+      "name": "NOVA Build App and Website Generator",
+      "area": "NOVA Build",
+      "plan": "not_offered",
+      "status": "not_implemented",
+      "productExposure": "not_offered",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "not_assessed",
+      "sourceFiles": [
+        "index.html",
+        "nova-app.js"
+      ],
+      "testFiles": [
+        "scripts/browser-smoke.mjs"
+      ],
+      "limits": [
+        "A Build navigation area is not evidence of a complete sandboxed preview, chat editing, source export and 40-case build suite."
+      ]
+    },
+    {
+      "id": "agents.task_runtime",
+      "name": "Multi-step Task Agents and Scheduled Alerts",
+      "area": "NOVA Agents",
+      "plan": "not_offered",
+      "status": "not_implemented",
+      "productExposure": "not_offered",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "not_assessed",
+      "sourceFiles": [
+        "index.html",
+        "nova-app.js"
+      ],
+      "testFiles": [
+        "scripts/browser-smoke.mjs"
+      ],
+      "limits": [
+        "No durable queue, scheduled user-agent runtime or verified 40-case multi-step suite is evidenced."
+      ]
+    },
+    {
+      "id": "docs.export_generation",
+      "name": "PDF, Word, Excel and Slides Export Generator",
+      "area": "NOVA Learn",
+      "plan": "not_offered",
+      "status": "not_implemented",
+      "productExposure": "not_offered",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "not_assessed",
+      "sourceFiles": [
+        "index.html",
+        "nova-app.js"
+      ],
+      "testFiles": [
+        "scripts/runtime-smoke.mjs"
+      ],
+      "limits": [
+        "A full multi-format generator with font, page-break and 50-document verification is not evidenced."
+      ]
+    },
+    {
+      "id": "billing.credits_checkout",
+      "name": "Free and Pro Plans, Credits and Checkout",
+      "area": "NOVA Agents",
+      "plan": "not_offered",
+      "status": "not_implemented",
+      "productExposure": "not_offered",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "payment_gateway_and_tax_review_not_started",
+      "sourceFiles": [
+        "index.html",
+        "nova-server.txt"
+      ],
+      "testFiles": [
+        "scripts/runtime-smoke.mjs"
+      ],
+      "limits": [
+        "No durable credits, entitlements, hard spend caps, payment gateway, refund flow or tax invoice implementation."
+      ]
+    }
+  ]
+}

@@ -5,6 +5,33 @@
 **Branch:** `fix/nova-home-learn-first-mobile-20261109`  
 **Scope:** Source-level product, route, security, UX, documentation and Render configuration review. This is an in-progress audit, not a certification or a claim that all pages/features are defect-free.
 
+## Verified Master-Prompt checkpoint — 13 November 2026
+
+- PR #98 current head at this checkpoint: `624c58ab05ed809182be3b075404dace7761cdc7`; Open / Draft / unmerged.
+- Exact-head Main CI [#43373351355](https://github.com/s85960833-byte/NovaAI/actions/runs/43373351355) and Browser CI [#43373351271](https://github.com/s85960833-byte/NovaAI/actions/runs/43373351271) both passed.
+- The new external Staging auth smoke passed missing Bearer, malformed Basic and invalid Bearer cases with HTTP 401 before provider routing.
+- Current Render deploy `dep-dbra3et9fdbs73dosl7g` is Live on branch commit `2459da827e825e5c07a20e22d69fb84367ad6a5f`. Render runtime logs now explicitly say `NOVA API account authentication is REQUIRED`; prior “Auth disabled” checkpoint statements are stale.
+- Staging HTTP checks: `/health` returns 200/ready; homepage and entry JS assets pass; `/api/config` returns 503 because no AI chat provider key/model is configured. No paid provider calls.
+- Render Health Check Path remains blank. The current connector can read the service/deploy/logs but cannot write that setting.
+- Supabase catalog check shows no end-user NOVA usage/quota ledger; `nova_bi_rate_limits` is a separate BI tenant boundary. Do not reuse it.
+- The current prompt fact-check is appended to `API_AUDIT_2026-11-13.md`; important corrections include Render Free being explicitly unsuitable for production, OpenRouter's current 13+ with parent/guardian permission, Groq/Razorpay 18+ restrictions, Exa not integrated, and provider-specific cache/transfer restrictions.
+
+### Phase 1 progress
+- **Done:** source route/secret inventory, provider inventory, search sequential-routing fix and tests, basic feature descriptions, Staging health/static smoke, Staging negative-token smoke, first official terms review.
+- **In progress:** provider-by-provider rights and replacement plan; full UI/control/accessibility review; live valid/expired Auth and email/redirect/two-account tests; complete security/operational review.
+- **Blocked:** real AI test without configured provider; Render health-check setting without service-setting write tool; physical Android/microphone; adult/vendor-only commercial accounts and agreements.
+- **Decision:** NO-GO for Production. No paid spend, secrets or production data mutation.
+
+---
+
+
+# NOVA AI — Phase 1 Product and Technical Audit
+
+**Audit started:** 12 November 2026 (Asia/Kolkata)  
+**Repository:** `s85960833-byte/NovaAI`  
+**Branch:** `fix/nova-home-learn-first-mobile-20261109`  
+**Scope:** Source-level product, route, security, UX, documentation and Render configuration review. This is an in-progress audit, not a certification or a claim that all pages/features are defect-free.
+
 ## New audit checkpoint — 13 November 2026
 
 ### Updated deployment and verification evidence

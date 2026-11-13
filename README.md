@@ -12,13 +12,13 @@ Production preview: https://novaai-4auo.onrender.com
 
 **PR #98 is Open / Draft / unmerged. Production remains unchanged and NO-GO.**
 
-- Exact latest PR head: `d0fc94f4b5bf562dde75008b721faaaf9ff05984`. Main CI [#43372176067](https://github.com/s85960833-byte/NovaAI/actions/runs/43372176067): **49 successful, 3 skipped, 0 failed**. Browser CI [#43372175932](https://github.com/s85960833-byte/NovaAI/actions/runs/43372175932): **17/17 successful**. The three skipped Main checks are merged-Production wait, Production/provider smoke and live free-image smoke—not passes.
-- The new sequential search-provider routing test passed in Main CI. Tavily/Brave are attempted sequentially, first usable result ends the chain; DuckDuckGo HTML scraping was removed; Tavily cross-user cache is disabled by default.
-- Staging service `srv-dbqm035g1s2s73eogao0` remains Live on code-bearing app SHA `2e4eb204ff99790b55aef426fa0c38fc9a313d30` via deploy `dep-dbr6dul6e07s73ama50g`. External Staging smoke passed `/health`, homepage and entry assets. `GET /api/config` returned HTTP 503 because no AI chat provider is configured.
-- Staging Auth remains disabled (`NOVA_API_AUTH_REQUIRED=0`); Health Check Path is blank. This latest search-router code has not been confirmed deployed to Staging.
-- API/provider rights and feature inventory: [API and Provider Rights Audit](API_AUDIT_2026-11-13.md), [Feature / Engineering Guide](FEATURES.md), [Phase 1 Audit](PHASE1_AUDIT.md).
-- Several free/keyless/public provider paths are not licensed for commercial use or have transfer/caching restrictions. No paid API or provider call was made for this audit.
-- Production remains on `main`, last known Live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production merge/deploy, paid spend or Supabase schema change was made.
+- Current PR head: `624c58ab05ed809182be3b075404dace7761cdc7`. Main CI [#43373351355](https://github.com/s85960833-byte/NovaAI/actions/runs/43373351355) and Browser CI [#43373351271](https://github.com/s85960833-byte/NovaAI/actions/runs/43373351271) both succeeded.
+- Main CI external Staging tests passed `/health`, homepage and JS assets. Auth negative tests passed with HTTP 401 for missing, malformed and invalid sessions. This does not prove valid/expired tokens, email delivery, redirect settings or two-account isolation.
+- Render Staging deploy `dep-dbra3et9fdbs73dosl7g` is Live; runtime logs confirm API Auth is REQUIRED. Health Check Path remains blank.
+- Staging `GET /api/config` returns HTTP 503 because no AI provider key/model is configured. No paid provider calls were made; no provider key was added.
+- Current Free Render service is a test/preview environment only, not production-grade. See [Render Free limits](https://render.com/docs/free).
+- API/provider rights and limitations: [API and Provider Rights Audit](API_AUDIT_2026-11-13.md), [Feature / Engineering Guide](FEATURES.md), [Feature Registry](FEATURE_REGISTRY.json), [Phase 1 Audit](PHASE1_AUDIT.md).
+- No paid API/service spend, Production merge/deploy, or Supabase schema mutation. Production remains on last known live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`.
 
 ## Search and sharing metadata
 

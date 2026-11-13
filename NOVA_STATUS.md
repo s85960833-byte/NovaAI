@@ -1,3 +1,37 @@
+# CURRENT MASTER-PROMPT CHECKPOINT — 13 November 2026 (Asia/Kolkata)
+
+**Current PR #98 head:** `624c58ab05ed809182be3b075404dace7761cdc7` — Open / Draft / unmerged; GitHub reports mergeable.  
+**Production:** unchanged on `main`; last verified live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. NO-GO; no production merge or deploy.
+
+## Exact Staging evidence
+
+- Latest Render Staging deploy: `dep-dbra3et9fdbs73dosl7g`, status **Live**, commit `2459da827e825e5c07a20e22d69fb84367ad6a5f` (documentation-only status commit; runtime application code inherited from the code-bearing PR branch).
+- Render runtime logs at 13 Nov 2026 05:36:17 UTC show **`NOVA API account authentication is REQUIRED`**. This supersedes earlier stale notes that Staging Auth was disabled.
+- Exact PR-head Main CI [#43373351355](https://github.com/s85960833-byte/NovaAI/actions/runs/43373351355) and Browser CI [#43373351271](https://github.com/s85960833-byte/NovaAI/actions/runs/43373351271) both completed **success**.
+- Main CI steps **Smoke-test deployed PR** and **Verify Staging rejects unauthenticated and invalid API sessions** both passed. External tests confirmed:
+  - `GET /health` HTTP 200 with `ok=true`, `ready=true`, `status=ok`.
+  - Homepage HTML and `/nova-entry.js`, `/nova-config.js` assets returned successfully.
+  - Chat route returned HTTP 401 for missing Bearer, malformed Basic and invalid Bearer tokens before provider routing.
+- Staging `GET /api/config` still returns HTTP 503 because no AI chat provider is configured. The smoke did not make any AI/search/image/billed-provider request. No provider key was added.
+- Staging Render Health Check Path is still blank. No Render connector action exists in this session to write that setting.
+- Not yet tested: valid or expired real user token, signup/confirmation/reset emails, redirect allow-list, two-account isolation, authenticated search/live/image/transcription, real AI answer, physical Android and microphone.
+- A read-only Supabase catalog scan found the NOVA BI-only `nova_bi_rate_limits` table/function; there is no general NOVA consumer usage/quota ledger. Do not reuse the BI tenant rate-limit boundary. Security and Health Advisors last returned zero findings; no DB schema/user data changes were made.
+
+## Phase status
+
+- **Phase 1 — IN PROGRESS:** route/API/provider inventory, Auth code review, Staging HTTP and negative-token smoke, search-router cost fix and API/feature docs exist. Provider rights, full UI/accessibility, live valid/expired Auth, physical device and complete operational review remain open.
+- **Phases 2–13 — NOT COMPLETE:** durable quotas and rupee spend caps, pricing/unit costs, live search/model bake-offs, evaluation/red-team/India benchmarks, feature registry and truth enforcement, feature modules, payment flow, willingness-to-pay, Instagram funnel, buyer evidence, transfer/IP and independent valuation proof remain incomplete.
+- **Definition of Done:** NOT MET. No fresh overall percentage or buyer-readiness score is asserted; previous numeric estimates were qualitative, not measured evidence.
+- **Release decision:** Production NO-GO; PR #98 remains Draft/unmerged. No paid API/service, payment, Production change or Supabase schema change.
+
+## Current owner/vendor-only actions (not a request to send credentials)
+
+1. Render Staging Dashboard → Settings → Health Checks → set `/health` → Save.
+2. A legally eligible responsible adult must manage any vendor/payment account that requires adult contracting and privately supply any approved key. Never send secrets in chat. Do not bypass vendor age or account terms.
+3. Physical Android/touch/microphone confirmation needs the actual handset.
+
+---
+
 # EXACT-HEAD AUDIT + CI — 13 November 2026 (Asia/Kolkata)
 
 - PR #98 latest head: `d0fc94f4b5bf562dde75008b721faaaf9ff05984`; Open / Draft / unmerged; GitHub reports mergeable=true.

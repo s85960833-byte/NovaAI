@@ -25,7 +25,7 @@ The main shell is an SPA/PWA served from `index.html`. The backend is Express on
 
 **Tests:** Local runtime smoke; API Auth unit tests; provider URL/HTTP bounds tests; Main CI syntax/runtime/container tests.
 
-**Limits and cost:** At least one AI provider and compatible model must be configured. Staging currently has no provider and `/api/config` returns 503. Provider price, quota, model availability and per-answer cost are not measured yet. The Express auth gate defaults OFF and process-local rate limits are not monthly quotas.
+**Limits and cost:** At least one AI provider and compatible model must be configured. Staging currently has no provider and `/api/config` returns 503. Provider price, quota, model availability and per-answer cost are not measured yet. The Express auth middleware defaults OFF in code unless `NOVA_API_AUTH_REQUIRED=1`; current Staging logs confirm the flag is ON there. Staging's negative-token smoke passes, but valid/expired hosted-session tests remain open. Process-local rate limits are not monthly quotas.
 
 **In-app help (English):** “Ask Nova to explain, write, plan or solve a task. Answers depend on the configured AI provider and may need independent verification.”
 
@@ -234,3 +234,10 @@ The main shell is an SPA/PWA served from `index.html`. The backend is Express on
 - Staging currently has no AI provider key/model configured; `/api/config` returned HTTP 503 in the external smoke test.
 - API Auth remains disabled in Staging. All paid or customer-facing actions remain NO-GO.
 - Physical Android, microphone, backup/restore, monitoring/SLO, load/soak, rollback and legal review remain incomplete.
+
+
+## Feature Registry and truthful-release gate
+
+The machine-readable inventory is `FEATURE_REGISTRY.json`. It records current NOVA features, areas, implementation status, exposed surface, plan assignment, provider-rights state, source files, verification files and known limits. `scripts/feature-registry.test.cjs` validates registry structure, referenced files/routes and conservative release/marketing flags.
+
+**Important limit:** this is the first source-of-truth inventory and a static contract test. It does not yet drive runtime feature flags or generate a pricing table, and it is not an end-to-end guarantee that every dynamic button or screen works. No Pro/Ultra plan, checkout, price or production-ready feature is enabled. Those gates remain closed until usage costs, vendor rights and live testing are evidenced.
