@@ -755,7 +755,7 @@ async function timeIn(place, userTz) {
 async function quakes() {
   const j = await cached('usgs', 5 * 6e4, () => lhttp('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson', { json: true, timeout: 4000, tries: 2 }));
   const f = (j.features || []).slice(0, 8); if (!f.length) throw new Error('no data');
-  return { text: 'EARTHQUAKES (M4.5+, last 24h, USGS): ' + f.map(x => 'M' + x.properties.mag + ' ' + x.properties.place + ' @ ' + new Date(x.properties.time).toISOString().slice(0, 16).replace('T', ' ') + ' UTC').join(' | '), source: { title: 'USGS \u2014 M4.5+ earthquakes past day', url: 'https://earthquake.usgs.gov/earthquakes/map/', publisher: 'USGS', date: new Date().toISOString(), kind: 'official', connector: 'usgs', snippet: '' } };
+  return { text: 'EARTHQUAKES (M4.5+, last 24h, USGS): ' + f.map(x => 'M' + x.properties.mag + ' ' + x.properties.place + ' @ ' + new Date(x.properties.time).toISOString().slice(0, 16).replace('T', ' ') + ' UTC').join(' | '), source: { title: 'USGS \u2014 M4.5+ earthquakes past day', url: 'https://earthquake.usgs.gov/earthquakes/map/', publisher: 'USGS', attribution: 'U.S. Geological Survey (USGS)', date: new Date().toISOString(), kind: 'official', connector: 'usgs', snippet: 'Earthquake data courtesy of the U.S. Geological Survey (USGS).' } };
 }
 async function eonet() {
   throw new Error('NASA EONET metadata and linked source rights are not cleared for commercial redistribution; route disabled');
