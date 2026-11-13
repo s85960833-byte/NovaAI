@@ -589,8 +589,8 @@ function parseFeed(xml, publisherHint) {
 // Publisher RSS is disabled for commercial product traffic until each publisher grants
 // explicit business-use permission. Do not fetch, cache, summarize, or resell feed items.
 const FEEDS = Object.freeze({});
-const OFFICIAL_HOSTS = /(^|\\.)(pib\\.gov\\.in|gov\\.in|nic\\.in|rbi\\.org\\.in|who\\.int|un\\.org|nasa\\.gov|isro\\.gov\\.in|europa\\.eu|whitehouse\\.gov|usgs\\.gov|noaa\\.gov|imd\\.gov\\.in|worldbank\\.org|imf\\.org|openai\\.com|blog\\.google|nvidia\\.com|microsoft\\.com|apple\\.com)$/i;
-const TOP_NEWS = /(bbc\\.|reuters\\.|apnews\\.|thehindu\\.|aljazeera\\.|npr\\.org|dw\\.com|ndtv\\.|indianexpress\\.|nature\\.com|science\\.org|economist\\.com|ft\\.com|bloomberg\\.|wsj\\.com|nytimes\\.|theguardian\\.|hindustantimes\\.|timesofindia\\.|livemint\\.|espn|cricinfo)/i;
+const OFFICIAL_HOSTS = /(^|\.)(pib\.gov\.in|gov\.in|nic\.in|rbi\.org\.in|who\.int|un\.org|nasa\.gov|isro\.gov\.in|europa\.eu|whitehouse\.gov|usgs\.gov|noaa\.gov|imd\.gov\.in|worldbank\.org|imf\.org|openai\.com|blog\.google|nvidia\.com|microsoft\.com|apple\.com)$/i;
+const TOP_NEWS = /(bbc\.|reuters\.|apnews\.|thehindu\.|aljazeera\.|npr\.org|dw\.com|ndtv\.|indianexpress\.|nature\.com|science\.org|economist\.com|ft\.com|bloomberg\.|wsj\.com|nytimes\.|theguardian\.|hindustantimes\.|timesofindia\.|livemint\.|espn|cricinfo)/i;
 async function fetchFeed() {
   throw new Error('Publisher RSS is disabled pending written commercial-use permission');
 }
