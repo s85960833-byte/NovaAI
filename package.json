@@ -15,7 +15,8 @@
     "test:container-config": "node --test scripts/container-config.test.cjs",
     "test:api-auth": "node --test scripts/api-auth.test.cjs",
     "sbom:validate": "node scripts/validate-sbom.mjs",
-    "test:market-data-policy": "node --test scripts/market-data-policy.test.cjs"
+    "test:market-data-policy": "node --test scripts/market-data-policy.test.cjs",
+    "test:search-router": "node --test scripts/search-router.test.cjs"
   },
   "engines": {
     "node": "22.x"
