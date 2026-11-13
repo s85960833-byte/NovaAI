@@ -37,6 +37,7 @@ app.use((q, r, next) => {
 // Bounded per-IP request windows run before body parsing so abusive API traffic
 // cannot repeatedly spend CPU/memory in JSON decoding before being throttled.
 const { rateWindow } = require('./nova-rate-limit');
+const { firstSuccessful } = require('./nova-search-router');
 const { createSupabaseUserMiddleware } = require('./nova-api-auth');
 const apiAuthRequired = E.NOVA_API_AUTH_REQUIRED === '1';
 const requireNovaUser = apiAuthRequired
@@ -677,21 +678,6 @@ async function brave(q) {
   const j = await lhttp('https://api.search.brave.com/res/v1/web/search?q=' + enc(q) + '&count=8', { json: true, headers: { 'X-Subscription-Token': E.BRAVE_KEY, Accept: 'application/json' }, timeout: 5500, tries: 1 });
   return ((j.web && j.web.results) || []).map(r => ({ title: lclean(r.title, 200), url: safeUrl(r.url), publisher: host(r.url), date: iso(r.page_age), snippet: lclean(r.description, 260), kind: 'web', connector: 'brave' })).filter(x => x.url && x.title);
 }
-async function ddg(q) {
-  const html = await lhttp('https://html.duckduckgo.com/html/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'text/html' }, body: 'q=' + enc(q) + '&kl=in-en', timeout: 6000, tries: 1 });
-  const out = [], re = /<a\s+([^>]*class="[^"]*result__a[^"]*"[^>]*)>([\s\S]*?)<\/a>/gi, ms = [];
-  let m; while ((m = re.exec(html))) ms.push({ at: m.index, end: re.lastIndex, attrs: m[1], title: m[2] });
-  if (!ms.length) throw new Error(/captcha|anomaly|unusual/i.test(html) ? 'blocked' : 'no results');
-  ms.slice(0, 8).forEach((x, i) => {
-    const hm = /href="([^"]+)"/.exec(x.attrs); if (!hm) return;
-    let u = unent(hm[1]); if (u.startsWith('//')) u = 'https:' + u;
-    try { const p = new URL(u); if (p.hostname.endsWith('duckduckgo.com') && p.searchParams.get('uddg')) u = p.searchParams.get('uddg'); } catch (e) {}
-    const seg = html.slice(x.end, i + 1 < ms.length ? ms[i + 1].at : x.end + 2500), sm = /class="result__snippet"[^>]*>([\s\S]*?)<\/a>/i.exec(seg);
-    const url = safeUrl(u); if (url && !/duckduckgo\.com\/y\.js/.test(url)) out.push({ title: lclean(x.title, 200), url, publisher: host(url), date: '', snippet: sm ? lclean(sm[1], 260) : '', kind: 'web', connector: 'duckduckgo' });
-  });
-  if (!out.length) throw new Error('no results');
-  return out;
-}
 async function wikiSearch(q, lang = 'en', n = 4) {
   return cached('wq:' + lang + ':' + q + ':' + n, 10 * 6e4, async () => {
     const j = await lhttp('https://' + lang + '.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + enc(q) + '&srlimit=' + n + '&format=json&origin=*&srprop=snippet%7Ctimestamp', { json: true, timeout: 6000, tries: 1 });
@@ -705,20 +691,42 @@ async function wikiSummary(title, lang = 'en') {
 }
 async function webSearch(q, o = {}) {
   const errs = [], primary = [];
+  // Paid search providers are attempted sequentially: once one succeeds, later providers
+  // are not called. This prevents one user request from triggering multiple paid searches.
+  if (E.TAVILY_KEY) primary.push({
+    name: 'tavily',
+    run: async () => {
+      const items = E.TAVILY_SHARED_CACHE_ALLOWED === '1'
+        ? await cached('tv:' + (o.news ? 'news:' : 'general:') + q, 3 * 6e4, () => tavily(q, o))
+        : await tavily(q, o);
+      return { items, via: 'tavily' };
+    }
+  });
   if (E.BRAVE_KEY) {
-    primary.push(cached('brctx:' + q + ':' + (o.lang || 'en'), 3 * 6e4, () => braveContext(q, o)).then(items => { if (!items.length) throw new Error('no results'); return { items, via: 'brave-llm-context' }; }).catch(e => { errs.push('brave-llm-context'); throw e; }));
-    primary.push(cached('br:' + q, 3 * 6e4, () => brave(q)).then(items => { if (!items.length) throw new Error('no results'); return { items, via: 'brave' }; }).catch(e => { errs.push('brave'); throw e; }));
+    primary.push({
+      name: 'brave-llm-context',
+      run: async () => ({ items: await braveContext(q, o), via: 'brave-llm-context' })
+    });
+    primary.push({
+      name: 'brave-web',
+      run: async () => ({ items: await brave(q), via: 'brave' })
+    });
   }
-  if (E.TAVILY_KEY) primary.push(cached('tv:' + (o.news ? 'news:' : 'general:') + q, 3 * 6e4, () => tavily(q, o)).then(items => { if (!items.length) throw new Error('no results'); return { items, via: 'tavily' }; }).catch(e => { errs.push('tavily'); throw e; }));
-  if (primary.length) {
-    const winner = await Promise.any(primary).catch(() => null);
-    if (winner && winner.items && winner.items.length) return winner;
-  }
-  const fallback = await Promise.any([
-    cached('ddg:' + q, 4 * 6e4, () => ddg(q)).then(items => { if (!items.length) throw new Error('no DuckDuckGo results'); return { items, via: 'duckduckgo' }; }).catch(e => { errs.push('duckduckgo'); throw e; }),
-    wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5).then(items => { if (!items.length) throw new Error('no Wikipedia results'); return { items, via: 'wikipedia' }; }).catch(e => { errs.push('wikipedia'); throw e; })
-  ]).catch(() => null);
-  if (fallback) return fallback;
+  const primaryResult = await firstSuccessful(primary);
+  errs.push(...primaryResult.failures.map(x => x.provider));
+  if (primaryResult.value) return primaryResult.value;
+
+  // Do not scrape the DuckDuckGo HTML results page. Without a documented commercial
+  // API licence, use the attributed Wikimedia API fallback instead.
+  const fallback = await firstSuccessful([{
+    name: 'wikipedia',
+    run: async () => ({
+      items: await wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5),
+      via: 'wikipedia'
+    })
+  }]);
+  errs.push(...fallback.failures.map(x => x.provider));
+  if (fallback.value) return fallback.value;
   throw new Error('all web search providers failed (' + errs.join(', ') + ')');
 }
 async function onThisDay(m, d) {
