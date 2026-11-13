@@ -3,12 +3,17 @@ export const DEFAULT_SITE_URL = "https://novaai-4auo.onrender.com";
 export function configuredSiteOrigin(siteUrl?: string): string {
   try {
     const parsed = new URL(siteUrl || DEFAULT_SITE_URL);
-    if (parsed.protocol !== "https:" && parsed.hostname !== "localhost" && parsed.hostname !== "127.0.0.1") {
-      throw new Error("NOVA BI site URL must use HTTPS");
+    const localHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
+    const localHttp = parsed.protocol === "http:" && localHosts.has(parsed.hostname);
+    if (parsed.protocol !== "https:" && !localHttp) {
+      throw new Error("NOVA BI site URL must use HTTPS (HTTP is allowed only for loopback development)");
+    }
+    if (parsed.username || parsed.password) {
+      throw new Error("NOVA BI site URL must not contain credentials");
     }
     return parsed.origin;
   } catch {
-    throw new Error("NOVA_BI_SITE_URL must be a valid HTTPS URL (localhost is allowed for development)");
+    throw new Error("NOVA_BI_SITE_URL must be a valid HTTPS URL (HTTP loopback is allowed for development)");
   }
 }
 
@@ -59,7 +64,7 @@ export function withSiteOrigin(
     const response = await handler(request);
     const headers = new Headers(response.headers);
     const vary = headers.get("Vary");
-    headers.set("Vary", vary ? vary.split(/,\s*/).includes("Origin") ? vary : vary + ", Origin" : "Origin");
+    headers.set("Vary", vary ? vary.split(/,\\s*/).includes("Origin") ? vary : vary + ", Origin" : "Origin");
     if (origin) {
       for (const [name, value] of Object.entries(createCorsHeaders(siteOrigin))) {
         headers.set(name, value);

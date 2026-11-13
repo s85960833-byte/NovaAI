@@ -10,10 +10,30 @@ Deno.test("NOVA BI CORS allows only the configured exact origin", () => {
   if (!isAllowedOrigin(null, site)) throw new Error("Non-browser server request should remain supported");
 });
 
-Deno.test("NOVA BI CORS rejects insecure public site URLs", () => {
+Deno.test("NOVA BI CORS accepts HTTP only for loopback development hosts", () => {
+  for (const url of ["http://localhost:3000", "http://127.0.0.1:3000", "http://[::1]:3000"]) {
+    const parsed = configuredSiteOrigin(url);
+    if (parsed !== new URL(url).origin) throw new Error("Loopback development origin was not normalized: " + url);
+  }
+});
+
+Deno.test("NOVA BI CORS rejects insecure public and unsupported loopback schemes", () => {
+  for (const url of [
+    "http://nova.example.com",
+    "ftp://localhost",
+    "file://localhost",
+    "ws://127.0.0.1:3000",
+  ]) {
+    let rejected = false;
+    try { configuredSiteOrigin(url); } catch { rejected = true; }
+    if (!rejected) throw new Error("Unsupported site URL scheme was accepted: " + url);
+  }
+});
+
+Deno.test("NOVA BI CORS rejects URL credentials", () => {
   let rejected = false;
-  try { configuredSiteOrigin("http://nova.example.com"); } catch { rejected = true; }
-  if (!rejected) throw new Error("Insecure public site URL was accepted");
+  try { configuredSiteOrigin("https://user:password@nova.example.com"); } catch { rejected = true; }
+  if (!rejected) throw new Error("Site URL credentials must not be accepted");
 });
 
 Deno.test("NOVA BI CORS headers never use wildcard origins", () => {
