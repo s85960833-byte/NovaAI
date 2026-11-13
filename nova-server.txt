@@ -886,7 +886,7 @@ async function runLive(qraw, o = {}) {
     if (brief && !syms.length && !cry.length) SYM.filter(s => ['^NSEI', '^BSESN', 'GC=F'].includes(s[1])).forEach(s => syms.push([s[0], s[1], s[2]]));
     if (cry.length) notes.push('Crypto quotes are disabled: CoinGecko Demo lacks commercial rights and Coinbase Market Data restricts third-party end-user apps.');
     if (syms.some(s => s[1] !== 'INR=X')) notes.push('Listed-market instrument quotes are unavailable: no documented, commercially licensed provider is configured. Do not guess or infer a live price.');
-    if (/inr|rupee|dollar|usd|eur|euro|pound|yen|exchange|forex|\u0930\u0941\u092a\u092f|\u0921\u0949\u0932\u0930/i.test(q)) T('fx', () => fxRate(q).then(b => ({ blocks: [b] })), 9000);
+    if (/inr|rupee|dollar|usd|eur|euro|pound|yen|exchange|forex|\u0930\u0941\u092a\u092f|\u0921\u0949\u0932\u0930/i.test(q)) notes.push('Currency conversion is unavailable: the upstream rate-provider terms have not been verified for each currency pair.');
     if (!syms.length && !cry.length && !/inr|rupee|dollar|usd|eur/i.test(q) && !brief) notes.push('A market question was detected but no known instrument matched; do not guess a price.');
     gn((tq || sq) + ' market', { when: '2d', n: 6 });
   }
@@ -898,6 +898,7 @@ async function runLive(qraw, o = {}) {
   if (f.tech) { intents.push('technology'); gn(sq, { when: '14d', n: 8 }); feedT('official', tq || sq); feedT('tech', tq || sq); if (/\bai\b|\bllm\b|\bgpt\b|startup|programming|software/i.test(q)) notes.push('Hacker News user-submitted story ingestion is disabled pending explicit commercial republication rights.'); }
   if (f.govt) { intents.push('government'); ws((tq || sq) + ' site:pib.gov.in', { news: true }); feedT('india'); gn(sq, { when: '14d', n: 8 }); }
   // history / dates
+  if (f.hist || f.hasDate) notes.push('Wikipedia-derived historical/current-events material is disabled until page-specific licensing, attribution and ShareAlike compliance are verified.');
   const ceDays = [];
   if (f.hasDate || (f.hist && /on this day|today in history|\u0906\u091c \u0915\u0947 \u0926\u093f\u0928|\u0907\u0924\u093f\u0939\u093e\u0938 \u092e\u0947\u0902 \u0906\u091c/i.test(q))) {
     intents.push('history');
