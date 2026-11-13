@@ -73,6 +73,8 @@ jobs:
         run: npm run test:provider-http
       - name: Verify equity market data requires a documented licensed provider
         run: npm run test:market-data-policy
+      - name: Verify keyless data providers are disabled without commercial rights
+        run: npm run test:provider-rights
       - name: Verify AI Horde prompts are not shared for dataset training
         run: npm run test:image-privacy
       - name: Test PDF.js untrusted-document eval mitigation
