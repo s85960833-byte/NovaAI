@@ -35,5 +35,5 @@ Do not restore a disabled source until its current terms or a written provider l
 - Open-Meteo commercial pricing/licence: https://open-meteo.com/en/pricing
 - BBC business RSS permissions: https://www.bbc.com/usingthebbc/terms/can-i-use-bbc-content-for-my-business/
 - Google News Terms: https://www.google.com/intl/en_us/terms_google_news.html
-- ESPN Terms (commercial use restriction): https://www.espn.com/espn/news/story?page=espnterms
+- ESPN Terms (commercial use restriction): https://support.espn.com/hc/en-us/articles/360035445091-Terms-of-Use (links to Disney Terms of Use)
 - TheSportsDB Terms: https://api.thesportsdb.com/docs_terms_of_use.php
