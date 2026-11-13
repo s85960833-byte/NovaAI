@@ -34,6 +34,18 @@
 
 ---
 
+## Exact-head audit update — 13 November 2026
+
+- PR #98 latest head: `d0fc94f4b5bf562dde75008b721faaaf9ff05984`; Open/Draft/unmerged; mergeable=true.
+- Main CI [#43372176067](https://github.com/s85960833-byte/NovaAI/actions/runs/43372176067): success, **49 successful, 3 skipped, 0 failed**. The new sequential search-router test passed. The three skipped steps are merged-Production wait, Production/provider smoke and live free-image smoke.
+- Browser CI [#43372175932](https://github.com/s85960833-byte/NovaAI/actions/runs/43372175932): **17/17 successful**.
+- Staging smoke on earlier code-bearing revision passed `/health`, homepage and `nova-entry.js`/`nova-config.js`; `/api/config` returned 503 because AI chat provider configuration is absent. Current search-router candidate is not yet confirmed deployed to Staging.
+- Search router changed from parallel `Promise.any` to sequential first-usable provider routing, stops on first success, removes DuckDuckGo HTML scraping fallback and makes Tavily shared-output caching require explicit permission (`TAVILY_SHARED_CACHE_ALLOWED=1`, default 0).
+- Provider rights, limits, caching, age and transfer constraints are in `API_AUDIT_2026-11-13.md`; bilingual user and engineering explanations are in `FEATURES.md`.
+- Phase 1 remains **IN PROGRESS** because live provider/Auth checks, physical Android/microphone checks, complete UI accessibility review and legal/provider ownership clearance remain incomplete. Production remains NO-GO.
+
+---
+
 ## Evidence reviewed
 
 - Repository tree: 107 tracked files before cleanup; 2 obsolete HTML artifacts were removed from this branch because one was empty and the other was an unreferenced, explicitly labelled untested starter server from the previous architecture.
