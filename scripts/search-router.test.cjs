@@ -72,3 +72,23 @@ test('production web search uses sequential routing and no HTML search scraper',
   assert.doesNotMatch(webSearchSource, /Promise\.any|ddg\(/);
   assert.match(webSearchSource, /TAVILY_SHARED_CACHE_ALLOWED === '1'/);
 });
+
+test('unlicensed search-result feeds are fetched transiently, not persisted in the shared cache', () => {
+  const feedStart = serverSource.indexOf('async function fetchFeed(');
+  const feedEnd = serverSource.indexOf('\nasync function feedCat(', feedStart);
+  const gnewsStart = serverSource.indexOf('async function gnews(');
+  const gnewsEnd = serverSource.indexOf('\nconst gdDate', gnewsStart);
+  const gdeltStart = serverSource.indexOf('async function gdelt(');
+  const gdeltEnd = serverSource.indexOf('\n// ---- general web search', gdeltStart);
+  for (const [name, source] of [
+    ['RSS', serverSource.slice(feedStart, feedEnd)],
+    ['Google News', serverSource.slice(gnewsStart, gnewsEnd)],
+    ['GDELT', serverSource.slice(gdeltStart, gdeltEnd)]
+  ]) {
+    assert.ok(source.length > 0, name + ' source must be found');
+    assert.doesNotMatch(source, /\bcached\s*\(/, name + ' must not persist provider results');
+  }
+  assert.match(serverSource, /TAVILY_SHARED_CACHE_ALLOWED === '1'/);
+  assert.match(serverSource, /app\.post\('\/api\/search',[\s\S]*?Cache-Control', 'no-store'/);
+  assert.match(serverSource, /app\.post\('\/api\/live',[\s\S]*?Cache-Control', 'no-store'/);
+});
