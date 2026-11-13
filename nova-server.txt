@@ -287,7 +287,7 @@ async function generateFreeImage(prompt, body) {
   const w = Math.min(1024, Number(body.width) || 768), h = Math.min(1024, Number(body.height) || 768);
   const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
   const qs = 'width=' + w + '&height=' + h + '&seed=' + seed + '&nologo=true&safe=true&enhance=false' + (E.POLLI_KEY ? '&key=' + encodeURIComponent(E.POLLI_KEY) : '');
-  const tries = (!freeOnly && E.POLLI_KEY && E.NOVA_ALLOW_POLLINATIONS_SPEND === '1')
+  const tries = freeOnly ? [] : E.POLLI_KEY && E.NOVA_ALLOW_POLLINATIONS_SPEND === '1'
     ? [['https://gen.pollinations.ai/image/', 'flux']]
     : [];
   for (const [host, model] of tries) {
