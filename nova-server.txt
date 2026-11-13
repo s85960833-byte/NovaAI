@@ -586,35 +586,16 @@ function parseFeed(xml, publisherHint) {
   }
   return out;
 }
-// ---------- curated feeds (global, India, Hindi, tech, science, business, sports, health, official) ----------
-const FEEDS = {
-  world: [['BBC News', 'https://feeds.bbci.co.uk/news/world/rss.xml'], ['Al Jazeera', 'https://www.aljazeera.com/xml/rss/all.xml'], ['NPR', 'https://feeds.npr.org/1004/rss.xml'], ['DW', 'https://rss.dw.com/rdf/rss-en-all'], ['UN News', 'https://news.un.org/feed/subscribe/en/news/all/rss.xml']],
-  india: [['The Hindu', 'https://www.thehindu.com/news/national/feeder/default.rss'], ['NDTV', 'https://feeds.feedburner.com/ndtvnews-top-stories'], ['Indian Express', 'https://indianexpress.com/section/india/feed/'], ['Times of India', 'https://timesofindia.indiatimes.com/rssfeedstopstories.cms'], ['PIB (Govt. of India)', 'https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3']],
-  hindi: [['BBC Hindi', 'https://feeds.bbci.co.uk/hindi/rss.xml'], ['Navbharat Times', 'https://navbharattimes.indiatimes.com/rssfeedstopstories.cms']],
-  tech: [['TechCrunch', 'https://techcrunch.com/feed/'], ['The Verge', 'https://www.theverge.com/rss/index.xml'], ['Ars Technica', 'https://feeds.arstechnica.com/arstechnica/index'], ['MIT Technology Review', 'https://www.technologyreview.com/feed/']],
-  science: [['ScienceDaily', 'https://www.sciencedaily.com/rss/top/science.xml'], ['Nature', 'https://www.nature.com/nature.rss'], ['NASA', 'https://www.nasa.gov/news-release/feed/'], ['Phys.org', 'https://phys.org/rss-feed/']],
-  business: [['BBC Business', 'https://feeds.bbci.co.uk/news/business/rss.xml'], ['CNBC', 'https://www.cnbc.com/id/100003114/device/rss/rss.html'], ['Economic Times', 'https://economictimes.indiatimes.com/rssfeedstopstories.cms'], ['Mint', 'https://www.livemint.com/rss/news']],
-  sports: [['BBC Sport', 'https://feeds.bbci.co.uk/sport/rss.xml'], ['ESPN', 'https://www.espn.com/espn/rss/news'], ['ESPNcricinfo', 'https://www.espncricinfo.com/rss/content/story/feeds/0.xml']],
-  health: [['WHO', 'https://www.who.int/rss-feeds/news-english.xml'], ['BBC Health', 'https://feeds.bbci.co.uk/news/health/rss.xml']],
-  official: [['OpenAI', 'https://openai.com/news/rss.xml'], ['Google', 'https://blog.google/rss/'], ['NVIDIA', 'https://blogs.nvidia.com/feed/'], ['Microsoft', 'https://blogs.microsoft.com/feed/'], ['Apple', 'https://www.apple.com/newsroom/rss-feed.rss'], ['Hugging Face', 'https://huggingface.co/blog/feed.xml']]
-};
-const OFFICIAL_HOSTS = /(^|\.)(pib\.gov\.in|gov\.in|nic\.in|rbi\.org\.in|who\.int|un\.org|nasa\.gov|isro\.gov\.in|europa\.eu|whitehouse\.gov|usgs\.gov|noaa\.gov|imd\.gov\.in|worldbank\.org|imf\.org|openai\.com|blog\.google|nvidia\.com|microsoft\.com|apple\.com)$/i;
-const TOP_NEWS = /(bbc\.|reuters\.|apnews\.|thehindu\.|aljazeera\.|npr\.org|dw\.com|ndtv\.|indianexpress\.|nature\.com|science\.org|economist\.com|ft\.com|bloomberg\.|wsj\.com|nytimes\.|theguardian\.|hindustantimes\.|timesofindia\.|livemint\.|espn|cricinfo)/i;
-async function fetchFeed(name, url, kind) {
-  // Publisher feed terms are not uniformly licensed for persistent result storage.
-  // Fetch transiently until each publisher explicitly permits caching.
-  const xml = await lhttp(url, { accept: 'application/rss+xml, application/atom+xml, text/xml, */*', timeout: 4500, tries: 2 });
-  const items = parseFeed(xml, name).slice(0, 15).map(x => ({ ...x, publisher: x.publisher || name, kind: kind || 'news', connector: 'rss:' + name }));
-  if (!items.length) throw new Error('no items');
-  return items;
+// Publisher RSS is disabled for commercial product traffic until each publisher grants
+// explicit business-use permission. Do not fetch, cache, summarize, or resell feed items.
+const FEEDS = Object.freeze({});
+const OFFICIAL_HOSTS = /(^|\\.)(pib\\.gov\\.in|gov\\.in|nic\\.in|rbi\\.org\\.in|who\\.int|un\\.org|nasa\\.gov|isro\\.gov\\.in|europa\\.eu|whitehouse\\.gov|usgs\\.gov|noaa\\.gov|imd\\.gov\\.in|worldbank\\.org|imf\\.org|openai\\.com|blog\\.google|nvidia\\.com|microsoft\\.com|apple\\.com)$/i;
+const TOP_NEWS = /(bbc\\.|reuters\\.|apnews\\.|thehindu\\.|aljazeera\\.|npr\\.org|dw\\.com|ndtv\\.|indianexpress\\.|nature\\.com|science\\.org|economist\\.com|ft\\.com|bloomberg\\.|wsj\\.com|nytimes\\.|theguardian\\.|hindustantimes\\.|timesofindia\\.|livemint\\.|espn|cricinfo)/i;
+async function fetchFeed() {
+  throw new Error('Publisher RSS is disabled pending written commercial-use permission');
 }
-async function feedCat(cat, limit = 12) {
-  const list = FEEDS[cat] || [];
-  const rs = await Promise.allSettled(list.map(([n, u]) => fetchFeed(n, u, cat === 'official' ? 'official' : 'news')));
-  const items = [], failed = [];
-  rs.forEach((r, i) => r.status === 'fulfilled' ? items.push(...r.value) : failed.push(list[i][0]));
-  items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  return { items: dedupe(items).slice(0, limit), failed, used: list.map(x => x[0]).filter(n => !failed.includes(n)) };
+async function feedCat() {
+  return { items: [], failed: [], used: [], note: 'Publisher RSS feeds are disabled pending written commercial-use permission' };
 }
 // ---------- dedupe + corroboration ----------
 const STOP = new Set('the a an of to in on at for and or is are was were with by from as it its this that after over new says say said will has have had be been into than but not'.split(' '));
@@ -635,15 +616,8 @@ function dedupe(items) {
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const pad = n => String(n).padStart(2, '0');
 const enc = encodeURIComponent;
-async function gnews(q, o = {}) {
-  const L = o.lang === 'hi' ? ['hi', 'IN', 'IN:hi'] : ['en-IN', 'IN', 'IN:en'];
-  const qq = q + (o.after ? ' after:' + o.after : '') + (o.before ? ' before:' + o.before : '') + (o.when ? ' when:' + o.when : '') + (o.site ? ' site:' + o.site : '');
-  const url = 'https://news.google.com/rss/search?q=' + enc(qq) + '&hl=' + L[0] + '&gl=' + L[1] + '&ceid=' + L[2];
-  // Google News result metadata is transient; do not persist it without explicit rights.
-  const xml = await lhttp(url, { accept: 'application/rss+xml, text/xml', timeout: 4500, tries: 2 });
-  const it = parseFeed(xml, 'Google News').slice(0, o.n || 12).map(x => ({ ...x, snippet: '', kind: 'news', connector: 'google-news' }));
-  if (!it.length) throw new Error('no items');
-  return it;
+async function gnews() {
+  throw new Error('Google News RSS is restricted to personal non-commercial use and is disabled');
 }
 const gdDate = s => { const m = /^(\d{4})(\d\d)(\d\d)T?(\d\d)(\d\d)(\d\d)/.exec(s || ''); return m ? iso(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}Z`) : ''; };
 async function gdelt(q, o = {}) {
@@ -655,7 +629,7 @@ async function gdelt(q, o = {}) {
   if (!out.length) throw new Error('no items');
   return out;
 }
-// ---- general web search: Tavily/Brave when keys exist, else DuckDuckGo, else Wikipedia ----
+// ---- general web search: keyed providers when configured; otherwise documented open sources ----
 async function tavily(q, o = {}) {
   const j = await lhttp('https://api.tavily.com/search', { method: 'POST', json: true, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.TAVILY_KEY }, body: JSON.stringify({ api_key: E.TAVILY_KEY, query: q, max_results: 7, search_depth: 'basic', topic: o.news ? 'news' : 'general' }), timeout: 5500, tries: 1 });
   return (j.results || []).map(r => ({ title: lclean(r.title, 200), url: safeUrl(r.url), publisher: host(r.url), date: iso(r.published_date), snippet: lclean(r.content, 260), kind: 'web', connector: 'tavily' })).filter(x => x.url && x.title);
@@ -760,40 +734,14 @@ async function wikiExtract(title, month, max = 3200) {
   return { text: t.replace(/\n{2,}/g, '\n').trim().slice(0, max), source: { title: (p.title || title) + (month ? ' \u2014 ' + month : '') + ' \u2014 Wikipedia', url: 'https://en.wikipedia.org/wiki/' + enc(String(p.title || title).replace(/ /g, '_')), publisher: 'Wikipedia', date: '', kind: 'reference', connector: 'wikipedia-year', snippet: '' } };
 }
 // ---- geography, time, weather ----
-async function geocode(place, lang = 'en') {
-  const j = await cached('geo:' + lang + place.toLowerCase(), 24 * 36e5, () => lhttp('https://geocoding-api.open-meteo.com/v1/search?name=' + enc(place) + '&count=1&language=' + lang + '&format=json', { json: true, timeout: 4000, tries: 1 }));
-  const r = j.results && j.results[0]; if (!r) throw new Error('place not found: ' + place);
-  return { name: r.name, admin1: r.admin1 || '', country: r.country || '', lat: r.latitude, lon: r.longitude, tz: r.timezone || 'UTC', pop: r.population };
+async function geocode() {
+  throw new Error('Open-Meteo free API is non-commercial only; commercial weather/geocoding is disabled');
 }
-const WMO = { 0: 'clear sky', 1: 'mainly clear', 2: 'partly cloudy', 3: 'overcast', 45: 'fog', 48: 'rime fog', 51: 'light drizzle', 53: 'drizzle', 55: 'dense drizzle', 56: 'freezing drizzle', 57: 'heavy freezing drizzle', 61: 'light rain', 63: 'rain', 65: 'heavy rain', 66: 'freezing rain', 67: 'heavy freezing rain', 71: 'light snow', 73: 'snow', 75: 'heavy snow', 77: 'snow grains', 80: 'light rain showers', 81: 'rain showers', 82: 'violent rain showers', 85: 'snow showers', 86: 'heavy snow showers', 95: 'thunderstorm', 96: 'thunderstorm with hail', 99: 'severe thunderstorm with hail' };
-async function weatherFallback(place) {
-  const j = await cached('wxfallback:' + place.toLowerCase(), 10 * 6e4, () => lhttp('https://wttr.in/' + enc(place) + '?format=j1', { json: true, timeout: 5000, tries: 1 }));
-  const c = (j.current_condition || [])[0], days = (j.weather || []).slice(0, 3);
-  if (!c) throw new Error('no weather data from fallback provider');
-  const area = (((j.nearest_area || [])[0] || {}).areaName || [])[0], name = area && area.value ? area.value : place;
-  const desc = ((c.weatherDesc || [])[0] || {}).value || 'conditions unavailable';
-  const forecast = days.map(d => d.date + ': ' + d.mintempC + '–' + d.maxtempC + '°C, ' + ((((d.hourly || [])[4] || {}).weatherDesc || [])[0] || {}).value + ', rain chance ' + ((((d.hourly || [])[4] || {}).chanceofrain) || '?') + '%');
-  const text = 'WEATHER — ' + name + ' (wttr.in fallback; observation ' + (c.observation_time || 'time unavailable') + '): ' + c.temp_C + '°C (feels ' + c.FeelsLikeC + '°C), ' + desc + ', humidity ' + c.humidity + '%, wind ' + c.windspeedKmph + ' km/h, precipitation ' + c.precipMM + ' mm.\nForecast: ' + forecast.join(' | ');
-  return { text, source: { title: 'Weather — ' + name + ' (wttr.in fallback)', url: 'https://wttr.in/' + enc(place), publisher: 'wttr.in', date: new Date().toISOString(), kind: 'data', connector: 'wttr.in', snippet: '' } };
+async function weatherFallback() {
+  throw new Error('Unlicensed weather fallback is disabled');
 }
-async function weather(place, lang) {
-  let g; try { g = await geocode(place, lang === 'hi' ? 'hi' : 'en'); } catch (e) { return weatherFallback(place); }
-  let f, aq = null;
-  try {
-    const pair = await Promise.all([
-      cached('wx:' + g.lat + ',' + g.lon, 15 * 6e4, () => lhttp('https://api.open-meteo.com/v1/forecast?latitude=' + g.lat + '&longitude=' + g.lon + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&forecast_days=3&timezone=auto', { json: true, timeout: 5000, tries: 1 })),
-      cached('aq:' + g.lat + ',' + g.lon, 30 * 6e4, () => lhttp('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + g.lat + '&longitude=' + g.lon + '&current=us_aqi,pm2_5,pm10', { json: true, timeout: 5000, tries: 1 })).catch(() => null)
-    ]);
-    f = pair[0]; aq = pair[1];
-  } catch (e) { return weatherFallback(place); }
-  const c = f.current; if (!c) throw new Error('no weather data');
-  const off = f.utc_offset_seconds || 0, obs = iso(Date.parse(c.time + ':00Z') - off * 1000);
-  const dd = f.daily || {}, days = (dd.time || []).map((t, i) => t + ': ' + Math.round(dd.temperature_2m_min[i]) + '\u2013' + Math.round(dd.temperature_2m_max[i]) + '\u00b0C, ' + (WMO[dd.weather_code[i]] || '') + ', rain chance ' + (dd.precipitation_probability_max ? dd.precipitation_probability_max[i] : '?') + '%, rain ' + (dd.precipitation_sum ? dd.precipitation_sum[i] : '?') + ' mm');
-  const name = [g.name, g.admin1, g.country].filter((x, i, a) => x && a.indexOf(x) === i).join(', ');
-  let text = 'WEATHER \u2014 ' + name + '. Observed ' + c.time.replace('T', ' ') + ' local time (' + (f.timezone || g.tz) + '): ' + c.temperature_2m + '\u00b0C (feels ' + c.apparent_temperature + '\u00b0C), ' + (WMO[c.weather_code] || 'n/a') + ', humidity ' + c.relative_humidity_2m + '%, wind ' + c.wind_speed_10m + ' km/h, precipitation ' + c.precipitation + ' mm.';
-  if (aq && aq.current) text += ' Air quality (US AQI) ' + aq.current.us_aqi + ', PM2.5 ' + aq.current.pm2_5 + ' \u00b5g/m\u00b3, PM10 ' + aq.current.pm10 + ' \u00b5g/m\u00b3.';
-  text += '\nForecast: ' + days.join(' | ');
-  return { text, source: { title: 'Weather \u2014 ' + name, url: 'https://open-meteo.com/', publisher: 'Open-Meteo', date: obs, kind: 'data', connector: 'open-meteo', snippet: '' } };
+async function weather() {
+  throw new Error('Weather data is unavailable: no commercially licensed provider is configured');
 }
 async function timeIn(place, userTz) {
   let tz = userTz || 'Asia/Kolkata', label = tz;
@@ -882,46 +830,11 @@ async function fxRate(q) {
 }
 // ---- sports: verified scoreboard data only; never substitute news articles for live scores ----
 const LEAGUES = [[/\bnba\b/i, 'basketball/nba', 'NBA'], [/\bnfl\b/i, 'football/nfl', 'NFL'], [/\bmlb\b/i, 'baseball/mlb', 'MLB'], [/\bnhl\b/i, 'hockey/nhl', 'NHL'], [/premier league|\bepl\b/i, 'soccer/eng.1', 'Premier League'], [/la ?liga/i, 'soccer/esp.1', 'La Liga'], [/serie a/i, 'soccer/ita.1', 'Serie A'], [/bundesliga/i, 'soccer/ger.1', 'Bundesliga'], [/champions league|\bucl\b/i, 'soccer/uefa.champions', 'UEFA Champions League'], [/\bisl\b|indian super league/i, 'soccer/ind.1', 'Indian Super League'], [/\bmls\b/i, 'soccer/usa.1', 'MLS'], [/fifa world cup|football world cup/i, 'soccer/fifa.world', 'FIFA World Cup'], [/formula ?1|\bf1\b/i, 'racing/f1', 'Formula 1'], [/\batp\b|tennis/i, 'tennis/atp', 'ATP tennis']];
-async function sportsDbFallback(lg) {
-  if (!lg) throw new Error('no supported league for sports fallback');
-  const sport = lg[1].split('/')[0];
-  const sportName = ({ soccer: 'Soccer', basketball: 'Basketball', football: 'American Football', baseball: 'Baseball', hockey: 'Ice Hockey', racing: 'Motorsport', tennis: 'Tennis' })[sport];
-  if (!sportName) throw new Error('TheSportsDB fallback does not support this sport');
-  const known = { 'Premier League': '4328', 'Formula 1': '4370' };
-  let leagueId = known[lg[2]] || '';
-  if (!leagueId) {
-    const country = ({ 'La Liga': 'Spain', 'Serie A': 'Italy', 'Bundesliga': 'Germany', 'Indian Super League': 'India', 'MLS': 'USA', 'NBA': 'USA', 'NFL': 'USA', 'MLB': 'USA', 'NHL': 'USA', 'UEFA Champions League': 'Europe', 'ATP tennis': 'USA' })[lg[2]] || 'England';
-    const listing = await cached('tsdb:leagues:' + country + ':' + sportName, 6 * 36e5, () => lhttp('https://www.thesportsdb.com/api/v1/json/123/search_all_leagues.php?c=' + enc(country) + '&s=' + enc(sportName), { json: true, timeout: 5000, tries: 1 }));
-    const leagues = listing.countries || listing.leagues || [];
-    const target = lg[2].toLowerCase();
-    const found = leagues.find(x => String(x.strLeague || '').toLowerCase().includes(target) || target.includes(String(x.strLeague || '').toLowerCase()));
-    if (!found || !found.idLeague) throw new Error('TheSportsDB free tier has no league mapping for ' + lg[2]);
-    leagueId = String(found.idLeague);
-  }
-  const [next, previous] = await Promise.allSettled([
-    cached('tsdb:next:' + leagueId, 60 * 1000, () => lhttp('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=' + leagueId, { json: true, timeout: 5000, tries: 1 })),
-    cached('tsdb:previous:' + leagueId, 60 * 1000, () => lhttp('https://www.thesportsdb.com/api/v1/json/123/eventspastleague.php?id=' + leagueId, { json: true, timeout: 5000, tries: 1 }))
-  ]);
-  const events = [...(next.status === 'fulfilled' ? next.value.events || [] : []), ...(previous.status === 'fulfilled' ? previous.value.events || [] : [])];
-  const matches = events.filter(e => e && (e.strHomeTeam || e.strAwayTeam)).slice(0, 10);
-  if (!matches.length) throw new Error('TheSportsDB has no schedule/results for ' + lg[2]);
-  const lines = matches.map(e => {
-    const home = e.strHomeTeam || '?', away = e.strAwayTeam || '?';
-    const scored = e.intHomeScore != null && e.intAwayScore != null && e.intHomeScore !== '' && e.intAwayScore !== '';
-    const score = scored ? ' ' + e.intHomeScore + '–' + e.intAwayScore : '';
-    const status = e.strStatus || (scored ? 'Result' : 'Scheduled');
-    return home + ' vs ' + away + score + ' [' + status + '] ' + (e.dateEvent || '') + (e.strTime ? ' ' + e.strTime + ' UTC' : '');
-  });
-  return { text: lg[2].toUpperCase() + ' SCHEDULE / RESULTS (TheSportsDB free tier; NOT live scores; retrieved ' + new Date().toISOString() + ') — ' + lines.join(' | '), source: { title: 'TheSportsDB — ' + lg[2] + ' schedule and results (not live)', url: 'https://www.thesportsdb.com/', publisher: 'TheSportsDB', date: new Date().toISOString(), kind: 'data', connector: 'thesportsdb', snippet: '' } };
+async function sportsDbFallback() {
+  throw new Error('TheSportsDB free tier is not cleared for a commercial published app; sports data is disabled');
 }
-async function espn(q) {
-  const lg = LEAGUES.find(l => l[0].test(q)); if (!lg) throw new Error('no ESPN league for this sport');
-  try {
-    const j = await cached('espn:' + lg[1], 60 * 1000, () => lhttp('https://site.api.espn.com/apis/site/v2/sports/' + lg[1] + '/scoreboard', { json: true, timeout: 5000, tries: 1 }));
-    const ev = (j.events || []).slice(0, 10); if (!ev.length) throw new Error('no events on the scoreboard');
-    const lines = ev.map(e => { const c = (e.competitions && e.competitions[0]) || {}, cs = (c.competitors || []).slice().sort((a, b) => (b.homeAway === 'home' ? 1 : 0) - (a.homeAway === 'home' ? 1 : 0)); const st = (e.status && e.status.type) || {}; return cs.map(x => ((x.team && x.team.displayName) || (x.athlete && x.athlete.displayName) || '?') + (x.score != null ? ' ' + x.score : '')).join(' vs ') + ' [' + (st.detail || st.description || st.state || '') + '] ' + String(e.date || '').slice(0, 16).replace('T', ' ') + ' UTC'; });
-    return { text: lg[2].toUpperCase() + ' SCOREBOARD (ESPN, unofficial feed; home team listed first) — ' + lines.join(' | '), source: { title: 'ESPN — ' + lg[2] + ' scoreboard', url: 'https://www.espn.com/', publisher: 'ESPN', date: new Date().toISOString(), kind: 'data', connector: 'espn', snippet: '' } };
-  } catch (e) { return sportsDbFallback(lg); }
+async function espn() {
+  throw new Error('ESPN unofficial scoreboard feed is disabled; no commercial data licence is configured');
 }
 async function hackerNews() {
   return cached('hn', 10 * 6e4, async () => {
@@ -1139,13 +1052,13 @@ app.get('/api/live/selftest', async (q, r) => {
   if (a.length >= 4) return r.status(429).json({ error: 'Please wait a minute before testing again.' });
   a.push(nw); stHits.set(q.ip, a);
   const y = new Date(nw - 864e5), probes = [
-    ['Google News', () => gnews('india', { n: 3 })], ['BBC News feed', () => fetchFeed('BBC News', FEEDS.world[0][1])], ['The Hindu feed', () => fetchFeed('The Hindu', FEEDS.india[0][1])],
+
     ['GDELT / Google News fallback', async () => { try { const items = await gdelt('india', { n: 3, timespan: '1d' }); return { items, via: 'gdelt' }; } catch (e) { const items = await gnews('india', { n: 3 }); if (!items.length) throw e; return { items, via: 'google-news-fallback', note: 'GDELT upstream timeout; live Google News fallback active' }; } }],
     ['GDELT fallback path', async () => { try { return { items: await gdelt('india', { n: 3, timespan: '1d' }), via: 'gdelt' }; } catch (e) { const items = await gnews('india', { n: 3 }); if (!items.length) throw e; return { items, via: 'google-news-fallback' }; } }],
     ['Web search', () => webSearch('nasa', { lang: 'en' })], ['Brave context / web-search fallback', async () => { if (E.BRAVE_KEY) return braveContext('latest NASA news', { lang: 'en' }); const result = await webSearch('latest NASA news', { lang: 'en' }); if (!result.items || !result.items.length) throw new Error('No Brave key and web-search fallback unavailable'); return { ...result, note: 'BRAVE_KEY not configured; general live web search fallback active' }; }], ['Wikipedia', () => wikiSearch('India', 'en', 2)], ['Wikipedia current events', () => currentEvents(y.getUTCFullYear(), y.getUTCMonth() + 1, y.getUTCDate())],
-    ['Open-Meteo geocoding direct', () => lhttp('https://geocoding-api.open-meteo.com/v1/search?name=Delhi&count=1&format=json', { json: true, timeout: 8000, tries: 1 })], ['Open-Meteo forecast / wttr.in fallback', async () => { try { return await lhttp('https://api.open-meteo.com/v1/forecast?latitude=28.6139&longitude=77.2090&current=temperature_2m&timezone=auto', { json: true, timeout: 8000, tries: 1 }); } catch (e) { const value = await weatherFallback('Delhi'); return { ...value, via: 'wttr.in-fallback', note: 'Open-Meteo rate-limited this request; independent weather fallback active' }; } }], ['Weather (Open-Meteo / fallback)', () => weather('Delhi', 'en')], ['CoinGecko / Coinbase fallback', () => coingecko(CRYPTO.slice(0, 2))], ['Coinbase fallback', () => coinbaseFallback(CRYPTO.slice(0, 2))], ['Crypto price routing', () => coingecko(CRYPTO.slice(0, 2))], ['Exchange rates', () => fxRate('usd to inr')],
+ ['CoinGecko / Coinbase fallback', () => coingecko(CRYPTO.slice(0, 2))], ['Coinbase fallback', () => coinbaseFallback(CRYPTO.slice(0, 2))], ['Crypto price routing', () => coingecko(CRYPTO.slice(0, 2))], ['Exchange rates', () => fxRate('usd to inr')],
     ['USGS earthquakes', () => quakes()], ['arXiv', () => arxiv('quantum')], ['World Bank', () => worldBank('gdp of india')], ['OpenAlex direct', () => openalex('artificial intelligence')], ['OpenAlex fallback', async () => { try { const items = await openalex('artificial intelligence'); return { items, via: 'openalex' }; } catch (e) { const [papers, feed] = await Promise.all([arxiv('artificial intelligence'), feedCat('science', 5)]); const items = [...papers, ...(feed.items || [])]; if (!items.length) throw e; return { items, via: 'arxiv+science-rss' }; } }], ['Science RSS feeds', async () => { const v = await feedCat('science', 5); if (!v.items.length) throw new Error('no science feed items'); return v; }],
-    ['ESPN / TheSportsDB fallback', async () => { try { return await lhttp('https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard', { json: true, timeout: 8000, tries: 1 }); } catch (e) { const value = await sportsDbFallback(LEAGUES.find(l => l[2] === 'Premier League')); return { ...value, via: 'thesportsdb-fallback', note: 'ESPN upstream denied this server request; TheSportsDB schedule fallback active' }; } }], ['TheSportsDB fallback', () => sportsDbFallback(LEAGUES.find(l => l[2] === 'Premier League'))], ['ESPN scoreboard', () => espn('premier league')], ['Hacker News', () => hackerNews()]];
+ ['Hacker News', () => hackerNews()]];
   const results = await Promise.all(probes.map(async ([name, fn]) => {
     const t0 = Date.now();
     try {
