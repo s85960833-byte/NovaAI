@@ -8,18 +8,17 @@ NOVA is an India-oriented Hindi-English AI web workspace organized into three ar
 
 Production preview: https://novaai-4auo.onrender.com
 
-## Release status — 12 November 2026
+## Release status — 13 November 2026
 
-<badge>PR candidate CI green; current-head Staging and Production verification still blocked</badge>
+**PR #98 remains Draft/unmerged. Production remains unchanged and release status is NO-GO.**
 
-- Repository `main` remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render remains on commit `c3cee61906b88ff111b3a645db55c9c2503cd8f7` via live deployment `dep-dbom7bbm8hqs73ec2gi0`. PR #98 remains Draft and unmerged.
-- Latest PR candidate is `c3ddc3e32423a219c2c456cd92c1cba42b87ed88`. Main workflow [#43238989690](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989690) passed 45/45 steps; Browser workflow [#43238989457](https://github.com/s85960833-byte/NovaAI/actions/runs/43238989457) passed 16/16 steps, both on the exact same SHA.
-- Main CI covers synthetic NOVA BI calculation fixtures/tests, allowlisted CSV downloads with path-traversal rejection, PostgreSQL RLS migration tests, Deno checks, dependency audit, local route/PWA smoke and Docker image health smoke. Browser CI covers account/Company Cloud and mobile viewport flows.
-- Main skips four live/Production release checks while the PR is unmerged. Skipped checks are not passes.
-- Staging service `novaai-pr98-staging` is configured for the PR branch, but its latest Live deployment still serves old commit `195739a04895de364a5af22aa61f930d5d782cbb`. Its Health Check Path is blank. The new sample-download feature is not live-verified.
-- Old Staging logs showed health/static/PWA routes passing but `/api/config` and AI chat returned 503 because no model provider key was configured. Provider timeouts/rate-limit fallbacks also appeared. These are old-build observations, not current-candidate test results.
-- Browser viewport screenshots are Chromium emulation, not physical Android or microphone certification. Actual handset tests, Auth email/two-account checks, durable quotas, account deletion/retention, provider rights, backup restore and legal/IP review remain open.
-- Production was not merged, changed or redeployed by this work. No paid services or API credits were purchased.
+- Current PR head: `a875ab19ae9df5c7a0598aa9845bc280343caf45`. The latest Main verification [#43371767554](https://github.com/s85960833-byte/NovaAI/actions/runs/43371767554) is still running; the new sequential search-router test has passed. Browser verification [#43371767444](https://github.com/s85960833-byte/NovaAI/actions/runs/43371767444) passed.
+- Staging service `srv-dbqm035g1s2s73eogao0` is live on the code-bearing app commit `2e4eb204ff99790b55aef426fa0c38fc9a313d30` via deploy `dep-dbr6dul6e07s73ama50g`. GitHub-hosted Staging smoke passed `/health`, homepage and entry assets. `GET /api/config` returned HTTP 503 because no AI chat provider is configured.
+- Staging Auth is disabled (`NOVA_API_AUTH_REQUIRED=0`); Health Check Path remains blank. Physical Android/microphone testing and hosted Auth/session/isolation testing are not complete.
+- New audit documents: [API and Provider Rights Audit](API_AUDIT_2026-11-13.md) and [Feature / Engineering Guide](FEATURES.md).
+- Search cost fix on this branch: paid search providers are now attempted sequentially; the first usable response stops the chain. DuckDuckGo HTML scraping fallback was removed; Wikimedia API is the fallback. Tavily cross-user shared-result caching defaults OFF pending written permission.
+- Provider rights are not cleared globally. Open-Meteo free, CoinGecko keyless/free, TheSportsDB free, some publisher feeds, public finance/sports endpoints, and legacy image providers have non-commercial, restricted or unverified rights. Do not enable these for a commercial launch without the exact required license.
+- Production remains on `main`, last known Live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production merge/deploy, paid API spend or Supabase schema change was made.
 
 ## Search and sharing metadata
 
@@ -49,6 +48,8 @@ Production preview: https://novaai-4auo.onrender.com
 Only non-paid, adult-supervised buyer-interest conversations and synthetic-data previews are appropriate. Do not accept payments, deposits, customer data or confidential information. Any ownership, IP transfer, payment, contract or sale discussion must be handled by a responsible adult with qualified legal review.
 
 ## Key documents
+- [API and Provider Rights Audit — 13 Nov 2026](API_AUDIT_2026-11-13.md)
+- [NOVA Feature and Engineering Guide](FEATURES.md)
 - [Market and differentiation evidence review](MARKET_AND_DIFFERENTIATION_RESEARCH.md)
 - [Buyer transfer pack checklist](TRANSFER_PACK.md)
 - [Preliminary valuation memo](VALUATION_MEMO.md)
