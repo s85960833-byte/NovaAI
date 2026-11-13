@@ -203,6 +203,33 @@ jobs:
             *) echo "Unexpected Staging /api/config HTTP status: $config_status"; exit 1 ;;
           esac
           echo "Staging health, homepage and entry assets passed."
+      - name: Verify Staging rejects unauthenticated and invalid API sessions
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 98
+        timeout-minutes: 2
+        env:
+          NOVAAI_URL: https://novaai-pr98-staging.onrender.com
+        run: |
+          set -euo pipefail
+          payload='{"messages":[{"role":"user","content":"This request must be rejected before provider routing."}]}'
+          missing_status="$(curl --silent --show-error --connect-timeout 5 --max-time 12 --request POST --header 'Content-Type: application/json' --data "$payload" -o /tmp/nova-auth-missing.json -w '%{http_code}' "$NOVAAI_URL/api/chat/completions" || true)"
+          if [ "$missing_status" != "401" ]; then
+            echo "Expected missing bearer token to return HTTP 401; received $missing_status"
+            cat /tmp/nova-auth-missing.json || true
+            exit 1
+          fi
+          malformed_status="$(curl --silent --show-error --connect-timeout 5 --max-time 12 --request POST --header 'Content-Type: application/json' --header 'Authorization: Basic not-a-bearer' --data "$payload" -o /tmp/nova-auth-malformed.json -w '%{http_code}' "$NOVAAI_URL/api/chat/completions" || true)"
+          if [ "$malformed_status" != "401" ]; then
+            echo "Expected malformed authorization header to return HTTP 401; received $malformed_status"
+            cat /tmp/nova-auth-malformed.json || true
+            exit 1
+          fi
+          invalid_status="$(curl --silent --show-error --connect-timeout 5 --max-time 12 --request POST --header 'Content-Type: application/json' --header 'Authorization: Bearer not-a-valid-supabase-token' --data "$payload" -o /tmp/nova-auth-invalid.json -w '%{http_code}' "$NOVAAI_URL/api/chat/completions" || true)"
+          if [ "$invalid_status" != "401" ]; then
+            echo "Expected invalid bearer token to return HTTP 401; received $invalid_status"
+            cat /tmp/nova-auth-invalid.json || true
+            exit 1
+          fi
+          echo "Staging rejects missing, malformed and invalid sessions with HTTP 401 before provider routing."
       - name: Wait for the merged bilingual revision to become live on Render
         if: github.ref == 'refs/heads/main'
         env:
