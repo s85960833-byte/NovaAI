@@ -1024,7 +1024,7 @@ async function runLive(qraw, o = {}) {
     const cry = CRYPTO.filter(c => c[0].test(q));
     if (brief && !syms.length && !cry.length) { SYM.filter(s => ['^NSEI', '^BSESN', 'GC=F'].includes(s[1])).forEach(s => syms.push([s[0], s[1], s[2]])); cry.push(CRYPTO[0]); }
     if (cry.length) T('coingecko', () => coingecko(cry).then(b => ({ blocks: [b] })), 9000);
-    if (syms.length) notes.push('Equity market quotes are unavailable: no documented, commercially licensed provider is configured. Do not guess or infer a live price.');
+    if (syms.some(s => s[1] !== 'INR=X')) notes.push('Listed-market instrument quotes are unavailable: no documented, commercially licensed provider is configured. Do not guess or infer a live price.');
     if (/inr|rupee|dollar|usd|eur|euro|pound|yen|exchange|forex|\u0930\u0941\u092a\u092f|\u0921\u0949\u0932\u0930/i.test(q)) T('fx', () => fxRate(q).then(b => ({ blocks: [b] })), 9000);
     if (!syms.length && !cry.length && !/inr|rupee|dollar|usd|eur/i.test(q) && !brief) notes.push('A market question was detected but no known instrument matched; do not guess a price.');
     gn((tq || sq) + ' market', { when: '2d', n: 6 });
