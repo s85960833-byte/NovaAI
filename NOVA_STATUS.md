@@ -1,3 +1,16 @@
+# STAGING SMOKE + EXACT CI — 13 November 2026
+
+- Current candidate at this checkpoint: `4a7e3d473f64b676734c5ecb04499e18e4fdc880`; it adds only a PR #98 Staging smoke step to `.github/workflows/novaai-verification.yml`. Application runtime source remains the code-bearing commit `2e4eb204ff99790b55aef426fa0c38fc9a313d30`.
+- Main CI [#43346921115](https://github.com/s85960833-byte/NovaAI/actions/runs/43346921115): **success**. The new `Smoke-test deployed PR` step passed against the external Staging URL.
+- Browser CI [#43346921152](https://github.com/s85960833-byte/NovaAI/actions/runs/43346921152): **success**.
+- External Staging verification from GitHub Actions: `GET /health` returned HTTP 200 with `ok=true`, `ready=true`, `status=ok`; homepage returned HTML; `/nova-entry.js` and `/nova-config.js` returned non-empty assets.
+- Staging `GET /api/config` returned HTTP 503. CI records a warning (not a pass): no AI chat provider is configured in Staging. No chat, search, image or paid-provider request was made by this smoke.
+- Render confirms code-bearing deploy `dep-dbr6dul6e07s73ama50g` on commit `2e4eb204ff99790b55aef426fa0c38fc9a313d30` is Live. Runtime logs show app startup succeeded, but API Auth remains disabled.
+- Health Check Path remains blank in Render service configuration. The connector does not expose a write action for that field. Physical Android/microphone tests and authenticated valid/invalid/expired-token tests remain unverified.
+- Production remains unchanged on `main`; PR #98 remains Open / Draft / unmerged. No paid services, API credits, production changes or Supabase schema changes were made.
+
+---
+
 # EXACT-HEAD CI UPDATE — 13 November 2026
 
 - Latest PR head is `cca3a95bfb6d20e207306175e7e0258040800cb7`; this commit only records the Staging deployment/checkpoint and does not change application code.
