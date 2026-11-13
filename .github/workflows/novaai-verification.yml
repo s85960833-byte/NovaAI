@@ -51,6 +51,8 @@ jobs:
         run: npm run test:cloud-sync
       - name: Test bounded per-IP rate window
         run: node --test scripts/rate-limit.test.cjs
+      - name: Test sequential, cost-aware search provider routing
+        run: npm run test:search-router
       - name: Test fail-closed Supabase API authentication and request wiring
         run: npm run test:api-auth
       - name: Test validated per-user timezone context
