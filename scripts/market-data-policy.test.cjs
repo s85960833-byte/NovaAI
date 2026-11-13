@@ -17,9 +17,10 @@ test('listed-market symbols fail closed with an explicit no-live-price message',
   assert.match(server, /Do not guess or infer a live price/);
 });
 
-test('currency conversion remains on the dedicated FX route', () => {
-  assert.ok(server.includes("if (syms.some(s => s[1] !== 'INR=X'))"));
-  assert.ok(server.includes("T('fx', () => fxRate(q).then"));
+test('currency conversion fails closed until each upstream rate provider is licence-cleared', () => {
+  assert.match(server, /async function fxRate\(\) \{\s+throw new Error\('Currency conversion is disabled until NOVA can verify/);
+  assert.match(server, /Currency conversion is unavailable: the upstream rate-provider terms have not been verified for each currency pair/);
+  assert.doesNotMatch(server, /T\('fx'|api\.frankfurter\.app/);
 });
 
 test('the built-in provider self-test does not report the unlicensed equity source as healthy', () => {
