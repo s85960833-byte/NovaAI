@@ -64,7 +64,7 @@ export function withSiteOrigin(
     const response = await handler(request);
     const headers = new Headers(response.headers);
     const vary = headers.get("Vary");
-    headers.set("Vary", vary ? vary.split(/,\\s*/).includes("Origin") ? vary : vary + ", Origin" : "Origin");
+    headers.set("Vary", vary ? vary.split(/,\s*/).includes("Origin") ? vary : vary + ", Origin" : "Origin");
     if (origin) {
       for (const [name, value] of Object.entries(createCorsHeaders(siteOrigin))) {
         headers.set(name, value);
