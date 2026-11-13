@@ -287,9 +287,9 @@ async function generateFreeImage(prompt, body) {
   const w = Math.min(1024, Number(body.width) || 768), h = Math.min(1024, Number(body.height) || 768);
   const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
   const qs = 'width=' + w + '&height=' + h + '&seed=' + seed + '&nologo=true&safe=true&enhance=false' + (E.POLLI_KEY ? '&key=' + encodeURIComponent(E.POLLI_KEY) : '');
-  const tries = freeOnly ? [] : E.POLLI_KEY
-    ? [['https://gen.pollinations.ai/image/', 'flux'], ['https://image.pollinations.ai/prompt/', 'flux']]
-    : [['https://image.pollinations.ai/prompt/', 'flux']];
+  const tries = (!freeOnly && E.POLLI_KEY && E.NOVA_ALLOW_POLLINATIONS_SPEND === '1')
+    ? [['https://gen.pollinations.ai/image/', 'flux']]
+    : [];
   for (const [host, model] of tries) {
     try {
       const u = await fetch(host + encodeURIComponent(prompt) + '?' + qs + '&model=' + model, {
@@ -623,12 +623,18 @@ const gdDate = s => { const m = /^(\d{4})(\d\d)(\d\d)T?(\d\d)(\d\d)(\d\d)/.exec(
 async function gdelt(q, o = {}) {
   let url = 'https://api.gdeltproject.org/api/v2/doc/doc?query=' + enc(q) + '&mode=artlist&maxrecords=' + Math.min(15, Math.max(1, Number(o.n) || 10)) + '&format=json&sort=datedesc';
   url += (o.start && o.end) ? '&startdatetime=' + o.start + '&enddatetime=' + o.end : '&timespan=' + (o.timespan || '3d');
-  // Keep third-party search result records transient until provider terms are cleared.
+  // GDELT permits commercial use and redistribution with citation and a link to the project.
+  // Article metadata is transient; linked publisher material remains subject to publisher rights.
   const j = await lhttp(url, { json: true, timeout: 4500, tries: 1 });
-  const out = (j.articles || []).map(a => ({ title: lclean(a.title, 200), url: safeUrl(a.url), publisher: a.domain || host(a.url), date: gdDate(a.seendate), snippet: '', kind: 'news', connector: 'gdelt' })).filter(x => x.title && x.url);
+  const out = (j.articles || []).map(a => ({
+    title: lclean(a.title, 200), url: safeUrl(a.url), publisher: a.domain || host(a.url),
+    date: gdDate(a.seendate), snippet: 'Discovered via GDELT Project open data; cite and link https://www.gdeltproject.org/. Original publisher rights apply.',
+    kind: 'news', connector: 'gdelt', attribution: 'GDELT Project — https://www.gdeltproject.org/'
+  })).filter(x => x.title && x.url);
   if (!out.length) throw new Error('no items');
   return out;
 }
+// ---- general web search:
 // ---- general web search: keyed providers when configured; otherwise documented open sources ----
 async function tavily(q, o = {}) {
   const j = await lhttp('https://api.tavily.com/search', { method: 'POST', json: true, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.TAVILY_KEY }, body: JSON.stringify({ api_key: E.TAVILY_KEY, query: q, max_results: 7, search_depth: 'basic', topic: o.news ? 'news' : 'general' }), timeout: 5500, tries: 1 });
@@ -654,13 +660,13 @@ async function brave(q) {
 async function wikiSearch(q, lang = 'en', n = 4) {
   return cached('wq:' + lang + ':' + q + ':' + n, 10 * 6e4, async () => {
     const j = await lhttp('https://' + lang + '.wikipedia.org/w/api.php?action=query&list=search&srsearch=' + enc(q) + '&srlimit=' + n + '&format=json&origin=*&srprop=snippet%7Ctimestamp', { json: true, timeout: 6000, tries: 1 });
-    return ((j.query && j.query.search) || []).map(r => ({ title: r.title + ' \u2014 Wikipedia', url: 'https://' + lang + '.wikipedia.org/wiki/' + enc(r.title.replace(/ /g, '_')), publisher: 'Wikipedia', date: iso(r.timestamp), snippet: lclean(r.snippet, 260), kind: 'reference', connector: 'wikipedia' }));
+    return ((j.query && j.query.search) || []).map(r => ({ title: r.title + ' \u2014 Wikipedia', url: 'https://' + lang + '.wikipedia.org/wiki/' + enc(r.title.replace(/ /g, '_')), publisher: 'Wikipedia', date: iso(r.timestamp), snippet: 'Check the page-level licence; most Wikipedia article text is CC BY-SA 4.0. Attribute the page, link the licence, note changes and share adaptations alike. ' + lclean(r.snippet, 180), kind: 'reference', connector: 'wikipedia', licenseNote: 'Most Wikipedias use CC BY-SA 4.0; check page-level exceptions', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' }));
   });
 }
 async function wikiSummary(title, lang = 'en') {
   const j = await cached('ws:' + lang + title, 6 * 36e5, () => lhttp('https://' + lang + '.wikipedia.org/api/rest_v1/page/summary/' + enc(title.replace(/ /g, '_')), { json: true }));
   if (!j.extract) throw new Error('no summary');
-  return { title: (j.title || title) + ' \u2014 Wikipedia', url: (j.content_urls && j.content_urls.desktop && j.content_urls.desktop.page) || ('https://' + lang + '.wikipedia.org/wiki/' + enc(title.replace(/ /g, '_'))), publisher: 'Wikipedia', date: iso(j.timestamp), snippet: lclean(j.extract, 420), kind: 'reference', connector: 'wikipedia' };
+  return { title: (j.title || title) + ' \u2014 Wikipedia', url: (j.content_urls && j.content_urls.desktop && j.content_urls.desktop.page) || ('https://' + lang + '.wikipedia.org/wiki/' + enc(title.replace(/ /g, '_'))), publisher: 'Wikipedia', date: iso(j.timestamp), snippet: 'Check the page-level licence; most Wikipedia article text is CC BY-SA 4.0. Attribute the page, link the licence, note changes and share adaptations alike. ' + lclean(j.extract, 260), kind: 'reference', connector: 'wikipedia', licenseNote: 'Most Wikipedias use CC BY-SA 4.0; check page-level exceptions', licenseUrl: 'https://creativecommons.org/licenses/by-sa/4.0/' };
 }
 async function webSearch(q, o = {}) {
   const errs = [], primary = [];
@@ -689,15 +695,11 @@ async function webSearch(q, o = {}) {
   errs.push(...primaryResult.failures.map(x => x.provider));
   if (primaryResult.value) return primaryResult.value;
 
-  // Do not scrape the DuckDuckGo HTML results page. Without a documented commercial
-  // API licence, use the attributed Wikimedia API fallback instead.
-  const fallback = await firstSuccessful([{
-    name: 'wikipedia',
-    run: async () => ({
-      items: await wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5),
-      via: 'wikipedia'
-    })
-  }]);
+  // GDELT is a keyless commercial news fallback; then use attributed Wikimedia metadata.
+  const fallback = await firstSuccessful([
+    { name: 'gdelt', run: async () => ({ items: await gdelt(q, { n: 8, timespan: '7d' }), via: 'gdelt' }) },
+    { name: 'wikipedia', run: async () => ({ items: await wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5), via: 'wikipedia' }) }
+  ]);
   errs.push(...fallback.failures.map(x => x.provider));
   if (fallback.value) return fallback.value;
   throw new Error('all web search providers failed (' + errs.join(', ') + ')');
@@ -735,7 +737,7 @@ async function wikiExtract(title, month, max = 3200) {
 }
 // ---- geography, time, weather ----
 async function geocode() {
-  throw new Error('Open-Meteo free API is non-commercial only; commercial weather/geocoding is disabled');
+  throw new Error('Open-Meteo free API is non-commercial only; city geocoding is disabled');
 }
 async function weatherFallback() {
   throw new Error('Unlicensed weather fallback is disabled');
@@ -744,10 +746,10 @@ async function weather() {
   throw new Error('Weather data is unavailable: no commercially licensed provider is configured');
 }
 async function timeIn(place, userTz) {
-  let tz = userTz || 'Asia/Kolkata', label = tz;
-  if (place) { const g = await geocode(place); tz = g.tz; label = [g.name, g.country].filter(Boolean).join(', '); }
+  if (place && !userTz) throw new Error('City-based timezone lookup is disabled until a commercially licensed geocoder is configured');
+  const tz = userTz || 'Asia/Kolkata', label = place || tz;
   const d = new Date(), f = new Intl.DateTimeFormat('en-GB', { timeZone: tz, dateStyle: 'full', timeStyle: 'long' }).format(d);
-  return { text: 'TIME \u2014 ' + label + ' (' + tz + '): ' + f + '.', source: { title: 'Time \u2014 ' + label, url: 'https://www.timeanddate.com/worldclock/', publisher: 'Server clock + IANA time zones', date: d.toISOString(), kind: 'data', connector: 'time', snippet: '' } };
+  return { text: 'TIME — ' + label + ' (' + tz + '): ' + f + '.', source: { title: 'Time — ' + label, url: 'https://www.timeanddate.com/worldclock/', publisher: 'Server clock + IANA time zones', date: d.toISOString(), kind: 'data', connector: 'time', snippet: '' } };
 }
 // ---- natural events ----
 async function quakes() {
@@ -756,77 +758,44 @@ async function quakes() {
   return { text: 'EARTHQUAKES (M4.5+, last 24h, USGS): ' + f.map(x => 'M' + x.properties.mag + ' ' + x.properties.place + ' @ ' + new Date(x.properties.time).toISOString().slice(0, 16).replace('T', ' ') + ' UTC').join(' | '), source: { title: 'USGS \u2014 M4.5+ earthquakes past day', url: 'https://earthquake.usgs.gov/earthquakes/map/', publisher: 'USGS', date: new Date().toISOString(), kind: 'official', connector: 'usgs', snippet: '' } };
 }
 async function eonet() {
-  const j = await cached('eonet', 30 * 6e4, () => lhttp('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=10&days=10', { json: true, timeout: 4000, tries: 2 }));
-  const ev = (j.events || []).slice(0, 8); if (!ev.length) throw new Error('no data');
-  return { text: 'ACTIVE NATURAL EVENTS (NASA EONET, last 10 days): ' + ev.map(e => e.title + ' [' + ((e.categories || [])[0] || {}).title + '] last update ' + String(((e.geometry || []).slice(-1)[0] || {}).date || '').slice(0, 10)).join(' | '), source: { title: 'NASA EONET \u2014 open natural events', url: 'https://eonet.gsfc.nasa.gov/', publisher: 'NASA', date: new Date().toISOString(), kind: 'official', connector: 'nasa-eonet', snippet: '' } };
+  throw new Error('NASA EONET metadata and linked source rights are not cleared for commercial redistribution; route disabled');
 }
+// ---- science ----
 // ---- science ----
 async function arxiv(q) {
   const sq = q.split(/\s+/).filter(w => w.length > 2).slice(0, 6).map(w => 'all:' + enc(w)).join('+AND+');
   const xml = await cached('arx:' + sq, 30 * 6e4, () => lhttp('https://export.arxiv.org/api/query?search_query=' + sq + '&sortBy=submittedDate&sortOrder=descending&max_results=6', { timeout: 5000, tries: 2 }));
-  const it = parseFeed(xml, 'arXiv').map(x => ({ ...x, publisher: 'arXiv', kind: 'paper', connector: 'arxiv', snippet: lclean(x.snippet, 240) })); if (!it.length) throw new Error('no papers'); return it;
+  const it = parseFeed(xml, 'arXiv').map(x => ({ ...x, publisher: 'arXiv', kind: 'paper', connector: 'arxiv', license: 'CC0-1.0 (metadata only)', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/', snippet: lclean(x.snippet, 240) })); if (!it.length) throw new Error('no papers'); return it;
 }
 async function openalex(q) {
   const yr = new Date().getFullYear() - 1;
   const j = await cached('oa:' + q, 30 * 6e4, () => lhttp('https://api.openalex.org/works?search=' + enc(q) + '&per-page=6&filter=from_publication_date:' + yr + '-01-01', { json: true, timeout: 5000, tries: 2 }));
-  const it = (j.results || []).map(r => ({ title: lclean(r.display_name, 220), url: safeUrl(r.doi || r.id), publisher: (r.primary_location && r.primary_location.source && r.primary_location.source.display_name) || 'OpenAlex', date: iso(r.publication_date), snippet: '', kind: 'paper', connector: 'openalex' })).filter(x => x.title && x.url);
+  const it = (j.results || []).map(r => ({ title: lclean(r.display_name, 220), url: safeUrl(r.doi || r.id), publisher: 'OpenAlex', date: iso(r.publication_date), snippet: '', kind: 'paper', connector: 'openalex', license: 'CC0-1.0 (OpenAlex metadata)', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/' })).filter(x => x.title && x.url);
   if (!it.length) throw new Error('no papers'); return it;
 }
 // ---- economics / public statistics (World Bank) ----
 const CC = { india: 'IN', bharat: 'IN', '\u092d\u093e\u0930\u0924': 'IN', usa: 'US', 'united states': 'US', america: 'US', us: 'US', china: 'CN', '\u091a\u0940\u0928': 'CN', japan: 'JP', germany: 'DE', france: 'FR', uk: 'GB', 'united kingdom': 'GB', britain: 'GB', russia: 'RU', brazil: 'BR', pakistan: 'PK', '\u092a\u093e\u0915\u093f\u0938\u094d\u0924\u093e\u0928': 'PK', bangladesh: 'BD', 'sri lanka': 'LK', nepal: 'NP', indonesia: 'ID', 'south africa': 'ZA', canada: 'CA', australia: 'AU', italy: 'IT', spain: 'ES', mexico: 'MX', 'saudi arabia': 'SA', uae: 'AE', turkey: 'TR', 'south korea': 'KR', world: 'WLD', global: 'WLD' };
 const WBI = [[/gdp growth|growth rate|\u0935\u093f\u0915\u093e\u0938 \u0926\u0930/i, 'NY.GDP.MKTP.KD.ZG', 'GDP growth (annual %)'], [/gdp per capita/i, 'NY.GDP.PCAP.CD', 'GDP per capita (current US$)'], [/gdp|\u091c\u0940\u0921\u0940\u092a\u0940|economy size/i, 'NY.GDP.MKTP.CD', 'GDP (current US$)'], [/inflation|\u092e\u0939\u0902\u0917\u093e\u0908/i, 'FP.CPI.TOTL.ZG', 'Inflation, consumer prices (annual %)'], [/unemployment|\u092c\u0947\u0930\u094b\u091c\u093c\u0917\u093e\u0930\u0940|\u092c\u0947\u0930\u094b\u091c\u0917\u093e\u0930\u0940/i, 'SL.UEM.TOTL.ZS', 'Unemployment (% of labour force)'], [/population|\u091c\u0928\u0938\u0902\u0916\u094d\u092f\u093e/i, 'SP.POP.TOTL', 'Population, total'], [/life expectancy/i, 'SP.DYN.LE00.IN', 'Life expectancy at birth (years)'], [/literacy/i, 'SE.ADT.LITR.ZS', 'Adult literacy rate (%)'], [/poverty/i, 'SI.POV.DDAY', 'Poverty headcount ($2.15/day, %)']];
-async function worldBank(q) {
-  const ql = q.toLowerCase(); const ind = WBI.find(x => x[0].test(q)); if (!ind) throw new Error('no indicator');
-  let cc = 'IN'; for (const k of Object.keys(CC).sort((a, b) => b.length - a.length)) if (new RegExp('(^|[^a-z])' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z])', 'i').test(ql)) { cc = CC[k]; break; }
-  const j = await cached('wb:' + cc + ind[1], 12 * 36e5, () => lhttp('https://api.worldbank.org/v2/country/' + cc + '/indicator/' + ind[1] + '?format=json&per_page=10&date=2012:' + new Date().getFullYear(), { json: true, timeout: 5000, tries: 2 }));
-  const rows = (j[1] || []).filter(r => r.value !== null); if (!rows.length) throw new Error('no data');
-  const fmt = v => Math.abs(v) >= 1e9 ? (v / 1e9).toFixed(2) + ' billion' : Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(2) + ' million' : String(Math.round(v * 100) / 100);
-  return { text: 'STATISTICS (World Bank) \u2014 ' + ind[2] + ', ' + rows[0].country.value + ': ' + rows.slice(0, 6).map(r => r.date + ': ' + fmt(r.value)).join(' | ') + '. (Latest available year may lag the current year.)', source: { title: 'World Bank \u2014 ' + ind[2] + ' (' + rows[0].country.value + ')', url: 'https://data.worldbank.org/indicator/' + ind[1] + '?locations=' + cc, publisher: 'World Bank', date: '', kind: 'data', connector: 'world-bank', snippet: '' } };
+async function worldBank() {
+  throw new Error('World Bank API commercial use depends on dataset-specific terms; generic indicator route disabled pending licence verification');
 }
+// ---- markets (free, may be delayed; always labeled) ----
 // ---- markets (free, may be delayed; always labeled) ----
 const SYM = [[/bank ?nifty/i, '^NSEBANK', 'Nifty Bank'], [/nifty|\u0928\u093f\u092b\u094d\u091f\u0940/i, '^NSEI', 'Nifty 50'], [/sensex|\u0938\u0947\u0902\u0938\u0947\u0915\u094d\u0938/i, '^BSESN', 'BSE Sensex'], [/s&p|sp500|s and p/i, '^GSPC', 'S&P 500'], [/dow jones|\bdow\b/i, '^DJI', 'Dow Jones'], [/nasdaq/i, '^IXIC', 'Nasdaq Composite'], [/nikkei/i, '^N225', 'Nikkei 225'], [/hang seng/i, '^HSI', 'Hang Seng'], [/ftse/i, '^FTSE', 'FTSE 100'], [/\bdax\b/i, '^GDAXI', 'DAX'], [/gold|\u0938\u094b\u0928\u093e|\u0938\u094b\u0928\u0947/i, 'GC=F', 'Gold futures (USD/oz)'], [/silver|\u091a\u093e\u0902\u0926\u0940|\u091a\u093e\u0901\u0926\u0940/i, 'SI=F', 'Silver futures (USD/oz)'], [/brent/i, 'BZ=F', 'Brent crude'], [/crude|oil price|\u0915\u091a\u094d\u091a\u093e \u0924\u0947\u0932/i, 'CL=F', 'WTI crude oil'], [/natural gas/i, 'NG=F', 'Natural gas'], [/usd ?(to|\/)? ?inr|dollar|\u0921\u0949\u0932\u0930|rupee|\u0930\u0941\u092a\u092f\u093e|\u0930\u0941\u092a\u092f\u0947/i, 'INR=X', 'USD/INR'], [/reliance|\u0930\u093f\u0932\u093e\u0907\u0902\u0938/i, 'RELIANCE.NS', 'Reliance Industries'], [/\btcs\b/i, 'TCS.NS', 'TCS'], [/infosys/i, 'INFY.NS', 'Infosys'], [/hdfc bank/i, 'HDFCBANK.NS', 'HDFC Bank'], [/icici/i, 'ICICIBANK.NS', 'ICICI Bank'], [/\bsbi\b|state bank/i, 'SBIN.NS', 'SBI'], [/adani/i, 'ADANIENT.NS', 'Adani Enterprises'], [/tata motors/i, 'TATAMOTORS.NS', 'Tata Motors'], [/tata steel/i, 'TATASTEEL.NS', 'Tata Steel'], [/wipro/i, 'WIPRO.NS', 'Wipro'], [/airtel/i, 'BHARTIARTL.NS', 'Bharti Airtel'], [/zomato|eternal/i, 'ETERNAL.NS', 'Eternal (Zomato)'], [/\bitc\b/i, 'ITC.NS', 'ITC'], [/apple|aapl/i, 'AAPL', 'Apple'], [/tesla|tsla/i, 'TSLA', 'Tesla'], [/microsoft|msft/i, 'MSFT', 'Microsoft'], [/google|alphabet|googl/i, 'GOOGL', 'Alphabet'], [/amazon|amzn/i, 'AMZN', 'Amazon'], [/nvidia|nvda/i, 'NVDA', 'NVIDIA'], [/\bmeta\b|facebook/i, 'META', 'Meta'], [/netflix/i, 'NFLX', 'Netflix']];
 const CRYPTO = [[/bitcoin|btc|\u092c\u093f\u091f\u0915\u0949\u0907\u0928/i, 'bitcoin', 'Bitcoin'], [/ethereum|\beth\b|\u0907\u0925\u0947\u0930\u093f\u092f\u092e/i, 'ethereum', 'Ethereum'], [/dogecoin|doge/i, 'dogecoin', 'Dogecoin'], [/solana|\bsol\b/i, 'solana', 'Solana'], [/xrp|ripple/i, 'ripple', 'XRP']];
-const COINBASE_PAIRS = { bitcoin: 'BTC-USD', ethereum: 'ETH-USD', dogecoin: 'DOGE-USD', solana: 'SOL-USD', ripple: 'XRP-USD' };
-async function coinbaseFallback(list) {
-  const mapped = list.filter(x => COINBASE_PAIRS[x[1]]);
-  if (!mapped.length) throw new Error('Coinbase fallback has no mapped trading pairs');
-  const rs = await Promise.allSettled(mapped.map(async x => {
-    const pair = COINBASE_PAIRS[x[1]];
-    const stats = await cached('cb:' + pair, 60 * 1000, () => lhttp('https://api.exchange.coinbase.com/products/' + pair + '/stats', { json: true, timeout: 4500, tries: 1 }));
-    return { coin: x, pair, stats };
-  }));
-  const quotes = rs.filter(x => x.status === 'fulfilled').map(x => x.value).filter(x => Number.isFinite(Number(x.stats.last)) && Number(x.stats.last) > 0);
-  if (!quotes.length) throw new Error('Coinbase market-data fallback unavailable');
-  let inr = null;
-  try {
-    const fx = await cached('fx:USDINR', 6 * 36e5, () => lhttp('https://api.frankfurter.app/latest?from=USD&to=INR', { json: true, timeout: 4000, tries: 2 }));
-    inr = Number(fx.rates && fx.rates.INR) || null;
-  } catch (e) {}
-  const lines = quotes.map(x => {
-    const price = Number(x.stats.last), open = Number(x.stats.open);
-    const change = Number.isFinite(open) && open > 0 ? (price - open) / open * 100 : null;
-    const local = inr ? ' / ₹' + (price * inr).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + ' approx.' : '';
-    return x.coin[2] + ': $' + price.toLocaleString('en-US', { maximumFractionDigits: 6 }) + local + (change != null ? ' (' + (change >= 0 ? '+' : '') + change.toFixed(2) + '% 24h)' : '') + ' — Coinbase Exchange spot';
-  });
-  const at = new Date().toISOString();
-  return { text: 'CRYPTO SPOT PRICES (Coinbase Exchange fallback; exchange-specific, not a global market average; retrieved ' + at + (inr ? '; INR estimate uses the daily ECB/Frankfurter USD-INR reference rate' : '') + ') — ' + lines.join(' | '), source: { title: 'Coinbase Exchange — public spot market data', url: 'https://www.coinbase.com/', publisher: 'Coinbase Exchange', date: at, kind: 'data', connector: 'coinbase', snippet: '' } };
+async function coingecko() {
+  throw new Error('CoinGecko Demo API plan has no commercial rights; crypto pricing disabled pending commercial licence');
 }
-async function coingecko(list) {
-  const ids = list.map(x => x[1]).join(',');
-  let j;
-  try { j = await cached('cg:' + ids, 3 * 60 * 1000, () => lhttp('https://api.coingecko.com/api/v3/simple/price?ids=' + ids + '&vs_currencies=usd,inr&include_24hr_change=true&include_last_updated_at=true', { json: true, timeout: 6500, tries: 1 })); }
-  catch (e) { const fallback = await coinbaseFallback(list); return { ...fallback, note: 'CoinGecko rate-limited this request (HTTP ' + (e && e.status || 'unavailable') + '); Coinbase live spot fallback active' }; }
-  const lines = list.filter(x => j[x[1]]).map(x => { const v = j[x[1]]; return x[2] + ': $' + v.usd + ' / ₹' + v.inr + (v.usd_24h_change != null ? ' (' + (v.usd_24h_change >= 0 ? '+' : '') + v.usd_24h_change.toFixed(2) + '% 24h)' : '') + ' updated ' + (v.last_updated_at ? new Date(v.last_updated_at * 1000).toISOString() : 'n/a'); });
-  if (!lines.length) return coinbaseFallback(list);
-  return { text: 'CRYPTO (CoinGecko) — ' + lines.join(' | '), source: { title: 'CoinGecko — ' + list.map(x => x[2]).join(', '), url: 'https://www.coingecko.com/', publisher: 'CoinGecko', date: new Date().toISOString(), kind: 'data', connector: 'coingecko', snippet: '' } };
+async function coinbaseFallback() {
+  throw new Error('Coinbase Market Data terms restrict use to personal/research and prohibit end-user apps absent written consent');
 }
 const CUR = { usd: 'USD', dollar: 'USD', '\u0921\u0949\u0932\u0930': 'USD', inr: 'INR', rupee: 'INR', rupees: 'INR', '\u0930\u0941\u092a\u092f\u093e': 'INR', '\u0930\u0941\u092a\u092f\u0947': 'INR', eur: 'EUR', euro: 'EUR', gbp: 'GBP', pound: 'GBP', jpy: 'JPY', yen: 'JPY', aed: 'AED', dirham: 'AED' };
 async function fxRate(q) {
   const found = []; q.toLowerCase().split(/[^a-z\u0900-\u097f]+/).forEach(w => { if (CUR[w] && !found.includes(CUR[w])) found.push(CUR[w]); });
   const from = found[0] || 'USD', to = found[1] || (from === 'INR' ? 'USD' : 'INR'); if (from === to) throw new Error('same currency');
-  const j = await cached('fx:' + from + to, 6 * 36e5, () => lhttp('https://api.frankfurter.app/latest?from=' + from + '&to=' + to, { json: true, timeout: 4000, tries: 2 }));
+  const j = await lhttp('https://api.frankfurter.app/latest?from=' + from + '&to=' + to, { json: true, timeout: 4000, tries: 2 });
   if (!j.rates || j.rates[to] == null) throw new Error('no rate');
-  return { text: 'EXCHANGE RATE (ECB reference rate, updated once per working day, not a live market price) \u2014 1 ' + from + ' = ' + j.rates[to] + ' ' + to + ' on ' + j.date + '.', source: { title: 'Frankfurter/ECB \u2014 ' + from + '/' + to, url: 'https://www.frankfurter.app/', publisher: 'European Central Bank via Frankfurter', date: iso(j.date), kind: 'data', connector: 'frankfurter', snippet: '' } };
+  return { text: 'INDICATIVE EXCHANGE RATE (Frankfurter cross-rate from central-bank reference data; not a live market price) \u2014 1 ' + from + ' = ' + j.rates[to] + ' ' + to + ' on ' + j.date + '.', source: { title: 'Frankfurter/ECB \u2014 ' + from + '/' + to, url: 'https://www.frankfurter.app/', publisher: 'Frankfurter / underlying central bank', attribution: 'Source: Frankfurter and its underlying central-bank provider; indicative reference rate only.', date: iso(j.date), kind: 'data', connector: 'frankfurter', snippet: '' } };
 }
 // ---- sports: verified scoreboard data only; never substitute news articles for live scores ----
 const LEAGUES = [[/\bnba\b/i, 'basketball/nba', 'NBA'], [/\bnfl\b/i, 'football/nfl', 'NFL'], [/\bmlb\b/i, 'baseball/mlb', 'MLB'], [/\bnhl\b/i, 'hockey/nhl', 'NHL'], [/premier league|\bepl\b/i, 'soccer/eng.1', 'Premier League'], [/la ?liga/i, 'soccer/esp.1', 'La Liga'], [/serie a/i, 'soccer/ita.1', 'Serie A'], [/bundesliga/i, 'soccer/ger.1', 'Bundesliga'], [/champions league|\bucl\b/i, 'soccer/uefa.champions', 'UEFA Champions League'], [/\bisl\b|indian super league/i, 'soccer/ind.1', 'Indian Super League'], [/\bmls\b/i, 'soccer/usa.1', 'MLS'], [/fifa world cup|football world cup/i, 'soccer/fifa.world', 'FIFA World Cup'], [/formula ?1|\bf1\b/i, 'racing/f1', 'Formula 1'], [/\batp\b|tennis/i, 'tennis/atp', 'ATP tennis']];
@@ -837,14 +806,10 @@ async function espn() {
   throw new Error('ESPN unofficial scoreboard feed is disabled; no commercial data licence is configured');
 }
 async function hackerNews() {
-  return cached('hn', 10 * 6e4, async () => {
-    const ids = await lhttp('https://hacker-news.firebaseio.com/v0/topstories.json', { json: true, timeout: 4500, tries: 1 }); const top = ids.slice(0, 10);
-    const its = await Promise.allSettled(top.map(id => lhttp('https://hacker-news.firebaseio.com/v0/item/' + id + '.json', { json: true, timeout: 4500, tries: 1 })));
-    const out = its.filter(r => r.status === 'fulfilled' && r.value && r.value.title).map(r => r.value).map(v => ({ title: lclean(v.title, 200), url: safeUrl(v.url) || 'https://news.ycombinator.com/item?id=' + v.id, publisher: 'Hacker News', date: v.time ? new Date(v.time * 1000).toISOString() : '', snippet: v.score + ' points, ' + (v.descendants || 0) + ' comments', kind: 'news', connector: 'hacker-news' }));
-    if (!out.length) throw new Error('no items'); return out;
-  });
+  throw new Error('Hacker News API does not grant NOVA blanket commercial republication rights for user-submitted stories; route disabled');
 }
 
+// ---------- understanding the question:
 // ---------- understanding the question: dates, places, intents (English, Hindi, Hinglish) ----------
 const MON = { january: 1, jan: 1, february: 2, feb: 2, march: 3, mar: 3, april: 4, apr: 4, may: 5, june: 6, jun: 6, july: 7, jul: 7, august: 8, aug: 8, september: 9, sep: 9, sept: 9, october: 10, oct: 10, november: 11, nov: 11, december: 12, dec: 12, '\u091c\u0928\u0935\u0930\u0940': 1, '\u092b\u0930\u0935\u0930\u0940': 2, '\u092b\u093c\u0930\u0935\u0930\u0940': 2, '\u092e\u093e\u0930\u094d\u091a': 3, '\u0905\u092a\u094d\u0930\u0948\u0932': 4, '\u092e\u0908': 5, '\u091c\u0942\u0928': 6, '\u091c\u0941\u0932\u093e\u0908': 7, '\u0905\u0917\u0938\u094d\u0924': 8, '\u0938\u093f\u0924\u0902\u092c\u0930': 9, '\u0938\u093f\u0924\u092e\u094d\u092c\u0930': 9, '\u0905\u0915\u094d\u091f\u0942\u092c\u0930': 10, '\u0928\u0935\u0902\u092c\u0930': 11, '\u0928\u0935\u092e\u094d\u092c\u0930': 11, '\u0926\u093f\u0938\u0902\u092c\u0930': 12, '\u0926\u093f\u0938\u092e\u094d\u092c\u0930': 12 };
 const MONRE = Object.keys(MON).sort((a, b) => b.length - a.length).join('|');
@@ -928,11 +893,8 @@ async function runLive(qraw, o = {}) {
   const wh = when(q, tz, now), f = detect(q, o, wh), always = o.mode === 'always', sq = searchQ(q) || q, tq = topicQ(q), brief = /briefing|\u092c\u094d\u0930\u0940\u092b\u093f\u0902\u0917|daily digest|morning update/i.test(q);
   const tasks = [], notes = [], intents = [];
   const T = (name, fn, ms) => tasks.push({ name, run: () => withTimeout(fn(), ms || 11000, name) });
-  const gn = (qq, x) => T('google-news', () => gnews(qq, { lang, ...(x || {}) }).then(items => ({ items })));
-  const gd = (qq, x) => T('gdelt', async () => {
-    try { return { items: await gdelt(qq, x), via: 'gdelt' }; }
-    catch (e) { const fallback = await gnews(qq, { lang, n: (x && x.n) || 10 }); if (!fallback.length) throw e; return { items: fallback, via: 'google-news-fallback' }; }
-  }, 17000);
+  const gn = (qq, x) => T('web-search', () => webSearch(qq, { lang, news: true, ...(x || {}) }).then(r => ({ items: r.items, via: r.via })), 18000);
+  const gd = (qq, x) => T('gdelt', async () => ({ items: await gdelt(qq, x), via: 'gdelt' }), 9000);
   const ws = (qq, x) => T('web-search', () => webSearch(qq, { lang, ...(x || {}) }).then(r => ({ items: r.items, via: r.via })), 18000);
   const feedT = (cat, filt) => T('feeds:' + cat, () => feedCat(cat, 14).then(r => { let it = r.items; if (filt) { const k = toks(filt); const sc = it.map(x => [x, jac(k, toks(x.title + ' ' + x.snippet))]).filter(z => z[1] > 0.05).sort((a, b) => b[1] - a[1]); it = sc.map(z => z[0]); } return { items: it, ...(it.length ? {} : { note: 'No relevant articles matched this topic in the selected feeds.' }) }; }));
   // time & place
@@ -942,20 +904,20 @@ async function runLive(qraw, o = {}) {
   if (f.finance) {
     intents.push('markets'); const syms = []; SYM.forEach(s => { if (s[0].test(q) && !syms.find(z => z[1] === s[1])) syms.push([s[0], s[1], s[2]]); });
     const cry = CRYPTO.filter(c => c[0].test(q));
-    if (brief && !syms.length && !cry.length) { SYM.filter(s => ['^NSEI', '^BSESN', 'GC=F'].includes(s[1])).forEach(s => syms.push([s[0], s[1], s[2]])); cry.push(CRYPTO[0]); }
-    if (cry.length) T('coingecko', () => coingecko(cry).then(b => ({ blocks: [b] })), 9000);
+    if (brief && !syms.length && !cry.length) SYM.filter(s => ['^NSEI', '^BSESN', 'GC=F'].includes(s[1])).forEach(s => syms.push([s[0], s[1], s[2]]));
+    if (cry.length) notes.push('Crypto quotes are disabled: CoinGecko Demo lacks commercial rights and Coinbase Market Data restricts third-party end-user apps.');
     if (syms.some(s => s[1] !== 'INR=X')) notes.push('Listed-market instrument quotes are unavailable: no documented, commercially licensed provider is configured. Do not guess or infer a live price.');
     if (/inr|rupee|dollar|usd|eur|euro|pound|yen|exchange|forex|\u0930\u0941\u092a\u092f|\u0921\u0949\u0932\u0930/i.test(q)) T('fx', () => fxRate(q).then(b => ({ blocks: [b] })), 9000);
     if (!syms.length && !cry.length && !/inr|rupee|dollar|usd|eur/i.test(q) && !brief) notes.push('A market question was detected but no known instrument matched; do not guess a price.');
     gn((tq || sq) + ' market', { when: '2d', n: 6 });
   }
   if (f.sports) { intents.push('sports'); T('scoreboard', () => espn(q).then(b => ({ blocks: [b] })), 9000); }
-  if (f.quake) { intents.push('natural-events'); if (/earthquake|\u092d\u0942\u0915\u0902\u092a/i.test(q)) T('usgs', () => quakes().then(b => ({ blocks: [b] })), 9000); else T('nasa-eonet', () => eonet().then(b => ({ blocks: [b] })), 9000); gn(sq, { when: '7d', n: 8 }); }
+  if (f.quake) { intents.push('natural-events'); if (/earthquake|\u092d\u0942\u0915\u0902\u092a/i.test(q)) T('usgs', () => quakes().then(b => ({ blocks: [b] })), 9000); else notes.push('NASA EONET metadata is disabled pending commercial-use and linked-source rights review.'); gn(sq, { when: '7d', n: 8 }); }
   if (f.science) { intents.push('science'); T('arxiv', () => arxiv(tq || sq).then(items => ({ items })), 11000); T('openalex', async () => { try { const items = await openalex(tq || sq); return { items, via: 'openalex' }; } catch (primaryError) { const [papers, feed] = await Promise.allSettled([arxiv(tq || sq), feedCat('science', 6)]); const items = [...(papers.status === 'fulfilled' ? papers.value : []), ...(feed.status === 'fulfilled' ? feed.value.items : [])]; if (!items.length) throw primaryError; return { items, via: 'arxiv+science-rss-fallback', note: 'OpenAlex unavailable; independent arXiv and science RSS fallback active' }; } }, 18000); gn(sq + ' study', { when: '30d', n: 6 }); feedT('science', tq || sq); }
-  if (f.stats) { intents.push('statistics'); T('world-bank', () => worldBank(q).then(b => ({ blocks: [b] })), 11000); }
+  if (f.stats) { intents.push('statistics'); notes.push('World Bank indicator data is unavailable for commercial NOVA until the exact dataset licence is verified.'); }
   if (f.health) { intents.push('health'); feedT('health', tq); gn(sq, { when: '14d', n: 6 }); }
-  if (f.tech) { intents.push('technology'); gn(sq, { when: '14d', n: 8 }); feedT('official', tq || sq); feedT('tech', tq || sq); if (/\bai\b|\bllm\b|\bgpt\b|startup|programming|software/i.test(q)) T('hacker-news', () => hackerNews().then(items => ({ items })), 11000); }
-  if (f.govt) { intents.push('government'); T('pib', () => gnews(sq, { lang, site: 'pib.gov.in', n: 6 }).then(items => ({ items: items.map(x => ({ ...x, kind: 'official' })) })), 10000); feedT('india'); gn(sq, { when: '14d', n: 8 }); }
+  if (f.tech) { intents.push('technology'); gn(sq, { when: '14d', n: 8 }); feedT('official', tq || sq); feedT('tech', tq || sq); if (/\bai\b|\bllm\b|\bgpt\b|startup|programming|software/i.test(q)) notes.push('Hacker News user-submitted story ingestion is disabled pending explicit commercial republication rights.'); }
+  if (f.govt) { intents.push('government'); ws((tq || sq) + ' site:pib.gov.in', { news: true }); feedT('india'); gn(sq, { when: '14d', n: 8 }); }
   // history / dates
   const ceDays = [];
   if (f.hasDate || (f.hist && /on this day|today in history|\u0906\u091c \u0915\u0947 \u0926\u093f\u0928|\u0907\u0924\u093f\u0939\u093e\u0938 \u092e\u0947\u0902 \u0906\u091c/i.test(q))) {
@@ -1051,14 +1013,16 @@ app.get('/api/live/selftest', async (q, r) => {
   if (!a) return r.status(503).json({ error: 'Provider self-test capacity reached; retry shortly' });
   if (a.length >= 4) return r.status(429).json({ error: 'Please wait a minute before testing again.' });
   a.push(nw); stHits.set(q.ip, a);
-  const y = new Date(nw - 864e5), probes = [
-
-    ['GDELT / Google News fallback', async () => { try { const items = await gdelt('india', { n: 3, timespan: '1d' }); return { items, via: 'gdelt' }; } catch (e) { const items = await gnews('india', { n: 3 }); if (!items.length) throw e; return { items, via: 'google-news-fallback', note: 'GDELT upstream timeout; live Google News fallback active' }; } }],
-    ['GDELT fallback path', async () => { try { return { items: await gdelt('india', { n: 3, timespan: '1d' }), via: 'gdelt' }; } catch (e) { const items = await gnews('india', { n: 3 }); if (!items.length) throw e; return { items, via: 'google-news-fallback' }; } }],
-    ['Web search', () => webSearch('nasa', { lang: 'en' })], ['Brave context / web-search fallback', async () => { if (E.BRAVE_KEY) return braveContext('latest NASA news', { lang: 'en' }); const result = await webSearch('latest NASA news', { lang: 'en' }); if (!result.items || !result.items.length) throw new Error('No Brave key and web-search fallback unavailable'); return { ...result, note: 'BRAVE_KEY not configured; general live web search fallback active' }; }], ['Wikipedia', () => wikiSearch('India', 'en', 2)], ['Wikipedia current events', () => currentEvents(y.getUTCFullYear(), y.getUTCMonth() + 1, y.getUTCDate())],
- ['CoinGecko / Coinbase fallback', () => coingecko(CRYPTO.slice(0, 2))], ['Coinbase fallback', () => coinbaseFallback(CRYPTO.slice(0, 2))], ['Crypto price routing', () => coingecko(CRYPTO.slice(0, 2))], ['Exchange rates', () => fxRate('usd to inr')],
-    ['USGS earthquakes', () => quakes()], ['arXiv', () => arxiv('quantum')], ['World Bank', () => worldBank('gdp of india')], ['OpenAlex direct', () => openalex('artificial intelligence')], ['OpenAlex fallback', async () => { try { const items = await openalex('artificial intelligence'); return { items, via: 'openalex' }; } catch (e) { const [papers, feed] = await Promise.all([arxiv('artificial intelligence'), feedCat('science', 5)]); const items = [...papers, ...(feed.items || [])]; if (!items.length) throw e; return { items, via: 'arxiv+science-rss' }; } }], ['Science RSS feeds', async () => { const v = await feedCat('science', 5); if (!v.items.length) throw new Error('no science feed items'); return v; }],
- ['Hacker News', () => hackerNews()]];
+  const probes = [
+    ['GDELT commercial open data', async () => ({ items: await gdelt('india', { n: 3, timespan: '1d' }), via: 'gdelt' })],
+    ['Web search with keyless GDELT fallback', () => webSearch('latest NASA news', { lang: 'en' })],
+    ['Wikipedia search', () => wikiSearch('India', 'en', 2)],
+    ['Wikipedia current events', () => currentEvents(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, new Date().getUTCDate())],
+    ['USGS earthquakes', () => quakes()],
+    ['arXiv CC0 metadata', () => arxiv('quantum')],
+    ['OpenAlex CC0 metadata', () => openalex('artificial intelligence')],
+    ['Frankfurter indicative exchange rate', () => fxRate('usd to inr')]
+  ];
   const results = await Promise.all(probes.map(async ([name, fn]) => {
     const t0 = Date.now();
     try {
