@@ -102,6 +102,23 @@ function srcBox(m){const L=m.live||{},A=(m.src||[]).filter(s=>okUrl(s.u));if(!A.
 if(!A.length){const d=document.createElement('div');d.className='swarn';d.textContent='⚠ '+LS('unavail');w.append(d);return w}
 const hd=document.createElement('div');hd.className='shd';let tm='';try{tm=new Date(L.at).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',timeZone:L.tz||undefined,timeZoneName:'short'})}catch(e){}hd.textContent='🔎 '+LS('live')+(tm?' · '+tm:'')+' · '+A.length+' '+LS('sources');w.append(hd);
 if(!S.pref||S.pref.chips!==false){const row=document.createElement('div');row.className='srow';A.forEach(s=>{const a=document.createElement('a');a.className='sc'+(s.q==='primary'?' pri':'');a.href=s.u;a.target='_blank';a.rel='noopener noreferrer nofollow';a.title=s.t;const ag=s.e||fmtAgo(s.d);a.textContent='['+s.n+'] '+String(s.p||'').slice(0,24)+(ag?' · '+ag:'')+(s.q==='primary'?' ✓':'');row.append(a)});w.append(row)}
+const metas=A.filter(s=>s.a||s.au||s.lic||s.lu||s.ln);
+if(metas.length){
+ const meta=document.createElement('div');
+ meta.style.cssText='margin-top:7px;font-size:11px;line-height:1.45;opacity:.82';
+ const seen=new Set();
+ metas.forEach(s=>{
+  const key=[s.a,s.au,s.lic,s.lu,s.ln].join('|');
+  if(seen.has(key))return;seen.add(key);
+  const line=document.createElement('div');line.style.marginTop='3px';
+  const label=[s.a,s.lic?('Licence: '+s.lic):'',s.ln].filter(Boolean).join(' · ');
+  if(label){const span=document.createElement('span');span.textContent=label;line.append(span)}
+  if(s.au&&okUrl(s.au)){const link=document.createElement('a');link.href=s.au;link.target='_blank';link.rel='noopener noreferrer nofollow';link.textContent=' Credit/source';line.append(link)}
+  if(s.lu&&okUrl(s.lu)){const link=document.createElement('a');link.href=s.lu;link.target='_blank';link.rel='noopener noreferrer nofollow';link.textContent=' Licence details';line.append(link)}
+  if(line.childNodes.length)meta.append(line);
+ });
+ if(meta.childNodes.length)w.append(meta);
+}
 if(L.failed&&L.failed.length){const f=document.createElement('div');f.className='sfail';f.textContent=LS('partial')+L.failed.join(', ');w.append(f)}return w}
 function paintLive(){const b=$('web');if(!b)return;const m=S.live||'auto';b.style.background=m==='on'?'var(--acc)':'';b.style.color=m==='on'?'var(--onacc)':'';b.style.opacity=m==='off'?'.45':'';b.textContent=m==='on'?'🔎':'🌐';b.title=LS(m==='on'?'liveOn':m==='off'?'liveOff':'liveAuto');b.setAttribute('aria-label',b.title)}
 let WN={t:0,d:null,tab:'world',busy:false,err:0};
@@ -136,7 +153,7 @@ a.srch=1;render();if(LV)lvSet('search');
 try{const c2=new AbortController(),tm=setTimeout(()=>c2.abort(),24000),ab=()=>c2.abort();ctl.signal.addEventListener('abort',ab);
 const r=await fetch(API+'/live',{method:'POST',signal:c2.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({q:lq.slice(0,500),mode:(lmode==='on'||fl)?'always':'auto',lang:(ui()==='hi'||/[\u0900-\u097F]/.test(lq))?'hi':'en',tz:(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return ''}})(),place:(S.pref&&S.pref.city)||''})});
 clearTimeout(tm);ctl.signal.removeEventListener('abort',ab);const j=await r.json().catch(()=>({}));
-if(r.ok&&j.ok&&j.context){wr=j.context;a.src=(j.sources||[]).map(s=>({n:s.n,t:s.title,u:s.url,p:s.publisher,d:s.date,e:s.eventDate,k:s.kind,q:s.quality}));a.live={at:j.retrievedAt,tz:j.tz,used:(j.used||[]).filter(x=>!String(x).startsWith('via:')),failed:(j.failed||[]).map(f=>f.name),intents:j.intents||[]}}
+if(r.ok&&j.ok&&j.context){wr=j.context;a.src=(j.sources||[]).map(s=>({n:s.n,t:s.title,u:s.url,p:s.publisher,d:s.date,e:s.eventDate,k:s.kind,q:s.quality,a:s.attribution,au:s.attributionUrl,lic:s.license,lu:s.licenseUrl,ln:s.licenseNote}));a.live={at:j.retrievedAt,tz:j.tz,used:(j.used||[]).filter(x=>!String(x).startsWith('via:')),failed:(j.failed||[]).map(f=>f.name),intents:j.intents||[]}}
 else{wr='LIVE_UNAVAILABLE';a.live={err:1,failed:(j.failed||[]).map(f=>f.name)}}}
 catch(e){if(!ctl.signal.aborted){wr='LIVE_UNAVAILABLE';a.live={err:1,failed:[]}}}
 a.srch=0;if(!ctl.signal.aborted)render()}}
