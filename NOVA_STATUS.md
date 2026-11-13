@@ -1,3 +1,26 @@
+# EXACT-HEAD AUDIT + CI — 13 November 2026 (Asia/Kolkata)
+
+- PR #98 latest head: `d0fc94f4b5bf562dde75008b721faaaf9ff05984`; Open / Draft / unmerged; GitHub reports mergeable=true.
+- Main CI [#43372176067](https://github.com/s85960833-byte/NovaAI/actions/runs/43372176067): **success — 49 successful, 3 skipped, 0 failed**. The sequential search-router test passed. The three skips are merged-Production wait, Production/provider smoke and live free-image smoke; skipped is not passed.
+- Browser CI [#43372175932](https://github.com/s85960833-byte/NovaAI/actions/runs/43372175932): **success — 17/17 successful**.
+- PR additions: `nova-search-router.js`, sequential routing tests, `API_AUDIT_2026-11-13.md`, `FEATURES.md`, README/Phase 1/status updates and workflow/package/environment changes.
+- Search-provider behavior: configured Tavily first, then Brave LLM Context and Brave Web sequentially; first usable response stops routing. DuckDuckGo HTML scraping was removed. Tavily shared-result caching is opt-in only with `TAVILY_SHARED_CACHE_ALLOWED=1`; default `0`.
+- Staging remains Live on code SHA `2e4eb204ff99790b55aef426fa0c38fc9a313d30`; latest search-router candidate is not confirmed deployed. Previous external smoke passed `/health`, homepage and entry assets; `/api/config` returned 503 (no AI provider configured).
+- Staging Auth gate remains disabled; Health Check Path blank. Production remains on `main`, last known Live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`, unchanged.
+- No paid API/service calls, Production deployment or Supabase schema changes.
+
+## Current release blockers
+
+1. Set Staging Health Check Path to `/health` from the Staging Render dashboard.
+2. A responsible adult must manage any eligible vendor account or 18+ contractual relationship; do not bypass age terms.
+3. Configure an approved provider privately in Staging only after rights, billing cap and ownership are documented, then test authenticated routes.
+4. Implement durable consumer quotas, monthly accounting, provider spend caps and cost alerts.
+5. Complete safe full-account deletion/retention, physical Android/microphone tests, source/provider IP chain, privacy/legal review, backup/restore, load/monitoring/rollback and customer/benchmark evidence.
+
+**Phase 1 remains IN PROGRESS. Master Prompt Definition of Done is NOT MET. Production and buyer-ready status remain NO-GO.**
+
+---
+
 # MASTER PROMPT EXECUTION CHECKPOINT — 13 November 2026 (Asia/Kolkata)
 
 **Master brief:** `Nova_AI_Master_Prompt.md` supplied by the user.  
