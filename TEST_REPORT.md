@@ -82,3 +82,45 @@ The failover contract suite simulates primary-network failure/timeout, 429 + Ret
 - Production URL `https://novaai-4auo.onrender.com` remains unchanged. No Production merge/deploy, paid API spend, provider secret edit or Supabase schema mutation occurred.
 
 **Release decision: NO-GO.** These CI results are not proof of a current Staging deployment, live provider response, physical Android camera/microphone operation, production-ready feature parity or completion of the full Definition of Done.
+
+## Final CI checkpoint — 14 November 2026
+
+**Code-bearing PR head verified by CI:** `7ace93c656e0519e8c27d8e2669a595634c0c146`  
+**PR #98:** Open / Draft / unmerged.
+
+### Exact-head GitHub Actions results
+
+| Workflow | Run | Result |
+|---|---:|---|
+| NovaAI verification | [#43564463845](https://github.com/s85960833-byte/NovaAI/actions/runs/43564463845) | **PASS — 60/60 job steps** |
+| NOVA account and browser verification | [#43564463772](https://github.com/s85960833-byte/NovaAI/actions/runs/43564463772) | **PASS — 17/17 job steps** |
+
+Verified on this head:
+- Backend/frontend syntax, PWA offline-shell ordering, new quality-route asset endpoint, dependency audit and Docker build.
+- Feature registry and fallback honesty; AI provider failover and circuit tests; request-orchestrator capability boundaries.
+- Evidence-backed T1/T2 quality gate tests, including server enforcement plus BYOK/embedded-preview protection.
+- Supabase migration/RLS checks, account UI/privacy/cloud-sync browser flow and NOVA BI deterministic synthetic-data checks.
+- Chromium workspace/PDF.js, Company Cloud, five-viewport mobile/drawer regression, portable proof bundle and graceful shutdown.
+- Staging smoke script and unauthenticated/invalid-token rejection checks.
+
+### Explicitly skipped / not verified
+
+- GitHub Actions step **“Wait for the merged bilingual revision to become live on Render”** was skipped.
+- Live provider chat/search and free-image smoke steps were skipped because the exact PR head was not confirmed Live on Render.
+- These CI results do not prove real provider inference, live search-source citations, image generation, physical Android camera/gallery/microphone, account deletion, payment flows or production readiness.
+
+### Render evidence (same verification window)
+
+- Staging service: `srv-dbqm035g1s2s73eogao0`, URL https://novaai-pr98-staging.onrender.com.
+- Render reports Auto Deploy = `yes`, branch `fix/nova-home-learn-first-mobile-20261109`, but Health Check Path is blank.
+- Latest confirmed Live deploy remains `dep-dbrhab6i0phs73fs2ni0`, commit `286ddbc6c4a96e5f62c50ada1aa9c2a890633527`. This is older than the tested PR head `7ace93c...`.
+- Production remains https://novaai-4auo.onrender.com; no merge or Production deploy occurred.
+
+### Release decision and remaining gaps
+
+**Production: NO-GO. Phase 1: IN PROGRESS.**
+
+- T1/T2 evidence registry is intentionally empty; Code and Deep Research stay fail-closed until an exact model passes at least 100 golden-set cases with score >=90 and committed evidence.
+- Cloudflare fallback is optional/default-off and not configured or live-tested. Four-company production-cleared task-specific failover and quality parity are not established.
+- Durable cost/spend caps, token ledger, stream-mid-answer failover, full Auth deletion/retention, payment/plan entitlements, backups/restore, load/rollback drills and monitoring SLOs remain incomplete.
+- Approved provider keys/terms and any adult-only account/KYC/legal work require an eligible adult operator. No credentials were added and no paid API spend was used.
