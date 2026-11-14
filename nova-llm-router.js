@@ -56,6 +56,16 @@ function buildChatProviders(env = {}, options = {}) {
   return providers;
 }
 
+async function readResponseTextSafely(response, reader, maxBytes = 1024 * 1024) {
+  if (typeof reader !== 'function') throw new TypeError('response reader callback is required');
+  try {
+    return await reader(response, maxBytes);
+  } catch {
+    // Oversized/malformed error bodies must not prevent trying the next provider.
+    return '[provider error body omitted: unreadable or over the size limit]';
+  }
+}
+
 function parseRetryAfterMs(response) {
   const raw = response && response.headers && response.headers.get('retry-after');
   if (!raw) return 30000;
@@ -182,5 +192,6 @@ module.exports = {
   buildChatProviders,
   createCircuitRegistry,
   normalizeBase,
+  readResponseTextSafely,
   runWithFailover
 };
