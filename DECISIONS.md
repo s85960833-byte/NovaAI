@@ -23,6 +23,14 @@
 
 No fourth provider is enabled simply to satisfy a numerical target. A provider must pass account-age, commercial end-user use, data processing, India availability, current quota, model capability and operational failover review first. Any account or contract requiring an adult must be handled by a legally eligible adult; no eligibility bypass is acceptable.
 
+## Image and voice fallback safety — 14 Nov 2026
+
+- **Image provider activation (source-level):** the public image feature is reported ready only when an approved server provider is explicitly enabled. Paid image requires `ALLOW_PAID_IMAGE=true` and key/model; Pollinations requires `NOVA_ALLOW_POLLINATIONS_SPEND=1` and a key; AI Horde requires `NOVA_ALLOW_AI_HORDE=1` and a key. These switches are off by default. A bare key does not enable a community provider.
+- **Image UI:** Image Studio is hidden when neither the server provider nor the embedded preview SVG helper is available. The browser no longer falls back directly to public Pollinations hosts when the server image call fails. A source-level regression test verifies this behavior; actual image generation remains unverified until an approved provider is configured and tested on Staging.
+- **Speech-to-text flag:** `STT_OFF` uses an explicit string boolean: only `STT_OFF=1` disables the route. This fixes the previous JavaScript truthiness bug where the documented `STT_OFF=0` string disabled transcription.
+- **Photo fallback:** the camera/gallery helper now points to the existing Production Nova URL, not a Claude preview artifact. Physical Android camera/gallery tests remain outstanding.
+- **Voice fallback:** unsupported in-app browsers receive Hindi/English text-mode guidance and keep the Voice entry point visible after bootstrap. This is source/CI coverage, not a physical-device microphone certification.
+
 ## Cloudflare activation gate
 
 Before setting `NOVA_ALLOW_CLOUDFLARE=1`, a legally eligible adult operator must review the current Cloudflare subscription terms, data-processing obligations, selected model licence and applicable acceptable-use rules, then configure the account ID, token and a supported model privately in Render Staging. Keep the flag at `0` until an authenticated staging smoke test, quota monitoring and a real hard-spend policy are available. Do not rotate multiple accounts or bypass quotas.
