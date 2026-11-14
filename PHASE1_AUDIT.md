@@ -196,3 +196,15 @@ Project qrfwsewppafhxibdboam, PostgreSQL 17.11, eu-west-1, ACTIVE_HEALTHY. No da
 - Reviewed `.env.example`: secret fields are blank; it contains only non-secret defaults and the public Supabase project URL. No secret values were read from Render or Supabase.
 - Reviewed `.dockerignore`: it excludes `.env`, `.env.*`, private-key/certificate files and credential JSON, while explicitly allowing `.env.example`. Dockerfile/Compose copy and env-file behavior are covered by CI configuration tests.
 - This is a scan of the current PR's added diff and selected build/config files only. It does not establish that all Git history, all unchanged files, every external service, or account secret stores are clean. GitHub secret-scanning configuration and historical remediation still require owner verification.
+
+
+## AI provider failover implementation checkpoint — 14 November 2026
+
+- PR #98 was re-queried before this work; it remained Open / Draft / unmerged. Production remained untouched.
+- Added `nova-llm-router.js` with provider-chain construction, host-based vendor de-duplication, independent per-attempt timeout signals, caller cancellation, sequential fallback and process-local circuit state.
+- Integrated the module into `POST /api/chat/completions`. Network exceptions/timeouts no longer escape the provider loop; a failing provider is skipped and the next configured vendor is attempted. HTTP 429 uses Retry-After when present; invalid provider credentials open a temporary circuit.
+- Added `scripts/llm-router.test.cjs` and `npm run test:llm-router` for host de-duplication, vision model filtering, independent timeout signals, timeout fallback, 429 fallback, retry behavior, caller cancellation and circuit recovery.
+- **Not yet verified:** exact-head CI, staging deployment of this code, authenticated live chat, or stream continuation after an upstream stream has already begun.
+- **Provider count decision:** only three configured company routes are present. Gemini's current API additional terms prohibit API clients directed to or likely accessed by under-18 users; Nova's intended student audience makes Gemini an unsuitable route. Mistral's published Free API mode is described as evaluation/prototyping with the lowest limits, not a production service guarantee. No fourth free provider is being added without verified commercial-production terms and age eligibility.
+- **Known limits:** circuit state is in-memory per Render process; quota prediction from remaining-quota headers, durable user quotas, hard daily spend cap, response quality validation and stream-mid-answer continuation remain unimplemented.
+- **Phase 1 status:** provider-routing defect repaired in source; implementation is still **pending automated CI and staging proof**. Production remains NO-GO.
