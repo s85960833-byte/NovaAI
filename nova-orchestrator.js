@@ -128,35 +128,44 @@ function selectIntent(body = {}) {
 
   if (voiceOrigin) return { intent: 'voice', hasLiveData, hasImage, hasDocument };
   if (hasImage) return { intent: 'image', hasLiveData, hasImage, hasDocument };
-  if (hasDocument || /\b(read|summarize|analyse|analyze|explain|extract)\b.{0,40}\b(pdf|document|file)\b|\b(pdf|docx|xlsx)\s+(?:export|download)\b|\b(?:make|create|generate)\b.{0,30}\b(pdf|docx|xlsx)\b|\b(pdf|docx|xlsx)\b.{0,25}\b(?:bana|bna)\b|\u092c\u0928\u093e\s*(?:\u0926\u094b|\u0926\u0947\u0902)?/i.test(lower)) {
+
+  // Keep bilingual patterns explicit so common Hindi and Hinglish requests
+  // take the same honest route as their English equivalents.
+  const asksForDocument = hasDocument || /\b(read|summarize|analyse|analyze|explain|extract)\b.{0,50}\b(pdf|document|file|notice)\b|\b(pdf|docx|xlsx)\s+(?:export|download)\b|\b(?:pdf|document|file|notice)\b.{0,40}\b(?:samjhao|padho|summary|saar)\b|(?:पीडीएफ|दस्तावेज़|दस्तावेज|डॉक्यूमेंट|फाइल|नोटिस).{0,45}(?:समझाओ|समझाइए|पढ़ो|पढ़िए|सार|व्याख्या|बना दो|डाउनलोड)/i.test(lower);
+  if (asksForDocument) {
     return { intent: 'document/PDF', hasLiveData, hasImage, hasDocument };
   }
 
-  if (/\b(deep research|in[- ]depth research|comprehensive research|research dossier|exhaustive research|research report)\b/i.test(lower)) {
+  if (/\b(deep research|in[- ]depth research|comprehensive research|research dossier|exhaustive research|research report)\b|(?:गहन|गहराई से|विस्तृत).{0,20}(?:रिसर्च|शोध)|(?:रिसर्च|शोध).{0,20}(?:रिपोर्ट|विस्तार से)/i.test(lower)) {
     return { intent: 'deep-research', hasLiveData, hasImage, hasDocument };
   }
-  if (/\b(?:build|create|make|develop|generate)\s+(?:me\s+)?(?:(?:a|an|the)\s+)?(?:website|web site|web app|site|mobile app|android app|ios app|application|saas)\b|\b(?:app builder|website builder|publish (?:a|my|this) site)\b/i.test(lower)) {
+
+  if (/\b(?:build|create|make|develop|generate)\s+(?:me\s+)?(?:(?:a|an|the)\s+)?(?:website|web site|web app|site|mobile app|android app|ios app|application|saas)\b|\b(?:app builder|website builder|publish (?:a|my|this) site)\b|(?:वेबसाइट|वेब\s*साइट|वेब\s*ऐप|मोबाइल\s*ऐप|ऐप|एप्लिकेशन|साइट).{0,25}(?:बनाओ|बना दो|तैयार करो|बनाकर दो)|(?:बनाओ|बना दो|तैयार करो).{0,25}(?:वेबसाइट|वेब\s*साइट|वेब\s*ऐप|मोबाइल\s*ऐप|ऐप|साइट)|\b(?:website|web app|mobile app|site|app)\b.{0,25}\b(?:banao|bana do|taiyar karo)\b|\b(?:banao|bana do|taiyar karo)\b.{0,25}\b(?:website|web app|mobile app|site|app)\b/i.test(lower)) {
     return { intent: 'build-app/site', hasLiveData, hasImage, hasDocument };
   }
-  if (/\b(?:agent task|run an? agent|multi[- ]step task|run this end[- ]to[- ]end|monitor this|keep monitoring|schedule this task|research,? compare,? (?:write|draft),? and export)\b/i.test(lower)) {
+
+  if (/\b(?:agent task|run an? agent|multi[- ]step task|run this end[- ]to[- ]end|monitor this|keep monitoring|schedule this task|research,? compare,? (?:write|draft),? and export)\b|एजेंट.{0,25}(?:चलाओ|टास्क|शुरू करो)|(?:निगरानी|मॉनिटरिंग).{0,20}(?:करो|रखो|करते रहो)|\b(?:agent|monitoring)\b.{0,25}\b(?:chalao|karo|rakhna)\b/i.test(lower)) {
     return { intent: 'agent-task', hasLiveData, hasImage, hasDocument };
   }
-  if (/\b(?:write|create|improve|rewrite|optimise|optimize|craft)\s+(?:me\s+)?(?:(?:a|an|the)\s+)?prompt\b|\bprompt[- ](?:writer|improver|engineering)\b/i.test(lower)) {
+
+  if (/\b(?:write|create|improve|rewrite|optimise|optimize|craft)\s+(?:me\s+)?(?:(?:a|an|the)\s+)?prompt\b|\bprompt[- ](?:writer|improver|engineering)\b|(?:प्रॉम्प्ट|prompt).{0,25}(?:लिखो|बनाओ|सुधारो|बेहतर करो)|(?:लिखो|बनाओ|सुधारो|बेहतर करो).{0,25}(?:प्रॉम्प्ट|prompt)|\bprompt\b.{0,25}\b(?:likho|banao|sudhar|behtar karo)\b/i.test(lower)) {
     return { intent: 'prompt-writing', hasLiveData, hasImage, hasDocument };
   }
-  if (/\b(?:debug|fix (?:this )?(?:code|bug)|write (?:some )?code|generate code|program|script|function|compile|typescript|javascript|python code|java code|c\+\+ code)\b/.test(lower) || lower.includes('```')) {
+
+  if (/\b(?:debug|fix (?:this )?(?:code|bug)|write (?:some )?code|generate code|program|script|function|compile|typescript|javascript|python code|java code|c\+\+ code)\b|(?:कोड|बग|प्रोग्राम).{0,25}(?:लिखो|बनाओ|ठीक करो|सुधारो|डीबग करो)|(?:लिखो|बनाओ|ठीक करो|सुधारो|डीबग करो).{0,25}(?:कोड|प्रोग्राम)|\b(?:code|bug)\b.{0,25}\b(?:likho|banao|theek karo|sudhar)\b/i.test(lower) || lower.includes('```')) {
     return { intent: 'code', hasLiveData, hasImage, hasDocument };
   }
-  if (/\b(?:generate|create|make|design)\s+(?:me\s+)?(?:(?:a|an|the)\s+)?(?:image|picture|poster|logo|thumbnail|illustration)\b|\bimage studio\b/i.test(lower)) {
+
+  if (/\b(?:generate|create|make|design)\s+(?:me\s+)?(?:(?:a|an|the)\s+)?(?:image|picture|poster|logo|thumbnail|illustration)\b|\bimage studio\b|(?:इमेज|तस्वीर|फोटो|पोस्टर|लोगो|थंबनेल).{0,20}(?:बनाओ|बना दो|तैयार करो)|(?:बनाओ|बना दो|तैयार करो).{0,20}(?:इमेज|तस्वीर|पोस्टर|लोगो|थंबनेल)|\b(?:image|poster|logo|thumbnail)\b.{0,20}\b(?:banao|bana do)\b/i.test(lower)) {
     return { intent: 'image', hasLiveData, hasImage, hasDocument };
   }
 
-  if (hasLiveData || /\b(?:latest|current|today|right now|news|breaking|price|prices|live score|weather|forecast|exam results?|government scheme|updated this week)\b|\u0906\u091c|\u0905\u092d\u0940|\u0924\u093e\u091c\u093c\u093e|\u0924\u093e\u091c\u093e|\u0916\u092c\u0930|\u092e\u094c\u0938\u092e|\u092f\u094b\u091c\u0928\u093e|\u092a\u0930\u0940\u0915\u094d\u0937\u093e \u092a\u0930\u093f\u0923\u093e\u092e/i.test(lower)) {
+  if (hasLiveData || /\b(?:latest|current|today|right now|news|breaking|price|prices|live score|weather|forecast|exam results?|government scheme|updated this week)\b|आज\s*(?:का|की|के|की तारीख)|अभी|ताज़ा|ताजा|लेटेस्ट|नवीनतम|वर्तमान|खबर|समाचार|मौसम|कीमत|भाव|लाइव\s*स्कोर|सरकारी\s*योजना|परीक्षा\s*(?:का\s*)?(?:परिणाम|रिजल्ट)|\b(?:aaj ka|aaj ki|abhi ka|latest|taaza|mausam|khabar|keemat|bhav)\b/i.test(lower)) {
     return { intent: 'live-search', hasLiveData, hasImage, hasDocument };
   }
+
   return { intent: 'chat', hasLiveData, hasImage, hasDocument };
 }
-
 function routeNovaMessage(body = {}) {
   const detected = selectIntent(body);
   const policy = ROUTE_POLICY[detected.intent] || ROUTE_POLICY.chat;
