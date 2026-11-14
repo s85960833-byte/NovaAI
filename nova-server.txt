@@ -40,6 +40,7 @@ const { rateWindow } = require('./nova-rate-limit');
 const { firstSuccessful } = require('./nova-search-router');
 const { buildChatProviders, readResponseTextSafely, runWithFailover } = require('./nova-llm-router');
 const { routeNovaMessage, routeInstruction } = require('./nova-orchestrator');
+const { gateProvidersForRoute } = require('./nova-provider-quality');
 const { createSupabaseUserMiddleware } = require('./nova-api-auth');
 const apiAuthRequired = E.NOVA_API_AUTH_REQUIRED === '1';
 const cloudflareChatConfigured = E.NOVA_ALLOW_CLOUDFLARE === '1' &&
@@ -233,6 +234,18 @@ app.post('/api/chat/completions', async (q, r) => {
     });
     if (!providers.length) return r.status(503).json({ error: 'No compatible AI chat provider is configured. Configure one approved server-side provider.' });
 
+    // Code and Deep Research may only use exact model IDs with committed
+    // 100-case T1/T2 evaluation evidence. An unknown or alias model never
+    // silently inherits a provider-wide quality label.
+    const qualityGate = gateProvidersForRoute(providers, routeDecision.route);
+    if (qualityGate.blocked) {
+      r.set('X-Nova-Capability-Status', 'quality_unverified');
+      return r.status(503).json({
+        code: 'quality_tier_unverified',
+        error: 'This code/research request requires a model that passed Nova’s 100-case T1/T2 quality evaluation. No configured model has qualifying evidence yet. / इस code या research काम के लिए Nova की 100-case T1/T2 जाँच पास model चाहिए। अभी किसी configured model का प्रमाणित score उपलब्ध नहीं है।'
+      });
+    }
+
     let extra = vis ? { reasoning_format: 'hidden' } : {};
     let first = null;
     const clientAbort = new AbortController();
@@ -240,7 +253,7 @@ app.post('/api/chat/completions', async (q, r) => {
     r.on('close', () => { if (!r.writableEnded) clientAbort.abort(); });
 
     const routed = await runWithFailover({
-      providers,
+      providers: qualityGate.providers,
       timeoutMs: providerTimeout,
       clientSignal: clientAbort.signal,
       request: (provider, model, signal) => fetch(provider.base.replace(/\/$/, '') + '/chat/completions', {
