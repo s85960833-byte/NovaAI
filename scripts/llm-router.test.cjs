@@ -56,6 +56,47 @@ test('vision chain includes only explicitly configured vision models', () => {
   assert.deepEqual(providers.map(x => x.models), [['vision-a'], ['vision-b']]);
 });
 
+test('Cloudflare Workers AI is added only with a valid account, token and explicit model', () => {
+  const providers = buildChatProviders({
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_API_TOKEN: 'test-token',
+    CLOUDFLARE_MODEL: '@cf/google/gemma-4-26b-a4b-it'
+  });
+  assert.equal(providers.length, 1);
+  assert.equal(providers[0].id, 'cloudflare-workers-ai');
+  assert.equal(providers[0].host, 'api.cloudflare.com');
+  assert.deepEqual(providers[0].models, ['@cf/google/gemma-4-26b-a4b-it']);
+  assert.equal(providers[0].key, 'test-token');
+});
+
+test('Cloudflare Workers AI is excluded without credentials, a valid account id or an explicit model', () => {
+  assert.equal(buildChatProviders({
+    CLOUDFLARE_ACCOUNT_ID: 'not-an-account-id',
+    CLOUDFLARE_API_TOKEN: 'test-token',
+    CLOUDFLARE_MODEL: '@cf/model'
+  }).length, 0);
+  assert.equal(buildChatProviders({
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_API_TOKEN: 'test-token'
+  }).length, 0);
+  assert.equal(buildChatProviders({
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_MODEL: '@cf/model'
+  }).length, 0);
+});
+
+test('Cloudflare vision fallback requires an explicit vision model and can be disabled per task', () => {
+  const env = {
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_API_TOKEN: 'test-token',
+    CLOUDFLARE_MODEL: '@cf/chat-model',
+    CLOUDFLARE_VISION_MODEL: '@cf/vision-model'
+  };
+  assert.deepEqual(buildChatProviders(env, { vision: true }).map(p => p.models), [['@cf/vision-model']]);
+  assert.equal(buildChatProviders(env, { allowCloudflare: false }).length, 0);
+  assert.equal(buildChatProviders(env, { vision: true, allowCloudflare: false }).length, 0);
+});
+
 test('provider bases must use HTTPS and must not contain credentials or query data', () => {
   assert.equal(normalizeBase('https://api.example.com/v1/'), 'https://api.example.com/v1');
   for (const url of [
