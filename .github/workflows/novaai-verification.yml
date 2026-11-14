@@ -47,6 +47,8 @@ jobs:
         run: npm run test:answer-modes
       - name: Verify free-provider model defaults and deprecation safety
         run: node --test scripts/provider-defaults.test.cjs
+      - name: Test independent AI provider failover and circuit behavior
+        run: npm run test:llm-router
       - name: Test Markdown link escaping against attribute injection
         run: node --test scripts/security-markdown.test.cjs
       - name: Check isolated mode registry
