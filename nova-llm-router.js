@@ -145,7 +145,7 @@ async function runWithFailover(options = {}) {
         try {
           response = await options.request(provider, model, signal, retryIndex);
         } catch (error) {
-          if (clientSignal && clientSignal.aborted) throw error;
+          if (clientSignal && clientSignal.aborted) throw (clientSignal.reason || error);
           failures.push({
             provider: providerKey,
             model,
