@@ -91,6 +91,35 @@ test('a timeout/network exception on one provider falls through with a fresh tim
   assert.equal(result.failures.length, 1);
 });
 
+test('an actual AbortSignal.timeout expiry falls through to the next provider', async () => {
+  const calls = [];
+  const providers = [
+    { id: 'slow', base: 'https://slow.example/v1', key: 'a', models: ['slow-model'] },
+    { id: 'healthy', base: 'https://healthy.example/v1', key: 'b', models: ['healthy-model'] }
+  ];
+  const result = await runWithFailover({
+    providers,
+    timeoutMs: 1000,
+    circuit: createCircuitRegistry(),
+    request: async (provider, model, signal) => {
+      calls.push(provider.id);
+      if (provider.id === 'slow') {
+        await new Promise((resolve, reject) => {
+          const onAbort = () => reject(signal.reason || new Error('provider request timed out'));
+          if (signal.aborted) return onAbort();
+          signal.addEventListener('abort', onAbort, { once: true });
+        });
+      }
+      return response();
+    }
+  });
+
+  assert.deepEqual(calls, ['slow', 'healthy']);
+  assert.equal(result.provider, 'healthy');
+  assert.equal(result.failures.length, 1);
+  assert.match(result.failures[0].error, /timed out|timeout/i);
+});
+
 test('HTTP 429 opens the provider circuit and routes immediately to the next company', async () => {
   const circuit = createCircuitRegistry();
   let primaryCalls = 0;
