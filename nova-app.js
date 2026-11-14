@@ -152,7 +152,7 @@ function isTier2RequestForClient(text){
 }
 async function ask(c){const cf=SMP?{base:'x',model:'x',key:'x'}:SV?{base:API,model:SV.model,key:'-'}:(S.cfg.key?S.cfg:BUILT_IN)||S.cfg;if(!cf.key||!cf.model||!cf.base){$('dcfg').showModal();return}
 const latestRequest=[...c.m].reverse().find(m=>m.r==='user');
-if(isTier2RequestForClient(latestRequest&&latestRequest.c)&&!SV){
+if(isTier2RequestForClient(latestRequest&&latestRequest.c)&&(SMP||!SV)){
  c.m.push({r:'assistant',e:1,c:ui()==='hi'
  ? 'Code और Deep Research अभी रोके गए हैं: इनके लिए Nova की T1/T2 100-case quality जाँच पास model चाहिए। अभी कोई model verified नहीं है। जब तक benchmark पूरा नहीं होता, BYOK या embedded preview model से इन requests का जवाब नहीं दिया जाएगा।'
  : 'Code and Deep Research are paused until a model passes Nova’s T1/T2 100-case quality evaluation. No model is verified yet, so BYOK and embedded-preview models are not used for these requests.'});
