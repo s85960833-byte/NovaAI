@@ -49,7 +49,7 @@
 - Staging HTTP checks: `/health` returns 200/ready; homepage and entry JS assets pass; `/api/config` returns 503 because no AI chat provider key/model is configured. No paid provider calls.
 - Render Health Check Path remains blank. The current connector can read the service/deploy/logs but cannot write that setting.
 - Supabase catalog check shows no end-user NOVA usage/quota ledger; `nova_bi_rate_limits` is a separate BI tenant boundary. Do not reuse it.
-- The current prompt fact-check is appended to `API_AUDIT_2026-11-13.md`; important corrections include Render Free being explicitly unsuitable for production, OpenRouter's current 13+ with parent/guardian permission, Groq/Razorpay 18+ restrictions, Exa not integrated, and provider-specific cache/transfer restrictions.
+- The current prompt fact-check is appended to `API_AUDIT_2026-11-13.md`; its 14 Nov correction confirms OpenRouter's current 18+ Terms (the earlier 13+ / parent-permission note was wrong), Groq/Razorpay 18+ restrictions, Tavily's adult-operator condition, Exa not integrated, and provider-specific cache/transfer restrictions.
 
 ### Phase 1 progress
 - **Done:** source route/secret inventory, provider inventory, search sequential-routing fix and tests, basic feature descriptions, Staging health/static smoke, Staging negative-token smoke, first official terms review.

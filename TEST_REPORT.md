@@ -1,3 +1,28 @@
+# Current Verification — 14 November 2026
+
+**Source head:** ff2f4d1d564857c003a810905301e185b45aa15b  
+**Main CI:** [#43572173402](https://github.com/s85960833-byte/NovaAI/actions/runs/43572173402) — in progress at last poll.  
+**Browser CI:** [#43572173545](https://github.com/s85960833-byte/NovaAI/actions/runs/43572173545) — in progress at last poll.  
+**New test suite:** `npm run test:accuracy-instruction` — 9 source-contract tests added.
+
+## New source changes under verification
+
+- Universal Accuracy Rules are injected unconditionally into each chat system prompt.
+- Existing local preference acc:false is changed to true and saved on startup.
+- Top-bar accuracy indicator and Settings checkbox are checked, disabled, and labelled always-on in English and Hindi.
+- The separate extended-history preference remains independent.
+- Provider-terms correction: OpenRouter's current Terms require 18+ (previous 13+ entry corrected); Groq and Tavily also require adult operators.
+
+## Deployment and release state
+
+- Render Staging is still Live on older SHA `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`; the current source head has not yet deployed.
+- Health Check Path is blank.
+- Live provider-backed chat/search/image/voice remains unverified; the current workflow skips provider smoke without configured eligible credentials.
+- PR #98 remains Open / Draft / unmerged. Production remains unchanged.
+
+## Known blockers
+
+Valid/expired Supabase sessions, hosted email/redirect flow, two-account isolation, durable user quotas and rupee spend caps, payments, account deletion/retention, physical Android camera/microphone, provider rights, privacy/legal review, backups, load and rollback drills remain open.
 # EXACT-HEAD VERIFICATION UPDATE — 14 November 2026 (Asia/Kolkata)
 
 **PR #98 head:** `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`  

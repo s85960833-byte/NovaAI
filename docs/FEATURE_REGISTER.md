@@ -3,7 +3,7 @@
 **Updated:** 14 November 2026 (Asia/Kolkata)  
 **PR:** #98 — Open / Draft / unmerged  
 **Branch:** `fix/nova-home-learn-first-mobile-20261109`  
-**Evidence head:** `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`  
+**Evidence head:** `ff2f4d1d564857c003a810905301e185b45aa15b` (source code commit under verification)  
 **Purpose:** conservative release inventory. This file maps the machine-readable source inventory in `FEATURE_REGISTRY.json` to the delivery statuses required by the master build protocol.
 
 ## Status rules
@@ -60,3 +60,31 @@ No feature below is marked VERIFIED or LIVE. Main CI passing is not equivalent t
 ## Machine-readable source of truth
 
 `FEATURE_REGISTRY.json` is still the machine-readable implementation inventory and its contract is tested by `scripts/feature-registry.test.cjs`. That test is a static inventory check; runtime feature-flag wiring, pricing-page generation and end-to-end truth enforcement are currently `false`. Keep both files aligned whenever a feature status changes.
+
+## Universal Accuracy Instruction — always-on safeguard
+
+**Status:** BUILT; live model behavior is not VERIFIED. The prior user control allowed saved acc:false to disable the accuracy rules. The source commit makes the instruction unconditional, migrates old local state to true, and makes both controls read-only. Ten automated source-contract tests are wired into Main CI. The prompt itself cannot guarantee factual correctness; live model quality and token cost remain unknown.
+
+## Section 2A — Existing Nova feature preservation audit
+
+**Method:** PR-branch source inspection plus exact-head CI evidence. Status words below describe the stated boundary; they do not claim unverified live operation.
+
+| Existing capability | Status | Evidence and boundary |
+|---|---|---|
+| Chat interface and one-to-one conversations | BROKEN (Staging end-to-end) | Client/server routes and local chat state exist, but no approved provider is configured in Staging; no real provider-backed answer was verified. |
+| Streaming answers | WORKS (code path only) | Client parses streamed data chunks and server streams provider output. No live model stream or mid-stream provider recovery was verified. |
+| Chat history search | WORKS (source-level) | Sidebar search filters chat titles and message content. |
+| Chat rename and delete | WORKS (source-level) | Rename and per-chat delete controls exist; deletion tombstones are stored. This is not full cloud-account deletion. |
+| Full UI translations for every supported language | MISSING | Current primary UI dictionaries are English and Hindi. Reply-language selection does not translate the whole interface into every language. |
+| Light and dark themes | WORKS (source-level) | Both theme variable sets and the persisted theme switch exist. |
+| Mobile layout | WORKS (automated browser scope) | Prior Browser CI passed five-viewport layout/drawer regression. Physical Android verification remains open. |
+| PDF/text upload and document Q&A input | BROKEN (Staging end-to-end) | Text and text-based PDF extraction exists; scanned PDFs are unsupported (no OCR). Q&A is blocked by the missing Staging provider. |
+| PDF/DOCX/XLSX export generation | MISSING | No complete multi-format export pipeline with Devanagari font embedding and page-break verification is evidenced. |
+| Live voice conversation | BROKEN (Staging/device end-to-end) | Browser speech recognition, server transcription fallback and speech synthesis code exist. Staging has no voice provider; physical mic, Android WebView and voice quality are unverified. Unsupported in-app browser text fallback messages exist. |
+| Photo camera/gallery question input | BROKEN (Staging/device end-to-end) | Camera/gallery file inputs, live getUserMedia capture and step-by-step photo prompt exist. Physical capture and AI answer are not verified; in-app viewers may block capture. |
+| Image Studio templates/dashboard | BROKEN (provider-backed generation) | UI/helper and async endpoints exist; external providers are default-off and generation has not been live-tested. Jobs are process-local, not durable. |
+| Website/app builder | MISSING | Complete sandbox, live preview, chat edit, ZIP export and publish pipeline are not evidenced. |
+| Universal Accuracy / Master Instruction | WORKS (source-level, now non-disableable) | Accuracy prompt existed but could previously be disabled. The source commit makes it unconditional, migrates old preference state, and makes controls read-only. Live model behavior is unverified. |
+| Merge of competing builds / portable single-file export | MISSING (not evidenced) | Current delivery is a multi-file SPA/PWA. No verified one-click single-file export pipeline is inventoried. Do not remove current backup/restore or chat export. |
+
+WORKS is limited to the code or automated test boundary named above. BROKEN means the code surface exists but the required current Staging/device workflow is blocked or unverified. MISSING means a complete implementation is not present in the reviewed source. None of these rows establishes Production readiness.
