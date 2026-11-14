@@ -116,3 +116,25 @@ test('route instructions clearly expose delivery boundaries', () => {
   assert.match(prompt, /build-app\/site/);
   assert.match(prompt, /not_implemented/);
 });
+
+test('short English and Hindi PDF creation requests route to document export guidance', () => {
+  assert.equal(routeNovaMessage(body('Make a PDF')).route, 'document/PDF');
+  assert.equal(routeNovaMessage(body('PDF bana do')).route, 'document/PDF');
+  assert.equal(routeNovaMessage(body('पीडीएफ बना दो')).route, 'document/PDF');
+});
+
+test('explaining a website is not mistaken for building one', () => {
+  assert.equal(routeNovaMessage(body('Explain how a website works.')).route, 'chat');
+  assert.equal(routeNovaMessage(body('Build me a website for a coaching centre.')).route, 'build-app/site');
+});
+
+test('fenced code blocks route to code assistance', () => {
+  assert.equal(routeNovaMessage(body('Please review this: ```js\nconst x = 1;\n```')).route, 'code');
+});
+
+test('a text-only image-generation request does not claim an image is already generated', () => {
+  const result = routeNovaMessage(body('Create a logo image for Nova.'));
+  assert.equal(result.route, 'image');
+  assert.equal(result.capabilityStatus, 'partial');
+  assert.match(result.instruction, /dedicated Image Studio route/i);
+});
