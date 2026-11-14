@@ -421,3 +421,17 @@ This section supersedes earlier checkpoint statements below wherever they descri
 - Do not create new repositories or Render services/URLs.
 - Do not create paid provider accounts or paid usage. Adult-only account/KYC/legal actions need a legally eligible adult and relevant CA/CS/lawyer.
 - Phase 1 is **IN PROGRESS**, not complete. The remaining phases cannot be claimed done.
+
+# EXECUTION CHECKPOINT — 14 November 2026, 11:05 IST
+
+- PR #98 latest documented head at this checkpoint: `990c009b5169b4cdd0460a4155ce269994cb96e2`; Open / Draft / unmerged; mergeable.
+- Main CI #43562664116 had 50/58 steps successful and was still in the deployed-PR smoke stage. Browser CI #43562664094 completed successfully, including mobile layout/drawer, account/cloud sync and graceful shutdown.
+- New changes: Hindi/Hinglish orchestrator route tests; optional default-off Cloudflare chat fallback; image provider readiness and explicit opt-in gates; removal of browser-side public Pollinations fallback; correct Production URL for photo-help; in-app voice text-mode guidance.
+- New Cloudflare adapter is not production-cleared and has not been configured or live-tested. It is not used for code, research, vision, documents, Build or Agent tasks.
+- Image generation is honestly unavailable unless an approved image provider has been explicitly enabled with the required credentials. Paid, Pollinations and AI Horde are OFF by default.
+- Staging still has blank Health Check Path. Last confirmed Live deploy is old SHA `286ddbc6c4a96e5f62c50ada1aa9c2a890633527`; no Render build/deploy event has appeared after 13 November. Current PR SHA is not confirmed Live.
+- Prior Staging `/api/config` was HTTP 503 because no chat provider was configured. No authenticated provider-backed runtime test has passed.
+- Production remains unchanged on `main`; no merge or deploy. No paid service/API, key, payment gateway or Supabase schema change was made.
+- Remaining Phase 1 blockers: confirm Staging deploy handoff and `/health`; eligible adult operator must confirm provider terms/keys privately; live chat/search/vision and valid Supabase sessions; durable usage/cost controls; full account deletion; provider quality-parity/failover drills; physical Android camera/mic tests; backup/restore, monitoring, load/rollback and legal/privacy review.
+
+**Phase 1 remains IN PROGRESS. Production remains NO-GO.**
