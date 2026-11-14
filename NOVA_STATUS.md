@@ -378,3 +378,46 @@ This section supersedes earlier checkpoint statements below wherever they descri
 - No Render manual deploy was requested because Auto Deploy is enabled and a code push is expected to trigger it; no new deploy was visible in the latest deployment list. Do not claim Staging is updated until an exact-head Live deploy is recorded.
 - Owner action still required: Render Dashboard → Staging → Settings → Health Checks → set Health Check Path to `/health` → Save. Re-check deployment after that.
 - Production is unchanged; no merge, Production deploy, paid spend, payment setup, or Supabase schema mutation occurred. Definition of Done remains NOT MET.
+
+
+---
+
+# EXACT CURRENT CHECKPOINT — 14 November 2026 (Asia/Kolkata)
+
+**Repo:** `s85960833-byte/NovaAI`  
+**PR:** https://github.com/s85960833-byte/NovaAI/pull/98  
+**Branch:** `fix/nova-home-learn-first-mobile-20261109`  
+**Last code-bearing tested SHA:** `035f8beec51f9f3cdb9fd0b09c6c6dde91ee49c3`  
+**PR state:** Open / Draft / unmerged. Production remains untouched.
+
+## ✅ Verified
+
+- Main CI [#43557378141](https://github.com/s85960833-byte/NovaAI/actions/runs/43557378141) completed successfully. New provider failover test step passed.
+- Browser CI [#43557378058](https://github.com/s85960833-byte/NovaAI/actions/runs/43557378058) completed successfully: account/cloud-sync, Company Cloud, BI proof bundle, five viewport mobile/drawer checks and graceful shutdown.
+- Local Node 22.16.0 failover suite: 9/9 passed.
+- New files: `nova-llm-router.js`, `scripts/llm-router.test.cjs`, `DECISIONS.md`.
+- Updated: `nova-server.txt`, `package.json`, `scripts/provider-defaults.test.cjs`, `.github/workflows/novaai-verification.yml`, `FEATURE_REGISTRY.json`, `ARCHITECTURE.md`, `PHASE1_AUDIT.md`.
+- Provider failover covers independently timed attempts, network timeout fallthrough, caller cancellation, 429 Retry-After/circuit pause, model retry and safe bounded provider-error reading. Only three provider company routes are configured.
+- No credentials were read, added or shared. No paid API/service or Production deployment was used.
+
+## 🔄 Still in progress
+
+- Phase 1 detailed audit remains in `PHASE1_AUDIT.md`; see `TEST_REPORT.md` for evidence and WORKS/BROKEN/MISSING status.
+- Investigate GitHub-to-Render Auto Deploy handoff. Render service says Auto Deploy = yes, but no new Render deploy event appeared after the latest GitHub commits.
+- Wait for/verify a Render Staging Live deploy whose SHA exactly matches the current PR head before any live smoke of the new router.
+- Add approved provider accounts only after adult/operator eligibility and commercial end-user terms are checked; do not paste secrets into chat.
+
+## ❌ Blocking / not implemented
+
+- Render Staging Health Check Path is blank. Owner: Dashboard → Staging → Settings → Health Checks → set `/health` → Save.
+- Staging AI provider is not configured; last verified `/api/config` returned 503. Real provider-backed AI chat/live search is not verified.
+- Provider chain has 3 routes (primary OpenAI-compatible, Groq, OpenRouter), not 4 production-cleared free providers. Gemini is excluded for Nova's intended under-18 audience; Mistral Free API is not treated as production capacity. Quality parity is not proven.
+- Durable cost/usage ledger, hard daily rupee cap, remaining-quota predictor, quality evaluator/golden set, stream-mid-answer failover, durable queue, Pro/Ultra entitlements/payment checkout and full account deletion/retention remain incomplete.
+- Actual Android camera/gallery/microphone, live TTS, email/valid-session/two-user tests, backup/restore, load/soak, monitoring/SLO and full legal/IP/provider review remain outstanding.
+
+## Safety / release gates
+
+- Keep PR #98 Draft and unmerged. Do not merge or deploy Production.
+- Do not create new repositories or Render services/URLs.
+- Do not create paid provider accounts or paid usage. Adult-only account/KYC/legal actions need a legally eligible adult and relevant CA/CS/lawyer.
+- Phase 1 is **IN PROGRESS**, not complete. The remaining phases cannot be claimed done.
