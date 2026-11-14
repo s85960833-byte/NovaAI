@@ -53,6 +53,8 @@ jobs:
         run: npm run test:llm-router
       - name: Test central request orchestrator and capability boundaries
         run: npm run test:orchestrator
+      - name: Test evidence-backed T1/T2 model routing for code and research
+        run: npm run test:provider-quality
       - name: Test Markdown link escaping against attribute injection
         run: node --test scripts/security-markdown.test.cjs
       - name: Check isolated mode registry
