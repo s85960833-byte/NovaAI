@@ -3,27 +3,32 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
-const source = fs.readFileSync(new URL('../nova-server.txt', 'file://' + __filename), 'utf8');
+const server = fs.readFileSync(new URL('../nova-server.txt', 'file://' + __filename), 'utf8');
+const router = fs.readFileSync(new URL('../nova-llm-router.js', 'file://' + __filename), 'utf8');
 
 test('OpenRouter defaults to its dynamic free-model router', () => {
-  assert.match(source, /E\.OPENROUTER_MODEL \|\| 'openrouter\/free'/);
-  assert.match(source, /E\.OPENROUTER_API_KEY \? 'openrouter\/free'/);
+  assert.match(router, /env\.OPENROUTER_MODEL \|\| 'openrouter\/free'/);
+  assert.match(server, /buildChatProviders\(E, \{ vision: vis, defaultVisionModel: VISION, bases: providerBases \}\)/);
 });
 
-test('Groq chat is enabled only when a model ID is explicitly configured', () => {
-  assert.match(source, /const groqChatConfigured = !!\(E\.GROQ_API_KEY && E\.GROQ_MODEL\)/);
-  assert.match(source, /if \(E\.GROQ_API_KEY && E\.GROQ_MODEL\) providers\.push/);
-  assert.match(source, /const providerConfigured = !!\(\(E\.LLM_KEY && E\.LLM_MODEL\) \|\| \(E\.GROQ_API_KEY && E\.GROQ_MODEL\) \|\| E\.OPENROUTER_API_KEY\)/);
-  assert.match(source, /if \(E\.LLM_KEY && E\.LLM_MODEL\) providers\.push/);
-  assert.match(source, /Skipped: set LLM_KEY with LLM_MODEL, GROQ_API_KEY with GROQ_MODEL, or OPENROUTER_API_KEY/);
-  assert.match(source, /if \(E\.OPENROUTER_API_KEY && \(!E\.LLM_KEY \|\| !E\.LLM_MODEL \|\| E\.OPENROUTER_API_KEY !== E\.LLM_KEY\)\) providers\.push/);
-  assert.match(source, /const llmChatConfigured = !!\(E\.LLM_KEY && E\.LLM_MODEL\)/);
-  assert.match(source, /: \[E\.GROQ_MODEL\]/);
+test('provider routes require explicit credentials and model configuration where applicable', () => {
+  assert.match(router, /if \(env\.LLM_KEY && env\.LLM_MODEL\)/);
+  assert.match(router, /if \(env\.GROQ_API_KEY && env\.GROQ_MODEL\)/);
+  assert.match(router, /if \(env\.OPENROUTER_API_KEY\)/);
+  assert.match(server, /const llmChatConfigured = !!\(E\.LLM_KEY && E\.LLM_MODEL\)/);
+  assert.match(server, /const groqChatConfigured = !!\(E\.GROQ_API_KEY && E\.GROQ_MODEL\)/);
+  assert.match(server, /if \(!llmChatConfigured && !groqChatConfigured && !E\.OPENROUTER_API_KEY\)/);
+});
+
+test('provider routes are deduplicated by vendor hostname instead of rotating same-company keys', () => {
+  assert.match(router, /const seenHosts = new Set\(\)/);
+  assert.match(router, /if \(seenHosts\.has\(host\)\) return/);
+  assert.match(router, /Never rotate multiple credentials for one provider company/);
 });
 
 test('retired Groq and stale pinned OpenRouter defaults are absent', () => {
-  assert.doesNotMatch(source, /llama-3\.3-70b-versatile/);
-  assert.doesNotMatch(source, /meta-llama\/llama-3\.3-70b-instruct:free/);
+  assert.doesNotMatch(server + router, /llama-3\.3-70b-versatile/);
+  assert.doesNotMatch(server + router, /meta-llama\/llama-3\.3-70b-instruct:free/);
 });
 
 test('Render start command stays stable and local startup loads an optional .env file', () => {
