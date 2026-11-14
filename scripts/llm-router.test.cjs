@@ -60,12 +60,12 @@ test('Cloudflare Workers AI is added only with a valid account, token and explic
   const providers = buildChatProviders({
     CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
     CLOUDFLARE_API_TOKEN: 'test-token',
-    CLOUDFLARE_MODEL: '@cf/google/gemma-4-26b-a4b-it'
+    CLOUDFLARE_MODEL: '@cf/meta/llama-3.1-8b-instruct'
   });
   assert.equal(providers.length, 1);
   assert.equal(providers[0].id, 'cloudflare-workers-ai');
   assert.equal(providers[0].host, 'api.cloudflare.com');
-  assert.deepEqual(providers[0].models, ['@cf/google/gemma-4-26b-a4b-it']);
+  assert.deepEqual(providers[0].models, ['@cf/meta/llama-3.1-8b-instruct']);
   assert.equal(providers[0].key, 'test-token');
 });
 
@@ -89,10 +89,10 @@ test('Cloudflare vision fallback requires an explicit vision model and can be di
   const env = {
     CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
     CLOUDFLARE_API_TOKEN: 'test-token',
-    CLOUDFLARE_MODEL: '@cf/chat-model',
-    CLOUDFLARE_VISION_MODEL: '@cf/vision-model'
+    CLOUDFLARE_MODEL: '@cf/meta/llama-3.1-8b-instruct',
+    CLOUDFLARE_VISION_MODEL: '@cf/meta/llama-3.2-11b-vision-instruct'
   };
-  assert.deepEqual(buildChatProviders(env, { vision: true }).map(p => p.models), [['@cf/vision-model']]);
+  assert.deepEqual(buildChatProviders(env, { vision: true }).map(p => p.models), [['@cf/meta/llama-3.2-11b-vision-instruct']]);
   assert.equal(buildChatProviders(env, { allowCloudflare: false }).length, 0);
   assert.equal(buildChatProviders(env, { vision: true, allowCloudflare: false }).length, 0);
 });
