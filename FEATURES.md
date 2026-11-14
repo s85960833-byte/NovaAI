@@ -13,6 +13,17 @@ NOVA is a Hindi-English web workspace with three top-level areas:
 
 The main shell is an SPA/PWA served from `index.html`. The backend is Express on Node.js 22 in `nova-server.txt`.
 
+## Optional Cloudflare Workers AI fallback
+
+The router can now append Cloudflare Workers AI as a fourth independent-company fallback when `NOVA_ALLOW_CLOUDFLARE=1`, a valid account ID/token and an explicit model are configured. It is deliberately limited to ordinary chat, prompt-writing and voice-originated text; it is not a fallback for code, research, vision, document export, Nova Build or Nova Agent. It remains OFF in `.env.example`, is not configured in Staging, and has not made a live inference request. This is an integration contract and mocked fallback test, not proof of production availability or equal answer quality.
+
+Cloudflare documents an OpenAI-compatible Chat Completions endpoint. Its Free Workers allocation is 10,000 Neurons/day (resets 00:00 UTC); Workers Paid has a charge of US$0.011/1,000 Neurons above the free allocation, and some models require paid billing. This quota does not translate to a fixed number of chats. Review selected model licences and Cloudflare data-use terms before activation.
+
+Official references:
+- https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/
+- https://developers.cloudflare.com/workers-ai/platform/pricing/
+- https://developers.cloudflare.com/workers-ai/platform/data-usage/
+
 ## 1. AI Chat
 
 **Purpose:** Answer user questions, explain topics, write, reason over context and support learning/work tasks.
