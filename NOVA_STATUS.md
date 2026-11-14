@@ -435,3 +435,17 @@ This section supersedes earlier checkpoint statements below wherever they descri
 - Remaining Phase 1 blockers: confirm Staging deploy handoff and `/health`; eligible adult operator must confirm provider terms/keys privately; live chat/search/vision and valid Supabase sessions; durable usage/cost controls; full account deletion; provider quality-parity/failover drills; physical Android camera/mic tests; backup/restore, monitoring, load/rollback and legal/privacy review.
 
 **Phase 1 remains IN PROGRESS. Production remains NO-GO.**
+
+# Latest execution status — 14 November 2026
+
+- Verified PR #98 head `7ace93c656e0519e8c27d8e2669a595634c0c146`.
+- Main verification workflow #43564463845: **success, 60/60 steps**.
+- Browser/account workflow #43564463772: **success, 17/17 steps**.
+- Fixed the stale offline-shell assertion after adding the PWA quality-route helper; registered `GET /nova-quality-route.js` in the server asset allowlist; fixed the Hindi UI-copy assertion in the quality-gate test.
+- Added evidence-backed T1/T2 gating for Code/Deep Research. No model is yet benchmarked; BYOK and embedded preview cannot bypass the gate.
+- Browser, mobile/drawer, account/cloud-sync, Company Cloud, failover, orchestrator, security, RLS, Docker and CI checks passed on the tested head.
+- Render Staging still has blank Health Check Path and latest Live SHA `286ddbc6c4a96e5f62c50ada1aa9c2a890633527`, not the tested PR head. Current-head live providers and free-image tests were skipped, not passed.
+- Production URL and main branch remain unchanged. PR #98 remains Open / Draft / unmerged.
+- No paid services/APIs, secret edits, production deploy, or Supabase schema mutation was performed.
+
+**Current decision: Phase 1 remains IN PROGRESS; Production NO-GO.** See `TEST_REPORT.md` for run IDs and detailed evidence.
