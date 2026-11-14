@@ -143,7 +143,21 @@ const ck=(lab,key)=>{const i=document.createElement('input');i.type='checkbox';i
 const c=document.createElement('input');c.type='text';c.maxLength=40;c.value=P.city||'';c.placeholder='Delhi';c.oninput=()=>{P.city=c.value.trim();save()};row(LS('pCity'),c);
 const tb=document.createElement('button');tb.type='button';tb.textContent='🔧 '+LS('pTest');const so=document.createElement('div');so.className='stout';tb.onclick=async()=>{so.textContent=LS('pTesting');try{const rs=await fetch(API+'/live/selftest'),jj=await rs.json();if(!rs.ok||!jj.results)throw 0;so.innerHTML='';const okn=jj.results.filter(x=>x.ok).length,hb=document.createElement('b');hb.textContent=okn+'/'+jj.results.length+' ✓';so.append(hb);jj.results.forEach(x=>{const d=document.createElement('div');d.textContent=(x.ok?'✅ ':'❌ ')+x.name+' — '+x.ms+' ms'+(x.ok?'':' ('+x.note+')');so.append(d)})}catch(e){so.textContent='❌ '+LS('pTestFail')}};box.append(tb,so);
 const r=document.createElement('input');r.type='range';r.min='0.7';r.max='1.4';r.step='0.1';r.value=P.rate||1;r.oninput=()=>{P.rate=Number(r.value);save()};row(LS('pRate'),r)}
+function isTier2RequestForClient(text){
+  if(window.NovaQualityRoute&&typeof window.NovaQualityRoute.requiresVerifiedTier2Request==='function'){
+    return window.NovaQualityRoute.requiresVerifiedTier2Request(text);
+  }
+  const q=String(text||'');
+  return q.includes('```')||/\\b(?:deep research|in-depth research|research report|comprehensive research|literature review)\\b|गहन\\s*(?:शोध|रिसर्च)|विस्तृत\\s*(?:शोध|रिसर्च)|\\b(?:write|generate|debug|fix|refactor|review|compile|run|create)\\b.{0,48}\\b(?:code|python|javascript|typescript|java|function|script|program|sql|bug)\\b|(?:कोड|प्रोग्राम|स्क्रिप्ट|बग).{0,35}(?:लिखो|लिखिए|बनाओ|बना दो|ठीक करो|सुधारो|डीबग करो)|\\b(?:code|python|program|bug)\\b.{0,25}\\b(?:likho|banao|theek karo|sudhar|debug karo)\\b/i.test(q);
+}
 async function ask(c){const cf=SMP?{base:'x',model:'x',key:'x'}:SV?{base:API,model:SV.model,key:'-'}:(S.cfg.key?S.cfg:BUILT_IN)||S.cfg;if(!cf.key||!cf.model||!cf.base){$('dcfg').showModal();return}
+const latestRequest=[...c.m].reverse().find(m=>m.r==='user');
+if(isTier2RequestForClient(latestRequest&&latestRequest.c)&&!SV){
+ c.m.push({r:'assistant',e:1,c:ui()==='hi'
+ ? 'Code और Deep Research अभी रोके गए हैं: इनके लिए Nova की T1/T2 100-case quality जाँच पास model चाहिए। अभी कोई model verified नहीं है। जब तक benchmark पूरा नहीं होता, BYOK या embedded preview model से इन requests का जवाब नहीं दिया जाएगा।'
+ : 'Code and Deep Research are paused until a model passes Nova’s T1/T2 100-case quality evaluation. No model is verified yet, so BYOK and embedded-preview models are not used for these requests.'});
+ save();render();return;
+}
 if(BUILT_IN&&!S.cfg.key){const d=new Date().toDateString();if(S.day!==d){S.day=d;S.n=0}if((S.n||0)>=30){c.m.push({r:'assistant',c:t('eDay'),e:1});save();render();return}S.n=(S.n||0)+1;save()}
 busy=true;ctl=new AbortController();const a={r:'assistant',c:''};c.m.push(a);render();
 let wr='',wsrc='';
