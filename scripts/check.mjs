@@ -64,7 +64,15 @@ if (!html.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.j
 if (!server.includes("app.get('/nova-config.js'") || !server.includes("app.get('/nova-app.js'")) throw new Error('Externalized NOVA scripts are not served by the backend');
 syntaxCheck('NOVA app external script', appScript);
 syntaxCheck('NOVA config external script', configScript);
-if (!server.includes("'/nova-config.js','/nova-app.js'")) throw new Error('Externalized scripts are missing from the offline shell cache');
+syntaxCheck('NOVA quality-route helper', readFileSync('nova-quality-route.js', 'utf8'));
+syntaxCheck('NOVA provider-quality evidence gate', readFileSync('nova-provider-quality.js', 'utf8'));
+const shellCacheMatch = server.match(/const CACHE='([^']+)';const CORE=\[([^\]]*)\]/);
+if (!shellCacheMatch) throw new Error('Versioned NOVA offline shell cache is missing');
+const shellCacheName = shellCacheMatch[1];
+const shellCore = shellCacheMatch[2];
+const requiredShellFiles = ['/nova-config.js', '/nova-quality-route.js', '/nova-app.js'];
+if (!requiredShellFiles.every(path => shellCore.includes("'" + path + "'"))) throw new Error('Externalized NOVA config, quality guard and app scripts must be present in the offline shell cache');
+if (requiredShellFiles.some((path, index) => index > 0 && shellCore.indexOf("'" + path + "'") < shellCore.indexOf("'" + requiredShellFiles[index - 1] + "'"))) throw new Error('NOVA quality-route helper must be cached after config and before the chat application');
 if (!requiredCspFragments.every(fragment => html.includes(fragment))) throw new Error('Document resource Content Security Policy is incomplete');
 const accountClient = readFileSync('nova-account.js', 'utf8');
 const workspaceMigration = readFileSync('supabase/migrations/20261108093219_nova_user_workspace_sync.sql', 'utf8');
@@ -146,8 +154,12 @@ if (!appScript.includes('backend hosted on Render') || !appScript.includes('Opti
 if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
 if (!appScript.includes('async function pollImageJob(') || !appScript.includes("API+'/image/status/'") || !appScript.includes('pollImageJob(j.jobId,sig)') || !appScript.includes("sig.addEventListener('abort',abort,{once:true})") || !appScript.includes('catch(e1){throw e1}') || !appScript.includes("(e&&e.status===429)?errText(e)") || appScript.includes('a.img=await pollin(')) throw new Error('Image studio must abort polling promptly, preserve HTTP 429 errors, and never bypass the server image provider gate');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
+if (!html.includes('<script src="/nova-quality-route.js"></script><script src="/nova-app.js"></script>') || !server.includes("app.get('/nova-quality-route.js'")) throw new Error('NOVA quality-route helper must load before the chat application and be served by the backend');
+if (!server.includes("const { gateProvidersForRoute } = require('./nova-provider-quality');") || !server.includes('gateProvidersForRoute(providers, routeDecision.route)')) throw new Error('Server-side T1/T2 provider-quality gate is missing');
+if (!pkg.scripts?.['test:provider-quality']) throw new Error('Provider quality evidence tests must be available as an npm script');
+if (!server.includes("'/nova-quality-route.js'")) throw new Error('Quality-route helper must be present in the offline cache core');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'") || !server.includes("app.get('/nova-account.js'")) throw new Error('Existing optional feature asset routes missing');
-if (!server.includes("const CACHE='nova-shell-v19-entry-gate'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
+if (!server.includes("const CACHE='nova-shell-v20-quality-route'") || !server.includes("'/nova-account.js'") || !server.includes("'/nova-quality-route.js'")) throw new Error('NOVA account and quality-route clients must be part of the current versioned offline shell');
 // Frontend entry points are external files and are syntax-checked above.
 
 const entryClient = readFileSync('nova-entry.js', 'utf8');
