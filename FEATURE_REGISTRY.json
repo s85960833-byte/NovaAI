@@ -8,7 +8,10 @@
     "wiredToPricingPage": false,
     "endToEndTruthEnforcement": false,
     "aiProviderFailoverModule": "nova-llm-router.js",
-    "aiProviderFailoverTests": "scripts/llm-router.test.cjs"
+    "aiProviderFailoverTests": "scripts/llm-router.test.cjs",
+    "requestOrchestratorModule": "nova-orchestrator.js",
+    "requestOrchestratorTests": "scripts/orchestrator.test.cjs",
+    "requestOrchestratorIntegration": "nova-server.txt"
   },
   "release": {
     "productionReady": false,
@@ -477,6 +480,36 @@
         "Circuit state is process-local and resets when the Render instance restarts.",
         "Predictive quota switching, durable monetary cost caps, response quality validation and golden-set ranking are not implemented.",
         "A provider stream that fails after bytes have reached the browser cannot yet be seamlessly continued by another provider."
+      ]
+    },
+    {
+      "id": "core.request_orchestrator",
+      "name": "Central Request Orchestrator",
+      "area": "NOVA Agents",
+      "plan": "internal_core",
+      "status": "preview",
+      "productExposure": "internal_only",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "not_applicable_to_classifier; downstream provider rights still apply",
+      "sourceFiles": [
+        "nova-orchestrator.js",
+        "nova-server.txt"
+      ],
+      "testFiles": [
+        "scripts/orchestrator.test.cjs"
+      ],
+      "routeMarkers": [
+        "routeNovaMessage(body)",
+        "r.set('X-Nova-Route'"
+      ],
+      "limits": [
+        "This is an intent classifier and truthful capability-boundary layer inside the chat route, not ten independent execution engines.",
+        "Live search still executes through the existing /api/live retrieval route and must be supplied as retrieved context.",
+        "Code and prompt-writing are chat assistance only; code is not executed or sandboxed.",
+        "Document/PDF, image and voice remain partial and depend on separate routes or input metadata.",
+        "Deep Research, Nova Build app/site generation and durable Nova Agent execution are not implemented; requests fall back honestly to bounded assistance.",
+        "Voice-origin metadata is not yet attached by every frontend speech input path."
       ]
     }
   ]
