@@ -343,3 +343,9 @@ test('an oversized or malformed provider error body cannot block failover', asyn
   }, 8);
   assert.match(text, /provider error body omitted/);
 });
+
+test('server honors the configured retry budget for payload-trim retries and preserves zero delay', () => {
+  assert.match(serverSource, /retryIndex \+ 1 < retryAttempts/);
+  assert.match(serverSource, /Math\.max\(0, Math\.min\(5000, retryBaseValue\)\)/);
+  assert.match(serverSource, /Math\.max\(retryBaseDelayMs, Math\.min\(10000, retryMaxValue\)\)/);
+});

@@ -250,14 +250,23 @@ app.post('/api/chat/completions', async (q, r) => {
     let first = null;
     const clientAbort = new AbortController();
     const providerTimeout = Math.max(15000, Math.min(120000, Number(E.LLM_TIMEOUT_MS) || 90000));
+    const retryAttemptValue = Number(E.LLM_MAX_ATTEMPTS);
+    const retryAttempts = E.LLM_MAX_ATTEMPTS !== undefined && String(E.LLM_MAX_ATTEMPTS).trim() !== '' && Number.isFinite(retryAttemptValue)
+      ? Math.max(1, Math.min(5, Math.floor(retryAttemptValue))) : 3;
+    const retryBaseValue = Number(E.LLM_RETRY_BASE_DELAY_MS);
+    const retryBaseDelayMs = E.LLM_RETRY_BASE_DELAY_MS !== undefined && String(E.LLM_RETRY_BASE_DELAY_MS).trim() !== '' && Number.isFinite(retryBaseValue)
+      ? Math.max(0, Math.min(5000, retryBaseValue)) : 250;
+    const retryMaxValue = Number(E.LLM_RETRY_MAX_DELAY_MS);
+    const retryMaxDelayMs = E.LLM_RETRY_MAX_DELAY_MS !== undefined && String(E.LLM_RETRY_MAX_DELAY_MS).trim() !== '' && Number.isFinite(retryMaxValue)
+      ? Math.max(retryBaseDelayMs, Math.min(10000, retryMaxValue)) : Math.max(retryBaseDelayMs, 2000);
     r.on('close', () => { if (!r.writableEnded) clientAbort.abort(); });
 
     const routed = await runWithFailover({
       providers: qualityGate.providers,
       timeoutMs: providerTimeout,
-      maxAttempts: Number(E.LLM_MAX_ATTEMPTS) || 3,
-      retryBaseDelayMs: Number(E.LLM_RETRY_BASE_DELAY_MS) || 250,
-      retryMaxDelayMs: Number(E.LLM_RETRY_MAX_DELAY_MS) || 2000,
+      maxAttempts: retryAttempts,
+      retryBaseDelayMs,
+      retryMaxDelayMs,
       clientSignal: clientAbort.signal,
       request: (provider, model, signal) => fetch(provider.base.replace(/\/$/, '') + '/chat/completions', {
         method: 'POST',
@@ -271,7 +280,7 @@ app.post('/api/chat/completions', async (q, r) => {
           extra = {};
           return 'retry';
         }
-        if (response.status === 413 && retryIndex < 2) {
+        if (response.status === 413 && retryIndex + 1 < retryAttempts) {
           try { await readResponseTextSafely(response, readBoundedText, 1024 * 1024); } catch {}
           body = fit(body, Math.floor(bud * 0.55));
           return 'retry';
