@@ -38,6 +38,7 @@ app.use((q, r, next) => {
 // cannot repeatedly spend CPU/memory in JSON decoding before being throttled.
 const { rateWindow } = require('./nova-rate-limit');
 const { firstSuccessful } = require('./nova-search-router');
+const { buildChatProviders, runWithFailover } = require('./nova-llm-router');
 const { createSupabaseUserMiddleware } = require('./nova-api-auth');
 const apiAuthRequired = E.NOVA_API_AUTH_REQUIRED === '1';
 const requireNovaUser = apiAuthRequired
@@ -194,43 +195,56 @@ app.post('/api/chat/completions', async (q, r) => {
     else body.messages.unshift({ role: 'system', content: developerIdentity + '\n\n' + novaTruthPrompt });
     const sm0 = (body.messages || []).find(x => x.role === 'system'), hasLive = !!(sm0 && typeof sm0.content === 'string' && sm0.content.includes('== LIVE DATA ==')), vis = hasImg(body), bud = vis ? VBUDGET : hasLive ? Math.max(BUDGET, 6500) : BUDGET;
     body = fit(body, bud);
-    const models = vis ? [VISION] : [E.LLM_MODEL, ...String(E.LLM_FALLBACK_MODELS || '').split(',').map(x => x.trim()).filter(Boolean)];
-    const providers = [];
-    if (E.LLM_KEY && E.LLM_MODEL) providers.push({ base: BASE, key: E.LLM_KEY, models });
-    // Provider secrets stay in the Render environment. Groq model IDs are explicit:
-    // this avoids silently selecting a retired or billable model after provider catalog changes.
-    if (E.GROQ_API_KEY && E.GROQ_MODEL) providers.push({ base: secureProviderBase('GROQ_BASE', E.GROQ_BASE, 'https://api.groq.com/openai/v1'), key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL] });
-    if (E.OPENROUTER_API_KEY && (!E.LLM_KEY || !E.LLM_MODEL || E.OPENROUTER_API_KEY !== E.LLM_KEY)) providers.push({ base: secureProviderBase('OPENROUTER_BASE', E.OPENROUTER_BASE, 'https://openrouter.ai/api/v1'), key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'openrouter/free'] });
-    if (!providers.length) return r.status(503).json({ error: 'No compatible AI chat provider is configured. Set LLM_KEY with LLM_MODEL, GROQ_API_KEY with GROQ_MODEL, or OPENROUTER_API_KEY (defaults to openrouter/free).' });
-    let extra = vis ? { reasoning_format: 'hidden' } : {};   // keep the model's private thinking out of the answer
-    let good = null, first = null, last = 0;
+    const providerBases = { primary: BASE };
+    if (E.GROQ_API_KEY && E.GROQ_MODEL) {
+      providerBases.groq = secureProviderBase('GROQ_BASE', E.GROQ_BASE, 'https://api.groq.com/openai/v1');
+    }
+    if (E.OPENROUTER_API_KEY) {
+      providerBases.openrouter = secureProviderBase('OPENROUTER_BASE', E.OPENROUTER_BASE, 'https://openrouter.ai/api/v1');
+    }
+    const providers = buildChatProviders(E, { vision: vis, defaultVisionModel: VISION, bases: providerBases });
+    if (!providers.length) return r.status(503).json({ error: 'No compatible AI chat provider is configured. Configure one approved server-side provider.' });
+
+    let extra = vis ? { reasoning_format: 'hidden' } : {};
+    let first = null;
     const clientAbort = new AbortController();
     const providerTimeout = Math.max(15000, Math.min(120000, Number(E.LLM_TIMEOUT_MS) || 90000));
-    const providerSignal = AbortSignal.any([AbortSignal.timeout(providerTimeout), clientAbort.signal]);
     r.on('close', () => { if (!r.writableEnded) clientAbort.abort(); });
-    for (const provider of providers) {
-      for (const model of provider.models) {
-        for (let t = 0; t < 3; t++) {
-          const u = await fetch(provider.base.replace(/\/$/, '') + '/chat/completions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + provider.key },
-            body: JSON.stringify({ ...body, ...extra, model, stream: body.stream !== false }),
-            signal: providerSignal
-          });
-          if (u.ok) { good = u; break; }
-          const text = await readBoundedText(u, 1024 * 1024);
-          if (!first) first = { status: u.status, type: u.headers.get('content-type'), text };
-          last = u.status;
-          if (u.status === 400 && Object.keys(extra).length) { extra = {}; continue; }
-          if (u.status === 413 && t < 2) { body = fit(body, Math.floor(bud * 0.55)); continue; }
-          break;
+
+    const routed = await runWithFailover({
+      providers,
+      timeoutMs: providerTimeout,
+      clientSignal: clientAbort.signal,
+      request: (provider, model, signal) => fetch(provider.base.replace(/\/$/, '') + '/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + provider.key },
+        body: JSON.stringify({ ...body, ...extra, model, stream: body.stream !== false }),
+        signal
+      }),
+      onResponse: async (response, { retryIndex }) => {
+        if (response.status === 400 && Object.keys(extra).length) {
+          try { await readBoundedText(response, 1024 * 1024); } catch {}
+          extra = {};
+          return 'retry';
         }
-        if (good) break;
+        if (response.status === 413 && retryIndex < 2) {
+          try { await readBoundedText(response, 1024 * 1024); } catch {}
+          body = fit(body, Math.floor(bud * 0.55));
+          return 'retry';
+        }
+        const text = await readBoundedText(response, 1024 * 1024);
+        if (!first) first = { status: response.status, type: response.headers.get('content-type'), text };
+        return (response.status === 400 || response.status === 404) ? 'next-model' : 'next-provider';
       }
-      if (good) break;
-      // Always attempt the next configured provider; one provider's outage must not block the rest.
+    });
+    if (!routed.response) {
+      const status = first ? first.status : 503;
+      return r.status(status).json({
+        error: 'AI service is temporarily unavailable. Please retry shortly.',
+        status
+      });
     }
-    if (!good) return r.status(first ? first.status : 502).json({ error: 'LLM provider request failed', status: first ? first.status : 502 });
+    const good = routed.response;
     r.status(good.status).set('Content-Type', good.headers.get('content-type') || 'text/event-stream');
     for await (const chunk of good.body) {
       if (r.destroyed) break;
