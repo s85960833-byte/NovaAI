@@ -187,3 +187,9 @@ The examples are fictional and tested against NOVA BI calculation functions. The
 Candidate `76e89066d04f00e991b7a49b59cb93c4839a6ab7` passes Main #43251147719 and Browser #43251147695 on the exact same SHA; duplicate exact-head runs also succeeded. Main skips four live/release checks. Staging still runs an older commit and Production was not redeployed. See [NOVA_STATUS.md](NOVA_STATUS.md).
 
 The NOVA BI preview now auto-maps currency-suffixed headers such as `Amount (INR)`. The SHA-256 Action Proof browser test and synthetic demo calculation tests passed on that candidate.
+
+## Code and research model-quality gate
+
+For safety and answer quality, Nova's server and browser allow Code and Deep Research only when an exact provider/model ID has committed T1/T2 evaluation evidence: at least 100 cases on `golden-100-v1`, score >=90/100, and a linked report plus commit SHA. The current evidence registry is empty, so these two routes return a bilingual “quality not verified yet” message rather than silently using an unbenchmarked model. BYOK and embedded-preview modes cannot bypass this gate. General chat is not affected.
+
+The evaluation runner and actual model benchmarks are still pending; an empty registry is intentional, not a claim that providers were tested.
