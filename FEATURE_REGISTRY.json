@@ -472,7 +472,10 @@
         "nova-server.txt",
         "nova-llm-router.js",
         "nova-provider-quality.js",
-        "provider-quality-evidence.json"
+        "provider-quality-evidence.json",
+        "nova-quality-route.js",
+        "nova-app.js",
+        "index.html"
       ],
       "testFiles": [
         "scripts/llm-router.test.cjs",
@@ -490,7 +493,8 @@
         "Predictive quota switching, durable monetary cost caps, response quality validation and golden-set ranking are not implemented.",
         "A provider stream that fails after bytes have reached the browser cannot yet be seamlessly continued by another provider.",
         "Code and Deep Research routes require exact provider/model evidence of at least 100 golden-set cases and score >=90 on the committed golden-100-v1 suite; no model currently has qualifying evidence.",
-        "Unverified code/deep-research requests fail closed with a bilingual quality-not-yet-verified message instead of silently using an unbenchmarked fallback."
+        "Unverified code/deep-research requests fail closed with a bilingual quality-not-yet-verified message instead of silently using an unbenchmarked fallback.",
+        "The browser blocks code/research requests in BYOK and embedded-preview mode until qualifying server/evaluation evidence is available; embedded mode cannot bypass the server quality rule."
       ]
     },
     {
