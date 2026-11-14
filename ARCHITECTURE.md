@@ -84,3 +84,11 @@ Provider terms gate integrations. Gemini API additional terms currently require 
 This stage is deliberately a **classifier and honesty boundary**, not ten execution engines. The pre-existing `/api/live` route remains responsible for retrieval and the frontend attaches retrieved context before chat. Code and prompt writing remain chat assistance; no untrusted code is executed. Document/PDF, image and voice are partial flows that require their own input/provider paths. Durable Deep Research, the interactive Nova Build preview/export/publish pipeline and resumable Nova Agent runtime are not implemented and must not be marketed as available.
 
 Intent precedence prioritizes voice metadata, image input and attached-document context before task language. The classifier currently detects Hindi/English terms and is a baseline, not a multilingual NLP model. The current frontend does not attach voice-origin metadata on every speech path. Contract tests live in `scripts/orchestrator.test.cjs` and run via `npm run test:orchestrator`.
+
+## Model-quality tiers for Code and Deep Research
+
+NOVA enforces a model-specific T1/T2 evidence gate for `code` and `deep-research`. The committed registry is `provider-quality-evidence.json`; it currently contains **zero verified models**. A model is eligible only when its exact provider/model ID has a committed evaluation record with at least 100 cases on `golden-100-v1`, a score of at least 90/100, an evaluation date, a report path and an evidence commit SHA. Provider-wide aliases or marketing claims do not qualify.
+
+The server filters the route's provider/model chain using `nova-provider-quality.js`. If no exact eligible model remains, it returns HTTP 503 with `quality_tier_unverified` and a bilingual explanation. The browser blocks code/research in BYOK and embedded-preview modes too, so those paths cannot bypass the server gate. General chat and other non-code routes are not affected.
+
+This is a **release safety gate, not proof of quality**. The 100-case benchmark runner, real model evaluations, scheduled reranking and score dashboard are not yet implemented. Do not add records to the evidence registry until a real evaluation report and matching commit are reviewed and committed.
