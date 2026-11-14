@@ -49,3 +49,11 @@ Before setting `NOVA_ALLOW_CLOUDFLARE=1`, a legally eligible adult operator must
 ## Release rule
 
 Keep PR #98 Open / Draft / unmerged and Production unchanged until exact-head CI, Staging deploy, authenticated runtime tests, provider-rights approval, data-deletion/security work, cost controls and owner gates are all evidenced.
+
+## Code and Deep Research quality-tier release gate
+
+- Exact provider/model IDs are not assigned T1/T2 based on provider name or marketing material.
+- Eligibility requires a committed record in `provider-quality-evidence.json`: at least 100 cases, score >=90/100, evaluation suite `golden-100-v1`, date, report path and evidence commit SHA.
+- No model currently meets the evidence rule. Server Code/Deep Research calls therefore fail closed; BYOK and embedded preview paths are blocked too.
+- This policy intentionally prioritizes honest quality over an apparently working code/research button. General chat remains unchanged.
+- The benchmark runner, actual 100-case evaluation for each model, quality trend monitoring and automated reranking remain not implemented.
