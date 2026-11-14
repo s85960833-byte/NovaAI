@@ -262,3 +262,13 @@ This addendum supersedes the earlier “CI pending” notes above for the provid
 ### Phase 1 decision
 
 **Phase 1 remains IN PROGRESS; Production remains NO-GO.** Provider routing contract tests are now green, but current-head Staging deployment, real provider and live-search validation, full account lifecycle/deletion, durable usage/cost guard, remaining provider terms, physical Android/microphone/camera, backup/restore, accessibility and legal review are still open.
+
+
+## Central request orchestrator checkpoint — 14 November 2026
+
+- Added `nova-orchestrator.js` with the requested 10-route vocabulary and an explicit capability status/execution boundary for every route.
+- Integrated the classifier into `POST /api/chat/completions`; responses expose `X-Nova-Route` and `X-Nova-Capability-Status`, and route-specific honesty instructions are appended to the system message.
+- Existing live retrieval continues through `/api/live`; the orchestrator only recognizes supplied `== LIVE DATA ==` context and does not itself crawl/search external pages.
+- Added `scripts/orchestrator.test.cjs`, `npm run test:orchestrator`, and a Main CI step. Tests cover all route families, missing-vs-present live context, document context, image input, voice metadata, unsupported Build/Agent/Deep Research workflows, PDF output requests in English/Hindi, code fences and website-explanation false positives.
+- **Not a claim of feature completion:** Build App/site, durable Agent, Deep Research, sandboxed code execution and complete export are explicitly not implemented. Prompt writing/code are chat assistance only. Document/PDF, image and voice remain partial. Voice-source metadata is not yet attached by every frontend speech path.
+- New orchestrator integration and updated tests require exact-head CI success and current-SHA Staging confirmation before this checkpoint can be considered verified.
