@@ -148,7 +148,7 @@ function selectIntent(body = {}) {
     return { intent: 'agent-task', hasLiveData, hasImage, hasDocument };
   }
 
-  if (/\b(?:write|create|improve|rewrite|optimise|optimize|craft)\s+(?:me\s+)?(?:(?:a|an|the)\s+)?prompt\b|\bprompt[- ](?:writer|improver|engineering)\b|(?:प्रॉम्प्ट|prompt).{0,25}(?:लिखो|बनाओ|सुधारो|बेहतर करो)|(?:लिखो|बनाओ|सुधारो|बेहतर करो).{0,25}(?:प्रॉम्प्ट|prompt)|\bprompt\b.{0,25}\b(?:likho|banao|sudhar|behtar karo)\b/i.test(lower)) {
+  if (/\b(?:write|create|improve|rewrite|optimise|optimize|craft)\b.{0,60}\bprompt\b|\bprompt[- ](?:writer|improver|engineering)\b|(?:प्रॉम्प्ट|prompt).{0,25}(?:लिखो|बनाओ|सुधारो|बेहतर करो)|(?:लिखो|बनाओ|सुधारो|बेहतर करो).{0,25}(?:प्रॉम्प्ट|prompt)|\bprompt\b.{0,25}\b(?:likho|banao|sudhar|behtar karo)\b/i.test(lower)) {
     return { intent: 'prompt-writing', hasLiveData, hasImage, hasDocument };
   }
 
