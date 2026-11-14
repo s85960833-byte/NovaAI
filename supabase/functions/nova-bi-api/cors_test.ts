@@ -89,3 +89,16 @@ Deno.test("NOVA BI handles preflight before authentication and never reflects an
   if (response.headers.get("Access-Control-Allow-Origin") !== site) throw new Error("Authenticated responses must use the exact site origin");
   if (Number(handlerCalls) !== 1) throw new Error("Allowed non-preflight request should invoke the handler once");
 });
+
+Deno.test("NOVA BI preserves existing Vary Origin tokens case-insensitively", async () => {
+  const site = "https://nova.example.com";
+  for (const vary of ["accept-encoding, origin", "Accept-Language, ORIGIN", "Origin"]) {
+    const wrapped = withSiteOrigin(async () => new Response("ok", { headers: { "Vary": vary } }), site);
+    const response = await wrapped(new Request(site + "/functions/v1/nova-bi-api/me", {
+      headers: { Origin: site },
+    }));
+    if (response.headers.get("Vary") !== vary) {
+      throw new Error("Existing case-insensitive Vary: Origin token must not be duplicated: " + vary);
+    }
+  }
+});
