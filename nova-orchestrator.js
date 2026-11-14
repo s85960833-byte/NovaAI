@@ -144,7 +144,7 @@ function selectIntent(body = {}) {
   if (/\b(?:write|create|improve|rewrite|optimise|optimize|craft)\s+(?:me\s+)?(?:(?:a|an|the)\s+)?prompt\b|\bprompt[- ](?:writer|improver|engineering)\b/i.test(lower)) {
     return { intent: 'prompt-writing', hasLiveData, hasImage, hasDocument };
   }
-  if (/\b(?:debug|fix (?:this )?(?:code|bug)|write (?:some )?code|generate code|program|script|function|compile|typescript|javascript|python code|java code|c\+\+ code)\b|\`\`\`/.test(lower)) {
+  if (/\b(?:debug|fix (?:this )?(?:code|bug)|write (?:some )?code|generate code|program|script|function|compile|typescript|javascript|python code|java code|c\+\+ code)\b/.test(lower) || lower.includes('```')) {
     return { intent: 'code', hasLiveData, hasImage, hasDocument };
   }
   if (/\b(?:generate|create|make|design)\s+(?:me\s+)?(?:(?:a|an|the)\s+)?(?:image|picture|poster|logo|thumbnail|illustration)\b|\bimage studio\b/i.test(lower)) {
