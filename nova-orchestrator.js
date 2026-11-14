@@ -128,7 +128,7 @@ function selectIntent(body = {}) {
 
   if (voiceOrigin) return { intent: 'voice', hasLiveData, hasImage, hasDocument };
   if (hasImage) return { intent: 'image', hasLiveData, hasImage, hasDocument };
-  if (hasDocument || /\b(read|summarize|analyse|analyze|explain|extract)\b.{0,40}\b(pdf|document|file)\b|\b(pdf|docx|xlsx)\s+(?:export|download)\b/i.test(lower)) {
+  if (hasDocument || /\b(read|summarize|analyse|analyze|explain|extract)\b.{0,40}\b(pdf|document|file)\b|\b(pdf|docx|xlsx)\s+(?:export|download)\b|\b(?:make|create|generate)\b.{0,30}\b(pdf|docx|xlsx)\b|\b(pdf|docx|xlsx)\b.{0,25}\b(?:bana|bna)\b|\u092c\u0928\u093e\s*(?:\u0926\u094b|\u0926\u0947\u0902)?/i.test(lower)) {
     return { intent: 'document/PDF', hasLiveData, hasImage, hasDocument };
   }
 
