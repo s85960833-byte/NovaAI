@@ -272,3 +272,25 @@ This addendum supersedes the earlier “CI pending” notes above for the provid
 - Added `scripts/orchestrator.test.cjs`, `npm run test:orchestrator`, and a Main CI step. Tests cover all route families, missing-vs-present live context, document context, image input, voice metadata, unsupported Build/Agent/Deep Research workflows, PDF output requests in English/Hindi, code fences and website-explanation false positives.
 - **Not a claim of feature completion:** Build App/site, durable Agent, Deep Research, sandboxed code execution and complete export are explicitly not implemented. Prompt writing/code are chat assistance only. Document/PDF, image and voice remain partial. Voice-source metadata is not yet attached by every frontend speech path.
 - New orchestrator integration and updated tests require exact-head CI success and current-SHA Staging confirmation before this checkpoint can be considered verified.
+
+
+## Phase 1 update — 14 November 2026 (Asia/Kolkata)
+
+### New code and regression coverage on PR #98
+
+- The request classifier now recognizes common Hindi/Hinglish requests for website creation, code/debugging, prompt improvement, research, PDF/document help, image creation and current information. It remains an intent classifier, not a separate runtime for every route.
+- A conditional fourth company adapter, Cloudflare Workers AI, is present in the failover router. It is gated by `NOVA_ALLOW_CLOUDFLARE=1`, a valid account ID, API token and explicit model. It is restricted to ordinary chat, prompt-writing and voice-originated text. The flag stays `0`; no Cloudflare credentials or live requests have been used.
+- Image Studio now reports enabled only when a provider has its explicit operator opt-in and required credentials. The default environment keeps paid image generation, Pollinations spend and AI Horde disabled. Without a configured approved provider, the image API returns a friendly HTTP 503 and the UI does not call public Pollinations hosts directly.
+- The photo helper's browser link now points to the existing Nova Production URL rather than the embedded Claude preview artifact. Unsupported in-app voice browsers receive bilingual instructions to continue with text and open Nova in Chrome/Edge.
+- Regression tests were added for bilingual routing, optional Cloudflare routing, explicit image-provider gates, default-off image settings, the photo fallback URL and unsupported voice messaging. These are source/CI assertions, not physical Android or real-provider tests.
+
+### Remaining Phase 1 and release blockers
+
+- Render Staging still uses the existing service and branch, but its Health Check Path is blank and its latest known Live deploy is older than the current PR head. A new Live deploy must be confirmed by matching its deployed SHA to the PR head.
+- The last known Staging `/api/config` returned HTTP 503 because no AI chat provider/model was configured. Real provider-backed chat, authenticated live search, voice transcription and image generation remain unverified.
+- The router contains four possible adapters, but only when configured; it does not yet establish four independent, commercial-rights-cleared providers with task-specific same-tier quality. Cloudflare remains unconfigured/default-off.
+- Predictive quota switching, durable token ledger, hard rupee spend cap, quality validation, golden set, interrupted-stream continuation and durable circuit state remain missing.
+- Camera/gallery and microphone behavior must still be checked on a physical Android device. Chromium automation is not a substitute for actual mobile permissions.
+- Full account deletion, valid/expired user-session testing, child-data/privacy/legal review, backup/restore and operational load/rollback drills remain open.
+
+**Status: Phase 1 IN PROGRESS. Production remains NO-GO.** The above updates do not establish live feature completion or production readiness.
