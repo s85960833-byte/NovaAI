@@ -90,6 +90,54 @@ function parseRetryAfterMs(response) {
   return Number.isFinite(date) ? Math.max(1000, Math.min(5 * 60 * 1000, date - Date.now())) : 30000;
 }
 
+function calculateRetryDelayMs(retryIndex, options = {}) {
+  const baseRaw = Number(options.retryBaseDelayMs);
+  const capRaw = Number(options.retryMaxDelayMs);
+  const base = Number.isFinite(baseRaw) ? Math.max(0, Math.min(5000, baseRaw)) : 250;
+  const cap = Number.isFinite(capRaw) ? Math.max(base, Math.min(10000, capRaw)) : 2000;
+  const exponent = Math.max(0, Math.min(10, Math.floor(Number(retryIndex) || 0)));
+  const exponential = Math.min(cap, base * (2 ** exponent));
+  const randomSource = typeof options.random === 'function' ? options.random : Math.random;
+  const sample = Number(randomSource());
+  const jitter = Number.isFinite(sample) ? Math.max(0, Math.min(1, sample)) : 0.5;
+  return Math.min(cap, Math.max(0, Math.round(exponential * (0.5 + jitter))));
+}
+
+async function waitForRetry(ms, signal, customSleep) {
+  if (signal && signal.aborted) {
+    throw signal.reason || new Error('client request aborted');
+  }
+  if (ms > 0) {
+    if (typeof customSleep === 'function') {
+      await customSleep(ms, signal);
+    } else {
+      await new Promise((resolve, reject) => {
+        let timer;
+        const cleanup = () => {
+          if (signal) signal.removeEventListener('abort', onAbort);
+          if (timer) clearTimeout(timer);
+        };
+        const onAbort = () => {
+          cleanup();
+          reject((signal && signal.reason) || new Error('client request aborted'));
+        };
+        const onDone = () => {
+          cleanup();
+          resolve();
+        };
+        timer = setTimeout(onDone, ms);
+        if (signal) {
+          signal.addEventListener('abort', onAbort, { once: true });
+          if (signal.aborted) onAbort();
+        }
+      });
+    }
+  }
+  if (signal && signal.aborted) {
+    throw signal.reason || new Error('client request aborted');
+  }
+}
+
 function createCircuitRegistry(options = {}) {
   const states = new Map();
   const threshold = Math.max(1, Number(options.failureThreshold) || 2);
@@ -136,6 +184,8 @@ async function runWithFailover(options = {}) {
 
   const timeoutMs = Math.max(1000, Math.min(120000, Number(options.timeoutMs) || 90000));
   const clientSignal = options.clientSignal;
+  const maxAttemptsRaw = Number(options.maxAttempts);
+  const maxAttempts = Number.isFinite(maxAttemptsRaw) ? Math.max(1, Math.min(5, Math.floor(maxAttemptsRaw))) : 3;
   const circuit = options.circuit || defaultCircuit;
   const failures = [];
 
@@ -148,7 +198,7 @@ async function runWithFailover(options = {}) {
 
     let providerUnavailable = false;
     for (const model of provider.models || []) {
-      for (let retryIndex = 0; retryIndex < 3; retryIndex += 1) {
+      for (let retryIndex = 0; retryIndex < maxAttempts; retryIndex += 1) {
         if (clientSignal && clientSignal.aborted) {
           throw clientSignal.reason || new Error('client request aborted');
         }
@@ -181,7 +231,15 @@ async function runWithFailover(options = {}) {
           decision = await options.onResponse(response, { provider, model, retryIndex });
         }
 
-        if (decision === 'retry') continue;
+        if (decision === 'retry') {
+          if (retryIndex + 1 < maxAttempts) {
+            const delayMs = calculateRetryDelayMs(retryIndex, options);
+            await waitForRetry(delayMs, clientSignal, options.sleep);
+            continue;
+          }
+          // A retry decision at the attempt limit becomes a normal failover event.
+          decision = 'next-provider';
+        }
 
         const status = Number(response && response.status) || 0;
         failures.push({ provider: providerKey, model, status });
@@ -205,6 +263,7 @@ async function runWithFailover(options = {}) {
 
 module.exports = {
   buildChatProviders,
+  calculateRetryDelayMs,
   createCircuitRegistry,
   normalizeBase,
   readResponseTextSafely,

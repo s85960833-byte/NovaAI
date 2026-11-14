@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   buildChatProviders,
+  calculateRetryDelayMs,
   createCircuitRegistry,
   normalizeBase,
   readResponseTextSafely,
@@ -237,18 +238,73 @@ test('HTTP 429 opens the provider circuit and routes immediately to the next com
   assert.equal(circuit.isOpen('primary'), true);
 });
 
-test('a request can retry a provider after a correctable response, then succeed', async () => {
+test('correctable provider responses retry with bounded exponential backoff and jitter', async () => {
   let attempts = 0;
+  const delays = [];
   const providers = [{ id: 'primary', base: 'https://primary.example/v1', key: 'a', models: ['a1'] }];
   const result = await runWithFailover({
     providers,
     circuit: createCircuitRegistry(),
-    request: async () => (++attempts === 1 ? response(400) : response()),
+    retryBaseDelayMs: 100,
+    retryMaxDelayMs: 500,
+    random: () => 0.5,
+    sleep: async ms => { delays.push(ms); },
+    request: async () => (++attempts < 3 ? response(400) : response()),
     onResponse: async () => 'retry'
   });
 
   assert.equal(result.provider, 'primary');
-  assert.equal(attempts, 2);
+  assert.equal(attempts, 3);
+  assert.deepEqual(delays, [100, 200]);
+});
+
+test('retry delay is jittered, non-negative and capped', () => {
+  assert.equal(calculateRetryDelayMs(0, { retryBaseDelayMs: 100, retryMaxDelayMs: 400, random: () => 0 }), 50);
+  assert.equal(calculateRetryDelayMs(8, { retryBaseDelayMs: 100, retryMaxDelayMs: 400, random: () => 1 }), 400);
+  assert.equal(calculateRetryDelayMs(0, { retryBaseDelayMs: -50, retryMaxDelayMs: 0, random: () => 0.5 }), 0);
+});
+
+test('retry budget exhaustion falls through to the next provider', async () => {
+  const calls = [];
+  const providers = [
+    { id: 'primary', base: 'https://primary.example/v1', key: 'a', models: ['a1'] },
+    { id: 'fallback', base: 'https://fallback.example/v1', key: 'b', models: ['b1'] }
+  ];
+  const result = await runWithFailover({
+    providers,
+    maxAttempts: 2,
+    retryBaseDelayMs: 0,
+    random: () => 0.5,
+    sleep: async () => {},
+    circuit: createCircuitRegistry(),
+    request: async provider => {
+      calls.push(provider.id);
+      return provider.id === 'primary' ? response(503) : response();
+    },
+    onResponse: async () => 'retry'
+  });
+
+  assert.equal(result.provider, 'fallback');
+  assert.deepEqual(calls, ['primary', 'primary', 'fallback']);
+  assert.equal(result.failures.length, 1);
+});
+
+test('client cancellation during backoff stops before another provider attempt', async () => {
+  const controller = new AbortController();
+  const calls = [];
+  const providers = [{ id: 'primary', base: 'https://primary.example/v1', key: 'a', models: ['a1'] }];
+  await assert.rejects(runWithFailover({
+    providers,
+    clientSignal: controller.signal,
+    circuit: createCircuitRegistry(),
+    request: async () => {
+      calls.push('primary');
+      return response(400);
+    },
+    onResponse: async () => 'retry',
+    sleep: async () => { controller.abort(new Error('client left during retry')); }
+  }), /client left during retry/);
+  assert.deepEqual(calls, ['primary']);
 });
 
 test('caller cancellation stops the chain instead of spending on another provider', async () => {
