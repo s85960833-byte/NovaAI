@@ -19,7 +19,8 @@
     "test:search-router": "node --test scripts/search-router.test.cjs",
     "test:feature-registry": "node --test scripts/feature-registry.test.cjs",
     "test:answer-modes": "node --test scripts/answer-modes.test.cjs",
-    "test:provider-rights": "node --test scripts/provider-rights.test.cjs"
+    "test:provider-rights": "node --test scripts/provider-rights.test.cjs",
+    "test:llm-router": "node --test scripts/llm-router.test.cjs"
   },
   "engines": {
     "node": "22.x"
