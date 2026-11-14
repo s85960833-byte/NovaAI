@@ -75,3 +75,12 @@ Providers are de-duplicated by hostname, so configuring two credentials for the 
 This is a safer first-stage failover implementation, not a guarantee of equal answer quality or quota availability. Only three provider adapters are currently available, no fourth independent provider has passed commercial/age/production review, and a stream interrupted after output has reached the browser is not yet resumed by another model. Circuit state is process-local. Quota prediction, durable user usage accounting, hard spend caps, quality evaluation and cross-release model ranking remain open.
 
 Provider terms gate integrations. Gemini API additional terms currently require an 18+ API operator and prohibit API clients directed to or likely accessed by people under 18; it is therefore not used for Nova's intended student audience. Mistral's published Free API mode is for evaluation/prototyping and is not treated as production capacity. See the official provider terms and limits in `DECISIONS.md`.
+
+
+## Central request orchestrator
+
+`nova-orchestrator.js` classifies the latest user request into the required route vocabulary: chat, live-search, deep-research, code, prompt-writing, document/PDF, image, voice, build-app/site or agent-task. The server chat-completion handler applies the classifier and exposes `X-Nova-Route` and `X-Nova-Capability-Status` response headers for diagnostics. It appends a short route-specific boundary instruction to the model system message.
+
+This stage is deliberately a **classifier and honesty boundary**, not ten execution engines. The pre-existing `/api/live` route remains responsible for retrieval and the frontend attaches retrieved context before chat. Code and prompt writing remain chat assistance; no untrusted code is executed. Document/PDF, image and voice are partial flows that require their own input/provider paths. Durable Deep Research, the interactive Nova Build preview/export/publish pipeline and resumable Nova Agent runtime are not implemented and must not be marketed as available.
+
+Intent precedence prioritizes voice metadata, image input and attached-document context before task language. The classifier currently detects Hindi/English terms and is a baseline, not a multilingual NLP model. The current frontend does not attach voice-origin metadata on every speech path. Contract tests live in `scripts/orchestrator.test.cjs` and run via `npm run test:orchestrator`.
