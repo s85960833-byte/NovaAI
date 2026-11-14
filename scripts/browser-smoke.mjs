@@ -354,7 +354,7 @@ try{
  await mobile.locator('#novaModes.open').waitFor();
  const buildText=await mobile.locator('#nmContent').innerText();
  assert.ok(buildText.includes('NOVA Build'));
- assert.ok(buildText.includes('Image Studio'));
+ assert.ok(!buildText.includes('Image Studio'),'mobile Build must hide Image Studio when no approved image provider is configured');
  assert.ok(!buildText.includes('Live Voice'));
  assert.ok(!buildText.includes('Photo Questions'));
  await mobile.locator('#nmClose').tap();
