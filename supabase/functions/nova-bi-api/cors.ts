@@ -63,14 +63,14 @@ export function withSiteOrigin(
 
     const response = await handler(request);
     const headers = new Headers(response.headers);
+    if (origin) {
+      for (const [name, value] of Object.entries(createCorsHeaders(siteOrigin))) {
+        if (name.toLowerCase() !== "vary") headers.set(name, value);
+      }
+    }
     const vary = headers.get("Vary");
     const varyTokens = vary ? vary.split(",").map((token) => token.trim().toLowerCase()) : [];
     if (!varyTokens.includes("origin")) headers.set("Vary", vary ? vary + ", Origin" : "Origin");
-    if (origin) {
-      for (const [name, value] of Object.entries(createCorsHeaders(siteOrigin))) {
-        headers.set(name, value);
-      }
-    }
     return new Response(response.body, {
       status: response.status,
       statusText: response.statusText,
