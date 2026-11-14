@@ -526,6 +526,28 @@
         "Deep Research, Nova Build app/site generation and durable Nova Agent execution are not implemented; requests fall back honestly to bounded assistance.",
         "Voice-origin metadata is not yet attached by every frontend speech input path."
       ]
+    },
+    {
+      "id": "core.universal_accuracy",
+      "status": "implemented",
+      "productExposure": "existing_ui",
+      "area": "NOVA Agents",
+      "sourceFiles": [
+        "nova-app.js",
+        "index.html"
+      ],
+      "testFiles": [
+        "scripts/accuracy-instruction.test.cjs"
+      ],
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "routeMarkers": [],
+      "limits": [
+        "Universal Accuracy Rules are inserted into every chat system prompt and cannot be disabled by user controls.",
+        "A prompt instruction is not proof that answers are factually correct; live provider output, citations and quality evaluations remain unverified.",
+        "Incremental provider token cost and answer-quality impact are unknown until a permitted model is configured and measured.",
+        "No prompt-content analytics are added because no analytics backend is configured."
+      ]
     }
   ]
 }

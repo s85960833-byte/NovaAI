@@ -45,6 +45,9 @@ jobs:
         run: npm run test:feature-registry
       - name: Verify image and voice fallback honesty
         run: npm run test:feature-fallbacks
+
+      - name: Verify always-on Universal Accuracy Instruction
+        run: npm run test:accuracy-instruction
       - name: Verify Quick, Standard and Detailed answer modes
         run: npm run test:answer-modes
       - name: Verify free-provider model defaults and deprecation safety
