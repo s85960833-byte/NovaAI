@@ -1,3 +1,37 @@
+# LIVE EXECUTION STATE — 14 November 2026 (Asia/Kolkata)
+
+**This block is the current checkpoint and supersedes older checkpoints below.**
+
+- Repository: `s85960833-byte/NovaAI`
+- PR #98: Open / Draft / unmerged. Branch: `fix/nova-home-learn-first-mobile-20261109`.
+- Exact current PR head at checkpoint: `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`.
+- Production URL: `https://novaai-4auo.onrender.com`. No production merge, environment edit or deployment was performed.
+- Staging service: `srv-dbqm035g1s2s73eogao0`; URL: `https://novaai-pr98-staging.onrender.com`; Auto Deploy is enabled for this PR branch.
+- Latest Render deploy: `dep-dbs0g58n74is738h58s0`, status **Live**, exact commit `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`. Render build logs show Node.js 22.23.5, `npm install`, 72 packages audited, 0 vulnerabilities reported by that install, and start command `node nova-server.txt`. Runtime logs say API account authentication is REQUIRED and the server is listening on port 10000.
+- Render service config still has an empty `healthCheckPath`. The Render service connector available in this session is read-only for that setting.
+- Exact-head GitHub Actions: Main workflow [#43565665119](https://github.com/s85960833-byte/NovaAI/actions/runs/43565665119) **success**; its core steps 1–53 passed, while steps 54–56 (merged-Production wait, live provider smoke, and live free-image smoke) were skipped. Browser workflow [#43565665079](https://github.com/s85960833-byte/NovaAI/actions/runs/43565665079) **success**, 17/17 job steps.
+- Main CI's deployed-PR smoke and negative-auth verification steps passed. Missing, malformed and invalid session cases are rejected. This does not establish a valid customer session, email flow, account isolation or provider-backed AI response.
+- The PR feature registry still records chat/search as preview and shows no configured Staging AI provider. Live AI chat, Tavily/Brave search, image generation and voice-provider calls are **not verified**. No provider secrets were read or changed.
+- No durable user token/rupee spend ledger, hard provider spend cap, subscription entitlements, checkout, refund/webhook reconciliation or confirmed unit economics are present.
+- No safe full Auth account deletion, physical Android camera/microphone verification, backup/restore drill, load/soak evidence, or complete legal/provider/IP/privacy review is claimed.
+- Phase 1 remains **IN PROGRESS**. Master Prompt Definition of Done is **NOT MET**. Keep PR Draft/unmerged and Production unchanged.
+
+## Owner / adult-only actions
+
+1. Set Staging Health Check Path: Render Dashboard → [NOVA PR #98 Staging](https://dashboard.render.com/web/srv-dbqm035g1s2s73eogao0) → Settings → Health Checks → Edit → enter `/health` → Save Changes. Render's official docs describe this as an HTTP GET check expecting a 2xx/3xx response.
+2. Any provider account or agreement with adult eligibility, billing or commercial contracting requirements must be handled by a legally eligible adult who reviews the current provider terms and privacy obligations. Do not send secrets in chat or commit them to GitHub.
+3. Real microphone/camera/browser permission tests require the actual Android handset; CI browser emulation is not a substitute.
+
+## Current evidence links
+
+- PR: https://github.com/s85960833-byte/NovaAI/pull/98
+- Main CI: https://github.com/s85960833-byte/NovaAI/actions/runs/43565665119
+- Browser CI: https://github.com/s85960833-byte/NovaAI/actions/runs/43565665079
+- Staging: https://novaai-pr98-staging.onrender.com
+- Production: https://novaai-4auo.onrender.com
+
+---
+
 # EXECUTION UPDATE — 13 November 2026 (Asia/Kolkata)
 
 - Re-read this file and re-queried PR #98 / Render. GitHub PR API reports current head `33bb3642913c129c771e3749ca24b1ad2f157d69`, Open / Draft / unmerged. The older top checkpoint SHA `624c58a...` is stale and must not be used as current evidence.

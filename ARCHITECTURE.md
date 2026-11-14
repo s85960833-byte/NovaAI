@@ -1,3 +1,14 @@
+## Deployment and authentication snapshot — 14 November 2026 (Asia/Kolkata)
+
+- PR #98 Staging is confirmed Live on `7e816af473d29f9dd2e1d4cab775cb905f1a82fe` (Render deploy `dep-dbs0g58n74is738h58s0`), branch `fix/nova-home-learn-first-mobile-20261109`.
+- Render runtime log confirms API account authentication is REQUIRED on Staging. The local `.env.example` value is a development default, not evidence that the hosted service uses the same value.
+- Render Staging currently has no HTTP `healthCheckPath` configured. The application has a health route; the Staging service setting still needs `/health`.
+- Staging negative-auth smoke passed for missing, malformed and invalid credentials. Valid Supabase user sessions, email delivery and account isolation are not verified.
+- Current exact-head CI skipped live provider smoke. No model response, search-provider result or paid image generation is claimed.
+- Production was not changed. This source architecture document does not certify the PR as production-ready.
+
+---
+
 # NOVA AI — System Architecture
 
 **Reviewed:** 12 November 2026. **Scope:** Source-derived architecture for PR #98, not a certification or a claim that this revision is deployed.

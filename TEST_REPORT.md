@@ -1,3 +1,33 @@
+# EXACT-HEAD VERIFICATION UPDATE — 14 November 2026 (Asia/Kolkata)
+
+**PR #98 head:** `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`  
+**Status:** Open / Draft / unmerged. Production unchanged.
+
+| Area | Result | Evidence / limit |
+|---|---|---|
+| Main verification workflow | PASS | [Run #43565665119](https://github.com/s85960833-byte/NovaAI/actions/runs/43565665119). Core steps 1–53 succeeded; live/production-dependent steps 54–56 were skipped. |
+| Browser verification | PASS | [Run #43565665079](https://github.com/s85960833-byte/NovaAI/actions/runs/43565665079), all 17 job steps succeeded. |
+| Syntax, SBOM, dependency audit, registry, answer modes | PASS | Main CI steps 5–11. |
+| Provider failover and request orchestrator unit contracts | PASS | Main CI steps 12–14; these use mocked providers, not live vendor accounts. |
+| Search routing, Auth wiring, security and source-rights checks | PASS | Main CI steps 15–29. |
+| PostgreSQL/RLS, Edge Function and NOVA BI deterministic checks | PASS | Main CI steps 31–39. |
+| Local runtime, Docker, Chromium and mobile/drawer regression | PASS | Main CI steps 41–50. |
+| Staging smoke and invalid-session rejection | PASS | Main CI steps 52–53. Missing/malformed/invalid credentials are rejected; a valid customer session is not proven. |
+| Live production/provider smoke | SKIPPED | Main CI steps 54–56 were skipped. No claim of a live model, search or image response. |
+| Render Staging deploy | LIVE | Deploy `dep-dbs0g58n74is738h58s0` is Live on exact PR head `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`. Build logs show Node 22.23.5, `npm install`, 72 packages, 0 vulnerabilities reported by npm audit, then `node nova-server.txt`. |
+| Render HTTP health-check setting | NOT CONFIGURED | Render reports `healthCheckPath=""`. CI smoke pass is not a substitute for setting the service's health-check field. |
+| Real AI provider configuration | BLOCKED / UNVERIFIED | Feature registry reports no configured Staging AI provider; no provider secrets were inspected or edited. |
+| Auth valid-session/email/two-account testing | NOT VERIFIED | Negative-token checks pass only. |
+| Physical Android camera/gallery/microphone | NOT VERIFIED | Chromium tests do not prove hardware permission/capture. |
+
+The exact PR-head deployment is now confirmed Live. This corrects earlier entries in the historical report that said the PR head had not yet deployed. The live-provider smoke remains skipped; deployment status must not be confused with end-to-end feature readiness.
+
+## Release decision
+
+**NO-GO for Production.** Keep PR #98 Open / Draft / unmerged. Do not enable Pro/Ultra, checkout or paid marketing claims. Do not change Production. Remaining release blockers are listed in `NOVA_STATUS.md` and `docs/FEATURE_REGISTER.md`.
+
+---
+
 # NOVA AI — Verification Report
 
 **Date:** 14 November 2026 (Asia/Kolkata)  

@@ -1,3 +1,38 @@
+# LATEST PHASE 1 AUDIT — 14 November 2026 (Asia/Kolkata)
+
+**Scope:** exact-head repository, GitHub workflow and Render Staging recheck. This is an in-progress engineering audit, not a certification.
+
+## Verified current state
+
+- PR #98 is Open / Draft / unmerged at `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`.
+- Main CI [#43565665119](https://github.com/s85960833-byte/NovaAI/actions/runs/43565665119) completed successfully. Its code, security, provider-routing, orchestration, DB/RLS, container and local browser checks passed; live provider smoke steps were skipped.
+- Browser CI [#43565665079](https://github.com/s85960833-byte/NovaAI/actions/runs/43565665079) completed successfully, 17/17 steps.
+- Render Staging is now Live on the exact PR head via deploy `dep-dbs0g58n74is738h58s0`. This supersedes older history below that described Staging as running an older SHA.
+- Latest Render build used Node 22.23.5, `npm install`, then `node nova-server.txt`; the runtime log says account authentication is REQUIRED.
+- Render `healthCheckPath` remains blank. Render health-check documentation describes setting an HTTP GET path that returns 2xx/3xx.
+- Main CI passed its deployed-PR smoke and negative-auth checks. It skipped the merged-Production wait, live AI/provider smoke and live free-image smoke. No real authenticated inference/search/image call is evidenced.
+- The feature inventory is in `FEATURE_REGISTRY.json`; a human-readable status map is in `docs/FEATURE_REGISTER.md`.
+
+## Phase 1 findings
+
+**Completed at source/test level:** route and environment inventory; server-side secret boundaries; authentication middleware wiring; provider URL/redirect/body safeguards; sequential search-provider routing and tests; multi-vendor AI adapter/failover code and mocked circuit tests; central intent-routing classifier and contract tests; first provider-rights review; feature inventory; browser viewport and drawer regressions.
+
+**Still open:** four-company production-cleared task-specific provider chains; quality-parity evidence and 100+ prompt bake-offs; predictive quota tracking; durable per-user usage and hard monetary spend caps; response-language/format validator; seamless mid-stream provider switch; full UI/error-state/accessibility review; valid/expired hosted Auth, email delivery, redirect allow-list and two-account isolation; safe full account deletion/retention; real provider-backed Staging chat/search; Android physical camera/gallery/microphone; backup/restore, monitoring, SLO, load/soak and incident/rollback drill; legal/vendor/IP/privacy review.
+
+**Owner/vendor blocked:** Render Staging Health Check Path entry; eligible adult operator/provider terms and privately configured keys; physical-device interaction.
+
+## Decisions
+
+- Preserve the existing Production URL and current `main` deployment. No merge or Production change.
+- Keep all paid provider spend, Pollinations spend and image-provider switches disabled unless an eligible adult operator has confirmed terms, budget and hard cost controls.
+- Do not create multiple accounts or rotate multiple credentials at one provider to bypass limits.
+- Do not call the four-company/equal-quality failover complete: current adapters include primary OpenAI-compatible, Groq and OpenRouter, with optional Cloudflare restricted to a subset of tasks and default-off.
+- Keep unsupported modules hidden or clearly marked as preview/blocked; do not advertise plans, checkout, Build, Agent, document export or voice/image provider behavior as complete unless real end-to-end evidence exists.
+
+**Phase 1 remains IN PROGRESS. Master Prompt Definition of Done NOT MET. Production NO-GO.**
+
+---
+
 # NOVA AI — Phase 1 Product and Technical Audit
 
 **Audit started:** 12 November 2026 (Asia/Kolkata)  
