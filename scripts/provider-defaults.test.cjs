@@ -18,7 +18,7 @@ test('provider routes require explicit credentials and model configuration where
   assert.match(router, /if \(env\.OPENROUTER_API_KEY\)/);
   assert.match(server, /const llmChatConfigured = !!\(E\.LLM_KEY && E\.LLM_MODEL\)/);
   assert.match(server, /const groqChatConfigured = !!\(E\.GROQ_API_KEY && E\.GROQ_MODEL\)/);
-  assert.match(server, /if \(!llmChatConfigured && !groqChatConfigured && !E\.OPENROUTER_API_KEY\)/);
+  assert.match(server, /if \(!llmChatConfigured && !groqChatConfigured && !E\.OPENROUTER_API_KEY && !cloudflareChatConfigured\)/);
 });
 
 test('provider routes are deduplicated by vendor hostname instead of rotating same-company keys', () => {
@@ -40,7 +40,7 @@ test('Render start command stays stable and local startup loads an optional .env
 });
 
 test('optional Cloudflare fallback is opt-in and disabled in the sample environment', () => {
-  assert.match(server, /const cloudflareChatConfigured = E\\.NOVA_ALLOW_CLOUDFLARE === '1'/);
-  assert.match(router, /options\\.allowCloudflare !== false/);
+  assert.match(server, /const cloudflareChatConfigured = E\.NOVA_ALLOW_CLOUDFLARE === '1'/);
+  assert.match(router, /options\.allowCloudflare !== false/);
   assert.match(envExample, /^NOVA_ALLOW_CLOUDFLARE=0$/m);
 });
