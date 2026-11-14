@@ -10,7 +10,7 @@ await expect('externalized NOVA config script','/nova-config.js',{},(r,b)=>r.ok&
 await expect('Business Intelligence scripts included on homepage','/',{},(r,b)=>r.ok&&b.includes('src="/nova-business-core.js"')&&b.includes('src="/nova-business.js"')&&b.includes('src="/nova-business-cloud.js"'));
 await expect('standard UI language dictionaries','/nova-app.js',{},(r,b)=>r.ok&&b.includes('hi:{')&&b.includes('phSolve:'));
 await expect('standard UI Settings and image panels','/',{},(r,b)=>r.ok&&b.includes('id="dset"')&&b.includes('id="photo"')&&b.includes('id="pprev"'));
-await expect('instant health endpoint','/health',{},(r,b)=>r.ok&&JSON.parse(b).status==='ok'&&JSON.parse(b).ready===true);
+await expect('instant health endpoint','/health',{},(r,b)=>{const j=JSON.parse(b);return r.ok&&j.ok===true&&j.ready===true&&j.service==='nova-ai'&&j.status==='ok'});
 await expect('HTTP security headers and full CSP policy','/health',{},r=>{const csp=r.headers.get('content-security-policy')||'';return r.ok&&r.headers.get('x-content-type-options')==='nosniff'&&r.headers.get('x-frame-options')==='DENY'&&r.headers.get('referrer-policy')==='strict-origin-when-cross-origin'&&r.headers.get('permissions-policy')==='camera=(self), microphone=(self), geolocation=()'&&csp.includes("default-src 'self'")&&csp.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net")&&csp.includes("object-src 'none'")&&csp.includes("base-uri 'none'")&&csp.includes("form-action 'self'")&&csp.includes("frame-ancestors 'none'")&&!/script-src[^;]*unsafe-inline/.test(csp)&&r.headers.get('strict-transport-security')==='max-age=31536000; includeSubDomains'&&!r.headers.has('x-powered-by')});
 await expect('optional S-tier feature bundle','/s-tier.js',{},(r,b)=>r.ok&&b.length>1000);
 await expect('reference dashboard asset and home mount','/nova-reference.js',{},(r,b)=>r.ok&&b.includes("const root=$('#hi');")&&b.includes("const host=$('#log');")&&!b.includes('#novaSHome')&&b.includes('data-group=\"build\"')&&b.includes('data-group=\"learn\"')&&b.includes('data-group=\"agents\"'));
@@ -55,4 +55,18 @@ for(let i=0;i<60;i++){
 const blocked=await req('/api/config',{headers:{'x-forwarded-for':rateLimitIp}});
 if(blocked.status!==429) throw new Error('API rate limit did not reject request 61: HTTP '+blocked.status);
 console.log('PASS integrated per-IP API rate limit (60 allowed, 61st blocked)');
+await expect('SEO robots policy','/robots.txt',{},(r,b)=>r.ok&&b.includes('Allow: /')&&b.includes('Disallow: /api/')&&b.includes('/sitemap.xml'));
+await expect('SEO sitemap','/sitemap.xml',{},(r,b)=>r.ok&&b.includes('<urlset')&&b.includes('https://novaai-4auo.onrender.com/'));
+await expect('SEO page metadata','/',{},(r,b)=>r.ok&&b.includes('name="description"')&&b.includes('property="og:title"')&&b.includes('rel="canonical"'));
+
+for (const [name,header] of [
+  ['demo-expenses.csv','Date,Category,Amount (INR)'],
+  ['demo-clients.csv','Client,Revenue (INR),Direct Cost (INR)'],
+  ['demo-team-tasks.csv','Task,Team,Status,Created Date,Completed Date,Due Date']
+]) {
+  await expect('synthetic demo CSV '+name,'/demo-data/'+name,{},(r,b)=>r.ok&&r.headers.get('x-nova-demo-data')==='synthetic'&&r.headers.get('content-type')?.includes('text/csv')&&r.headers.get('content-disposition')?.includes('attachment')&&b.startsWith(header));
+}
+await expect('demo CSV allowlist blocks unknown names','/demo-data/not-a-demo.csv',{},(r,b)=>r.status===404&&JSON.parse(b).error==='Demo file not found');
+await expect('demo CSV allowlist blocks path traversal','/demo-data/%2e%2e%2fnova-server.txt',{},r=>r.status===404);
+
 console.log('PASS local runtime smoke tests');

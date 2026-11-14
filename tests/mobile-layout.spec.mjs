@@ -26,6 +26,11 @@ for (const size of sizes) {
     await expect(page.locator('#main')).toBeVisible();
     await expect(page.locator('#hi .nr-cards')).toBeVisible();
     await expect(page.locator('#hi .nr-card[data-group="learn"]')).toBeVisible();
+    await expect(page.locator('#hi .nr-card h2')).toHaveText(['NOVA Learn', 'NOVA Build', 'NOVA Agents']);
+    const sidebarLabels = await page.locator('#nrSidebarLinks button').allTextContents();
+    expect(sidebarLabels[0]).toContain('NOVA Learn');
+    expect(sidebarLabels[1]).toContain('NOVA Build');
+    expect(sidebarLabels[2]).toContain('NOVA Agents');
     await expect(page.locator('#new')).toBeHidden();
     await expect(page.locator('#nImg')).toBeHidden();
     await expect(page.locator('#nLive')).toBeHidden();
@@ -34,7 +39,7 @@ for (const size of sizes) {
     await expect(page.locator('#novaBICloudLauncher')).toHaveCount(0);
     await expect(page.locator('#nrSidebarLinks')).not.toContainText('Explore');
     const layout = await page.evaluate(() => {
-      const rect = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { x:r.x, right:r.right, width:r.width, bottom:r.bottom }; };
+      const rect = selector => { const r = document.querySelector(selector).getBoundingClientRect(); return { x:r.x, right:r.right, width:r.width, top:r.top, bottom:r.bottom }; };
       return { documentWidth:document.documentElement.scrollWidth, bodyWidth:document.body.scrollWidth,
         main:rect('#main'), home:rect('#hi'), cards:rect('#hi .nr-cards'), card:rect('#hi .nr-card'),
         columns:getComputedStyle(document.querySelector('#hi .nr-cards')).gridTemplateColumns.split(' ').length,
@@ -54,6 +59,7 @@ for (const size of sizes) {
     expect(layout.titleFont).toContain('Noto Sans Devanagari');
     if(size.width<=760){ expect(layout.side).toBe('fixed'); expect(Math.abs(layout.main.width-size.width)).toBeLessThanOrEqual(1); expect(layout.columns).toBe(1); }
     else { expect(layout.main.x).toBeGreaterThan(0); expect(layout.columns).toBe(3); }
+    if(size.width<=430){ expect(layout.card.top).toBeLessThan(size.height); expect(layout.card.bottom).toBeLessThanOrEqual(size.height); }
     await page.screenshot({path:'artifacts/'+browserName+'-workspace-'+size.width+'x'+size.height+'.png',fullPage:true});
     expect(pageErrors).toEqual([]);
   });
@@ -96,16 +102,28 @@ test('English is the first-run default and the global UI switch supports only En
   await expect(top).toBeVisible();
   await expect(top.locator('option')).toHaveCount(2);
   await expect(top).toHaveValue('en');
+  await expect(page.locator('#hi .nr-card h2')).toHaveText(['NOVA Learn', 'NOVA Build', 'NOVA Agents']);
+  const englishSidebar = await page.locator('#nrSidebarLinks button').allTextContents();
+  expect(englishSidebar[0]).toContain('NOVA Learn');
+  expect(englishSidebar[1]).toContain('NOVA Build');
+  expect(englishSidebar[2]).toContain('NOVA Agents');
   await expect(page.locator('#lang option')).toHaveCount(2);
   await expect(page.locator('#lang')).toHaveValue('English');
   await top.selectOption('hi');
   await expect(page.locator('html')).toHaveAttribute('lang', 'hi');
   await expect(page.locator('#uiLang')).toHaveValue('hi');
   await expect(page.locator('#uiLangTop')).toHaveValue('hi');
+  await expect(page.locator('#hi .nr-card h2')).toHaveText(['नोवा लर्न', 'नोवा बिल्ड', 'नोवा एजेंट्स']);
+  const hindiSidebar = await page.locator('#nrSidebarLinks button').allTextContents();
+  expect(hindiSidebar[0]).toContain('नोवा लर्न');
+  expect(hindiSidebar[1]).toContain('नोवा बिल्ड');
+  expect(hindiSidebar[2]).toContain('नोवा एजेंट्स');
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('nova') || '{}').uiLang)).toBe('hi');
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#uiLangTop')).toHaveValue('hi');
+  await expect(page.locator('#hi .nr-card h2')).toHaveText(['नोवा लर्न', 'नोवा बिल्ड', 'नोवा एजेंट्स']);
   await page.locator('#uiLangTop').selectOption('en');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('#uiLang')).toHaveValue('en');
+  await expect(page.locator('#hi .nr-card h2')).toHaveText(['NOVA Learn', 'NOVA Build', 'NOVA Agents']);
 });

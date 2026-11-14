@@ -1,0 +1,14 @@
+services:
+  nova:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    init: true
+    restart: unless-stopped

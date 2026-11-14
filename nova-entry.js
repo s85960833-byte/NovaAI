@@ -5,17 +5,31 @@
   const PLAYED_KEY = 'nova_intro_completed_v2';
   const LEGACY_KEY = 'nova_intro_completed_v1';
   const COOKIE_KEY = 'nova_intro_seen_v2';
+  const storageHas = (storageName, key) => {
+    try { return window[storageName].getItem(key) === '1'; } catch (_) { return false; }
+  };
   const hasPlayed = () => {
-    // Accept every marker used by earlier releases so an upgrade never replays an intro.
-    for (const key of [PLAYED_KEY, LEGACY_KEY]) {
-      try { if (localStorage.getItem(key) === '1') return true; } catch (_) {}
-      try { if (sessionStorage.getItem(key) === '1') return true; } catch (_) {}
-    }
+    // A current marker means the intro has already been completed.
+    if (storageHas('localStorage', PLAYED_KEY) || storageHas('sessionStorage', PLAYED_KEY)) return true;
+
+    // Older releases used v1 storage/cookie markers. Migrate them before hiding
+    // the gate so every subsequent load sees the current durable marker.
+    let legacyCookie = false;
+    let currentCookie = false;
     try {
       const cookies = document.cookie.split(';').map(item => item.trim());
-      return cookies.includes(COOKIE_KEY + '=1') || cookies.includes('nova_intro_seen_v1=1');
+      currentCookie = cookies.includes(COOKIE_KEY + '=1');
+      legacyCookie = cookies.includes('nova_intro_seen_v1=1');
     } catch (_) {}
-    return false;
+    if (
+      storageHas('localStorage', LEGACY_KEY) ||
+      storageHas('sessionStorage', LEGACY_KEY) ||
+      legacyCookie
+    ) {
+      rememberPlayed();
+      return true;
+    }
+    return currentCookie;
   };
   const rememberPlayed = () => {
     try { localStorage.setItem(PLAYED_KEY, '1'); } catch (_) {}

@@ -71,3 +71,20 @@ A code review found that local chats with the same ID overwrite remote versions 
 ## Cloud-sync patch status — 8 November 2026
 
 A follow-up patch now merges remote and local chat histories by their shared sequence overlap rather than globally deduplicating identical message text. This preserves legitimate repeated messages (for example, the same short reply sent twice) while appending local messages that follow the remote overlap. This is still a candidate code change, not a verified release: automated regression, browser, two-device concurrency, document-conflict, deletion/tombstone and live hosted-account tests have not yet passed. The implementation retains the local document when both copies differ because the current snapshot schema has no reliable per-document version or timestamp; memory/custom-instruction conflict resolution also remains limited. Do not claim conflict-safe multi-device sync until those tests and versioned conflict handling are complete.
+
+
+## Demo and feedback materials
+- The two-minute product walkthrough is in [PITCH_SCRIPT.md](PITCH_SCRIPT.md).
+- The sample files and expected illustrative results are in [samples/README.md](samples/README.md).
+- [Feedback outreach templates](BUYER_OUTREACH_TEMPLATES.md) are strictly for non-paid, adult-supervised product feedback; they are not an acquisition offer, paid pilot or purchase solicitation.
+
+
+## Additional internal review materials
+- [Why evaluate NOVA?](WHY_EVALUATE_NOVA.md)
+- [Buyer and technical FAQ](BUYER_FAQ.md)
+- [Selected improvement register](IMPROVEMENT_REGISTER.md)
+
+
+## Latest exact candidate verification
+
+PR #98 exact candidate `76e89066d04f00e991b7a49b59cb93c4839a6ab7` passed Main #43251147719 and Browser #43251147695; duplicate exact-head runs also passed. Main has four skipped live/release checks and Staging remains on an older commit. Browser tests verify synthetic BI calculations, source SHA-256 proof and currency-suffixed amount-column mapping. This does not replace live Staging or physical Android testing.

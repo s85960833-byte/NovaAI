@@ -3,7 +3,7 @@ permissions:
   contents: read
 on:
   push:
-    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101, feature-indian-future-ui, feature-nova-next-ui-20261101, feature/nova-business-intelligence, feature/nova-bi-reconciled-20261106, feature/nova-integrated-release-20261106]
+    branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101, feature-indian-future-ui, feature-nova-next-ui-20261101, feature/nova-business-intelligence, feature/nova-bi-reconciled-20261106, feature/nova-integrated-release-20261106, fix/nova-home-learn-first-mobile-20261109]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -34,8 +34,30 @@ jobs:
           node-version: 22
       - name: Install runtime dependencies
         run: npm ci --no-audit --no-fund
+      - name: Generate and validate production dependency SBOM
+        run: |
+          mkdir -p artifacts
+          npm sbom --omit=dev --sbom-format=spdx > artifacts/novaai-production-sbom.spdx.json
+          npm run sbom:validate
       - name: Check backend and frontend syntax
         run: node scripts/check.mjs
+      - name: Validate machine-readable feature registry and conservative release claims
+        run: npm run test:feature-registry
+      - name: Verify image and voice fallback honesty
+        run: npm run test:feature-fallbacks
+
+      - name: Verify always-on Universal Accuracy Instruction
+        run: npm run test:accuracy-instruction
+      - name: Verify Quick, Standard and Detailed answer modes
+        run: npm run test:answer-modes
+      - name: Verify free-provider model defaults and deprecation safety
+        run: node --test scripts/provider-defaults.test.cjs
+      - name: Test independent AI provider failover and circuit behavior
+        run: npm run test:llm-router
+      - name: Test central request orchestrator and capability boundaries
+        run: npm run test:orchestrator
+      - name: Test evidence-backed T1/T2 model routing for code and research
+        run: npm run test:provider-quality
       - name: Test Markdown link escaping against attribute injection
         run: node --test scripts/security-markdown.test.cjs
       - name: Check isolated mode registry
@@ -44,8 +66,28 @@ jobs:
         run: npm run test:cloud-sync
       - name: Test bounded per-IP rate window
         run: node --test scripts/rate-limit.test.cjs
+      - name: Test sequential, cost-aware search provider routing
+        run: npm run test:search-router
+      - name: Test fail-closed Supabase API authentication and request wiring
+        run: npm run test:api-auth
+      - name: Test validated per-user timezone context
+        run: npm run test:timezone
+      - name: Verify server environment variables are documented
+        run: npm run test:env-example
+      - name: Test production container configuration and secret exclusions
+        run: npm run test:container-config
+      - name: Verify static buttons expose accessible names
+        run: npm run test:a11y
       - name: Test HTTPS-only secret-bearing provider endpoints
         run: node --test scripts/provider-url.test.cjs
+      - name: Test safe provider redirects and bounded response reads
+        run: npm run test:provider-http
+      - name: Verify equity market data requires a documented licensed provider
+        run: npm run test:market-data-policy
+      - name: Verify keyless data providers are disabled without commercial rights
+        run: npm run test:provider-rights
+      - name: Verify AI Horde prompts are not shared for dataset training
+        run: npm run test:image-privacy
       - name: Test PDF.js untrusted-document eval mitigation
         run: node --test scripts/pdf-security.test.cjs
       - name: Install PostgreSQL client
@@ -68,11 +110,14 @@ jobs:
         run: deno check --config supabase/functions/nova-bi-api/deno.json --no-lock supabase/functions/nova-bi-api/index.ts
       - name: Test existing-account company invitation lookup
         run: deno test --config supabase/functions/nova-bi-api/deno.json supabase/functions/nova-bi-api/invitations_test.ts supabase/functions/nova-bi-api/cors_test.ts supabase/functions/nova-bi-api/request-input_test.ts
-      - name: Smoke-test deployed NOVA BI Edge Function auth and CORS
-        if: github.ref == 'refs/heads/main'
+      - name: Smoke-test deployed NOVA BI Edge Function auth and CORS (read-only)
+        if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+        timeout-minutes: 3
         run: node scripts/supabase-edge-smoke.mjs
       - name: Test NOVA Business Intelligence calculations and CSV validation
         run: node --test scripts/business-intelligence.test.cjs
+      - name: Verify synthetic NOVA BI demo datasets and deterministic outputs
+        run: node --test scripts/demo-data.test.cjs
       - name: Validate 60-case AI evaluation fixture
         run: node scripts/validate-ai-evaluation.mjs
       - name: Audit production dependency vulnerabilities
@@ -86,6 +131,27 @@ jobs:
           node scripts/runtime-smoke.mjs || { echo '--- NOVA server startup log ---'; cat /tmp/novaai-test.log; exit 1; }
       - name: Verify graceful server shutdown
         run: node scripts/shutdown-smoke.mjs
+      - name: Build and smoke-test the production Docker image
+        run: |
+          set -euo pipefail
+          docker build --pull -t nova-ai:ci .
+          docker rm -f novaai-container-test >/dev/null 2>&1 || true
+          docker run --rm -d --name novaai-container-test -p 127.0.0.1::3001 -e PORT=3001 -e LLM_KEY=test -e LLM_MODEL=test-model nova-ai:ci
+          trap 'docker rm -f novaai-container-test >/dev/null 2>&1 || true' EXIT
+          host_port="$(docker port novaai-container-test 3001/tcp | head -n 1 | awk -F: '{print $NF}')"
+          if ! [[ "$host_port" =~ ^[0-9]+$ ]]; then
+            echo "Docker did not publish a valid ephemeral host port"
+            docker port novaai-container-test
+            exit 1
+          fi
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent "http://127.0.0.1:${host_port}/health"; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs novaai-container-test
+          exit 1
       - name: Install Devanagari fonts for visual regression screenshots
         run: |
           sudo apt-get update
@@ -113,6 +179,74 @@ jobs:
             test-results/
             package-lock.json
           if-no-files-found: ignore
+      - name: Smoke-test deployed PR #98 Staging health and frontend
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 98
+        timeout-minutes: 3
+        env:
+          NOVAAI_URL: https://novaai-pr98-staging.onrender.com
+        run: |
+          set -euo pipefail
+          health_status="000"
+          for attempt in $(seq 1 45); do
+            health_status="$(curl --silent --show-error --connect-timeout 5 --max-time 10 -o /tmp/nova-staging-health.json -w '%{http_code}' "$NOVAAI_URL/health" || true)"
+            if [ "$health_status" = "200" ]; then
+              break
+            fi
+            sleep 2
+          done
+          if [ "$health_status" != "200" ]; then
+            echo "Staging /health did not return HTTP 200 (last status: $health_status)"
+            exit 1
+          fi
+          node - /tmp/nova-staging-health.json <<'NODE'
+          const fs = require('node:fs');
+          const health = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (health.ok !== true || health.ready !== true || health.status !== 'ok') {
+            console.error('Staging health payload is not ready:', health);
+            process.exit(1);
+          }
+          console.log('Staging health payload is ready.');
+          NODE
+          curl --fail --silent --show-error --retry 3 --retry-delay 2 "$NOVAAI_URL/" -o /tmp/nova-staging-index.html
+          grep -Eqi '<!doctype html|<html' /tmp/nova-staging-index.html
+          for asset in nova-entry.js nova-config.js; do
+            curl --fail --silent --show-error --retry 3 --retry-delay 2 "$NOVAAI_URL/$asset" -o "/tmp/nova-staging-$asset"
+            test -s "/tmp/nova-staging-$asset"
+          done
+          config_status="$(curl --silent --show-error --connect-timeout 5 --max-time 10 -o /tmp/nova-staging-config.json -w '%{http_code}' "$NOVAAI_URL/api/config" || true)"
+          case "$config_status" in
+            200) echo "Staging /api/config is reachable." ;;
+            503) echo "::warning:: Staging /api/config reports no configured AI chat provider; provider calls were intentionally not made." ;;
+            *) echo "Unexpected Staging /api/config HTTP status: $config_status"; exit 1 ;;
+          esac
+          echo "Staging health, homepage and entry assets passed."
+      - name: Verify Staging rejects unauthenticated and invalid API sessions
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 98
+        timeout-minutes: 2
+        env:
+          NOVAAI_URL: https://novaai-pr98-staging.onrender.com
+        run: |
+          set -euo pipefail
+          payload='{"messages":[{"role":"user","content":"This request must be rejected before provider routing."}]}'
+          missing_status="$(curl --silent --show-error --connect-timeout 5 --max-time 12 --request POST --header 'Content-Type: application/json' --data "$payload" -o /tmp/nova-auth-missing.json -w '%{http_code}' "$NOVAAI_URL/api/chat/completions" || true)"
+          if [ "$missing_status" != "401" ]; then
+            echo "Expected missing bearer token to return HTTP 401; received $missing_status"
+            cat /tmp/nova-auth-missing.json || true
+            exit 1
+          fi
+          malformed_status="$(curl --silent --show-error --connect-timeout 5 --max-time 12 --request POST --header 'Content-Type: application/json' --header 'Authorization: Basic not-a-bearer' --data "$payload" -o /tmp/nova-auth-malformed.json -w '%{http_code}' "$NOVAAI_URL/api/chat/completions" || true)"
+          if [ "$malformed_status" != "401" ]; then
+            echo "Expected malformed authorization header to return HTTP 401; received $malformed_status"
+            cat /tmp/nova-auth-malformed.json || true
+            exit 1
+          fi
+          invalid_status="$(curl --silent --show-error --connect-timeout 5 --max-time 12 --request POST --header 'Content-Type: application/json' --header 'Authorization: Bearer not-a-valid-supabase-token' --data "$payload" -o /tmp/nova-auth-invalid.json -w '%{http_code}' "$NOVAAI_URL/api/chat/completions" || true)"
+          if [ "$invalid_status" != "401" ]; then
+            echo "Expected invalid bearer token to return HTTP 401; received $invalid_status"
+            cat /tmp/nova-auth-invalid.json || true
+            exit 1
+          fi
+          echo "Staging rejects missing, malformed and invalid sessions with HTTP 401 before provider routing."
       - name: Wait for the merged bilingual revision to become live on Render
         if: github.ref == 'refs/heads/main'
         env:

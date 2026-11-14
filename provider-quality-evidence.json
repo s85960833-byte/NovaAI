@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "evaluationSetVersion": "golden-100-v1",
+  "minimumCases": 100,
+  "minimumScore": 90,
+  "models": []
+}

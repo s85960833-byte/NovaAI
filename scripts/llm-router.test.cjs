@@ -1,0 +1,351 @@
+'use strict';
+
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const {
+  buildChatProviders,
+  calculateRetryDelayMs,
+  createCircuitRegistry,
+  normalizeBase,
+  readResponseTextSafely,
+  runWithFailover
+} = require('../nova-llm-router');
+
+const response = (status = 200, headers = {}) => new Response(status === 200 ? 'ok' : 'provider error', { status, headers });
+
+test('provider chain deduplicates companies by hostname and preserves model order', () => {
+  const providers = buildChatProviders({
+    LLM_KEY: 'key-a',
+    LLM_MODEL: 'model-a',
+    LLM_FALLBACK_MODELS: 'model-b, model-c, model-b',
+    LLM_BASE: 'https://openrouter.ai/api/v1',
+    GROQ_API_KEY: 'key-b',
+    GROQ_MODEL: 'groq-model',
+    OPENROUTER_API_KEY: 'second-openrouter-key',
+    OPENROUTER_MODEL: 'openrouter/free'
+  }, {
+    bases: {
+      primary: 'https://openrouter.ai/api/v1',
+      groq: 'https://api.groq.com/openai/v1',
+      openrouter: 'https://openrouter.ai/api/v1'
+    }
+  });
+
+  assert.equal(providers.length, 2);
+  assert.deepEqual(providers[0].models, ['model-a', 'model-b', 'model-c']);
+  assert.deepEqual(providers.map(x => x.host), ['openrouter.ai', 'api.groq.com']);
+});
+
+test('vision chain includes only explicitly configured vision models', () => {
+  const providers = buildChatProviders({
+    LLM_KEY: 'key-a',
+    LLM_MODEL: 'chat-model',
+    GROQ_API_KEY: 'key-b',
+    GROQ_MODEL: 'chat-model-b',
+    GROQ_VISION_MODEL: 'vision-b',
+    OPENROUTER_API_KEY: 'key-c'
+  }, {
+    vision: true,
+    defaultVisionModel: 'vision-a',
+    bases: {
+      primary: 'https://api.primary.example/v1',
+      groq: 'https://api.groq.com/openai/v1',
+      openrouter: 'https://openrouter.ai/api/v1'
+    }
+  });
+
+  assert.deepEqual(providers.map(x => x.models), [['vision-a'], ['vision-b']]);
+});
+
+
+test('Cloudflare remains disabled by default even when credentials and a model exist', () => {
+  const env = {
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_API_TOKEN: 'test-token',
+    CLOUDFLARE_MODEL: '@cf/meta/llama-3.1-8b-instruct'
+  };
+  assert.equal(buildChatProviders(env).length, 0);
+  assert.equal(buildChatProviders({ ...env, NOVA_ALLOW_CLOUDFLARE: '0' }).length, 0);
+  assert.equal(buildChatProviders({ ...env, NOVA_ALLOW_CLOUDFLARE: '1' }).length, 1);
+});
+
+test('Cloudflare Workers AI is added only with a valid account, token and explicit model', () => {
+  const providers = buildChatProviders({
+    NOVA_ALLOW_CLOUDFLARE: '1',
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_API_TOKEN: 'test-token',
+    CLOUDFLARE_MODEL: '@cf/meta/llama-3.1-8b-instruct'
+  });
+  assert.equal(providers.length, 1);
+  assert.equal(providers[0].id, 'cloudflare-workers-ai');
+  assert.equal(providers[0].host, 'api.cloudflare.com');
+  assert.deepEqual(providers[0].models, ['@cf/meta/llama-3.1-8b-instruct']);
+  assert.equal(providers[0].key, 'test-token');
+});
+
+test('Cloudflare Workers AI is excluded without credentials, a valid account id or an explicit model', () => {
+  assert.equal(buildChatProviders({
+    CLOUDFLARE_ACCOUNT_ID: 'not-an-account-id',
+    CLOUDFLARE_API_TOKEN: 'test-token',
+    CLOUDFLARE_MODEL: '@cf/model'
+  }).length, 0);
+  assert.equal(buildChatProviders({
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_API_TOKEN: 'test-token'
+  }).length, 0);
+  assert.equal(buildChatProviders({
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_MODEL: '@cf/model'
+  }).length, 0);
+});
+
+test('Cloudflare vision fallback requires an explicit vision model and can be disabled per task', () => {
+  const env = {
+    NOVA_ALLOW_CLOUDFLARE: '1',
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_API_TOKEN: 'test-token',
+    CLOUDFLARE_MODEL: '@cf/meta/llama-3.1-8b-instruct',
+    CLOUDFLARE_VISION_MODEL: '@cf/meta/llama-3.2-11b-vision-instruct'
+  };
+  assert.deepEqual(buildChatProviders(env, { vision: true }).map(p => p.models), [['@cf/meta/llama-3.2-11b-vision-instruct']]);
+  assert.equal(buildChatProviders(env, { allowCloudflare: false }).length, 0);
+  assert.equal(buildChatProviders(env, { vision: true, allowCloudflare: false }).length, 0);
+});
+
+test('four configured companies fall through sequentially to the optional Cloudflare provider', async () => {
+  const providers = buildChatProviders({
+    LLM_KEY: 'primary-key',
+    LLM_MODEL: 'primary-model',
+    LLM_BASE: 'https://api.primary.example/v1',
+    GROQ_API_KEY: 'groq-key',
+    GROQ_MODEL: 'groq-model',
+    OPENROUTER_API_KEY: 'openrouter-key',
+    OPENROUTER_MODEL: 'openrouter/free',
+    NOVA_ALLOW_CLOUDFLARE: '1',
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_API_TOKEN: 'cloudflare-token',
+    CLOUDFLARE_MODEL: '@cf/meta/llama-3.1-8b-instruct'
+  });
+  assert.deepEqual(providers.map(provider => provider.id), [
+    'primary', 'groq', 'openrouter', 'cloudflare-workers-ai'
+  ]);
+
+  const attempted = [];
+  const result = await runWithFailover({
+    providers,
+    circuit: createCircuitRegistry(),
+    request: async provider => {
+      attempted.push(provider.id);
+      return provider.id === 'cloudflare-workers-ai' ? response(200) : response(429);
+    }
+  });
+  assert.deepEqual(attempted, ['primary', 'groq', 'openrouter', 'cloudflare-workers-ai']);
+  assert.equal(result.provider, 'cloudflare-workers-ai');
+});
+
+test('provider bases must use HTTPS and must not contain credentials or query data', () => {
+  assert.equal(normalizeBase('https://api.example.com/v1/'), 'https://api.example.com/v1');
+  for (const url of [
+    'http://api.example.com',
+    'https://user:pass@api.example.com',
+    'https://api.example.com/v1?key=secret',
+    'https://api.example.com/v1#fragment'
+  ]) assert.throws(() => normalizeBase(url));
+});
+
+test('a timeout/network exception on one provider falls through with a fresh timeout signal', async () => {
+  const calls = [];
+  const providers = [
+    { id: 'primary', host: 'primary.example', base: 'https://primary.example/v1', key: 'a', models: ['a1'] },
+    { id: 'fallback', host: 'fallback.example', base: 'https://fallback.example/v1', key: 'b', models: ['b1'] }
+  ];
+  const circuit = createCircuitRegistry({ failureThreshold: 2 });
+  const result = await runWithFailover({
+    providers,
+    timeoutMs: 3000,
+    circuit,
+    request: async (provider, model, signal) => {
+      calls.push({ provider: provider.id, signal });
+      if (provider.id === 'primary') throw new Error('upstream timeout');
+      return response();
+    }
+  });
+
+  assert.equal(result.provider, 'fallback');
+  assert.equal(calls.length, 2);
+  assert.notEqual(calls[0].signal, calls[1].signal);
+  assert.equal(calls[1].signal.aborted, false);
+  assert.equal(result.failures.length, 1);
+});
+
+test('an actual AbortSignal.timeout expiry falls through to the next provider', async () => {
+  const calls = [];
+  const providers = [
+    { id: 'slow', base: 'https://slow.example/v1', key: 'a', models: ['slow-model'] },
+    { id: 'healthy', base: 'https://healthy.example/v1', key: 'b', models: ['healthy-model'] }
+  ];
+  // AbortSignal.timeout() uses an unreferenced timer in Node; keep this test
+  // process alive long enough for the real timeout signal to fire.
+  const keepAlive = setTimeout(() => {}, 1500);
+  try {
+    const result = await runWithFailover({
+      providers,
+      timeoutMs: 1000,
+      circuit: createCircuitRegistry(),
+      request: async (provider, model, signal) => {
+        calls.push(provider.id);
+        if (provider.id === 'slow') {
+          await new Promise((resolve, reject) => {
+            const onAbort = () => reject(signal.reason || new Error('provider request timed out'));
+            if (signal.aborted) return onAbort();
+            signal.addEventListener('abort', onAbort, { once: true });
+          });
+        }
+        return response();
+      }
+    });
+
+    assert.deepEqual(calls, ['slow', 'healthy']);
+    assert.equal(result.provider, 'healthy');
+    assert.equal(result.failures.length, 1);
+    assert.match(result.failures[0].error, /timed out|timeout/i);
+  } finally {
+    clearTimeout(keepAlive);
+  }
+});
+
+test('HTTP 429 opens the provider circuit and routes immediately to the next company', async () => {
+  const circuit = createCircuitRegistry();
+  let primaryCalls = 0;
+  const providers = [
+    { id: 'primary', base: 'https://primary.example/v1', key: 'a', models: ['a1'] },
+    { id: 'fallback', base: 'https://fallback.example/v1', key: 'b', models: ['b1'] }
+  ];
+  const result = await runWithFailover({
+    providers,
+    circuit,
+    request: async provider => {
+      if (provider.id === 'primary') {
+        primaryCalls += 1;
+        return response(429, { 'retry-after': '60' });
+      }
+      return response();
+    }
+  });
+
+  assert.equal(result.provider, 'fallback');
+  assert.equal(primaryCalls, 1);
+  assert.equal(circuit.isOpen('primary'), true);
+});
+
+test('correctable provider responses retry with bounded exponential backoff and jitter', async () => {
+  let attempts = 0;
+  const delays = [];
+  const providers = [{ id: 'primary', base: 'https://primary.example/v1', key: 'a', models: ['a1'] }];
+  const result = await runWithFailover({
+    providers,
+    circuit: createCircuitRegistry(),
+    retryBaseDelayMs: 100,
+    retryMaxDelayMs: 500,
+    random: () => 0.5,
+    sleep: async ms => { delays.push(ms); },
+    request: async () => (++attempts < 3 ? response(400) : response()),
+    onResponse: async () => 'retry'
+  });
+
+  assert.equal(result.provider, 'primary');
+  assert.equal(attempts, 3);
+  assert.deepEqual(delays, [100, 200]);
+});
+
+test('retry delay is jittered, non-negative and capped', () => {
+  assert.equal(calculateRetryDelayMs(0, { retryBaseDelayMs: 100, retryMaxDelayMs: 400, random: () => 0 }), 50);
+  assert.equal(calculateRetryDelayMs(8, { retryBaseDelayMs: 100, retryMaxDelayMs: 400, random: () => 1 }), 400);
+  assert.equal(calculateRetryDelayMs(0, { retryBaseDelayMs: -50, retryMaxDelayMs: 0, random: () => 0.5 }), 0);
+});
+
+test('retry budget exhaustion falls through to the next provider', async () => {
+  const calls = [];
+  const providers = [
+    { id: 'primary', base: 'https://primary.example/v1', key: 'a', models: ['a1'] },
+    { id: 'fallback', base: 'https://fallback.example/v1', key: 'b', models: ['b1'] }
+  ];
+  const result = await runWithFailover({
+    providers,
+    maxAttempts: 2,
+    retryBaseDelayMs: 0,
+    random: () => 0.5,
+    sleep: async () => {},
+    circuit: createCircuitRegistry(),
+    request: async provider => {
+      calls.push(provider.id);
+      return provider.id === 'primary' ? response(503) : response();
+    },
+    onResponse: async () => 'retry'
+  });
+
+  assert.equal(result.provider, 'fallback');
+  assert.deepEqual(calls, ['primary', 'primary', 'fallback']);
+  assert.equal(result.failures.length, 1);
+});
+
+test('client cancellation during backoff stops before another provider attempt', async () => {
+  const controller = new AbortController();
+  const calls = [];
+  const providers = [{ id: 'primary', base: 'https://primary.example/v1', key: 'a', models: ['a1'] }];
+  await assert.rejects(runWithFailover({
+    providers,
+    clientSignal: controller.signal,
+    circuit: createCircuitRegistry(),
+    request: async () => {
+      calls.push('primary');
+      return response(400);
+    },
+    onResponse: async () => 'retry',
+    sleep: async () => { controller.abort(new Error('client left during retry')); }
+  }), /client left during retry/);
+  assert.deepEqual(calls, ['primary']);
+});
+
+test('caller cancellation stops the chain instead of spending on another provider', async () => {
+  const controller = new AbortController();
+  const calls = [];
+  const providers = [
+    { id: 'primary', base: 'https://primary.example/v1', key: 'a', models: ['a1'] },
+    { id: 'fallback', base: 'https://fallback.example/v1', key: 'b', models: ['b1'] }
+  ];
+
+  await assert.rejects(runWithFailover({
+    providers,
+    clientSignal: controller.signal,
+    circuit: createCircuitRegistry(),
+    request: async provider => {
+      calls.push(provider.id);
+      controller.abort(new Error('client left'));
+      throw new Error('aborted');
+    }
+  }), /client left/);
+  assert.deepEqual(calls, ['primary']);
+});
+
+test('provider circuit recovers after its cooldown expires', () => {
+  const circuit = createCircuitRegistry({ cooldownMs: 1000 });
+  circuit.recordFailure('p', { status: 503, now: 1000 });
+  circuit.recordFailure('p', { status: 503, now: 1001 });
+  assert.equal(circuit.isOpen('p', 1500), true);
+  assert.equal(circuit.isOpen('p', 2001), false);
+});
+
+
+test('an oversized or malformed provider error body cannot block failover', async () => {
+  const text = await readResponseTextSafely({}, async () => {
+    throw new Error('response too large');
+  }, 8);
+  assert.match(text, /provider error body omitted/);
+});
+
+test('server honors the configured retry budget for payload-trim retries and preserves zero delay', () => {
+  assert.match(serverSource, /retryIndex \+ 1 < retryAttempts/);
+  assert.match(serverSource, /Math\.max\(0, Math\.min\(5000, retryBaseValue\)\)/);
+  assert.match(serverSource, /Math\.max\(retryBaseDelayMs, Math\.min\(10000, retryMaxValue\)\)/);
+});
