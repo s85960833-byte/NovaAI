@@ -162,7 +162,7 @@ Official references:
 
 **Tests:** Image input validation; async job polling/local runtime smoke; dataset-sharing privacy test.
 
-**Limits and cost:** Jobs are stored in process memory, not a durable queue. Three jobs per 10 minutes per user/IP and 80 in-memory jobs maximum. Pollinations commercial rights for the legacy endpoint are not verified; AI Horde output is model/licence-specific. Do not treat public/free image endpoints as commercial permission. Paid image generation remains disabled by default.
+**Limits and cost:** Jobs are stored in process memory, not a durable queue. Three jobs per 10 minutes per user/IP and 80 in-memory jobs maximum. The UI is hidden unless an approved server image provider is enabled or the embedded SVG preview helper is available. Server readiness requires explicit configuration: paid image requires `ALLOW_PAID_IMAGE=true` plus key/model; Pollinations requires `NOVA_ALLOW_POLLINATIONS_SPEND=1` plus a key; AI Horde requires `NOVA_ALLOW_AI_HORDE=1` plus a key. All are off by default. Community provider commercial rights and output/model licences are not cleared for production. The browser does not bypass server policy through direct Pollinations URLs. No live image-provider request is verified on Staging.
 
 **In-app help (English):** “Describe the image you want. Availability depends on the configured image provider; do not submit private or sensitive content.”
 
