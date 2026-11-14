@@ -449,3 +449,19 @@ This section supersedes earlier checkpoint statements below wherever they descri
 - No paid services/APIs, secret edits, production deploy, or Supabase schema mutation was performed.
 
 **Current decision: Phase 1 remains IN PROGRESS; Production NO-GO.** See `TEST_REPORT.md` for run IDs and detailed evidence.
+
+
+# Exact-head CI and Render checkpoint — 14 November 2026
+
+- PR #98 head checked: `d16759b2426562371b0d26c2f4fca8aeeb332dad`; PR remains Open / Draft / unmerged.
+- Main CI [#43564906556](https://github.com/s85960833-byte/NovaAI/actions/runs/43564906556): **success**. The workflow's verification job completed all required test steps, including provider failover/circuit behavior, orchestrator route boundaries, evidence-backed T1/T2 gating, sequential search routing, Auth request wiring, RLS, security checks, Docker smoke, and five-viewport mobile regression.
+- Browser CI [#43564906503](https://github.com/s85960833-byte/NovaAI/actions/runs/43564906503): **success**. Account/privacy/cloud sync, Company Cloud, mobile layout/drawer and graceful shutdown checks passed.
+- Render Staging service configuration was re-read: branch remains `fix/nova-home-learn-first-mobile-20261109`, Auto Deploy is enabled, Free plan/Singapore, and Health Check Path remains blank.
+- Latest confirmed Render deploy remains `dep-dbrhab6i0phs73fs2ni0` on old SHA `286ddbc6c4a96e5f62c50ada1aa9c2a890633527`; no deploy event after 13 Nov 13:48 UTC was returned. Therefore the current PR head `d16759b` is **not confirmed deployed**.
+- Render app logs on 14 Nov show the service process restarted and reported `NOVA API account authentication is REQUIRED`, then `Nova AI running on port 10000`. This is startup evidence only; it is not a successful external HTTP or valid-session test.
+- Direct external access to Staging `/health` and `/api/config` could not be completed from this execution environment. The previous recorded `/api/config` 503 (no AI provider configured) remains unresolved; no provider-backed chat/search test is claimed.
+- Owner-only Staging setting: Render Dashboard → Staging service → Settings → Health Checks → set path to `/health` → Save. Do not share API keys in chat. Any provider account subject to adult contracting terms must be managed by a legally eligible adult.
+- Production remains unchanged on `main`; no merge/deploy, paid service/API usage, payment setup, secret edit, or Supabase schema mutation occurred.
+- Remaining blockers: exact-head Staging deployment and external smoke; Health Check Path; approved provider setup and authenticated chat/search tests; durable consumer usage ledger and hard cost caps; valid/expired Supabase session and two-account isolation tests; safe full account deletion; physical Android camera/microphone tests; full rights/privacy/legal, backup/restore, load/monitoring/rollback evidence.
+
+**Phase 1 remains IN PROGRESS. Definition of Done is NOT MET. Production NO-GO.**
