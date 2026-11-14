@@ -61,3 +61,17 @@ No stable versioned public API/OpenAPI contract, external SDK, webhook delivery/
 ## NOVA BI source provenance
 
 The local CSV import candidate calculates a SHA-256 digest from the uploaded file's bytes and attaches it to the analysis and portable Action Proof JSON bundle with the selected column mapping, row counts, calculation version and software-check results. The original CSV bytes are not embedded in the bundle. This is a reproducible file digest, not a digital signature, trusted timestamp, identity proof or guarantee against a compromised browser.
+
+
+## AI provider routing and reliability
+
+The chat route uses `nova-llm-router.js` to construct an ordered provider chain from server-side environment variables. It currently supports:
+- Primary OpenAI-compatible endpoint (`LLM_KEY` + `LLM_MODEL`).
+- Groq (`GROQ_API_KEY` + explicit `GROQ_MODEL`).
+- OpenRouter (`OPENROUTER_API_KEY`, default model `openrouter/free`).
+
+Providers are de-duplicated by hostname, so configuring two credentials for the same host does not create a same-company key-rotation path. Each attempt receives a fresh timeout signal linked to the browser's cancellation signal. Network errors and timeouts can fall through to another configured host. HTTP 429 respects a bounded `Retry-After` delay through a process-local circuit; repeated provider failures also open a short circuit.
+
+This is a safer first-stage failover implementation, not a guarantee of equal answer quality or quota availability. Only three provider adapters are currently available, no fourth independent provider has passed commercial/age/production review, and a stream interrupted after output has reached the browser is not yet resumed by another model. Circuit state is process-local. Quota prediction, durable user usage accounting, hard spend caps, quality evaluation and cross-release model ranking remain open.
+
+Provider terms gate integrations. Gemini API additional terms currently require an 18+ API operator and prohibit API clients directed to or likely accessed by people under 18; it is therefore not used for Nova's intended student audience. Mistral's published Free API mode is for evaluation/prototyping and is not treated as production capacity. See the official provider terms and limits in `DECISIONS.md`.
