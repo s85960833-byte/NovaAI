@@ -56,7 +56,7 @@ function buildChatProviders(env = {}, options = {}) {
   // Cloudflare Workers AI is an optional fourth company-level fallback.
   // It is not used for code or research until task-specific quality is benchmarked.
   const cloudflareAccountId = String(env.CLOUDFLARE_ACCOUNT_ID || '').trim();
-  if (options.allowCloudflare !== false &&
+  if (env.NOVA_ALLOW_CLOUDFLARE === '1' && options.allowCloudflare !== false &&
       /^[a-f0-9]{32}$/i.test(cloudflareAccountId) &&
       typeof env.CLOUDFLARE_API_TOKEN === 'string' &&
       env.CLOUDFLARE_API_TOKEN.trim()) {
