@@ -228,11 +228,11 @@ app.post('/api/chat/completions', async (q, r) => {
           return 'retry';
         }
         if (response.status === 413 && retryIndex < 2) {
-          try { await readBoundedText(response, 1024 * 1024); } catch {}
+          try { await readResponseTextSafely(response, readBoundedText, 1024 * 1024); } catch {}
           body = fit(body, Math.floor(bud * 0.55));
           return 'retry';
         }
-        const text = await readBoundedText(response, 1024 * 1024);
+        const text = await readResponseTextSafely(response, readBoundedText, 1024 * 1024);
         if (!first) first = { status: response.status, type: response.headers.get('content-type'), text };
         return (response.status === 400 || response.status === 404) ? 'next-model' : 'next-provider';
       }
