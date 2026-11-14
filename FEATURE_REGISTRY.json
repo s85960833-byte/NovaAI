@@ -1,12 +1,14 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-11-13",
+  "updatedAt": "2026-11-14",
   "scope": "PR #98 source-derived implementation inventory; not a production-readiness certificate",
   "enforcement": {
     "inventoryContractTest": "scripts/feature-registry.test.cjs",
     "wiredToRuntimeFeatureFlags": false,
     "wiredToPricingPage": false,
-    "endToEndTruthEnforcement": false
+    "endToEndTruthEnforcement": false,
+    "aiProviderFailoverModule": "nova-llm-router.js",
+    "aiProviderFailoverTests": "scripts/llm-router.test.cjs"
   },
   "release": {
     "productionReady": false,
@@ -448,6 +450,33 @@
       ],
       "limits": [
         "No durable credits, entitlements, hard spend caps, payment gateway, refund flow or tax invoice implementation."
+      ]
+    },
+    {
+      "id": "ai.provider_failover",
+      "name": "AI Provider Failover and Circuit Control",
+      "area": "NOVA Agents",
+      "plan": "internal_core",
+      "status": "preview",
+      "productExposure": "internal_only",
+      "productionReady": false,
+      "marketingClaimsAllowed": false,
+      "commercialRights": "provider_specific_terms_and_quotas_require_adult_operator_review",
+      "sourceFiles": [
+        "nova-server.txt",
+        "nova-llm-router.js"
+      ],
+      "testFiles": [
+        "scripts/llm-router.test.cjs"
+      ],
+      "routeMarkers": [
+        "app.post('/api/chat/completions'"
+      ],
+      "limits": [
+        "Provider chain currently supports configured primary OpenAI-compatible, Groq and OpenRouter adapters only; a fourth independent production-cleared free provider is not verified.",
+        "Circuit state is process-local and resets when the Render instance restarts.",
+        "Predictive quota switching, durable monetary cost caps, response quality validation and golden-set ranking are not implemented.",
+        "A provider stream that fails after bytes have reached the browser cannot yet be seamlessly continued by another provider."
       ]
     }
   ]
