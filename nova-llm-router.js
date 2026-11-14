@@ -53,6 +53,21 @@ function buildChatProviders(env = {}, options = {}) {
     );
   }
 
+  // Cloudflare Workers AI is an optional fourth company-level fallback.
+  // It is not used for code or research until task-specific quality is benchmarked.
+  const cloudflareAccountId = String(env.CLOUDFLARE_ACCOUNT_ID || '').trim();
+  if (options.allowCloudflare !== false &&
+      /^[a-f0-9]{32}$/i.test(cloudflareAccountId) &&
+      typeof env.CLOUDFLARE_API_TOKEN === 'string' &&
+      env.CLOUDFLARE_API_TOKEN.trim()) {
+    add(
+      'cloudflare-workers-ai',
+      bases.cloudflare || `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/ai/v1`,
+      env.CLOUDFLARE_API_TOKEN,
+      vision ? [env.CLOUDFLARE_VISION_MODEL] : [env.CLOUDFLARE_MODEL]
+    );
+  }
+
   return providers;
 }
 
