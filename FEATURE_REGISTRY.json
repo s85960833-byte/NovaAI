@@ -219,14 +219,17 @@
       ],
       "testFiles": [
         "scripts/image-privacy.test.cjs",
-        "scripts/runtime-smoke.mjs"
+        "scripts/runtime-smoke.mjs",
+        "scripts/feature-fallbacks.test.cjs"
       ],
       "routeMarkers": [
         "app.post('/api/image'"
       ],
       "limits": [
-        "Jobs are in process memory, not a durable queue.",
-        "Pollinations/AI Horde output and model rights are not cleared for production; paid OpenAI image path is disabled."
+        "Image Studio is hidden unless an approved server image provider is explicitly enabled or the embedded preview SVG helper is available.",
+        "Server providers require explicit opt-in: paid image provider, Pollinations spend gate, or AI Horde gate; all are off by default.",
+        "Community provider output and model rights are not cleared for production. Jobs remain in process memory, not a durable queue.",
+        "No live image-provider request has been verified on Staging."
       ]
     },
     {
