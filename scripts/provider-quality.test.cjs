@@ -93,3 +93,14 @@ test('provider quality filtering never mutates the original configured chain', (
   gateProvidersForRoute(providers, 'code', { ...evidence, models: [baseRecord()] });
   assert.equal(JSON.stringify(providers), before);
 });
+
+const server = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'nova-server.txt'), 'utf8');
+
+test('chat completion handler applies the model-quality gate before failover execution', () => {
+  assert.ok(server.includes("const { gateProvidersForRoute } = require('./nova-provider-quality');"));
+  assert.ok(server.includes('const qualityGate = gateProvidersForRoute(providers, routeDecision.route);'));
+  assert.ok(server.includes('if (qualityGate.blocked) {'));
+  assert.ok(server.includes("r.set('X-Nova-Capability-Status', 'quality_unverified');"));
+  assert.ok(server.includes("code: 'quality_tier_unverified'"));
+  assert.ok(server.includes('providers: qualityGate.providers'));
+});
