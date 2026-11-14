@@ -21,6 +21,8 @@ When one configured AI provider is unavailable, Nova should attempt a separately
 - One ordered server-side chain assembled from env configuration.
 - De-duplicate by provider hostname; do not rotate same-company keys.
 - Use bounded per-attempt timeout and caller cancellation.
+- Retry only correctable responses, with bounded exponential delay and jitter. Defaults: 3 attempts, 250 ms base, 2,000 ms maximum; values come from `.env.example` and are clamped by the router.
+- Switch immediately to another company on 429 and provider/network failures; respect bounded `Retry-After` circuit cooldowns.
 - Open a process-local circuit on 429, auth failures and repeated failures.
 - Keep optional Cloudflare disabled by default and restricted to eligible task types.
 - Use mocked failure tests rather than making paid/live provider calls during CI.
@@ -44,7 +46,8 @@ When one configured AI provider is unavailable, Nova should attempt a separately
 - Provider secrets remain server-side.
 - Distinct provider hosts are used; same-host key rotation is rejected.
 - Network error, timeout, 429/Retry-After, auth failure, caller cancellation, open circuit and recovery have regression tests.
-- Exact-head Main CI step 12 passed in run #43565665119.
+- Correctable-response retry, exponential delay, jitter bounds, retry-budget exhaustion and cancellation-during-backoff have unit tests.
+- Server environment wiring is covered by the `.env.example` contract test.
 - Live inference, model quality, quota prediction and monetary spend cap remain unverified.
 
 ## Rollback

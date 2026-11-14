@@ -255,6 +255,9 @@ app.post('/api/chat/completions', async (q, r) => {
     const routed = await runWithFailover({
       providers: qualityGate.providers,
       timeoutMs: providerTimeout,
+      maxAttempts: Number(E.LLM_MAX_ATTEMPTS) || 3,
+      retryBaseDelayMs: Number(E.LLM_RETRY_BASE_DELAY_MS) || 250,
+      retryMaxDelayMs: Number(E.LLM_RETRY_MAX_DELAY_MS) || 2000,
       clientSignal: clientAbort.signal,
       request: (provider, model, signal) => fetch(provider.base.replace(/\/$/, '') + '/chat/completions', {
         method: 'POST',
