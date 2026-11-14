@@ -22,7 +22,8 @@
     "test:provider-rights": "node --test scripts/provider-rights.test.cjs",
     "test:llm-router": "node --test scripts/llm-router.test.cjs",
     "test:orchestrator": "node --test scripts/orchestrator.test.cjs",
-    "test:feature-fallbacks": "node --test scripts/feature-fallbacks.test.cjs"
+    "test:feature-fallbacks": "node --test scripts/feature-fallbacks.test.cjs",
+    "test:provider-quality": "node --test scripts/provider-quality.test.cjs"
   },
   "engines": {
     "node": "22.x"
