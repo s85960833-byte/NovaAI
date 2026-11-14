@@ -114,7 +114,7 @@ test('client intent classifier protects code and research in BYOK and embedded-p
   const ordinary = ['Hello Nova', 'Explain photosynthesis', 'What is Python?', 'आज मौसम कैसा है?'];
   for (const prompt of ordinary) assert.equal(clientRoute.requiresVerifiedTier2Request(prompt), false, prompt);
   assert.ok(app.includes('if(isTier2RequestForClient(latestRequest&&latestRequest.c)&&(SMP||!SV))'));
-  assert.ok(app.includes('BYOK और embedded preview model से इन requests का जवाब नहीं दिया जाएगा।'));
+  assert.ok(app.includes('BYOK या embedded preview model से इन requests का जवाब नहीं दिया जाएगा।'));
   assert.ok(html.includes('<script src="/nova-quality-route.js"></script><script src="/nova-app.js"></script>'));
 });
 
