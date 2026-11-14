@@ -1,3 +1,17 @@
+## Exact-head verification — 14 November 2026
+
+- PR #98 head: `261cc04fdbc8b34cd0072c6e127c5bfaca6f2199`; status Open / Draft / unmerged. Production `main` has not been changed by this PR.
+- Main CI [#43572626246](https://github.com/s85960833-byte/NovaAI/actions/runs/43572626246): **success**, 58/58 steps. The new `Verify always-on Universal Accuracy Instruction` step passed (step 10), including the 10-test source-contract suite.
+- Browser CI [#43572626253](https://github.com/s85960833-byte/NovaAI/actions/runs/43572626253): **success**, 17/17 steps. Includes account/cloud-sync, Company Cloud, mobile layout/drawer and graceful-shutdown checks.
+- Staging deployed-PR smoke passed against `https://novaai-pr98-staging.onrender.com`: `GET /health` returned HTTP 200 with ready payload; homepage and entry assets loaded; missing/malformed/invalid API credentials returned HTTP 401 before provider routing.
+- Staging `GET /api/config` returned HTTP 503 with the explicit warning that no AI chat provider is configured. Live provider and live free-image smoke steps were skipped. No model-backed answer, search result or generated image is claimed.
+- Render Staging service `srv-dbqm035g1s2s73eogao0` is on the PR branch with Auto Deploy enabled, but latest confirmed Live deploy is still `dep-dbs0g58n74is738h58s0` on older SHA `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`. The current PR head is not Live on Staging. Staging `healthCheckPath` is blank.
+- Existing Production service `srv-dbidhpc9v7es73d6ia80` remains on branch `main`, same URL `https://novaai-4auo.onrender.com`, last confirmed Live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. Its `healthCheckPath` is also blank. No production merge/deploy occurred.
+- Both Render web services report the Free plan. Render's official docs say Free web services are for preview/testing, not production; they spin down after 15 minutes idle and can take about a minute to wake. Source: https://render.com/docs/free. HTTP health checks require a configured path returning 2xx/3xx: https://render.com/docs/health-checks.
+- Provider age review remains corrected: OpenRouter current Terms (31 Aug 2026), Groq Services Agreement and Tavily customer-app guidance require 18+ account operators. Adult legal/vendor review is required; no provider account, key or paid spend was created.
+
+**Phase 1 remains IN PROGRESS. Master Prompt Definition of Done NOT MET. Production NO-GO.**
+
 # LATEST PHASE 1 AUDIT — 14 November 2026 (Asia/Kolkata)
 
 **Scope:** exact-head repository, GitHub workflow and Render Staging recheck. This is an in-progress engineering audit, not a certification.

@@ -103,3 +103,13 @@ NOVA enforces a model-specific T1/T2 evidence gate for `code` and `deep-research
 The server filters the route's provider/model chain using `nova-provider-quality.js`. If no exact eligible model remains, it returns HTTP 503 with `quality_tier_unverified` and a bilingual explanation. The browser blocks code/research in BYOK and embedded-preview modes too, so those paths cannot bypass the server gate. General chat and other non-code routes are not affected.
 
 This is a **release safety gate, not proof of quality**. The 100-case benchmark runner, real model evaluations, scheduled reranking and score dashboard are not yet implemented. Do not add records to the evidence registry until a real evaluation report and matching commit are reviewed and committed.
+
+
+## Live environment and release boundary — 14 November 2026
+
+- Production service `srv-dbidhpc9v7es73d6ia80` remains attached to `main`, URL `https://novaai-4auo.onrender.com`, and last confirmed Live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No PR merge or Production deployment was performed.
+- Staging service `srv-dbqm035g1s2s73eogao0` is attached to `fix/nova-home-learn-first-mobile-20261109`, Auto Deploy is configured for commits, but latest confirmed Live deploy remains older SHA `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`. The latest PR head is not confirmed deployed.
+- Both current Render services are Free plan and report an empty HTTP `healthCheckPath`. Set Staging to `/health` in Dashboard → Settings → Health Checks. Production was left unchanged.
+- Render's Free web-service plan is for preview/testing, spins down after 15 idle minutes and may take about one minute to wake. It is not a production uptime guarantee: https://render.com/docs/free.
+- Render HTTP health checks issue GET requests to a configured path and accept 2xx/3xx: https://render.com/docs/health-checks.
+- Exact-head Main CI [#43572626246](https://github.com/s85960833-byte/NovaAI/actions/runs/43572626246) passed 58/58; Browser CI [#43572626253](https://github.com/s85960833-byte/NovaAI/actions/runs/43572626253) passed 17/17. Staging auth negative tests passed; AI provider config returned 503, so live inference/search/image are not verified.

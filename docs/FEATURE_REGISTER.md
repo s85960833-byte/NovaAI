@@ -3,7 +3,7 @@
 **Updated:** 14 November 2026 (Asia/Kolkata)  
 **PR:** #98 — Open / Draft / unmerged  
 **Branch:** `fix/nova-home-learn-first-mobile-20261109`  
-**Evidence head:** `ff2f4d1d564857c003a810905301e185b45aa15b` (source code commit under verification)  
+**Evidence head:** `261cc04fdbc8b34cd0072c6e127c5bfaca6f2199` (source code commit under verification)  
 **Purpose:** conservative release inventory. This file maps the machine-readable source inventory in `FEATURE_REGISTRY.json` to the delivery statuses required by the master build protocol.
 
 ## Status rules
@@ -88,3 +88,12 @@ No feature below is marked VERIFIED or LIVE. Main CI passing is not equivalent t
 | Merge of competing builds / portable single-file export | MISSING (not evidenced) | Current delivery is a multi-file SPA/PWA. No verified one-click single-file export pipeline is inventoried. Do not remove current backup/restore or chat export. |
 
 WORKS is limited to the code or automated test boundary named above. BROKEN means the code surface exists but the required current Staging/device workflow is blocked or unverified. MISSING means a complete implementation is not present in the reviewed source. None of these rows establishes Production readiness.
+
+## Latest exact-head evidence — 261cc04fdbc8b34cd0072c6e127c5bfaca6f2199
+
+- Main CI #43572626246 passed 58/58 steps, including the 10-test Universal Accuracy source-contract suite.
+- Browser CI #43572626253 passed 17/17 steps, including account/privacy/cloud sync, Company Cloud and mobile/drawer regressions.
+- Staging smoke passed /health (200 ready), homepage and entry assets; missing/malformed/invalid credentials returned 401. /api/config returned 503 because no AI provider is configured. Live model/image smoke was skipped.
+- Latest Staging deploy is still older SHA 7e816af473d29f9dd2e1d4cab775cb905f1a82fe, not this feature-register evidence head. No live AI output is claimed.
+- Universal Accuracy remains BUILT, not VERIFIED/LIVE: source and ten tests pass, but live model behavior, cost and physical-device review are outstanding.
+
