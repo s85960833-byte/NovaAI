@@ -94,6 +94,30 @@ test('provider quality filtering never mutates the original configured chain', (
   assert.equal(JSON.stringify(providers), before);
 });
 
+const app = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'nova-app.js'), 'utf8');
+const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');
+const clientRoute = require('../nova-quality-route');
+
+test('client intent classifier protects code and research in BYOK and embedded-preview mode', () => {
+  const required = [
+    'Write a Python function to sort a list',
+    'Debug this JavaScript code',
+    'Please fix this code',
+    'Do deep research on battery storage',
+    'इस कोड को ठीक करो',
+    'python code likho',
+    'भारत पर गहन शोध करो',
+    '```js\nconsole.log(1)\n```'
+  ];
+  for (const prompt of required) assert.equal(clientRoute.requiresVerifiedTier2Request(prompt), true, prompt);
+
+  const ordinary = ['Hello Nova', 'Explain photosynthesis', 'What is Python?', 'आज मौसम कैसा है?'];
+  for (const prompt of ordinary) assert.equal(clientRoute.requiresVerifiedTier2Request(prompt), false, prompt);
+  assert.ok(app.includes('if(isTier2RequestForClient(latestRequest&&latestRequest.c)&&!SV)'));
+  assert.ok(app.includes('BYOK और embedded preview model से इन requests का जवाब नहीं दिया जाएगा।'));
+  assert.ok(html.includes('<script src="/nova-quality-route.js"></script><script src="/nova-app.js"></script>'));
+});
+
 const server = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'nova-server.txt'), 'utf8');
 
 test('chat completion handler applies the model-quality gate before failover execution', () => {
