@@ -479,7 +479,10 @@
         "app.post('/api/chat/completions'"
       ],
       "limits": [
-        "Provider chain currently supports configured primary OpenAI-compatible, Groq and OpenRouter adapters only; a fourth independent production-cleared free provider is not verified.",
+        "Primary OpenAI-compatible, Groq and OpenRouter adapters are supported when configured; optional Cloudflare Workers AI is a fourth adapter only when NOVA_ALLOW_CLOUDFLARE=1, account ID, token and explicit model are supplied.",
+        "Cloudflare is restricted to ordinary chat, prompt-writing and voice-originated text; it is not a same-tier fallback for code, deep research, vision, documents, Build or Agent tasks.",
+        "Cloudflare remains OFF by default and has no configured account/key or live inference verification; its commercial rights and selected model licence require eligible adult operator review.",
+        "The chain does not yet prove four-company production-cleared free-tier failover or equal answer quality; the primary OpenAI-compatible endpoint must also be an independently approved company endpoint.",
         "Circuit state is process-local and resets when the Render instance restarts.",
         "Predictive quota switching, durable monetary cost caps, response quality validation and golden-set ranking are not implemented.",
         "A provider stream that fails after bytes have reached the browser cannot yet be seamlessly continued by another provider."
