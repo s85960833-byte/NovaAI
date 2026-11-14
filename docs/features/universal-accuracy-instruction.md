@@ -20,7 +20,7 @@ Every Nova chat system prompt must include the Universal Accuracy Rules, even wh
 - Migrate legacy S.acc=false to true and persist the correction.
 - Keep the top-bar and Settings controls as accessible, checked, disabled indicators.
 - Preserve the separate optional S.ult extended-history preference.
-- Add 9 automated source-contract tests and wire them into Main CI.
+- Add 10 automated source-contract tests and wire them into Main CI.
 
 ## Rejected alternatives
 - User toggle: conflicts with the explicit always-on requirement.

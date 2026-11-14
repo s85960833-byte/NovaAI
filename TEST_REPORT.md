@@ -3,7 +3,7 @@
 **Source head:** ff2f4d1d564857c003a810905301e185b45aa15b  
 **Main CI:** [#43572173402](https://github.com/s85960833-byte/NovaAI/actions/runs/43572173402) — in progress at last poll.  
 **Browser CI:** [#43572173545](https://github.com/s85960833-byte/NovaAI/actions/runs/43572173545) — in progress at last poll.  
-**New test suite:** `npm run test:accuracy-instruction` — 9 source-contract tests added.
+**New test suite:** `npm run test:accuracy-instruction` — 10 source-contract tests added.
 
 ## New source changes under verification
 

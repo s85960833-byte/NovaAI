@@ -56,3 +56,10 @@ test('accuracy changes add no external analytics request', () => {
   assert.doesNotMatch(sync, /fetch\(|XMLHttpRequest|sendBeacon/);
   assert.doesNotMatch(accp, /sendBeacon|analyticsEndpoint/);
 });
+
+test('standard, embedded-preview and lightweight prompt branches reuse the accuracy-bearing base prompt', () => {
+  assert.ok(app.includes('const sysRaw='));
+  assert.ok(app.includes('ACCP(wr,c)'));
+  assert.ok(app.includes('const sys=(SV?sysRaw:sysRaw.replace'));
+  assert.ok(app.includes('sysLite=sysRaw.replace'));
+});
