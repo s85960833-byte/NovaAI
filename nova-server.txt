@@ -509,6 +509,7 @@ app.get('/health', (q, r) => r.status(shuttingDown ? 503 : 200).json({ ok: !shut
 app.get('/s-tier.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 's-tier.js')));
 app.get('/nova-suite.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-suite.js')));
 app.get('/nova-config.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-config.js')));
+app.get('/nova-quality-route.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-quality-route.js')));
 app.get('/nova-app.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-app.js')));
 app.get('/nova-sync-merge.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-sync-merge.js')));
 app.get('/nova-reference.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-reference.js')));
