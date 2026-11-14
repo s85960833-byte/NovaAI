@@ -131,7 +131,7 @@ function selectIntent(body = {}) {
 
   // Keep bilingual patterns explicit so common Hindi and Hinglish requests
   // take the same honest route as their English equivalents.
-  const asksForDocument = hasDocument || /\b(read|summarize|analyse|analyze|explain|extract)\b.{0,50}\b(pdf|document|file|notice)\b|\b(pdf|docx|xlsx)\s+(?:export|download)\b|\b(?:pdf|document|file|notice)\b.{0,40}\b(?:samjhao|padho|batao|saar|समझाओ|समझाइए|पढ़ो|पढ़िए|सार|व्याख्या|बना दो|डाउनलोड)\b|(?:पीडीएफ|दस्तावेज़|दस्तावेज|डॉक्यूमेंट|फाइल|नोटिस).{0,45}(?:समझाओ|समझाइए|पढ़ो|पढ़िए|सार|व्याख्या|बना दो|डाउनलोड)/i.test(lower);
+  const asksForDocument = hasDocument || /\b(read|summarize|analyse|analyze|explain|extract)\b.{0,50}\b(pdf|document|file|notice)\b|\b(pdf|docx|xlsx)\s+(?:export|download)\b|(?:pdf|docx|xlsx|document|file|notice).{0,50}(?:samjhao|padho|batao|saar|समझाओ|समझाइए|पढ़ो|पढ़िए|सार|व्याख्या|bana do|banao|bna do|बना दो|बनाओ|डाउनलोड)|(?:पीडीएफ|दस्तावेज़|दस्तावेज|डॉक्यूमेंट|फाइल|नोटिस).{0,45}(?:समझाओ|समझाइए|पढ़ो|पढ़िए|सार|व्याख्या|बना दो|बनाओ|डाउनलोड)/i.test(lower);
   if (asksForDocument) {
     return { intent: 'document/PDF', hasLiveData, hasImage, hasDocument };
   }
