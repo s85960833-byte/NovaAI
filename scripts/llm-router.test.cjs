@@ -56,8 +56,21 @@ test('vision chain includes only explicitly configured vision models', () => {
   assert.deepEqual(providers.map(x => x.models), [['vision-a'], ['vision-b']]);
 });
 
+
+test('Cloudflare remains disabled by default even when credentials and a model exist', () => {
+  const env = {
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_API_TOKEN: 'test-token',
+    CLOUDFLARE_MODEL: '@cf/meta/llama-3.1-8b-instruct'
+  };
+  assert.equal(buildChatProviders(env).length, 0);
+  assert.equal(buildChatProviders({ ...env, NOVA_ALLOW_CLOUDFLARE: '0' }).length, 0);
+  assert.equal(buildChatProviders({ ...env, NOVA_ALLOW_CLOUDFLARE: '1' }).length, 1);
+});
+
 test('Cloudflare Workers AI is added only with a valid account, token and explicit model', () => {
   const providers = buildChatProviders({
+    NOVA_ALLOW_CLOUDFLARE: '1',
     CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
     CLOUDFLARE_API_TOKEN: 'test-token',
     CLOUDFLARE_MODEL: '@cf/meta/llama-3.1-8b-instruct'
@@ -87,6 +100,7 @@ test('Cloudflare Workers AI is excluded without credentials, a valid account id 
 
 test('Cloudflare vision fallback requires an explicit vision model and can be disabled per task', () => {
   const env = {
+    NOVA_ALLOW_CLOUDFLARE: '1',
     CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
     CLOUDFLARE_API_TOKEN: 'test-token',
     CLOUDFLARE_MODEL: '@cf/meta/llama-3.1-8b-instruct',
