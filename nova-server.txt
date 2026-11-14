@@ -39,6 +39,7 @@ app.use((q, r, next) => {
 const { rateWindow } = require('./nova-rate-limit');
 const { firstSuccessful } = require('./nova-search-router');
 const { buildChatProviders, readResponseTextSafely, runWithFailover } = require('./nova-llm-router');
+const { routeNovaMessage, routeInstruction } = require('./nova-orchestrator');
 const { createSupabaseUserMiddleware } = require('./nova-api-auth');
 const apiAuthRequired = E.NOVA_API_AUTH_REQUIRED === '1';
 const requireNovaUser = apiAuthRequired
@@ -193,6 +194,16 @@ app.post('/api/chat/completions', async (q, r) => {
     const systemMessage = (body.messages || []).find(x => x.role === 'system');
     if (systemMessage) systemMessage.content = String(systemMessage.content || '') + '\n\n' + developerIdentity + '\n\n' + novaTruthPrompt;
     else body.messages.unshift({ role: 'system', content: developerIdentity + '\n\n' + novaTruthPrompt });
+    // Classify every chat request and attach truthful capability boundaries.
+    // Dedicated retrieval/voice/image handlers remain their own execution paths.
+    const routeDecision = routeNovaMessage(body);
+    r.set('X-Nova-Route', routeDecision.route);
+    r.set('X-Nova-Capability-Status', routeDecision.capabilityStatus);
+    const routePrompt = routeInstruction(routeDecision);
+    const routeSystem = (body.messages || []).find(x => x.role === 'system');
+    if (routePrompt && routeSystem && typeof routeSystem.content === 'string') {
+      routeSystem.content += '\n\n' + routePrompt;
+    }
     const sm0 = (body.messages || []).find(x => x.role === 'system'), hasLive = !!(sm0 && typeof sm0.content === 'string' && sm0.content.includes('== LIVE DATA ==')), vis = hasImg(body), bud = vis ? VBUDGET : hasLive ? Math.max(BUDGET, 6500) : BUDGET;
     body = fit(body, bud);
     const providerBases = { primary: BASE };
