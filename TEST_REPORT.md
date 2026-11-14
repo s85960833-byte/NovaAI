@@ -60,3 +60,25 @@ The failover contract suite simulates primary-network failure/timeout, 429 + Ret
 ## 4. Release decision
 
 **NOT READY FOR PRODUCTION.** Automated CI and browser checks are green for the tested code-bearing SHA, but Render Staging has not been proven to run that SHA, no real AI provider is configured, and several core product capabilities remain missing or blocked. Keep PR #98 Draft/unmerged and Production unchanged.
+
+## Exact-head update — 14 November 2026, 11:05 IST
+
+**PR head at verification:** `990c009b5169b4cdd0460a4155ce269994cb96e2` (Open / Draft / unmerged).
+
+### New source-level and automated coverage
+
+- Bilingual Hindi/Hinglish request-routing coverage was added for Build, code/debugging, prompt writing, deep research, PDF/document, image and current-information intents.
+- An optional Cloudflare Workers AI adapter was added behind `NOVA_ALLOW_CLOUDFLARE=1`, an account ID, token and explicit model. It is restricted to general chat, prompt-writing and voice-originated text. It remains OFF; no Cloudflare key or model call was used.
+- Image availability now requires an explicitly enabled provider and the required key/model. Paid image, Pollinations and AI Horde are default-off. The browser no longer falls back directly to public Pollinations image hosts.
+- Photo help now links to the unchanged Production Nova URL; unsupported embedded voice gives Hindi/English text-mode guidance and recommends Chrome/Edge.
+- Main CI #43562664116: **50 of 58 job steps completed successfully at this snapshot**. Syntax, SBOM, feature registry, image/voice fallback honesty, answer modes, provider failover, orchestrator, security, rights, Postgres/RLS, Edge Function, Docker, local route and browser/mobile regression steps were green. The workflow was still running at `Smoke-test deployed PR`; the remaining Staging auth/live checks were not yet complete.
+- Browser CI #43562664094: **success**. All 17 browser job steps passed, including account/privacy/cloud-sync, Company Cloud, mobile layout/drawer and graceful shutdown.
+
+### Staging and Production
+
+- Render Staging service `srv-dbqm035g1s2s73eogao0` still reports Auto Deploy = yes but Health Check Path = blank.
+- Last confirmed Live Staging deploy remains `dep-dbrhab6i0phs73fs2ni0` at old SHA `286ddbc6c4a96e5f62c50ada1aa9c2a890633527`. Render event history shows no later build/deploy event after 13 November. The current PR head is **not confirmed deployed**.
+- Previous Staging `GET /api/config` returned 503 because no AI chat provider/model was configured. Real authenticated provider-backed chat, search and image generation remain unverified.
+- Production URL `https://novaai-4auo.onrender.com` remains unchanged. No Production merge/deploy, paid API spend, provider secret edit or Supabase schema mutation occurred.
+
+**Release decision: NO-GO.** These CI results are not proof of a current Staging deployment, live provider response, physical Android camera/microphone operation, production-ready feature parity or completion of the full Definition of Done.
