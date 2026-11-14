@@ -208,3 +208,57 @@ Project qrfwsewppafhxibdboam, PostgreSQL 17.11, eu-west-1, ACTIVE_HEALTHY. No da
 - **Provider count decision:** only three configured company routes are present. Gemini's current API additional terms prohibit API clients directed to or likely accessed by under-18 users; Nova's intended student audience makes Gemini an unsuitable route. Mistral's published Free API mode is described as evaluation/prototyping with the lowest limits, not a production service guarantee. No fourth free provider is being added without verified commercial-production terms and age eligibility.
 - **Known limits:** circuit state is in-memory per Render process; quota prediction from remaining-quota headers, durable user quotas, hard daily spend cap, response quality validation and stream-mid-answer continuation remain unimplemented.
 - **Phase 1 status:** provider-routing defect repaired in source; implementation is still **pending automated CI and staging proof**. Production remains NO-GO.
+
+
+## Exact provider-router verification and feature audit — 14 November 2026
+
+This addendum supersedes the earlier “CI pending” notes above for the provider-router change only. It does not declare Phase 1 complete.
+
+### Code-bearing revision and automated evidence
+
+- Code-bearing PR head tested: `035f8beec51f9f3cdb9fd0b09c6c6dde91ee49c3`.
+- Main verification workflow [#43557378141](https://github.com/s85960833-byte/NovaAI/actions/runs/43557378141): **success**. The workflow passed syntax, feature-registry, answer-mode, provider-default, the new provider failover contract, link escaping, cloud-sync merge/conflict, rate-window, search-router, Supabase auth wiring, timezone, environment/secret, HTTPS provider URL, bounded-response, data rights, PDF.js, PostgreSQL/RLS, NOVA BI, dependency audit, container and local route checks. The Staging PR smoke and negative-token checks also passed; production-live steps were skipped because this is an unmerged PR.
+- Browser workflow [#43557378058](https://github.com/s85960833-byte/NovaAI/actions/runs/43557378058): **success**. Account UI, privacy/opt-in cloud sync, Company Cloud, NOVA BI proof bundle, mobile layout/drawer at five emulated viewports and graceful shutdown passed.
+- Local Node.js 22.16.0 run of `node --test` for `scripts/llm-router.test.cjs`: **9/9 passed**.
+- The first test attempt exposed a cancellation-reason assertion/behavior defect; the router was fixed to propagate the original caller abort reason and the subsequent CI suite passed. A safe error-body reader was also added so oversized/unreadable provider error payloads do not stop trying the next provider.
+- These are unit/CI/browser-emulation checks. They do not demonstrate identical model quality, working live provider accounts, live search quality, physical Android behavior, real microphone/camera capture, or 100% uptime.
+
+### Feature audit — status labels are evidence-based
+
+| Requested capability | Audit status | Evidence and remaining limit |
+|---|---|---|
+| Main app shell and responsive workspace | **WORKS — automated emulation only** | Browser CI passed five viewports and drawer regression. No physical Android/touch certification. |
+| Account UI and optional cloud-sync UI | **WORKS — local browser tests** | Account/privacy/opt-in sync and merge/conflict tests passed. Hosted valid/expired token, real email delivery/redirect and two-real-account isolation remain unverified. |
+| AI chat and chat modes | **BROKEN in current Staging runtime / source tests pass** | Staging previously returned `/api/config` HTTP 503 because no AI provider/model is configured. Quick/Standard/Detailed and provider failover contract tests pass. No real authenticated provider-backed chat has been run. |
+| Live Search | **NOT VERIFIED end-to-end** | Sequential provider-router contract tests pass. No current exact-head provider-backed search result, citation correctness or live India-aware ranking was verified. |
+| News feeds | **BLOCKED** | Article/feed redistribution rights are not cleared as a blanket licence; sources are fail-closed/restricted. |
+| Weather / air quality | **BLOCKED** | Free endpoint rights are not established for a commercial product. |
+| Finance / crypto / FX | **BLOCKED / FAIL-CLOSED** | Listed equities/commodities require a documented licensed provider; other market-data/FX reuse terms are not cleared. |
+| Sports schedules / scores | **BLOCKED** | Existing unofficial/free sources do not establish commercial publishing rights. |
+| Research / public statistics | **PREVIEW / CONDITIONAL** | Metadata routes exist; licences vary by dataset and individual paper/content. |
+| Image Studio | **BLOCKED for production** | Process-local jobs are not durable; image provider/model output rights are not cleared. |
+| Photo question / Vision | **NOT VERIFIED** | No current-head camera/gallery + real vision-provider test. Browser/in-app viewer permissions and actual phone capture remain open. |
+| Voice input / speech-to-text | **BLOCKED / NOT VERIFIED** | No Staging speech provider configured; Android microphone capture and Hindi quality not verified. Browser TTS depends on supported device voices. |
+| PDF/file assistant and export | **PARTIAL / EXPORT MISSING** | PDF.js reading and input-validation protections exist; complete Hindi-safe PDF, DOCX, XLSX and Slides answer-export workflow is not evidenced. |
+| Prompt Studio | **MISSING** | Chat can help draft prompts, but a separately tested Prompt Studio/improver workflow is not implemented. |
+| Code workspace / isolated execution | **MISSING** | Chat-based code assistance is not a secure sandbox. |
+| Nova Build app/site generator | **MISSING** | No end-to-end sandbox preview, chat editing, source export and publishing workflow. |
+| Nova Agent durable runtime | **MISSING** | No durable queue, resumable multi-step task or scheduled agent runtime. |
+| User-controlled persistent Memory | **PARTIAL** | Local settings/memory and optional cloud backup exist; complete view/edit/delete, account-wide deletion and all-retention guarantees are not evidenced. |
+| PWA offline shell | **WORKS — automated shell checks only** | Local route/PWA checks passed. Offline AI is not available; physical Android install/update/storage not checked. |
+| NOVA BI / Company Cloud | **PREVIEW — synthetic test data only** | PostgreSQL/RLS, Deno function, deterministic synthetic calculations and browser proof tests passed. Not approved for confidential/customer/employee data; no signed proof/production operations. |
+| Free / Pro / Ultra, checkout and payments | **MISSING** | No durable entitlements/credits, gateway test checkout, webhook reconciliation, refund or tax-invoice flow. |
+| Durable cost guard and provider quotas | **MISSING** | Current request limits/circuits are process-local; no hard global rupee cap or durable per-user token ledger. |
+| Startup Readiness Kit | **MISSING as a complete package** | India legal/finance/customer/pitch templates and a fully source-backed finance workbook have not been completed. |
+
+### Current Staging/Production evidence
+
+- Render Staging service: `srv-dbqm035g1s2s73eogao0`, URL https://novaai-pr98-staging.onrender.com, branch `fix/nova-home-learn-first-mobile-20261109`, Auto Deploy = `yes`, Health Check Path = blank.
+- Latest confirmed Live Staging deploy remains `dep-dbrhab6i0phs73fs2ni0` at stale SHA `286ddbc6c4a96e5f62c50ada1aa9c2a890633527`. The Render event list has no newer `deploy_started` event after the 13 November deploy. The current PR commit is therefore **not confirmed live**.
+- No manual duplicate deploy was issued while Auto Deploy is enabled. The GitHub-to-Render webhook/auto-deploy handoff needs investigation. Do not call Staging current until a Live deploy's SHA equals the current branch head.
+- Health Check Path is still blank; owner step remains Render Dashboard → Staging → Settings → Health Checks → `/health` → Save.
+- Production `https://novaai-4auo.onrender.com` remains unchanged. No Production merge/deploy, paid provider usage, payment setup or secret modification occurred.
+
+### Phase 1 decision
+
+**Phase 1 remains IN PROGRESS; Production remains NO-GO.** Provider routing contract tests are now green, but current-head Staging deployment, real provider and live-search validation, full account lifecycle/deletion, durable usage/cost guard, remaining provider terms, physical Android/microphone/camera, backup/restore, accessibility and legal review are still open.
