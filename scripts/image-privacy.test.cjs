@@ -7,8 +7,9 @@ const path = require('node:path');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'nova-server.txt'), 'utf8');
 
-test('AI Horde fallback requires an operator API key', () => {
-  assert.match(source, /if\s*\(!E\.HORDE_API_KEY\)\s*throw new Error\('No free image provider is currently configured'\)/);
+test('AI Horde fallback requires explicit opt-in and an operator API key', () => {
+  assert.match(source, /if \(E\.NOVA_ALLOW_AI_HORDE !== '1' \|\| !E\.HORDE_API_KEY\) throw new Error\('No approved image provider is currently configured'\)/);
+  assert.match(source, /const hordeImageConfigured = E\.NOVA_ALLOW_AI_HORDE === '1' && !!E\.HORDE_API_KEY/);
 });
 
 test('AI Horde generation explicitly disables dataset sharing', () => {
