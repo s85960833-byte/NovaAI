@@ -465,3 +465,17 @@ This section supersedes earlier checkpoint statements below wherever they descri
 - Remaining blockers: exact-head Staging deployment and external smoke; Health Check Path; approved provider setup and authenticated chat/search tests; durable consumer usage ledger and hard cost caps; valid/expired Supabase session and two-account isolation tests; safe full account deletion; physical Android camera/microphone tests; full rights/privacy/legal, backup/restore, load/monitoring/rollback evidence.
 
 **Phase 1 remains IN PROGRESS. Definition of Done is NOT MET. Production NO-GO.**
+
+
+## Exact-head verification checkpoint — 14 November 2026
+
+- PR #98 current head: `d8db9303b7d9b07b4d05cdc75ba35e8e1a9af461`; Open / Draft / unmerged.
+- Main CI [#43565429550](https://github.com/s85960833-byte/NovaAI/actions/runs/43565429550): **success**. All 60 verification steps completed successfully, including syntax, SBOM/dependency audit, feature registry, answer modes, provider failover, request orchestrator, provider-rights/security, Postgres/RLS, Edge Function, NOVA BI calculations, Docker, Chromium workspace, Company Cloud mobile, five-viewport mobile/drawer regression, Staging smoke and negative-auth checks.
+- Browser CI [#43565429628](https://github.com/s85960833-byte/NovaAI/actions/runs/43565429628): **success**, 17/17 steps, including account/privacy/cloud sync, Company Cloud, mobile layout/drawer and graceful shutdown.
+- Main CI Staging smoke and auth steps completed successfully against the configured Staging URL: health/homepage/assets were checked and missing, malformed and invalid API sessions were rejected. The CI workflow allows `/api/config` HTTP 503 as a warning when no AI provider is configured; this does not prove live AI.
+- Render service configuration still reports Auto Deploy enabled, branch `fix/nova-home-learn-first-mobile-20261109`, and Health Check Path blank. Latest confirmed Live deployment remains `dep-dbrhab6i0phs73fs2ni0` on old SHA `286ddbc6c4a96e5f62c50ada1aa9c2a890633527`; no newer Render build/deploy event exists. Therefore the current PR head is **not confirmed deployed**.
+- Exact-head live AI chat/search/image provider calls were skipped/not tested. No valid Supabase session, provider-backed response, cost cap or production behavior is claimed.
+- Production remains unchanged on `main`; no merge/deploy, paid API/service spend, provider secret edit, payment setup or Supabase schema mutation occurred.
+- Remaining blockers: set Staging Health Check Path to `/health`; resolve GitHub-to-Render auto-deploy handoff; verify latest PR SHA Live; adult/operator-approved provider configuration and authenticated live provider tests; durable user quota/spend ledger and hard cost caps; valid/expired sessions and two-account isolation; safe full account deletion; physical Android camera/microphone; legal/provider/IP/privacy review; backup/restore, load/monitoring/rollback.
+ 
+**Phase 1 remains IN PROGRESS. Definition of Done NOT MET. Production NO-GO.**
