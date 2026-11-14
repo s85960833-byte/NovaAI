@@ -79,13 +79,13 @@ app.get('/api/config', (q, r) => {
   const llmChatConfigured = !!(E.LLM_KEY && E.LLM_MODEL);
   const groqChatConfigured = !!(E.GROQ_API_KEY && E.GROQ_MODEL);
   if (!llmChatConfigured && !groqChatConfigured && !E.OPENROUTER_API_KEY && !cloudflareChatConfigured) return r.status(503).end();
-  r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || E.CLOUDFLARE_MODEL || (E.OPENROUTER_API_KEY ? 'openrouter/free' : 'free-provider-fallback'), authRequired: apiAuthRequired, image: imageProviderConfigured, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: groqChatConfigured, openrouterFallback: !!E.OPENROUTER_API_KEY, cloudflareWorkersAi: cloudflareChatConfigured, paidImage: paidImageConfigured, pollinationsImage: pollinationsImageConfigured, hordeImage: hordeImageConfigured } });
+  r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || E.CLOUDFLARE_MODEL || (E.OPENROUTER_API_KEY ? 'openrouter/free' : 'free-provider-fallback'), authRequired: apiAuthRequired, image: imageProviderConfigured, stt: E.STT_OFF !== '1' && !!(E.LLM_KEY || E.GROQ_API_KEY), live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: groqChatConfigured, openrouterFallback: !!E.OPENROUTER_API_KEY, cloudflareWorkersAi: cloudflareChatConfigured, paidImage: paidImageConfigured, pollinationsImage: pollinationsImageConfigured, hordeImage: hordeImageConfigured } });
 });
 
 // Speech to text for live voice when the phone browser cannot do it itself (same provider key, e.g. Groq Whisper).
 app.post('/api/transcribe', express.raw({ type: () => true, limit: '8mb' }), async (q, r) => {
   try {
-    if (E.STT_OFF) return r.status(404).end();
+    if (E.STT_OFF === '1') return r.status(404).end();
     if (!Buffer.isBuffer(q.body) || q.body.length < 800) return r.status(400).json({ error: 'No audio received' });
     const type = String(q.headers['content-type'] || 'audio/webm').split(';')[0];
     const ext = /mp4|m4a|aac/.test(type) ? 'm4a' : /ogg/.test(type) ? 'ogg' : /wav/.test(type) ? 'wav' : 'webm';
