@@ -45,6 +45,11 @@ const apiAuthRequired = E.NOVA_API_AUTH_REQUIRED === '1';
 const cloudflareChatConfigured = E.NOVA_ALLOW_CLOUDFLARE === '1' &&
   /^[a-f0-9]{32}$/i.test(String(E.CLOUDFLARE_ACCOUNT_ID || '')) &&
   !!(E.CLOUDFLARE_API_TOKEN && E.CLOUDFLARE_MODEL);
+const paidImageConfigured = E.ALLOW_PAID_IMAGE === 'true' && !!(E.IMAGE_KEY && E.IMAGE_MODEL);
+const pollinationsImageConfigured = E.NOVA_ALLOW_POLLINATIONS_SPEND === '1' && !!E.POLLI_KEY;
+const hordeImageConfigured = E.NOVA_ALLOW_AI_HORDE === '1' && !!E.HORDE_API_KEY;
+const imageProviderConfigured = E.IMAGE_OFF !== '1' &&
+  (paidImageConfigured || pollinationsImageConfigured || hordeImageConfigured);
 const requireNovaUser = apiAuthRequired
   ? createSupabaseUserMiddleware({
       supabaseUrl: E.SUPABASE_URL,
@@ -74,7 +79,7 @@ app.get('/api/config', (q, r) => {
   const llmChatConfigured = !!(E.LLM_KEY && E.LLM_MODEL);
   const groqChatConfigured = !!(E.GROQ_API_KEY && E.GROQ_MODEL);
   if (!llmChatConfigured && !groqChatConfigured && !E.OPENROUTER_API_KEY && !cloudflareChatConfigured) return r.status(503).end();
-  r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || E.CLOUDFLARE_MODEL || (E.OPENROUTER_API_KEY ? 'openrouter/free' : 'free-provider-fallback'), authRequired: apiAuthRequired, image: !E.IMAGE_OFF, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: groqChatConfigured, openrouterFallback: !!E.OPENROUTER_API_KEY, cloudflareWorkersAi: cloudflareChatConfigured, pollinationsKey: !!E.POLLI_KEY, hordeImage: !!E.HORDE_API_KEY } });
+  r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || E.CLOUDFLARE_MODEL || (E.OPENROUTER_API_KEY ? 'openrouter/free' : 'free-provider-fallback'), authRequired: apiAuthRequired, image: imageProviderConfigured, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: groqChatConfigured, openrouterFallback: !!E.OPENROUTER_API_KEY, cloudflareWorkersAi: cloudflareChatConfigured, pollinationsKey: !!E.POLLI_KEY, hordeImage: !!E.HORDE_API_KEY } });
 });
 
 // Speech to text for live voice when the phone browser cannot do it itself (same provider key, e.g. Groq Whisper).
@@ -320,7 +325,7 @@ async function generateFreeImage(prompt, body) {
       if (u.ok && b) return { image: 'data:image/png;base64,' + b, provider: 'configured-image-provider' };
     } catch (e) { console.warn('Optional image provider failed:', String(e && e.message || e).slice(0, 120)); }
   }
-  if (E.IMAGE_OFF) throw new Error('Image generation is disabled');
+  if (E.IMAGE_OFF === '1') throw new Error('Image generation is disabled');
   const w = Math.min(1024, Number(body.width) || 768), h = Math.min(1024, Number(body.height) || 768);
   const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
   const qs = 'width=' + w + '&height=' + h + '&seed=' + seed + '&nologo=true&safe=true&enhance=false' + (E.POLLI_KEY ? '&key=' + encodeURIComponent(E.POLLI_KEY) : '');
@@ -342,7 +347,7 @@ async function generateFreeImage(prompt, body) {
   }
   // AI Horde requires an operator-provisioned key. Keep dataset sharing disabled;
   // prompts still leave NOVA and are processed by third-party workers.
-  if (!E.HORDE_API_KEY) throw new Error('No free image provider is currently configured');
+  if (E.NOVA_ALLOW_AI_HORDE !== '1' || !E.HORDE_API_KEY) throw new Error('No approved image provider is currently configured');
   const base = secureProviderBase('HORDE_BASE', E.HORDE_BASE, 'https://aihorde.net/api/v2');
   const headers = { 'Content-Type': 'application/json', apikey: E.HORDE_API_KEY, 'Client-Agent': 'NovaAI:1.0:https://novaai-4auo.onrender.com' };
   const submit = await fetch(base + '/generate/async', {
@@ -406,7 +411,8 @@ app.post('/api/image', (q, r) => {
   if (!prompt) return r.status(400).json({ error: 'No prompt' });
   const unsafeImagePrompt = /\b(?:firearm|gun|rifle|pistol|knife|sword|explosive|bomb|weapon|porn|pornography|nude|nudity|sexual|erotic|gore|graphic violence|self-harm|suicide)\b/i;
   if (unsafeImagePrompt.test(prompt)) return r.status(400).json({ error: 'This image prompt is not supported. Choose a safe, non-graphic subject.' });
-  if (E.IMAGE_OFF) return r.status(404).end();
+  if (E.IMAGE_OFF === '1') return r.status(404).end();
+  if (!imageProviderConfigured) return r.status(503).json({ error: 'No approved image provider is currently configured.' });
   const now = Date.now(), imageRateKey = q.novaUser?.id ? 'user:' + q.novaUser.id : 'ip:' + q.ip;
   const a = rateWindow(imageJobHits, imageRateKey, now, 10 * 60 * 1000);
   if (!a) return r.status(503).json({ error: 'Image rate-limit capacity reached; retry shortly' });
