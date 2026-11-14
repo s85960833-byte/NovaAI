@@ -131,7 +131,7 @@ function selectIntent(body = {}) {
 
   // Keep bilingual patterns explicit so common Hindi and Hinglish requests
   // take the same honest route as their English equivalents.
-  const asksForDocument = hasDocument || /\b(read|summarize|analyse|analyze|explain|extract)\b.{0,50}\b(pdf|document|file|notice)\b|\b(pdf|docx|xlsx)\s+(?:export|download)\b|\b(?:pdf|document|file|notice)\b.{0,40}\b(?:samjhao|padho|summary|saar)\b|(?:पीडीएफ|दस्तावेज़|दस्तावेज|डॉक्यूमेंट|फाइल|नोटिस).{0,45}(?:समझाओ|समझाइए|पढ़ो|पढ़िए|सार|व्याख्या|बना दो|डाउनलोड)/i.test(lower);
+  const asksForDocument = hasDocument || /\b(read|summarize|analyse|analyze|explain|extract)\b.{0,50}\b(pdf|document|file|notice)\b|\b(pdf|docx|xlsx)\s+(?:export|download)\b|\b(?:pdf|document|file|notice)\b.{0,40}\b(?:samjhao|padho|batao|saar|समझाओ|समझाइए|पढ़ो|पढ़िए|सार|व्याख्या|बना दो|डाउनलोड)\b|(?:पीडीएफ|दस्तावेज़|दस्तावेज|डॉक्यूमेंट|फाइल|नोटिस).{0,45}(?:समझाओ|समझाइए|पढ़ो|पढ़िए|सार|व्याख्या|बना दो|डाउनलोड)/i.test(lower);
   if (asksForDocument) {
     return { intent: 'document/PDF', hasLiveData, hasImage, hasDocument };
   }
@@ -160,7 +160,7 @@ function selectIntent(body = {}) {
     return { intent: 'image', hasLiveData, hasImage, hasDocument };
   }
 
-  if (hasLiveData || /\b(?:latest|current|today|right now|news|breaking|price|prices|live score|weather|forecast|exam results?|government scheme|updated this week)\b|आज\s*(?:का|की|के|की तारीख)|अभी|ताज़ा|ताजा|लेटेस्ट|नवीनतम|वर्तमान|खबर|समाचार|मौसम|कीमत|भाव|लाइव\s*स्कोर|सरकारी\s*योजना|परीक्षा\s*(?:का\s*)?(?:परिणाम|रिजल्ट)|\b(?:aaj ka|aaj ki|abhi ka|latest|taaza|mausam|khabar|keemat|bhav)\b/i.test(lower)) {
+  if (hasLiveData || /\b(?:latest|current|today|right now|news|breaking|price|prices|live score|weather|forecast|exam results?|government scheme|updated this week)\b|आज\s*(?:का|की|के|की तारीख)|अभी\\s*(?:का|की|के|में|तक)|ताज़ा|ताजा|लेटेस्ट|नवीनतम|वर्तमान|खबर|समाचार|मौसम|कीमत|भाव|लाइव\s*स्कोर|सरकारी\s*योजना|परीक्षा\s*(?:का\s*)?(?:परिणाम|रिजल्ट)|\b(?:aaj ka|aaj ki|abhi ka|latest|taaza|mausam|khabar|keemat|bhav)\b/i.test(lower)) {
     return { intent: 'live-search', hasLiveData, hasImage, hasDocument };
   }
 
