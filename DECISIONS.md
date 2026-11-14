@@ -37,7 +37,7 @@ Before setting `NOVA_ALLOW_CLOUDFLARE=1`, a legally eligible adult operator must
 
 ## Explicitly not claimed as complete
 
-- Four-company independent free-tier failover.
+- Four-company production-cleared, task-specific failover with same-tier quality evidence; Cloudflare is currently only an optional default-off chat/prompt/voice adapter, not a production-cleared chain member.
 - Equivalent answer quality across providers.
 - Remaining-quota prediction or automatic 80% switching.
 - Durable global/user token ledger or hard daily monetary spend cap.
