@@ -238,6 +238,14 @@ try{
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
  console.log('PASS Business Intelligence and Company Cloud launch only from Agents; nested dialogs restore focus');
 
+ // Image Studio must not appear in Build while the real test server has no approved image provider.
+ await desktop.locator('#hi .nr-card[data-group="build"]').click();
+ await desktop.locator('#novaModes.open').waitFor();
+ assert.equal(await desktop.locator('#nmContent [data-quick="openImageStudio"]').count(),0,'Image Studio shortcut must be hidden when no image provider is configured');
+ await desktop.keyboard.press('Escape');
+ await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
+ console.log('PASS Build workspace hides Image Studio when no approved image provider is configured');
+
  // Exercise a complete Agents chat round trip against deterministic local API responses.
  const modeChatRequests=[];
  await desktop.route('**/api/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({model:'browser-test-model',image:true})}));
