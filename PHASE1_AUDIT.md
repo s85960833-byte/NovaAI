@@ -294,3 +294,14 @@ This addendum supersedes the earlier “CI pending” notes above for the provid
 - Full account deletion, valid/expired user-session testing, child-data/privacy/legal review, backup/restore and operational load/rollback drills remain open.
 
 **Status: Phase 1 IN PROGRESS. Production remains NO-GO.** The above updates do not establish live feature completion or production readiness.
+
+## Model-quality tier gate — 14 November 2026
+
+- Added `provider-quality-evidence.json` with a `golden-100-v1` suite requirement, minimum 100 cases and minimum score 90/100. The models list is empty by design; no model has yet been evaluated and approved.
+- Added `nova-provider-quality.js` to filter exact provider/model IDs using committed evidence.
+- `POST /api/chat/completions` now returns `quality_tier_unverified` (HTTP 503) for Code or Deep Research when no qualifying T1/T2 model remains.
+- Added `nova-quality-route.js` and wired it before the chat UI. BYOK and embedded-preview routes are blocked for code/research too, preventing a client-side bypass.
+- Added `scripts/provider-quality.test.cjs`, `npm run test:provider-quality` and a Main CI step. Tests cover the empty evidence state, threshold validation, exact provider/model pairing, unaffected ordinary chat, no mutation of the chain and server/client enforcement.
+- **Not yet complete:** no 100-case evaluation runner or real model score/report exists; no model should be entered into the evidence file yet; scheduled model evaluation/reranking and admin score display are missing.
+
+This gate reduces the risk of silently sending high-skill requests to an unverified model. It does not establish any provider's real quality score. Phase 1 remains IN PROGRESS.
