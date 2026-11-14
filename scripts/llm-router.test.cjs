@@ -6,6 +6,7 @@ const {
   buildChatProviders,
   createCircuitRegistry,
   normalizeBase,
+  readResponseTextSafely,
   runWithFailover
 } = require('../nova-llm-router');
 
@@ -155,4 +156,12 @@ test('provider circuit recovers after its cooldown expires', () => {
   circuit.recordFailure('p', { status: 503, now: 1001 });
   assert.equal(circuit.isOpen('p', 1500), true);
   assert.equal(circuit.isOpen('p', 2001), false);
+});
+
+
+test('an oversized or malformed provider error body cannot block failover', async () => {
+  const text = await readResponseTextSafely({}, async () => {
+    throw new Error('response too large');
+  }, 8);
+  assert.match(text, /provider error body omitted/);
 });
