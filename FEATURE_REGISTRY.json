@@ -470,10 +470,13 @@
       "commercialRights": "provider_specific_terms_and_quotas_require_adult_operator_review",
       "sourceFiles": [
         "nova-server.txt",
-        "nova-llm-router.js"
+        "nova-llm-router.js",
+        "nova-provider-quality.js",
+        "provider-quality-evidence.json"
       ],
       "testFiles": [
-        "scripts/llm-router.test.cjs"
+        "scripts/llm-router.test.cjs",
+        "scripts/provider-quality.test.cjs"
       ],
       "routeMarkers": [
         "app.post('/api/chat/completions'"
@@ -485,7 +488,9 @@
         "The chain does not yet prove four-company production-cleared free-tier failover or equal answer quality; the primary OpenAI-compatible endpoint must also be an independently approved company endpoint.",
         "Circuit state is process-local and resets when the Render instance restarts.",
         "Predictive quota switching, durable monetary cost caps, response quality validation and golden-set ranking are not implemented.",
-        "A provider stream that fails after bytes have reached the browser cannot yet be seamlessly continued by another provider."
+        "A provider stream that fails after bytes have reached the browser cannot yet be seamlessly continued by another provider.",
+        "Code and Deep Research routes require exact provider/model evidence of at least 100 golden-set cases and score >=90 on the committed golden-100-v1 suite; no model currently has qualifying evidence.",
+        "Unverified code/deep-research requests fail closed with a bilingual quality-not-yet-verified message instead of silently using an unbenchmarked fallback."
       ]
     },
     {
