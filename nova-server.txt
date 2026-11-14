@@ -38,7 +38,7 @@ app.use((q, r, next) => {
 // cannot repeatedly spend CPU/memory in JSON decoding before being throttled.
 const { rateWindow } = require('./nova-rate-limit');
 const { firstSuccessful } = require('./nova-search-router');
-const { buildChatProviders, runWithFailover } = require('./nova-llm-router');
+const { buildChatProviders, readResponseTextSafely, runWithFailover } = require('./nova-llm-router');
 const { createSupabaseUserMiddleware } = require('./nova-api-auth');
 const apiAuthRequired = E.NOVA_API_AUTH_REQUIRED === '1';
 const requireNovaUser = apiAuthRequired
@@ -223,7 +223,7 @@ app.post('/api/chat/completions', async (q, r) => {
       }),
       onResponse: async (response, { retryIndex }) => {
         if (response.status === 400 && Object.keys(extra).length) {
-          try { await readBoundedText(response, 1024 * 1024); } catch {}
+          try { await readResponseTextSafely(response, readBoundedText, 1024 * 1024); } catch {}
           extra = {};
           return 'retry';
         }
