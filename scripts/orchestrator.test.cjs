@@ -138,3 +138,35 @@ test('a text-only image-generation request does not claim an image is already ge
   assert.equal(result.capabilityStatus, 'partial');
   assert.match(result.instruction, /dedicated Image Studio route/i);
 });
+
+
+test('Hindi and Hinglish website requests route to Nova Build honestly', () => {
+  for (const prompt of ['मेरे लिए एक वेबसाइट बनाओ', 'coaching centre ke liye website bana do']) {
+    const result = routeNovaMessage(body(prompt));
+    assert.equal(result.route, 'build-app/site');
+    assert.equal(result.capabilityStatus, 'not_implemented');
+  }
+});
+
+test('Hindi and Hinglish code requests route to code assistance', () => {
+  for (const prompt of ['इस कोड को ठीक करो', 'python code likho']) {
+    assert.equal(routeNovaMessage(body(prompt)).route, 'code');
+  }
+});
+
+test('Hindi and Hinglish prompt requests route to prompt-writing', () => {
+  for (const prompt of ['मेरे लिए एक प्रॉम्प्ट सुधारो', 'prompt behtar karo']) {
+    assert.equal(routeNovaMessage(body(prompt)).route, 'prompt-writing');
+  }
+});
+
+test('Hindi research, document, image and current-information requests route correctly', () => {
+  assert.equal(routeNovaMessage(body('भारत में कृषि पर गहन शोध करो')).route, 'deep-research');
+  assert.equal(routeNovaMessage(body('इस PDF को समझाओ')).route, 'document/PDF');
+  assert.equal(routeNovaMessage(body('एक पोस्टर बनाओ')).route, 'image');
+  assert.equal(routeNovaMessage(body('आज का मौसम कैसा है?')).route, 'live-search');
+});
+
+test('ordinary Hindi requests are not all forced into live search', () => {
+  assert.equal(routeNovaMessage(body('अभी मुझे भिन्न समझाओ')).route, 'chat');
+});
