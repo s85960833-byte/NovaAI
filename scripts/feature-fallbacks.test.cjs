@@ -40,7 +40,7 @@ test('public image readiness describes enabled providers rather than raw secret 
 
 test('browser image feature stays hidden without a working server provider or the embedded SVG helper', () => {
   assert.match(app, /const imgOK=\(\)=>!!\(\(SV&&SV\.image\)\|\|SMP\)/);
-  assert.match(app, /if \(!\(\(SV&&SV\.image\)\|\|SMP\)\)\{toast\(t\('imgUnavailable'\)\);return\}/);
+  assert.match(app, /if\s*\(!\(\(SV&&SV\.image\)\|\|SMP\)\)\{toast\(t\('imgUnavailable'\)\);return\}/);
   assert.match(app, /unavailable:'No approved image-generation provider is configured/);
   assert.match(app, /unavailable:'अभी कोई स्वीकृत image provider configured नहीं है/);
 });
