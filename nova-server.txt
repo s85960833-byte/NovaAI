@@ -42,6 +42,9 @@ const { buildChatProviders, readResponseTextSafely, runWithFailover } = require(
 const { routeNovaMessage, routeInstruction } = require('./nova-orchestrator');
 const { createSupabaseUserMiddleware } = require('./nova-api-auth');
 const apiAuthRequired = E.NOVA_API_AUTH_REQUIRED === '1';
+const cloudflareChatConfigured = E.NOVA_ALLOW_CLOUDFLARE === '1' &&
+  /^[a-f0-9]{32}$/i.test(String(E.CLOUDFLARE_ACCOUNT_ID || '')) &&
+  !!(E.CLOUDFLARE_API_TOKEN && E.CLOUDFLARE_MODEL);
 const requireNovaUser = apiAuthRequired
   ? createSupabaseUserMiddleware({
       supabaseUrl: E.SUPABASE_URL,
@@ -70,8 +73,8 @@ app.use(express.json({ limit: '6mb' }));
 app.get('/api/config', (q, r) => {
   const llmChatConfigured = !!(E.LLM_KEY && E.LLM_MODEL);
   const groqChatConfigured = !!(E.GROQ_API_KEY && E.GROQ_MODEL);
-  if (!llmChatConfigured && !groqChatConfigured && !E.OPENROUTER_API_KEY) return r.status(503).end();
-  r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || (E.OPENROUTER_API_KEY ? 'openrouter/free' : 'free-provider-fallback'), authRequired: apiAuthRequired, image: !E.IMAGE_OFF, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: groqChatConfigured, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY, hordeImage: !!E.HORDE_API_KEY } });
+  if (!llmChatConfigured && !groqChatConfigured && !E.OPENROUTER_API_KEY && !cloudflareChatConfigured) return r.status(503).end();
+  r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || E.CLOUDFLARE_MODEL || (E.OPENROUTER_API_KEY ? 'openrouter/free' : 'free-provider-fallback'), authRequired: apiAuthRequired, image: !E.IMAGE_OFF, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: groqChatConfigured, openrouterFallback: !!E.OPENROUTER_API_KEY, cloudflareWorkersAi: cloudflareChatConfigured, pollinationsKey: !!E.POLLI_KEY, hordeImage: !!E.HORDE_API_KEY } });
 });
 
 // Speech to text for live voice when the phone browser cannot do it itself (same provider key, e.g. Groq Whisper).
@@ -213,7 +216,16 @@ app.post('/api/chat/completions', async (q, r) => {
     if (E.OPENROUTER_API_KEY) {
       providerBases.openrouter = secureProviderBase('OPENROUTER_BASE', E.OPENROUTER_BASE, 'https://openrouter.ai/api/v1');
     }
-    const providers = buildChatProviders(E, { vision: vis, defaultVisionModel: VISION, bases: providerBases });
+    if (cloudflareChatConfigured) {
+      providerBases.cloudflare = 'https://api.cloudflare.com/client/v4/accounts/' + E.CLOUDFLARE_ACCOUNT_ID + '/ai/v1';
+    }
+    const allowCloudflareForTask = ['chat', 'prompt-writing', 'voice'].includes(routeDecision.route) && !vis;
+    const providers = buildChatProviders(E, {
+      vision: vis,
+      defaultVisionModel: VISION,
+      bases: providerBases,
+      allowCloudflare: cloudflareChatConfigured && allowCloudflareForTask
+    });
     if (!providers.length) return r.status(503).json({ error: 'No compatible AI chat provider is configured. Configure one approved server-side provider.' });
 
     let extra = vis ? { reasoning_format: 'hidden' } : {};
@@ -1120,7 +1132,7 @@ if (E.SELFTEST_ON_START === '1') {
           return null;
         }
       }
-      const providerConfigured = !!((E.LLM_KEY && E.LLM_MODEL) || (E.GROQ_API_KEY && E.GROQ_MODEL) || E.OPENROUTER_API_KEY);
+      const providerConfigured = !!((E.LLM_KEY && E.LLM_MODEL) || (E.GROQ_API_KEY && E.GROQ_MODEL) || E.OPENROUTER_API_KEY || cloudflareChatConfigured);
       await probe('health', '/health', {}, (r, j) => r.ok && j.status === 'ok' && j.ready === true);
       const config = await probe('config', '/api/config', {}, (r, j) => r.ok && !!j.model || (!providerConfigured && r.status === 503));
       console.log('NOVA_SELFTEST_CONFIG ' + JSON.stringify(results[results.length - 1]));
