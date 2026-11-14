@@ -290,6 +290,11 @@ try{
  await desktop.locator('#nmClose').click();
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
 
+ // Re-bootstrap NOVA after installing the mocked image config and job routes.
+ // The app reads /api/config once during startup; a late route alone cannot change SV.image.
+ await desktop.reload({waitUntil:'domcontentloaded'});
+ await enterNOVA(desktop);
+ await desktop.waitForFunction(()=>document.querySelector('#gen') && !document.querySelector('#gen').hidden);
  // The Build workspace Image Studio action must reveal the existing image composer from the dashboard.
  await desktop.locator('#hi .nr-card[data-group="build"]').click();
  await desktop.locator('#novaModes.open').waitFor();
