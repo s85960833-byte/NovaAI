@@ -23,6 +23,7 @@ const safeJson = (value: unknown, maxBytes = 50000) => {
 };
 
 const fail = (message: string, status = 400) => json({ error: message }, status);
+const isNoRows = (error: { code?: string } | null | undefined): boolean => error?.code === "PGRST116";
 
 // Invitation links return to the deployed NOVA app, not Auth's default Site URL.
 // Override for an approved preview and add that exact URL to the Auth redirect allow-list.
@@ -267,6 +268,7 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
         .update({ status: "active" })
         .eq("id", acceptParts[1]).eq("user_id", userId).eq("status", "invited")
         .select("id,organization_id,role,status").single();
+      if (isNoRows(error)) return fail("Invitation not found or already accepted", 409);
       if (error) throw error;
       return json({ accepted: data.status === "active", membership: data });
     }
@@ -296,6 +298,7 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
       const { data, error } = await db.from("nova_bi_datasets")
         .delete().eq("id", datasetDelete[1]).eq("organization_id", orgId)
         .select("id").single();
+      if (isNoRows(error)) return fail("Dataset not found", 404);
       if (error) throw error;
       return json({ deleted: true, dataset_id: data.id });
     }
@@ -307,6 +310,7 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
       const { data, error } = await db.from("nova_bi_analyses")
         .delete().eq("id", analysisDelete[1]).eq("organization_id", orgId)
         .select("id").single();
+      if (isNoRows(error)) return fail("Analysis not found", 404);
       if (error) throw error;
       return json({ deleted: true, analysis_id: data.id });
     }
@@ -400,6 +404,7 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
         .update({ status: input.decision })
         .eq("id", decisionMatch[1]).eq("status", "proposed")
         .select("id,status").single();
+      if (isNoRows(error)) return fail("Workflow not found or already has a decision", 409);
       if (error) throw error;
       return json({ decided: data.status === input.decision, workflow: data });
     }
@@ -409,9 +414,9 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
       if (!uuid(orgId)) return fail("A valid organization_id is required");
       const { data, error } = await db.from("nova_bi_branding")
         .select("organization_id,brand_name,tagline,logo_url,primary_color,accent_color,updated_at")
-        .eq("organization_id", orgId).single();
+        .eq("organization_id", orgId).maybeSingle();
       if (error) throw error;
-      return json({ branding: data });
+      return json({ branding: data || null });
     }
 
     if (req.method === "POST" && path === "branding") {
@@ -429,8 +434,9 @@ const authenticatedHandler = withSupabase({ auth: "user", cors: "disabled" }, as
       const { data, error } = await db.from("nova_bi_branding")
         .update({ brand_name: brandName, tagline, logo_url: logoUrl, primary_color: primary, accent_color: accent })
         .eq("organization_id", input.organization_id)
-        .select("organization_id,brand_name,tagline,logo_url,primary_color,accent_color,updated_at").single();
+        .select("organization_id,brand_name,tagline,logo_url,primary_color,accent_color,updated_at").maybeSingle();
       if (error) throw error;
+      if (!data) return fail("Company branding record not found", 404);
       return json({ branding: data });
     }
 
