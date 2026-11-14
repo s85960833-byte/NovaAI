@@ -97,6 +97,37 @@ test('Cloudflare vision fallback requires an explicit vision model and can be di
   assert.equal(buildChatProviders(env, { vision: true, allowCloudflare: false }).length, 0);
 });
 
+test('four configured companies fall through sequentially to the optional Cloudflare provider', async () => {
+  const providers = buildChatProviders({
+    LLM_KEY: 'primary-key',
+    LLM_MODEL: 'primary-model',
+    LLM_BASE: 'https://api.primary.example/v1',
+    GROQ_API_KEY: 'groq-key',
+    GROQ_MODEL: 'groq-model',
+    OPENROUTER_API_KEY: 'openrouter-key',
+    OPENROUTER_MODEL: 'openrouter/free',
+    NOVA_ALLOW_CLOUDFLARE: '1',
+    CLOUDFLARE_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
+    CLOUDFLARE_API_TOKEN: 'cloudflare-token',
+    CLOUDFLARE_MODEL: '@cf/meta/llama-3.1-8b-instruct'
+  });
+  assert.deepEqual(providers.map(provider => provider.id), [
+    'primary', 'groq', 'openrouter', 'cloudflare-workers-ai'
+  ]);
+
+  const attempted = [];
+  const result = await runWithFailover({
+    providers,
+    circuit: createCircuitRegistry(),
+    request: async provider => {
+      attempted.push(provider.id);
+      return provider.id === 'cloudflare-workers-ai' ? response(200) : response(429);
+    }
+  });
+  assert.deepEqual(attempted, ['primary', 'groq', 'openrouter', 'cloudflare-workers-ai']);
+  assert.equal(result.provider, 'cloudflare-workers-ai');
+});
+
 test('provider bases must use HTTPS and must not contain credentials or query data', () => {
   assert.equal(normalizeBase('https://api.example.com/v1/'), 'https://api.example.com/v1');
   for (const url of [
