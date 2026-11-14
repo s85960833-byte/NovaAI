@@ -61,3 +61,10 @@ test('unsupported live voice keeps entry points visible and gives a text-mode fa
   assert.match(app, /lvNo:'Live voice is not available in this in-app browser\. You can continue by typing/);
   assert.match(app, /lvNo:'इस in-app browser में live voice उपलब्ध नहीं है। नीचे संदेश बॉक्स में लिखकर बात जारी रखें।/);
 });
+
+test('speech-to-text OFF follows the documented numeric boolean convention', () => {
+  assert.match(server, /stt: E\.STT_OFF !== '1' && !!\(E\.LLM_KEY \|\| E\.GROQ_API_KEY\)/);
+  assert.match(server, /if \(E\.STT_OFF === '1'\) return r\.status\(404\)\.end\(\)/);
+  assert.doesNotMatch(server, /if \(E\.STT_OFF\)\s/);
+  assert.match(env, /^STT_OFF=0$/m);
+});
