@@ -45,6 +45,8 @@ jobs:
         run: npm run test:feature-registry
       - name: Test default-off runtime feature flags
         run: npm run test:feature-flags
+      - name: Test production release gate contract
+        run: npm run test:release-check-contract
       - name: Test health and deployed-version route contracts
         run: npm run test:health-version
       - name: Test safe AI configuration response with mocked server credentials
