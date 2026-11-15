@@ -4,7 +4,7 @@ async function expect(name,path,options,check){const r=await req(path,options);c
 let ready=false;for(let i=0;i<30;i++){try{const r=await req('/api/config');if(r.ok){ready=true;break}}catch{}await new Promise(x=>setTimeout(x,500))}
 if(!ready)throw new Error('local Express server did not become ready');
 const html=await expect('previous standard chat UI','/',{},(r,b)=>r.ok&&b.includes('<html lang="en">')&&b.includes('id="msgs"')&&b.includes('id="dset"')&&b.includes('id="photo"')&&['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>b.includes(x))&&!b.includes('id="nova-future-style"')&&!b.includes('id="nova-future-script"')&&!b.includes('nova-living-core')&&!b.includes('INDIAN SOUL • FUTURE INTELLIGENCE'));
-await expect('NOVA workspace scripts connected','/',{},(r,b)=>r.ok&&['src="/nova-config.js"','src="/nova-app.js"','src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>b.includes(x))&&!/<script\b(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i.test(b));
+await expect('NOVA workspace scripts connected','/',{},(r,b)=>r.ok&&['src="/nova-config.js"','src="/nova-app.js"','src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"','src="/nova-reference.js"','src="/nova-feature-registry-ui.js"'].every(x=>b.includes(x))&&!/<script\b(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i.test(b));
 await expect('externalized NOVA app script','/nova-app.js',{},(r,b)=>r.ok&&b.includes('const CFG=Object.assign')&&b.includes("localStorage.getItem('nova')")&&b.includes('const persistable=()=>')&&b.includes('JSON.stringify(persistable())')&&b.length>100000);
 await expect('externalized NOVA config script','/nova-config.js',{},(r,b)=>r.ok&&b.includes('window.NOVA_CONFIG'));
 await expect('Business Intelligence scripts included on homepage','/',{},(r,b)=>r.ok&&b.includes('src="/nova-business-core.js"')&&b.includes('src="/nova-business.js"')&&b.includes('src="/nova-business-cloud.js"'));
@@ -71,4 +71,7 @@ for (const [name,header] of [
 await expect('demo CSV allowlist blocks unknown names','/demo-data/not-a-demo.csv',{},(r,b)=>r.status===404&&JSON.parse(b).error==='Demo file not found');
 await expect('demo CSV allowlist blocks path traversal','/demo-data/%2e%2e%2fnova-server.txt',{},r=>r.status===404);
 
+await expect('machine-readable Feature Registry','/FEATURE_REGISTRY.json',{},(r,b)=>{const j=JSON.parse(b);return r.ok&&Array.isArray(j.features)&&Array.isArray(j.uiModes)&&Array.isArray(j.workspaces)});
+await expect('runtime feature flags endpoint is read-only and secret-free','/api/features',{},(r,b)=>{const j=JSON.parse(b);return r.ok&&typeof j.flags.aiChat==='boolean'&&typeof j.flags.accountDeletion==='boolean'&&!b.includes('SERVICE_ROLE')&&!b.includes('API_KEY')});
+await expect('registry UI adapter is served','/nova-feature-registry-ui.js',{},(r,b)=>r.ok&&b.includes('/FEATURE_REGISTRY.json')&&b.includes('/api/features')&&b.includes('data-registry-status'));
 console.log('PASS local runtime smoke tests');

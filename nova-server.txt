@@ -11,6 +11,8 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const E = process.env;
+const { getFeatureFlags } = require('./nova-feature-flags');
+const FEATURE_FLAGS = getFeatureFlags(E);
 const { secureProviderBase } = require('./nova-provider-url');
 const { formatCurrentDateTime } = require('./nova-timezone');
 const { safeRedirectTarget, readBoundedBuffer, readBoundedText } = require('./nova-http');
@@ -63,12 +65,12 @@ const { routeNovaMessage, routeInstruction } = require('./nova-orchestrator');
 const { gateProvidersForRoute } = require('./nova-provider-quality');
 const { createSupabaseUserMiddleware } = require('./nova-api-auth');
 const apiAuthRequired = E.NOVA_API_AUTH_REQUIRED === '1';
-const cloudflareChatConfigured = E.NOVA_ALLOW_CLOUDFLARE === '1' &&
+const cloudflareChatConfigured = FEATURE_FLAGS.cloudflareWorkersAi &&
   /^[a-f0-9]{32}$/i.test(String(E.CLOUDFLARE_ACCOUNT_ID || '')) &&
   !!(E.CLOUDFLARE_API_TOKEN && E.CLOUDFLARE_MODEL);
-const paidImageConfigured = E.ALLOW_PAID_IMAGE === 'true' && !!(E.IMAGE_KEY && E.IMAGE_MODEL);
-const pollinationsImageConfigured = E.NOVA_ALLOW_POLLINATIONS_SPEND === '1' && !!E.POLLI_KEY;
-const hordeImageConfigured = E.NOVA_ALLOW_AI_HORDE === '1' && !!E.HORDE_API_KEY;
+const paidImageConfigured = FEATURE_FLAGS.paidImage && !!(E.IMAGE_KEY && E.IMAGE_MODEL);
+const pollinationsImageConfigured = FEATURE_FLAGS.pollinationsSpend && !!E.POLLI_KEY;
+const hordeImageConfigured = FEATURE_FLAGS.aiHorde && !!E.HORDE_API_KEY;
 const imageProviderConfigured = E.IMAGE_OFF !== '1' &&
   (paidImageConfigured || pollinationsImageConfigured || hordeImageConfigured);
 const requireNovaUser = apiAuthRequired
@@ -90,8 +92,8 @@ app.use('/api', (q, r, next) => {
 // Public read-only bootstrap/feed endpoints stay available. All other API routes
 // require a verified Supabase user when the staged auth gate is enabled.
 app.use('/api', (q, r, next) => {
-  if (q.path === '/config' || q.path === '/feed') return next();
-  if (q.path === '/account' && E.ACCOUNT_DELETION_ENABLED !== '1') return next();
+  if (q.path === '/config' || q.path === '/feed' || q.path === '/features') return next();
+  if (q.path === '/account' && !FEATURE_FLAGS.accountDeletion) return next();
   return requireNovaUser(q, r, next);
 });
 
@@ -100,12 +102,12 @@ const { createAccountDeletionHandler } = require('./nova-account-deletion');
 const { createUsageQuota, estimateInputTokens } = require('./nova-usage-quota');
 const USAGE_PLANS = require('./config/plans');
 app.delete('/api/account', createAccountDeletionHandler({
-  enabled: E.ACCOUNT_DELETION_ENABLED === '1',
+  enabled: FEATURE_FLAGS.accountDeletion,
   supabaseUrl: E.SUPABASE_URL,
   serviceRoleKey: E.SUPABASE_SERVICE_ROLE_KEY
 }));
 const usageQuota = createUsageQuota({
-  enabled: E.NOVA_USAGE_QUOTA_REQUIRED !== '0',
+  enabled: FEATURE_FLAGS.usageQuotaRequired,
   supabaseUrl: E.SUPABASE_URL,
   serviceRoleKey: E.SUPABASE_SERVICE_ROLE_KEY,
   plans: USAGE_PLANS
@@ -117,6 +119,11 @@ app.get('/api/config', (q, r) => {
   const groqChatConfigured = !!(E.GROQ_API_KEY && E.GROQ_MODEL);
   if (!llmChatConfigured && !groqChatConfigured && !E.OPENROUTER_API_KEY && !cloudflareChatConfigured) return r.status(503).json({ error: 'ai_not_configured' });
   r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || E.CLOUDFLARE_MODEL || (E.OPENROUTER_API_KEY ? 'openrouter/free' : 'free-provider-fallback'), authRequired: apiAuthRequired, image: imageProviderConfigured, stt: E.STT_OFF !== '1' && !!(E.LLM_KEY || E.GROQ_API_KEY), live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: groqChatConfigured, openrouterFallback: !!E.OPENROUTER_API_KEY, cloudflareWorkersAi: cloudflareChatConfigured, paidImage: paidImageConfigured, pollinationsImage: pollinationsImageConfigured, hordeImage: hordeImageConfigured } });
+});
+
+app.get('/api/features', (q, r) => {
+  r.set('Cache-Control', 'no-store');
+  return r.json({ flags: FEATURE_FLAGS });
 });
 
 // Speech to text for live voice when the phone browser cannot do it itself (same provider key, e.g. Groq Whisper).
@@ -575,7 +582,7 @@ app.get('/assets/nova-entry.mp4', (q, r) => {
   r.status(200).set({ ...headers, 'Content-Length': String(total) }).end(ENTRY_VIDEO);
 });
 app.get('/nova-entry.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-entry.js')));
-app.get('/sw.js', (q, r) => r.set('Content-Type', 'application/javascript').send("const CACHE='nova-shell-v20-quality-route';const CORE=['/','/nova-entry.js','/nova-config.js','/nova-quality-route.js','/nova-app.js','/nova-sync-merge.js','/mode-registry.js','/mode-workspace.js','/s-tier.js','/nova-suite.js','/nova-reference.js','/nova-business-core.js','/nova-business.js','/nova-business-cloud.js','/nova-account.js','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png','/icons/nova-emblem.svg'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(k=>k.startsWith('nova-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==location.origin||u.pathname.startsWith('/api/')||u.pathname==='/assets/nova-entry.mp4')return;e.respondWith(fetch(e.request).then(r=>{if(r.ok&&r.type==='basic'){const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match(e.request).then(hit=>hit||caches.match('/'))))});"));
+app.get('/sw.js', (q, r) => r.set('Content-Type', 'application/javascript').send("const CACHE='nova-shell-v21-feature-registry';const CORE=['/','/nova-entry.js','/nova-config.js','/nova-quality-route.js','/nova-feature-registry-ui.js','/FEATURE_REGISTRY.json','/nova-app.js','/nova-sync-merge.js','/mode-registry.js','/mode-workspace.js','/s-tier.js','/nova-suite.js','/nova-reference.js','/nova-business-core.js','/nova-business.js','/nova-business-cloud.js','/nova-account.js','/manifest.webmanifest','/icons/icon-192.png','/icons/icon-512.png','/icons/nova-emblem.svg'];self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(k=>k.startsWith('nova-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==location.origin||u.pathname.startsWith('/api/')||u.pathname==='/assets/nova-entry.mp4')return;e.respondWith(fetch(e.request).then(r=>{if(r.ok&&r.type==='basic'){const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c))}return r}).catch(()=>caches.match(e.request).then(hit=>hit||caches.match('/'))))});"));
 app.get('/robots.txt', (q, r) => r.type('text/plain').set('Cache-Control', 'public, max-age=3600').send('User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: https://novaai-4auo.onrender.com/sitemap.xml\n'));
 app.get('/sitemap.xml', (q, r) => r.type('application/xml').set('Cache-Control', 'public, max-age=3600').send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://novaai-4auo.onrender.com/</loc></url></urlset>'));
 

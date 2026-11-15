@@ -4,14 +4,15 @@
   "scope": "PR #98 source-derived implementation inventory; not a production-readiness certificate",
   "enforcement": {
     "inventoryContractTest": "scripts/feature-registry.test.cjs",
-    "wiredToRuntimeFeatureFlags": false,
+    "wiredToRuntimeFeatureFlags": true,
     "wiredToPricingPage": false,
     "endToEndTruthEnforcement": false,
     "aiProviderFailoverModule": "nova-llm-router.js",
     "aiProviderFailoverTests": "scripts/llm-router.test.cjs",
     "requestOrchestratorModule": "nova-orchestrator.js",
     "requestOrchestratorTests": "scripts/orchestrator.test.cjs",
-    "requestOrchestratorIntegration": "nova-server.txt"
+    "requestOrchestratorIntegration": "nova-server.txt",
+    "wiredToUiRegistry": true
   },
   "release": {
     "productionReady": false,
@@ -55,7 +56,9 @@
       "limits": [
         "Staging has no AI provider configured; /api/config returns 503.",
         "Provider model, pricing, quota and per-answer cost are not measured."
-      ]
+      ],
+      "uiStatus": "beta",
+      "planTier": "free"
     },
     {
       "id": "search.live",
@@ -83,7 +86,9 @@
         "Tavily/Brave keys are not configured in Staging.",
         "Brave result terms restrict persistent storage/redistribution; Tavily shared cache remains disabled pending vendor approval.",
         "No live provider bake-off has been run."
-      ]
+      ],
+      "uiStatus": "beta",
+      "planTier": "free"
     },
     {
       "id": "news.feeds",
@@ -107,7 +112,9 @@
       ],
       "limits": [
         "Feed access and public RSS URLs do not grant blanket article/snippet redistribution rights."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "free"
     },
     {
       "id": "weather.air_quality",
@@ -130,7 +137,9 @@
       ],
       "limits": [
         "Open-Meteo free API is non-commercial; wttr.in commercial rights are unverified."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "free"
     },
     {
       "id": "finance.market_data",
@@ -154,7 +163,9 @@
       "limits": [
         "Listed equities and commodities fail closed without a licensed provider.",
         "CoinGecko keyless/free commercial rights, Coinbase data rights and Frankfurter downstream terms are not cleared."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "free"
     },
     {
       "id": "sports.schedules",
@@ -177,7 +188,9 @@
       ],
       "limits": [
         "ESPN endpoint is unofficial; TheSportsDB free terms are development-limited and not a commercial publishing clearance."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "free"
     },
     {
       "id": "research.public_data",
@@ -200,7 +213,9 @@
       ],
       "limits": [
         "OpenAlex work licences and World Bank dataset licences vary; arXiv paper text/assets are not automatically CC0."
-      ]
+      ],
+      "uiStatus": "beta",
+      "planTier": "free"
     },
     {
       "id": "image.studio",
@@ -230,7 +245,9 @@
         "Server providers require explicit opt-in: paid image provider, Pollinations spend gate, or AI Horde gate; all are off by default.",
         "Community provider output and model rights are not cleared for production. Jobs remain in process memory, not a durable queue.",
         "No live image-provider request has been verified on Staging."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "free"
     },
     {
       "id": "voice.speech_to_text",
@@ -257,7 +274,9 @@
       "limits": [
         "No speech provider is configured in Staging.",
         "Real Android microphone capture and language-quality coverage are unverified."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "free"
     },
     {
       "id": "account.cloud_sync",
@@ -283,7 +302,9 @@
         "Staging missing/malformed/invalid tokens return 401.",
         "Valid/expired tokens, email delivery, redirect allow-list and hosted two-account isolation remain unverified.",
         "Full Auth account deletion and retention are incomplete."
-      ]
+      ],
+      "uiStatus": "beta",
+      "planTier": "free"
     },
     {
       "id": "pwa.offline_shell",
@@ -306,7 +327,9 @@
       "limits": [
         "Offline behavior is limited to cached app-shell files, not offline AI.",
         "Physical Android install/update/storage checks remain unverified."
-      ]
+      ],
+      "uiStatus": "live",
+      "planTier": "free"
     },
     {
       "id": "company.bi_preview",
@@ -330,7 +353,9 @@
       "limits": [
         "Synthetic demo data only; not for confidential or personal company data.",
         "Risk scores are heuristic and portable proof bundles are not signed attestations."
-      ]
+      ],
+      "uiStatus": "beta",
+      "planTier": "free"
     },
     {
       "id": "code.workspace_sandbox",
@@ -351,7 +376,9 @@
       ],
       "limits": [
         "Chat-based code assistance is not a secure isolated code execution workspace."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "hidden"
     },
     {
       "id": "prompt.studio",
@@ -372,7 +399,9 @@
       ],
       "limits": [
         "No separately verified Prompt Studio workflow or 60-case test set."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "hidden"
     },
     {
       "id": "build.app_builder",
@@ -393,7 +422,9 @@
       ],
       "limits": [
         "A Build navigation area is not evidence of a complete sandboxed preview, chat editing, source export and 40-case build suite."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "hidden"
     },
     {
       "id": "agents.task_runtime",
@@ -414,7 +445,9 @@
       ],
       "limits": [
         "No durable queue, scheduled user-agent runtime or verified 40-case multi-step suite is evidenced."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "hidden"
     },
     {
       "id": "docs.export_generation",
@@ -435,7 +468,9 @@
       ],
       "limits": [
         "A full multi-format generator with font, page-break and 50-document verification is not evidenced."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "hidden"
     },
     {
       "id": "billing.credits_checkout",
@@ -456,7 +491,9 @@
       ],
       "limits": [
         "No durable credits, entitlements, hard spend caps, payment gateway, refund flow or tax invoice implementation."
-      ]
+      ],
+      "uiStatus": "hidden",
+      "planTier": "hidden"
     },
     {
       "id": "ai.provider_failover",
@@ -495,7 +532,9 @@
         "Code and Deep Research routes require exact provider/model evidence of at least 100 golden-set cases and score >=90 on the committed golden-100-v1 suite; no model currently has qualifying evidence.",
         "Unverified code/deep-research requests fail closed with a bilingual quality-not-yet-verified message instead of silently using an unbenchmarked fallback.",
         "The browser blocks code/research requests in BYOK and embedded-preview mode until qualifying server/evaluation evidence is available; embedded mode cannot bypass the server quality rule."
-      ]
+      ],
+      "uiStatus": "beta",
+      "planTier": "free"
     },
     {
       "id": "core.request_orchestrator",
@@ -525,7 +564,9 @@
         "Document/PDF, image and voice remain partial and depend on separate routes or input metadata.",
         "Deep Research, Nova Build app/site generation and durable Nova Agent execution are not implemented; requests fall back honestly to bounded assistance.",
         "Voice-origin metadata is not yet attached by every frontend speech input path."
-      ]
+      ],
+      "uiStatus": "beta",
+      "planTier": "free"
     },
     {
       "id": "core.universal_accuracy",
@@ -547,7 +588,190 @@
         "A prompt instruction is not proof that answers are factually correct; live provider output, citations and quality evaluations remain unverified.",
         "Incremental provider token cost and answer-quality impact are unknown until a permitted model is configured and measured.",
         "No prompt-content analytics are added because no analytics backend is configured."
-      ]
+      ],
+      "uiStatus": "live",
+      "planTier": "free"
     }
-  ]
+  ],
+  "workspaces": [
+    {
+      "id": "learn",
+      "name": "NOVA Learn",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "build",
+      "name": "NOVA Build",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "agents",
+      "name": "NOVA Agents",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    }
+  ],
+  "uiModes": [
+    {
+      "id": "general",
+      "area": "agents",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "voice",
+      "area": "agents",
+      "featureId": "voice.speech_to_text",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "document",
+      "area": "agents",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "schemes",
+      "area": "agents",
+      "featureId": "search.live",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "shopkeeper",
+      "area": "agents",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "math",
+      "area": "learn",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "photo",
+      "area": "learn",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "ncert",
+      "area": "learn",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "board",
+      "area": "learn",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "ssc",
+      "area": "learn",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "upsc",
+      "area": "learn",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "english",
+      "area": "learn",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "builder",
+      "area": "build",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    }
+  ],
+  "quickActions": [
+    {
+      "id": "openPhoto",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "openImageStudio",
+      "featureId": "image.studio",
+      "planTier": "free",
+      "status": "hidden"
+    },
+    {
+      "id": "startVoice",
+      "featureId": "voice.speech_to_text",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "openAgentsSuite",
+      "featureId": "agents.task_runtime",
+      "planTier": "free",
+      "status": "hidden"
+    },
+    {
+      "id": "openArchive",
+      "featureId": "assistant.chat",
+      "planTier": "free",
+      "status": "beta",
+      "flag": "aiChat"
+    },
+    {
+      "id": "openBusinessIntelligence",
+      "featureId": "company.bi_preview",
+      "planTier": "free",
+      "status": "beta"
+    },
+    {
+      "id": "openCompanyCloud",
+      "featureId": "company.bi_preview",
+      "planTier": "free",
+      "status": "beta"
+    }
+  ],
+  "uiStatusDefinitions": {
+    "live": "Implemented in the repository within the registry's stated limited scope.",
+    "beta": "Preview or provider-dependent feature; do not imply production readiness.",
+    "hidden": "Unsupported, blocked or unapproved feature; do not expose its action."
+  }
 }
