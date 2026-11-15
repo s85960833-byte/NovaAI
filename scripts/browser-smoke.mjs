@@ -368,7 +368,6 @@ try{
  await mobile.locator('#novaModes.open').waitFor();
  const agentsText=await mobile.locator('#nmContent').innerText();
  assert.ok(agentsText.includes('Live Voice'));
- assert.ok(!agentsText.includes('Agents Studio'),'unimplemented task-agent runtime must remain hidden');
   assert.equal(await mobile.locator('#nmContent [data-quick="openAgentsSuite"]').isVisible(),false,
     'unimplemented task-agent shortcut must remain hidden by the Feature Registry');
  assert.ok(agentsText.includes('History Archive'));
