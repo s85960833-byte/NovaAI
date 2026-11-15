@@ -76,7 +76,7 @@ test('AI_DISABLED returns 503 and no provider request is made', async () => {
 test('all provider failures return a safe JSON error without upstream body or stack', async () => {
   const app = await startServer({
     LLM_KEY: 'fake-key', LLM_MODEL: 'fake-model',
-    LLM_BASE: 'https://mock.provider.invalid/v1', LLM_MAX_ATTEMPTS: '1',
+    LLM_BASE: 'https://mock.provider.invalid/v1', NOVA_USAGE_QUOTA_REQUIRED: '0', LLM_MAX_ATTEMPTS: '1',
     LLM_RETRY_BASE_DELAY_MS: '0'
   });
   try {
