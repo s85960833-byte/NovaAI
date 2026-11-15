@@ -47,6 +47,8 @@ jobs:
         run: npm run test:health-version
       - name: Test safe AI configuration response with mocked server credentials
         run: npm run test:config-route
+      - name: Test default-off account deletion planning with mocks
+        run: npm run test:account-deletion
       - name: Verify image and voice fallback honesty
         run: npm run test:feature-fallbacks
 
