@@ -144,15 +144,17 @@ test('Pixel 7 viewport keeps full-screen navigation and opens all three workspac
   expect(width.viewport).toBe(412);
 
   const workspaces = [
-    { id: 'learn', mode: 'math' },
-    { id: 'build', mode: 'builder' },
-    { id: 'agents', mode: 'general' }
+    { id: 'learn', mode: 'math', modes: ['math','photo','ncert','board','ssc','upsc','english'], groups: 1 },
+    { id: 'build', mode: 'builder', modes: ['builder'], groups: 1 },
+    { id: 'agents', mode: 'general', modes: ['general','voice','document','schemes','shopkeeper'], groups: 2 }
   ];
   for (const workspace of workspaces) {
     await page.locator('#hi .nr-card[data-group="' + workspace.id + '"]').click();
     await expect(page.locator('#novaModes.open')).toBeVisible();
     await expect(page.locator('#nmContent [data-mode="' + workspace.mode + '"]')).toBeVisible();
-    expect(await page.locator('#nmContent .nmgroup').count()).toBe(1);
+    expect(await page.locator('#nmContent .nmgroup').count()).toBe(workspace.groups);
+    const actualModes = await page.locator('#nmContent [data-mode]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-mode')).sort());
+    expect(actualModes).toEqual([...workspace.modes].sort());
     await page.locator('#nmClose').click();
     await expect(page.locator('#novaModes.open')).toBeHidden();
   }
