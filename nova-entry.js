@@ -7,15 +7,22 @@
   const COOKIE_KEY = 'nova_intro_seen_v2';
   const hasPlayed = () => {
     // Accept every marker used by earlier releases so an upgrade never replays an intro.
+    let played = false;
     for (const key of [PLAYED_KEY, LEGACY_KEY]) {
-      try { if (localStorage.getItem(key) === '1') return true; } catch (_) {}
-      try { if (sessionStorage.getItem(key) === '1') return true; } catch (_) {}
+      try { if (localStorage.getItem(key) === '1') { played = true; break; } } catch (_) {}
+      try { if (sessionStorage.getItem(key) === '1') { played = true; break; } } catch (_) {}
     }
-    try {
-      const cookies = document.cookie.split(';').map(item => item.trim());
-      return cookies.includes(COOKIE_KEY + '=1') || cookies.includes('nova_intro_seen_v1=1');
-    } catch (_) {}
-    return false;
+    if (!played) {
+      try {
+        const cookies = document.cookie.split(';').map(item => item.trim());
+        played = cookies.includes(COOKIE_KEY + '=1') || cookies.includes('nova_intro_seen_v1=1');
+      } catch (_) {}
+    }
+    // Migrate any recognized legacy completion marker so future upgrades read the current key.
+    if (played) {
+      try { localStorage.setItem(PLAYED_KEY, '1'); } catch (_) {}
+    }
+    return played;
   };
   const rememberPlayed = () => {
     try { localStorage.setItem(PLAYED_KEY, '1'); } catch (_) {}
