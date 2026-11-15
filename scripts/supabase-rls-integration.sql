@@ -34,6 +34,12 @@ begin
     null;
   end;
 end $workspace_outsider$;
+update public.nova_user_workspaces
+set payload='{"chats":[{"id":"attacker-overwrite"}]}'::jsonb
+where user_id='11111111-1111-4111-8111-111111111111';
+delete from public.nova_user_workspaces
+where user_id='11111111-1111-4111-8111-111111111111';
+
 insert into public.nova_user_workspaces(user_id,payload)
 values('22222222-2222-4222-8222-222222222222','{"chats":[{"id":"outsider-own-chat"}]}'::jsonb);
 do $workspace_own$
@@ -43,6 +49,13 @@ begin
   end if;
 end $workspace_own$;
 reset role;
+do $workspace_no_mutation$
+begin
+  if (select payload->'chats'->0->>'id' from public.nova_user_workspaces
+      where user_id='11111111-1111-4111-8111-111111111111') is distinct from 'owner-chat' then
+    raise exception 'Cross-account update or delete changed another user workspace';
+  end if;
+end $workspace_no_mutation$;
 
 set role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);

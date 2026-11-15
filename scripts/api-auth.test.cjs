@@ -2,6 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { createHmac, timingSafeEqual } = require('node:crypto');
 const { createSupabaseUserMiddleware, normalizeSupabaseAuthUrl } = require('../nova-api-auth');
 
 function responseRecorder() {
@@ -13,8 +14,8 @@ function responseRecorder() {
   };
 }
 
-async function run(middleware, authorization) {
-  const req = { headers: { authorization }, get(name) { return this.headers[name]; } };
+async function run(middleware, authorization, context = {}) {
+  const req = { headers: { authorization }, body: context.body || {}, query: context.query || {}, get(name) { return this.headers[name]; } };
   const res = responseRecorder();
   let nextCalled = false;
   await middleware(req, res, () => { nextCalled = true; });
@@ -130,4 +131,83 @@ test('browser attaches Supabase access tokens to same-origin protected API reque
   assert.match(client, /getClient\(\)\.auth\.getSession\(\)/);
   assert.match(client, /headers\.set\('Authorization','Bearer '\+token\)/);
   assert.match(client, /target\.pathname\.startsWith\('\/api\/'\)/);
+});
+
+
+const TEST_ONLY_JWT_SECRET = Buffer.from('local-test-secret-only-never-use-in-production');
+
+function encodeJwtPart(value) {
+  return Buffer.from(JSON.stringify(value)).toString('base64url');
+}
+
+function locallySignTestJwt(payload, header = { alg: 'HS256', typ: 'JWT' }, secret = TEST_ONLY_JWT_SECRET) {
+  const unsigned = encodeJwtPart(header) + '.' + encodeJwtPart(payload);
+  if (header.alg === 'none') return unsigned + '.';
+  const signature = createHmac('sha256', secret).update(unsigned).digest('base64url');
+  return unsigned + '.' + signature;
+}
+
+function mockedSupabaseAuthFetch() {
+  return async (_url, options) => {
+    const token = String(options.headers.Authorization || '').replace(/^Bearer\\s+/i, '');
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return new Response('{}', { status: 401 });
+      const header = JSON.parse(Buffer.from(parts[0], 'base64url').toString('utf8'));
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+      if (header.alg !== 'HS256' || !parts[2]) return new Response('{}', { status: 401 });
+      const unsigned = parts[0] + '.' + parts[1];
+      const expected = createHmac('sha256', TEST_ONLY_JWT_SECRET).update(unsigned).digest();
+      const actual = Buffer.from(parts[2], 'base64url');
+      if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return new Response('{}', { status: 401 });
+      if (!Number.isFinite(payload.exp) || payload.exp <= Math.floor(Date.now() / 1000)) return new Response('{}', { status: 401 });
+      if (typeof payload.sub !== 'string' || !payload.sub) return new Response('{}', { status: 401 });
+      return new Response(JSON.stringify({ id: payload.sub, email: 'local-test@example.invalid' }), { status: 200 });
+    } catch {
+      return new Response('{}', { status: 401 });
+    }
+  };
+}
+
+test('locally signed HS256 test JWT is accepted and identity comes only from verified Auth response', async () => {
+  const middleware = createSupabaseUserMiddleware({
+    supabaseUrl: 'https://project.supabase.co',
+    publishableKey: 'sb_publishable_test',
+    fetchImpl: mockedSupabaseAuthFetch()
+  });
+  const token = locallySignTestJwt({
+    sub: '11111111-1111-4111-8111-111111111111',
+    exp: Math.floor(Date.now() / 1000) + 120
+  });
+  const result = await run(middleware, 'Bearer ' + token, {
+    body: { user_id: '22222222-2222-4222-8222-222222222222' },
+    query: { user_id: '33333333-3333-4333-8333-333333333333' }
+  });
+  assert.equal(result.res.statusCode, 200);
+  assert.equal(result.nextCalled, true);
+  assert.equal(result.req.novaUser.id, '11111111-1111-4111-8111-111111111111');
+  assert.notEqual(result.req.novaUser.id, result.req.body.user_id);
+  assert.notEqual(result.req.novaUser.id, result.req.query.user_id);
+});
+
+test('missing, expired, wrong-signature and alg=none JWTs are rejected', async () => {
+  const middleware = createSupabaseUserMiddleware({
+    supabaseUrl: 'https://project.supabase.co',
+    publishableKey: 'sb_publishable_test',
+    fetchImpl: mockedSupabaseAuthFetch()
+  });
+  const now = Math.floor(Date.now() / 1000);
+  const validClaims = { sub: '11111111-1111-4111-8111-111111111111', exp: now + 120 };
+  const invalidTokens = [
+    undefined,
+    'Bearer ' + locallySignTestJwt({ ...validClaims, exp: now - 60 }),
+    'Bearer ' + locallySignTestJwt(validClaims, { alg: 'HS256', typ: 'JWT' }, Buffer.from('different-test-secret')),
+    'Bearer ' + locallySignTestJwt(validClaims, { alg: 'none', typ: 'JWT' })
+  ];
+  for (const authorization of invalidTokens) {
+    const result = await run(middleware, authorization);
+    assert.equal(result.res.statusCode, 401);
+    assert.equal(result.nextCalled, false);
+    assert.equal(result.req.novaUser, undefined);
+  }
 });

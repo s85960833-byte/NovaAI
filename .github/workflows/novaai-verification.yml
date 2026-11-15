@@ -106,6 +106,8 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: nova_bi_test
         run: bash scripts/test-supabase-migrations.sh
+      - name: Audit migration RLS inventory
+        run: npm run test:rls-inventory
       - name: Install pinned Deno runtime from npm
         run: |
           npm install --global deno@2.9.6

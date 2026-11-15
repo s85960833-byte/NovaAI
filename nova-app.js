@@ -179,7 +179,7 @@ try{if(SMP){const ms=hist.map(m=>({role:m.role,content:typeof m.content==='strin
 const o={signal:ctl.signal,cache:false,modelTier:LV?'quick':'default',onText:x=>{a.c=x.text;schedPaint(el,a);if(LV)lvFeed(a.c)}};
 if(li>=0){let cap=null;try{cap=(await SMP.limits()).images}catch(x){}
 if(!cap){if(li===hs.length-1)throw{vis:1}}else{const bs=atob(hs[li].img.split(',')[1]),u8=new Uint8Array(bs.length);for(let i=0;i<bs.length;i++)u8[i]=bs.charCodeAt(i);o.images=[new Blob([u8],{type:'image/jpeg'})];if(li<hs.length-1)ms[ms.length-1].content+='\n\n(The photo shared earlier in this chat is attached again for reference.)'}}
-const rr=await SMP(ms,o);a.c=rr.text||a.c;if(!a.c){a.e=1;a.c=t('e400')}}else{const run=async(sysText)=>{const answerMode=['quick','standard','detailed'].includes(S.answerMode)?S.answerMode:'standard';const modeTokens={quick:220,standard:1024,detailed:2048};const archiveLimit=S.mode==='archive'?Math.min(Number(CFG.archiveTokens)||4096,modeTokens[answerMode]):modeTokens[answerMode];const r=await fetch(cf.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+cf.key},body:JSON.stringify({model:cf.model,stream:true,answer_mode:answerMode,max_tokens:archiveLimit,temperature:(li>=0||(typeof MATHY!=='undefined'&&MATHY.test((c.m.filter(x=>x.r==='user').pop()||{}).c||'')))?0.3:0.8,messages:[{role:'system',content:sysText},...hist]})});
+const rr=await SMP(ms,o);a.c=rr.text||a.c;if(!a.c){a.e=1;a.c=t('e400')}}else{const run=async(sysText)=>{const r=await fetch(cf.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+cf.key},body:JSON.stringify({model:cf.model,stream:true,max_tokens:(S.mode==='archive'?(CFG.archiveTokens||4096):undefined),temperature:(li>=0||(typeof MATHY!=='undefined'&&MATHY.test((c.m.filter(x=>x.r==='user').pop()||{}).c||'')))?0.3:0.8,messages:[{role:'system',content:sysText},...hist]})});
 if(!r.ok){let b='';try{const j=await r.json();b=(j.error&&(j.error.message||j.error))||''}catch(x){}throw{status:r.status,body:String(b).slice(0,200)}}
 const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
 for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
@@ -676,14 +676,7 @@ delete a.gen;busy=false;if(ctl&&ctl.signal===sig)ctl=null;save();render()}
 $('gen').onclick=()=>setIM(IM?null:{name:t('imMode')});
 $('imbar').onclick=()=>setIM(null);
 setTimeout(()=>{loadJS('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js').then(()=>{try{render()}catch(e){}}).catch(()=>{})},1200);
-fetch(API+'/config').then(async r=>{
-if(!r.ok){
-const info=await r.json().catch(()=>({}));
-if(r.status===503&&info.error==='ai_not_configured')toast(S.uiLang==='hi'?'सर्वर AI अभी कॉन्फ़िगर नहीं है। आप Settings में अपना provider जोड़ सकते हैं।':'Server AI is not configured yet. You can add your own provider in Settings.');
-return null
-}
-return r.json()
-}).then(j=>{if(j&&j.model){SV=j;$('cfg').style.display='none';if(j.live||j.web){$('web').hidden=false;paintLive();loadWN()}first=true;syncFeatures();render();trUI()}}).catch(()=>{});
+fetch(API+'/config').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.model){SV=j;$('cfg').style.display='none';if(j.live||j.web){$('web').hidden=false;paintLive();loadWN()}first=true;syncFeatures();render();trUI()}}).catch(()=>{});
 $('web').onclick=()=>{const o=['auto','on','off'],n=o[(o.indexOf(S.live||'auto')+1)%3];S.live=n;save();paintLive();toast(LS(n==='on'?'liveOn':n==='off'?'liveOff':'liveAuto'))};
 try{if(window.claude&&claude.use)claude.use('sample').then(s=>{if(s){SMP=s;$('cfg').style.display='none';first=true;syncFeatures();render();trUI()}}).catch(()=>{})}catch(e){}
 

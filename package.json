@@ -28,7 +28,9 @@
     "test:health-version": "node --test scripts/health-version.test.cjs",
     "verify:staging-deploy": "node scripts/verify-staging-deploy.mjs",
     "test:config-route": "node --test scripts/config-route.test.cjs",
-    "test:ai-safety": "node --test scripts/ai-provider-safety.test.cjs"
+    "test:ai-safety": "node --test scripts/ai-provider-safety.test.cjs",
+    "test:rls-inventory": "node --test scripts/rls-inventory.test.cjs",
+    "test:rls-isolation": "node scripts/run-rls-isolation.mjs"
   },
   "engines": {
     "node": "22.x"
