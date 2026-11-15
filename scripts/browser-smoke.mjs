@@ -304,10 +304,31 @@ try{
  await desktop.waitForFunction(()=>document.querySelector('#photo').hidden);
  console.log('PASS Learn Photo Questions launcher opens and closes the existing photo-question panel');
 
- // Standard chat persistence, memory/custom instructions, and chat CRUD regression.
- // This uses the isolated Playwright browser context and the already-mocked chat endpoint.
+ // Standard chat persistence, memory/custom instructions, and saved-chat lifecycle regression.
+ // Seed a disposable pre-upgrade chat, then open it using the same saved-chat search exposed on the home dashboard.
  const savedMemory='NOVA_PHASE0_MEMORY_REGRESSION';
  const customInstruction='NOVA_PHASE0_CUSTOM_INSTRUCTION';
+ const seededChatId='nova-phase0-legacy-saved-chat';
+ const emptyHomeChatId='nova-phase0-home-empty-chat';
+ await desktop.evaluate(({seededChatId,emptyHomeChatId})=>{
+  const state=JSON.parse(localStorage.getItem('nova')||'{}');
+  const chats=Array.isArray(state.chats)?state.chats:[];
+  if(!chats.some(c=>c.id===seededChatId))chats.push({id:seededChatId,title:'NOVA pre-upgrade saved chat',m:[{r:'user',c:'Previously saved user message'},{r:'assistant',c:'Previously saved assistant reply'}]});
+  if(!chats.some(c=>c.id===emptyHomeChatId))chats.unshift({id:emptyHomeChatId,title:'New chat',m:[]});
+  state.chats=chats;state.cur=emptyHomeChatId;
+  localStorage.setItem('nova',JSON.stringify(state));
+ },{seededChatId,emptyHomeChatId});
+ await desktop.reload({waitUntil:'domcontentloaded'});
+ await enterNOVA(desktop);
+ await desktop.locator('#nrGlobalSearch').fill('NOVA pre-upgrade saved chat');
+ await desktop.locator('#nrGlobalSearch').press('Enter');
+ await desktop.locator('#side.open').waitFor({state:'visible'});
+ const existingSavedChat=desktop.locator('#list .it').filter({hasText:'NOVA pre-upgrade saved chat'}).first();
+ await existingSavedChat.waitFor({state:'visible'});
+ await existingSavedChat.locator('span').click();
+ await desktop.locator('#box').waitFor({state:'visible'});
+ assert.ok((await desktop.locator('#log').innerText()).includes('Previously saved assistant reply'),'pre-upgrade saved chat must remain readable from the home saved-chat search');
+
  await desktop.locator('#setb').click();
  await desktop.locator('#dset').waitFor({state:'visible'});
  await desktop.locator('#mem').click();
@@ -319,7 +340,10 @@ try{
  assert.equal(memoryStored.mem,savedMemory,'memory must persist in the main NOVA state');
  assert.equal(memoryStored.ci,customInstruction,'custom instructions must persist in the main NOVA state');
  await desktop.locator('#sclose').click();
- await desktop.locator('#new').click();
+
+ // The dashboard intentionally hides the legacy New chat button; its documented Ctrl+Shift+O shortcut starts a new chat.
+ await desktop.keyboard.press('Control+Shift+O');
+ await desktop.locator('#in').waitFor({state:'visible'});
  await desktop.locator('#in').fill('NOVA standard chat CRUD regression message');
  const standardRequestNumber=modeChatRequests.length+1;
  await desktop.locator('#send').click();
@@ -330,6 +354,7 @@ try{
  const stateAfterChat=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}'));
  assert.ok(stateAfterChat.chats.some(c=>c.m.some(m=>m.r==='user'&&m.c==='NOVA standard chat CRUD regression message')),'standard chat must persist its user message');
  assert.ok(stateAfterChat.chats.some(c=>c.m.some(m=>m.r==='assistant'&&m.c.includes('NOVA_CHAT_FLOW_OK_'+standardRequestNumber))),'standard chat must persist its assistant response');
+
  const firstChat=desktop.locator('#list .it').filter({hasText:'NOVA standard chat CRUD regression message'}).first();
  await firstChat.waitFor({state:'visible'});
  await firstChat.locator('button[aria-label="Rename"]').click();
@@ -342,7 +367,9 @@ try{
  await renamedChat.locator('button').nth(1).click();
  await renamedChat.locator('button[aria-label="Unpin"]').waitFor({state:'visible'});
  assert.equal(await renamedChat.locator('button[aria-label="Unpin"]').count(),1,'saved chats must support pin/unpin');
- await desktop.locator('#new').click();
+
+ await desktop.keyboard.press('Control+Shift+O');
+ await desktop.locator('#in').waitFor({state:'visible'});
  await desktop.locator('#in').fill('NOVA disposable chat to delete');
  const deleteRequestNumber=modeChatRequests.length+1;
  await desktop.locator('#send').click();
@@ -356,6 +383,7 @@ try{
  await desktop.waitForFunction(n=>document.querySelectorAll('#list .it').length===n-1,countBeforeDelete);
  assert.equal(await desktop.locator('#list .it').filter({hasText:'NOVA disposable chat to delete'}).count(),0,'deleted chat must leave the saved-chat list');
  assert.equal(await desktop.locator('#list .it').filter({hasText:renamedTitle}).count(),1,'deleting one chat must preserve other saved chats');
+
  await desktop.reload({waitUntil:'domcontentloaded'});
  await enterNOVA(desktop);
  await desktop.locator('#list .it').filter({hasText:renamedTitle}).waitFor({state:'visible'});
@@ -368,7 +396,7 @@ try{
  assert.equal(await desktop.locator('#cit').inputValue(),customInstruction,'custom-instructions editor must load saved instructions');
  await desktop.locator('#mclose').click();
  await desktop.locator('#sclose').click();
- console.log('PASS standard chat round-trip, memory, custom instructions, saved-chat rename, pin, delete and reload persistence');
+ console.log('PASS legacy saved-chat retrieval, standard chat round-trip, memory/custom instructions, rename, pin, delete and reload persistence');
 
  const mobileContext=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2,isMobile:true,hasTouch:true});
  const mobile=await mobileContext.newPage();
