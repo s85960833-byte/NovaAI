@@ -58,6 +58,8 @@ jobs:
         run: node --test scripts/provider-defaults.test.cjs
       - name: Test independent AI provider failover and circuit behavior
         run: npm run test:llm-router
+      - name: Test AI provider safety gates and sanitized failures
+        run: npm run test:ai-safety
       - name: Test central request orchestrator and capability boundaries
         run: npm run test:orchestrator
       - name: Test evidence-backed T1/T2 model routing for code and research

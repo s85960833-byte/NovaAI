@@ -27,7 +27,8 @@
     "test:accuracy-instruction": "node --test scripts/accuracy-instruction.test.cjs",
     "test:health-version": "node --test scripts/health-version.test.cjs",
     "verify:staging-deploy": "node scripts/verify-staging-deploy.mjs",
-    "test:config-route": "node --test scripts/config-route.test.cjs"
+    "test:config-route": "node --test scripts/config-route.test.cjs",
+    "test:ai-safety": "node --test scripts/ai-provider-safety.test.cjs"
   },
   "engines": {
     "node": "22.x"

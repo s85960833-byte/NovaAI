@@ -18,3 +18,16 @@ test('each answer mode adds a distinct instruction to both normal and compact pr
  assert.match(app,/sysLite=sysRaw[\s\S]*answerModePrompt/);
  assert.match(app,/\$\('answerMode'\)\.onchange/);
 });
+
+
+test('outgoing backend request includes distinct answer mode, system prompt and output cap', () => {
+ const runStart=app.indexOf('const run=async(sysText)=>');
+ assert.ok(runStart>=0);
+ const request=app.slice(runStart,app.indexOf('if(!r.ok)',runStart));
+ assert.match(request,/answer_mode:answerMode/);
+ assert.match(request,/max_tokens:archiveLimit/);
+ assert.match(request,/const modeTokens=\{quick:220,standard:1024,detailed:2048\}/);
+ assert.match(app,/ANSWER MODE — QUICK/);
+ assert.match(app,/ANSWER MODE — STANDARD/);
+ assert.match(app,/ANSWER MODE — DETAILED/);
+});
