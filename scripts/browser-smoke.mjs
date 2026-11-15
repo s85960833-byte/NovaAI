@@ -371,7 +371,7 @@ try{
 
  await desktop.keyboard.press('Control+K');
  await desktop.locator('#side.open').waitFor({state:'visible'});
- const firstChat=desktop.locator('#list .it').filter({hasText:'NOVA standard chat CRUD regression message'}).first();
+ const firstChat=desktop.locator('#list .it').filter({hasText:'NOVA pre-upgrade saved chat'}).first();
  await firstChat.waitFor({state:'visible'});
  await firstChat.locator('button[aria-label="Rename"]').click();
  await desktop.locator('#dask').waitFor({state:'visible'});
