@@ -144,7 +144,7 @@ test('Pixel 7 viewport keeps full-screen navigation and opens all three workspac
   expect(width.viewport).toBe(412);
 
   const workspaces = [
-    { id: 'learn', mode: 'math', modes: ['math','photo','ncert','board','ssc','upsc','english'], groups: 1 },
+    { id: 'learn', mode: 'math', modes: ['math','photo','ncert','board','ssc','upsc','english'], groups: 2 },
     { id: 'build', mode: 'builder', modes: ['builder'], groups: 1 },
     { id: 'agents', mode: 'general', modes: ['general','voice','document','schemes','shopkeeper'], groups: 2 }
   ];
