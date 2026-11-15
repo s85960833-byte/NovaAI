@@ -9,10 +9,12 @@ const root = path.join(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'nova-server.txt'), 'utf8');
 const app = fs.readFileSync(path.join(root, 'nova-app.js'), 'utf8');
 const envExample = fs.readFileSync(path.join(root, '.env.example'), 'utf8');
+const featureFlags = fs.readFileSync(path.join(root, 'nova-feature-flags.js'), 'utf8');
 
 test('AI Horde fallback requires explicit opt-in and an operator API key', () => {
   assert.ok(source.includes("if (E.NOVA_ALLOW_AI_HORDE !== '1' || !E.HORDE_API_KEY) throw new Error('No approved image provider is currently configured')"));
-  assert.ok(source.includes("const hordeImageConfigured = E.NOVA_ALLOW_AI_HORDE === '1' && !!E.HORDE_API_KEY"));
+  assert.ok(source.includes("const hordeImageConfigured = FEATURE_FLAGS.aiHorde && !!E.HORDE_API_KEY"));
+  assert.ok(featureFlags.includes("aiHorde: env.NOVA_ALLOW_AI_HORDE === '1'"));
 });
 
 test('AI Horde generation explicitly disables dataset sharing', () => {
@@ -21,9 +23,12 @@ test('AI Horde generation explicitly disables dataset sharing', () => {
 });
 
 test('image availability is reported only for an explicitly enabled provider', () => {
-  assert.ok(source.includes("const paidImageConfigured = E.ALLOW_PAID_IMAGE === 'true'"));
-  assert.ok(source.includes("const pollinationsImageConfigured = E.NOVA_ALLOW_POLLINATIONS_SPEND === '1'"));
-  assert.ok(source.includes("const hordeImageConfigured = E.NOVA_ALLOW_AI_HORDE === '1'"));
+  assert.ok(source.includes("const paidImageConfigured = FEATURE_FLAGS.paidImage && !!(E.IMAGE_KEY && E.IMAGE_MODEL)"));
+  assert.ok(source.includes("const pollinationsImageConfigured = FEATURE_FLAGS.pollinationsSpend && !!E.POLLI_KEY"));
+  assert.ok(source.includes("const hordeImageConfigured = FEATURE_FLAGS.aiHorde && !!E.HORDE_API_KEY"));
+  assert.ok(featureFlags.includes("paidImage: env.ALLOW_PAID_IMAGE === 'true'"));
+  assert.ok(featureFlags.includes("pollinationsSpend: env.NOVA_ALLOW_POLLINATIONS_SPEND === '1'"));
+  assert.ok(featureFlags.includes("aiHorde: env.NOVA_ALLOW_AI_HORDE === '1'"));
   assert.ok(source.includes('(paidImageConfigured || pollinationsImageConfigured || hordeImageConfigured)'));
   assert.ok(source.includes("if (!imageProviderConfigured) return r.status(503).json"));
 });
