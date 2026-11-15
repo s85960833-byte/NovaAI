@@ -28,5 +28,5 @@ test('returns unknown for absent usage', () => {
 test('keeps usage observation memory bounded', () => {
   const observer = createProviderUsageObserver('application/json');
   observer.push(Buffer.alloc(2 * 1024 * 1024 + 1, 0x61));
-  assert.deepEqual(observer.finish(), { inputTokens: null, outputTokens: null });
+  assert.equal(observer.finish(), null);
 });
