@@ -35,10 +35,10 @@ global.fetch = async function mockedProviderFetch(input, init = {}) {
     }
     if (process.env.NOVA_MOCK_FETCH_MODE === 'capture') {
       const usageEvent = payload?.stream_options?.include_usage
-        ? 'data: {"choices":[],"usage":{"prompt_tokens":12,"completion_tokens":7,"total_tokens":19}}\\n\\n'
+        ? 'data: {"choices":[],"usage":{"prompt_tokens":12,"completion_tokens":7,"total_tokens":19}}\n\n'
         : '';
       return new Response(
-        'data: {"choices":[{"delta":{"content":"mock-response"}}]}\\n\\n' + usageEvent + 'data: [DONE]\\n\\n',
+        'data: {"choices":[{"delta":{"content":"mock-response"}}]}\n\n' + usageEvent + 'data: [DONE]\n\n',
         { status: 200, headers: { 'content-type': 'text/event-stream' } }
       );
     }
