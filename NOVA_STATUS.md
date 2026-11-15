@@ -548,3 +548,35 @@ This section supersedes earlier checkpoint statements below wherever they descri
 - **Verification pending:** the GitHub run lookup returned no workflow runs for the repair commit at the time of this note. Do not mark the repaired test or full Main CI as passed until a run on the exact repair SHA completes.
 - Render Staging last confirmed Live deploy remains `dep-dbs0g58n74is738h58s0` on `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`; it does not include this repair commit. Auto Deploy is enabled, but no deployment for `d9eb47e` is recorded yet. Health Check Path remains blank.
 - Production remains unchanged. PR #98 remains Open / Draft / unmerged. No provider keys, paid spend, payment setup, Supabase schema mutation or production deployment was performed.
+
+
+## Verification checkpoint — 15 November 2026 (continued work)
+
+### GitHub / CI
+- Latest PR #98 head is `4d864027743a7265b2ddf82a91db7cb926bd767e` (Open, Draft, unmerged).
+- The prior Main CI run `43574193526` failed only at the provider failover test step; the exact failing test was a missing test fixture binding (`serverSource is not defined`), not a reported provider-router runtime assertion.
+- Added the missing Node built-in `fs`/`path` source loader in `scripts/llm-router.test.cjs` at commit `d9eb47e`; then recorded the diagnosis in this status file at `4d86402`.
+- Browser CI run `43574193391` passed on the earlier head. The GitHub connector currently returns no PR-triggered workflow run for the newer commits, so the fix is **not yet CI-verified**. The workflow does include a push trigger for this branch, but no run evidence is available from the current connector response.
+
+### Render Staging
+- Staging service `srv-dbqm035g1s2s73eogao0` is configured for branch `fix/nova-home-learn-first-mobile-20261109`, auto-deploy `yes`, trigger `commit`, Free plan, Singapore region.
+- Current latest deploy record is still `dep-dbs0g58n74is738h58s0`, Live on SHA `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`. It does not include `d9eb47e` or `4d86402`.
+- Render service `healthCheckPath` is still empty. The application already exposes `GET /health` returning 200 with `ok:true`, `ready:true`, and `status:'ok'` while healthy.
+- Render management connector exposes no service-update operation for healthCheckPath. Owner must set it in the existing Staging service dashboard; no new service or paid plan was created.
+- Public web inspection of Staging /health and /api/config was inaccessible from this runtime, so live endpoint success is not claimed.
+
+### Supabase / Auth / Privacy
+- Supabase project `qrfwsewppafhxibdboam` is ACTIVE_HEALTHY on Postgres 17. Existing RLS-enabled NOVA BI tables and the user-workspace table are present; migrations are recorded through `20261108102649`.
+- Supabase Security Advisor and Health Advisor currently return zero lints. Performance Advisor reports 13 unused indexes (informational; not removed because usage is not established and the project data is still empty).
+- Current project Auth-user FK inspection confirms `nova_user_workspaces.user_id` cascades on user deletion, but multiple NOVA BI references use `ON DELETE RESTRICT` (organizations, memberships, datasets, analyses, workflow proposals/approvals). Therefore direct Auth-user deletion can fail or orphan company ownership/audit semantics. Do not add a blind cascade or test deletion against real accounts. A safe self-service deletion design needs organization-owner transfer, shared-company data retention/anonymization, audit policy and legal retention decisions.
+- Existing Account UI only deletes the optional cloud workspace backup; it is not full account deletion. Real email confirmation/password reset, redirect allow-list and two-account hosted isolation are still unverified.
+- Privacy notice and retention schedule remain drafts; qualified adult operator and Indian legal review are required before public launch. No legal approval is claimed.
+
+### Provider / Cost Controls / Device QA
+- No authorized AI provider credentials are configured on Staging; `/api/config` previously returned 503. Do not send real provider requests until an eligible account operator and provider terms permit both operator and intended end-user age group.
+- No durable per-user monetary cost guard or plan enforcement is confirmed. Existing in-memory per-IP rate limiting is not a hard spend cap. Do not label it durable quota/budget enforcement.
+- No real Android camera/microphone/full-width viewport test has been performed in this run. Browser CI is not a substitute for the user's physical Android device.
+
+### Release gate
+- Production `main` and `https://novaai-4auo.onrender.com` remain untouched.
+- PR #98 remains Draft / unmerged. No paid service, provider secret, payment setup, destructive Supabase migration, or production deployment was performed.
