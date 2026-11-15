@@ -396,7 +396,8 @@ try{
  assert.equal(await desktop.locator('#list .it').filter({hasText:renamedTitle}).count(),1,'deleting one chat must preserve other saved chats');
 
  await desktop.reload({waitUntil:'domcontentloaded'});
- await enterNOVA(desktop);
+ await desktop.locator('#box').waitFor({state:'visible',timeout:10000});
+ assert.equal(await desktop.evaluate(()=>localStorage.getItem('nova_intro_completed_v2')),'1','reload must preserve the completed intro marker');
  await desktop.locator('#list .it').filter({hasText:renamedTitle}).waitFor({state:'visible'});
  const reloadedMemory=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}'));
  assert.equal(reloadedMemory.mem,savedMemory,'memory must survive a reload');
