@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const server = fs.readFileSync(new URL('../nova-server.txt', 'file://' + __filename), 'utf8');
 const router = fs.readFileSync(new URL('../nova-llm-router.js', 'file://' + __filename), 'utf8');
 const envExample = fs.readFileSync(new URL('../.env.example', 'file://' + __filename), 'utf8');
+const featureFlags = fs.readFileSync(new URL('../nova-feature-flags.js', 'file://' + __filename), 'utf8');
 
 test('OpenRouter defaults to its dynamic free-model router', () => {
   assert.match(router, /env\.OPENROUTER_MODEL \|\| 'openrouter\/free'/);
@@ -40,7 +41,8 @@ test('Render start command stays stable and local startup loads an optional .env
 });
 
 test('optional Cloudflare fallback is opt-in and disabled in the sample environment', () => {
-  assert.match(server, /const cloudflareChatConfigured = E\.NOVA_ALLOW_CLOUDFLARE === '1'/);
+  assert.match(server, /const cloudflareChatConfigured = FEATURE_FLAGS\.cloudflareWorkersAi &&/);
   assert.match(router, /options\.allowCloudflare !== false/);
+  assert.match(featureFlags, /cloudflareWorkersAi: env\.NOVA_ALLOW_CLOUDFLARE === '1'/);
   assert.match(envExample, /^NOVA_ALLOW_CLOUDFLARE=0$/m);
 });

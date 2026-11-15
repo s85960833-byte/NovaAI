@@ -73,5 +73,5 @@ await expect('demo CSV allowlist blocks path traversal','/demo-data/%2e%2e%2fnov
 
 await expect('machine-readable Feature Registry','/FEATURE_REGISTRY.json',{},(r,b)=>{const j=JSON.parse(b);return r.ok&&Array.isArray(j.features)&&Array.isArray(j.uiModes)&&Array.isArray(j.workspaces)});
 await expect('runtime feature flags endpoint is read-only and secret-free','/api/features',{},(r,b)=>{const j=JSON.parse(b);return r.ok&&typeof j.flags.aiChat==='boolean'&&typeof j.flags.accountDeletion==='boolean'&&!b.includes('SERVICE_ROLE')&&!b.includes('API_KEY')});
-await expect('registry UI adapter is served','/nova-feature-registry-ui.js',{},(r,b)=>r.ok&&b.includes('/FEATURE_REGISTRY.json')&&b.includes('/api/features')&&b.includes('data-registry-status'));
+await expect('registry UI adapter is served','/nova-feature-registry-ui.js',{},(r,b)=>r.ok&&b.includes('/FEATURE_REGISTRY.json')&&b.includes('/api/features')&&b.includes('dataset.registryStatus')&&b.includes('dataset.registryPlan'));
 console.log('PASS local runtime smoke tests');
