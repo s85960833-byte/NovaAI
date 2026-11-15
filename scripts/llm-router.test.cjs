@@ -215,6 +215,25 @@ test('an actual AbortSignal.timeout expiry falls through to the next provider', 
   }
 });
 
+test('HTTP 500 also fails over to the next provider company', async () => {
+  const calls = [];
+  const providers = [
+    { id: 'primary', base: 'https://primary.example/v1', key: 'a', models: ['a1'] },
+    { id: 'fallback', base: 'https://fallback.example/v1', key: 'b', models: ['b1'] }
+  ];
+  const result = await runWithFailover({
+    providers,
+    circuit: createCircuitRegistry(),
+    request: async provider => {
+      calls.push(provider.id);
+      return provider.id === 'primary' ? response(500) : response(200);
+    }
+  });
+  assert.deepEqual(calls, ['primary', 'fallback']);
+  assert.equal(result.provider, 'fallback');
+  assert.equal(result.response.status, 200);
+});
+
 test('HTTP 429 opens the provider circuit and routes immediately to the next company', async () => {
   const circuit = createCircuitRegistry();
   let primaryCalls = 0;

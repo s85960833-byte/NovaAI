@@ -76,7 +76,10 @@ test('AI_DISABLED returns 503 and no provider request is made', async () => {
 test('all provider failures return a safe JSON error without upstream body or stack', async () => {
   const app = await startServer({
     LLM_KEY: 'fake-key', LLM_MODEL: 'fake-model',
-    LLM_BASE: 'https://mock.provider.invalid/v1', NOVA_USAGE_QUOTA_REQUIRED: '0', LLM_MAX_ATTEMPTS: '1',
+    LLM_BASE: 'https://mock.provider.invalid/v1',
+    GROQ_API_KEY: 'fake-groq-key', GROQ_MODEL: 'fake-groq-model',
+    GROQ_BASE: 'https://mock.groq.invalid/v1',
+    NOVA_USAGE_QUOTA_REQUIRED: '0', LLM_MAX_ATTEMPTS: '1',
     LLM_RETRY_BASE_DELAY_MS: '0'
   });
   try {
@@ -90,7 +93,81 @@ test('all provider failures return a safe JSON error without upstream body or st
     assert.equal(body.error, 'AI service is temporarily unavailable. Please retry shortly.');
     assert.equal(text.includes('PRIVATE_PROVIDER_BODY_SENTINEL'), false);
     assert.equal(text.toLowerCase().includes('stack'), false);
-    assert.equal(fs.readFileSync(app.marker, 'utf8').trim(), 'called');
+    assert.equal(fs.readFileSync(app.marker, 'utf8').trim().split('\\n').length, 2);
+  } finally {
+    await stopServer(app.child);
+  }
+});
+
+
+test('Quick, Standard and Detailed modes change the actual upstream prompt and output cap', async () => {
+  const capture = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'nova-mode-')), 'requests.jsonl');
+  const app = await startServer({
+    LLM_KEY: 'fake-key', LLM_MODEL: 'fake-model',
+    LLM_BASE: 'https://mock.provider.invalid/v1',
+    NOVA_USAGE_QUOTA_REQUIRED: '0',
+    NOVA_MOCK_FETCH_MODE: 'capture',
+    NOVA_MOCK_FETCH_CAPTURE: capture,
+    LLM_MAX_ATTEMPTS: '1'
+  });
+  try {
+    for (const mode of ['quick', 'standard', 'detailed']) {
+      const response = await fetch(app.url + '/api/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answer_mode: mode,
+          stream: true,
+          messages: [{ role: 'user', content: 'Explain a simple topic.' }]
+        })
+      });
+      assert.equal(response.status, 200);
+      await response.text();
+    }
+    const requests = fs.readFileSync(capture, 'utf8').trim().split('\\n').map(line => JSON.parse(line));
+    assert.equal(requests.length, 3);
+    const expected = [
+      { mode: 'QUICK', tokens: 220 },
+      { mode: 'STANDARD', tokens: 1024 },
+      { mode: 'DETAILED', tokens: 2048 }
+    ];
+    for (let i = 0; i < expected.length; i += 1) {
+      const payload = requests[i].payload;
+      assert.equal(payload.max_tokens, expected[i].tokens);
+      assert.match(payload.messages[0].content, new RegExp('ANSWER MODE — ' + expected[i].mode));
+      assert.equal(Object.hasOwn(payload, 'answer_mode'), false);
+    }
+  } finally {
+    await stopServer(app.child);
+  }
+});
+
+test('server enforces the configured maximum output-token cap for Detailed mode', async () => {
+  const capture = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'nova-cap-')), 'requests.jsonl');
+  const app = await startServer({
+    LLM_KEY: 'fake-key', LLM_MODEL: 'fake-model',
+    LLM_BASE: 'https://mock.provider.invalid/v1',
+    NOVA_USAGE_QUOTA_REQUIRED: '0',
+    NOVA_MOCK_FETCH_MODE: 'capture',
+    NOVA_MOCK_FETCH_CAPTURE: capture,
+    LLM_MAX_OUTPUT_TOKENS: '300',
+    LLM_MAX_ATTEMPTS: '1'
+  });
+  try {
+    const response = await fetch(app.url + '/api/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        answer_mode: 'detailed',
+        max_tokens: 4096,
+        stream: true,
+        messages: [{ role: 'user', content: 'Explain a simple topic.' }]
+      })
+    });
+    assert.equal(response.status, 200);
+    await response.text();
+    const payload = JSON.parse(fs.readFileSync(capture, 'utf8').trim()).payload;
+    assert.equal(payload.max_tokens, 300);
   } finally {
     await stopServer(app.child);
   }
