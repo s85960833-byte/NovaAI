@@ -124,8 +124,10 @@ These are source references, not a statement that each is currently configured, 
 |---|---|
 | LocalStorage `nova` | Main chats, UI preferences, saved memory/custom instructions and related local assistant data. Treat schema as a compatibility contract. |
 | LocalStorage `nova_intro_completed_v2`, `nova_intro_completed_v1` | Splash/intro completion compatibility markers. Cookie `nova_intro_seen_v2` and legacy `nova_intro_seen_v1` are also read. |
+| LocalStorage `nova_modes_v1` | Separate NOVA workspace-mode conversation histories (e.g. general, voice and other registered modes). Treat the per-mode history shape and key as a compatibility contract. |
 | LocalStorage `nova-cloud-sync-enabled` | Explicit opt-in preference for personal cloud sync. |
 | LocalStorage `nova_suite_v1` | Local NOVA Suite project/notes/snapshot/permission state. |
+| LocalStorage `nova_t` | Temporary storage-capability probe; the app sets and immediately removes it to determine whether durable local storage is available. |
 | SessionStorage `nova-bi-org` | Selected company workspace in the BI UI. |
 | Supabase table `nova_user_workspaces` | Optional user workspace snapshot for signed-in, opted-in sync. |
 | Supabase NOVA BI schema | Organization, membership, invitation, dataset metadata, analysis, workflow proposal, branding, audit and related service-side rate-limit records. Exact schema is in the migration files. |
