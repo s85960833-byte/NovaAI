@@ -51,9 +51,13 @@ function createAccountDeletionHandler(options = {}) {
   async function countRows(table, column, userId) {
     const response = await adminGet(table, { select: 'id', [column]: 'eq.' + userId });
     const range = response.headers.get('content-range') || '';
-    const match = /\\/(\\d+|\\*)$/.exec(range);
-    if (!match) throw new Error('Deletion planning count was not returned');
-    return match[1] === '*' ? 0 : Number(match[1]);
+    const separator = range.lastIndexOf('/');
+    if (separator < 0) throw new Error('Deletion planning count was not returned');
+    const totalText = range.slice(separator + 1);
+    if (totalText === '*') return 0;
+    const total = Number(totalText);
+    if (!Number.isSafeInteger(total) || total < 0) throw new Error('Deletion planning count was invalid');
+    return total;
   }
 
   async function sharedOwnerOrganizations(userId) {
