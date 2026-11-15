@@ -34,4 +34,5 @@ for migration in supabase/migrations/202611*.sql; do
   psql -v ON_ERROR_STOP=1 -f "${migration}"
 done
 
+psql -v ON_ERROR_STOP=1 -f scripts/usage-quota-sql.integration.sql
 psql -v ON_ERROR_STOP=1 -f scripts/supabase-rls-integration.sql

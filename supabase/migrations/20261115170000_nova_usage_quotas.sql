@@ -139,3 +139,46 @@ $$;
 
 revoke all on function public.nova_reserve_usage(uuid,text,text,integer,text,text,integer,integer,uuid) from public, anon, authenticated;
 grant execute on function public.nova_reserve_usage(uuid,text,text,integer,text,text,integer,integer,uuid) to service_role;
+
+
+-- Settle a reserved request with provider-reported completion tokens.
+-- NULL means the upstream provider did not expose authoritative usage.
+alter table public.usage_ledger
+  add column if not exists output_tokens_known boolean not null default false;
+
+create or replace function public.nova_settle_usage(
+  p_user_id uuid, p_reservation_id uuid, p_output_tokens integer, p_status text
+)
+returns boolean language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_status text;
+  v_output_tokens integer;
+  v_output_tokens_known boolean;
+begin
+  if p_user_id is null or p_reservation_id is null
+     or (p_output_tokens is not null and (p_output_tokens < 0 or p_output_tokens > 2147483647))
+     or p_status is null or p_status not in ('completed','provider_failed') then
+    raise exception 'Invalid usage settlement parameters' using errcode = '22023';
+  end if;
+  select status, output_tokens, output_tokens_known
+    into v_status, v_output_tokens, v_output_tokens_known
+    from public.usage_ledger
+   where user_id = p_user_id and reservation_id = p_reservation_id
+   for update;
+  if not found then return false; end if;
+  if v_status <> 'reserved' then
+    return v_status = p_status
+       and v_output_tokens_known = (p_output_tokens is not null)
+       and v_output_tokens = coalesce(p_output_tokens, 0);
+  end if;
+  update public.usage_ledger
+     set output_tokens = coalesce(p_output_tokens, 0),
+         output_tokens_known = (p_output_tokens is not null),
+         status = p_status, settled_at = clock_timestamp()
+   where user_id = p_user_id and reservation_id = p_reservation_id;
+  return true;
+end;
+$$;
+revoke all on function public.nova_settle_usage(uuid,uuid,integer,text) from public, anon, authenticated;
+grant execute on function public.nova_settle_usage(uuid,uuid,integer,text) to service_role;

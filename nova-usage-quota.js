@@ -89,7 +89,31 @@ function createUsageQuota(options = {}) {
     }
   }
 
-  return Object.freeze({ reserve });
+  async function settle(input = {}) {
+    if (!enabled) return { ok: false, reason: 'quota_not_enabled' };
+    const userId = typeof input.userId === 'string' ? input.userId : '';
+    const reservationId = typeof input.reservationId === 'string' ? input.reservationId : '';
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuid.test(userId) || !uuid.test(reservationId)) return { ok: false, reason: 'invalid_reservation' };
+    const status = input.status === 'provider_failed' ? 'provider_failed' : input.status === 'completed' ? 'completed' : '';
+    if (!status) return { ok: false, reason: 'invalid_settlement_status' };
+    const outputTokens = input.outputTokens == null ? null : Number(input.outputTokens);
+    if (outputTokens !== null && (!Number.isSafeInteger(outputTokens) || outputTokens < 0 || outputTokens > 2147483647)) {
+      return { ok: false, reason: 'invalid_output_tokens' };
+    }
+    try {
+      const response = await request('/rest/v1/rpc/nova_settle_usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_user_id: userId, p_reservation_id: reservationId, p_output_tokens: outputTokens, p_status: status })
+      });
+      const settled = await response.json();
+      if (settled === true) return { ok: true, usageKnown: outputTokens !== null };
+      if (settled === false) return { ok: false, reason: 'usage_reservation_not_found' };
+      throw new Error('Usage settlement returned an invalid result');
+    } catch { return { ok: false, reason: 'quota_ledger_unavailable' }; }
+  }
+  return Object.freeze({ reserve, settle });
 }
 
 module.exports = { createUsageQuota, currentPeriod, estimateInputTokens, normalizeSupabaseOrigin };

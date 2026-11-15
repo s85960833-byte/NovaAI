@@ -98,6 +98,8 @@ jobs:
         run: node --test scripts/provider-url.test.cjs
       - name: Test safe provider redirects and bounded response reads
         run: npm run test:provider-http
+      - name: Test provider-reported streamed usage parsing
+        run: npm run test:provider-usage
       - name: Verify equity market data requires a documented licensed provider
         run: npm run test:market-data-policy
       - name: Verify keyless data providers are disabled without commercial rights

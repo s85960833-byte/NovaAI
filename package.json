@@ -36,7 +36,8 @@
     "test:feature-flags": "node --test scripts/feature-flags.test.cjs",
     "test:security-scan": "node --test scripts/security-scan.test.cjs",
     "test:release-check-contract": "node --test scripts/release-check.test.cjs",
-    "release:check": "node scripts/release-check.mjs"
+    "release:check": "node scripts/release-check.mjs",
+    "test:provider-usage": "node --test scripts/provider-usage.test.cjs"
   },
   "engines": {
     "node": "22.x"

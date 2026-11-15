@@ -34,7 +34,9 @@ async function startServer(extra = {}) {
     'LLM_KEY', 'LLM_MODEL', 'LLM_BASE', 'LLM_FALLBACK_MODELS',
     'GROQ_API_KEY', 'GROQ_MODEL', 'GROQ_BASE',
     'OPENROUTER_API_KEY', 'OPENROUTER_MODEL', 'OPENROUTER_BASE',
-    'CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_MODEL', 'NOVA_ALLOW_CLOUDFLARE'
+    'CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_MODEL', 'NOVA_ALLOW_CLOUDFLARE',
+    'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY',
+    'NOVA_FREE_MONTHLY_CREDITS', 'NOVA_PRO_MONTHLY_CREDITS', 'NOVA_ULTRA_MONTHLY_CREDITS'
   ]) delete env[name];
   Object.assign(env, extra);
   const child = spawn(process.execPath, ['nova-server.txt'], { cwd: root, env, stdio: ['ignore', 'ignore', 'ignore'] });
@@ -182,4 +184,66 @@ test('server enforces the configured maximum output-token cap for Detailed mode'
   } finally {
     await stopServer(app.child);
   }
+});
+
+
+test('authenticated chat settles durable quota with streamed provider output-token usage', async () => {
+  const capture = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'nova-usage-stream-')), 'provider.jsonl');
+  const usageCapture = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'nova-usage-ledger-')), 'ledger.jsonl');
+  const app = await startServer({
+    LLM_KEY: 'fake-key', LLM_MODEL: 'fake-model', LLM_BASE: 'https://mock.provider.invalid/v1',
+    NOVA_API_AUTH_REQUIRED: '1', SUPABASE_URL: 'https://mock-project.supabase.invalid',
+    SUPABASE_PUBLISHABLE_KEY: 'fake-publishable-key', SUPABASE_SERVICE_ROLE_KEY: 'fake-service-role-key',
+    NOVA_USAGE_QUOTA_REQUIRED: '1', NOVA_FREE_MONTHLY_CREDITS: '50',
+    NOVA_MOCK_FETCH_MODE: 'capture', NOVA_MOCK_FETCH_CAPTURE: capture,
+    NOVA_MOCK_USAGE_CAPTURE: usageCapture, LLM_MAX_ATTEMPTS: '1'
+  });
+  try {
+    const response = await fetch(app.url + '/api/chat/completions', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer local-mock-user-token' },
+      body: JSON.stringify({ answer_mode: 'quick', stream: true, messages: [{ role: 'user', content: 'Say hello.' }] })
+    });
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), /mock-response/);
+    const providerRequests = fs.readFileSync(capture, 'utf8').trim().split('\n').map(line => JSON.parse(line));
+    assert.equal(providerRequests[0].payload.stream_options.include_usage, true);
+    const ledger = fs.readFileSync(usageCapture, 'utf8').trim().split('\n').map(line => JSON.parse(line));
+    const reserve = ledger.find(call => call.path.endsWith('/nova_reserve_usage'));
+    const settle = ledger.find(call => call.path.endsWith('/nova_settle_usage'));
+    assert.ok(reserve && settle);
+    assert.equal(settle.payload.p_reservation_id, reserve.payload.p_reservation_id);
+    assert.equal(settle.payload.p_output_tokens, 7);
+    assert.equal(settle.payload.p_status, 'completed');
+  } finally { await stopServer(app.child); }
+});
+
+test('provider rejecting optional stream usage retries and records usage as unknown', async () => {
+  const capture = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'nova-usage-fallback-')), 'provider.jsonl');
+  const usageCapture = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'nova-usage-fallback-ledger-')), 'ledger.jsonl');
+  const app = await startServer({
+    LLM_KEY: 'fake-key', LLM_MODEL: 'fake-model', LLM_BASE: 'https://mock.provider.invalid/v1',
+    NOVA_API_AUTH_REQUIRED: '1', SUPABASE_URL: 'https://mock-project.supabase.invalid',
+    SUPABASE_PUBLISHABLE_KEY: 'fake-publishable-key', SUPABASE_SERVICE_ROLE_KEY: 'fake-service-role-key',
+    NOVA_USAGE_QUOTA_REQUIRED: '1', NOVA_FREE_MONTHLY_CREDITS: '50',
+    NOVA_MOCK_FETCH_MODE: 'capture', NOVA_MOCK_REJECT_STREAM_OPTIONS: '1',
+    NOVA_MOCK_FETCH_CAPTURE: capture, NOVA_MOCK_USAGE_CAPTURE: usageCapture,
+    LLM_MAX_ATTEMPTS: '2', LLM_RETRY_BASE_DELAY_MS: '0'
+  });
+  try {
+    const response = await fetch(app.url + '/api/chat/completions', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer local-mock-user-token' },
+      body: JSON.stringify({ answer_mode: 'quick', stream: true, messages: [{ role: 'user', content: 'Say hello.' }] })
+    });
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), /mock-response/);
+    const providerRequests = fs.readFileSync(capture, 'utf8').trim().split('\n').map(line => JSON.parse(line));
+    assert.equal(providerRequests.length, 2);
+    assert.equal(providerRequests[0].payload.stream_options.include_usage, true);
+    assert.equal(Object.hasOwn(providerRequests[1].payload, 'stream_options'), false);
+    const ledger = fs.readFileSync(usageCapture, 'utf8').trim().split('\n').map(line => JSON.parse(line));
+    const settle = ledger.find(call => call.path.endsWith('/nova_settle_usage'));
+    assert.ok(settle);
+    assert.equal(settle.payload.p_output_tokens, null);
+    assert.equal(settle.payload.p_status, 'completed');
+  } finally { await stopServer(app.child); }
 });
