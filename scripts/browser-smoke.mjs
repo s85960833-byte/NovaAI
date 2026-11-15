@@ -369,7 +369,7 @@ try{
  assert.ok(stateAfterChat.chats.some(c=>c.m.some(m=>m.r==='user'&&m.c==='NOVA standard chat CRUD regression message')),'standard chat must persist its user message');
  assert.ok(stateAfterChat.chats.some(c=>c.m.some(m=>m.r==='assistant'&&m.c.includes('NOVA_CHAT_FLOW_OK_'+standardRequestNumber))),'standard chat must persist its assistant response');
 
- await desktop.locator('#menu').click();
+ await desktop.keyboard.press('Control+K');
  await desktop.locator('#side.open').waitFor({state:'visible'});
  const firstChat=desktop.locator('#list .it').filter({hasText:'NOVA standard chat CRUD regression message'}).first();
  await firstChat.waitFor({state:'visible'});
