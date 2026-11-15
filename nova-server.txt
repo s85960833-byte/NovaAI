@@ -303,16 +303,18 @@ app.post('/api/chat/completions', async (q, r) => {
 
     // Reserve one durable monthly credit before any provider request. Missing
     // identity, unconfigured plan, or ledger failure blocks the request.
-    const usageReservation = await usageQuota.reserve({
-      userId: q.novaUser?.id,
-      mode: answerMode,
-      provider: qualityGate.providers[0]?.id || 'unknown',
-      inputTokens: estimateInputTokens(body.messages)
-    });
-    if (!usageReservation.ok) {
-      if (usageReservation.reason === 'quota_exceeded') return r.status(429).json({ error: 'quota_exceeded' });
-      if (usageReservation.reason === 'plan_not_configured') return r.status(503).json({ error: 'quota_plan_not_configured' });
-      return r.status(503).json({ error: 'quota_ledger_unavailable' });
+    if (FEATURE_FLAGS.usageQuotaRequired) {
+      const usageReservation = await usageQuota.reserve({
+        userId: q.novaUser?.id,
+        mode: answerMode,
+        provider: qualityGate.providers[0]?.id || 'unknown',
+        inputTokens: estimateInputTokens(body.messages)
+      });
+      if (!usageReservation.ok) {
+        if (usageReservation.reason === 'quota_exceeded') return r.status(429).json({ error: 'quota_exceeded' });
+        if (usageReservation.reason === 'plan_not_configured') return r.status(503).json({ error: 'quota_plan_not_configured' });
+        return r.status(503).json({ error: 'quota_ledger_unavailable' });
+      }
     }
 
     let extra = vis ? { reasoning_format: 'hidden' } : {};
