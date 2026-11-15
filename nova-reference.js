@@ -93,7 +93,7 @@ function boot(){
  if(nav&&!$('#nrSidebarLinks')){
   const x=document.createElement('div');x.id='nrSidebarLinks';
   const links=[['learn','▱',tr('NOVA Learn','नोवा लर्न')],['build','⌘',tr('NOVA Build','नोवा बिल्ड')],['agents','◈',tr('NOVA Agents','नोवा एजेंट्स')]];
-  links.forEach(([key,icon,label])=>{const b=document.createElement('button');b.type='button';b.dataset.k=key;b.textContent=icon+'　'+label;b.addEventListener('click',()=>{window.NovaModeWorkspace?.openGroup?.(key)});x.append(b)});
+  links.forEach(([key,icon,label])=>{const b=document.createElement('button');b.type='button';b.dataset.k=key;b.textContent=icon+'　'+label;b.addEventListener('click',()=>{side.classList.remove('open');window.NovaModeWorkspace?.openGroup?.(key)});x.append(b)});
   nav.after(x);
  }
  const host=$('#log');

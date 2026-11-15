@@ -159,7 +159,10 @@ test('Pixel 7 viewport keeps full-screen navigation and opens all three workspac
     await expect(page.locator('#novaModes.open')).toBeHidden();
   }
 
+  await page.locator('#menu').click();
+  await expect(page.locator('#side')).toHaveClass(/open/);
   await page.locator('#nrSidebarLinks button').nth(0).click();
+  await expect(page.locator('#side')).not.toHaveClass(/open/);
   await expect(page.locator('#novaModes.open')).toBeVisible();
   await expect(page.locator('#nmContent [data-mode="math"]')).toBeVisible();
   await page.keyboard.press('Escape');
