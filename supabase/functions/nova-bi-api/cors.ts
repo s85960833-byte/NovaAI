@@ -70,7 +70,9 @@ export function withSiteOrigin(
     }
     const vary = headers.get("Vary");
     const varyTokens = vary ? vary.split(",").map((token) => token.trim().toLowerCase()) : [];
-    if (!varyTokens.includes("origin")) headers.set("Vary", vary ? vary + ", Origin" : "Origin");
+    if (!varyTokens.includes("*") && !varyTokens.includes("origin")) {
+      headers.set("Vary", vary ? vary + ", Origin" : "Origin");
+    }
     return new Response(response.body, {
       status: response.status,
       statusText: response.statusText,
