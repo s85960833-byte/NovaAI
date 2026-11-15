@@ -149,7 +149,7 @@ function locallySignTestJwt(payload, header = { alg: 'HS256', typ: 'JWT' }, secr
 
 function mockedSupabaseAuthFetch() {
   return async (_url, options) => {
-    const token = String(options.headers.Authorization || '').replace(/^Bearer\\s+/i, '');
+    const token = String(options.headers.Authorization || '').replace(/^Bearer\s+/i, '');
     try {
       const parts = token.split('.');
       if (parts.length !== 3) return new Response('{}', { status: 401 });
