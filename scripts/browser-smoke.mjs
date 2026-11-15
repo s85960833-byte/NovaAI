@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 
 const BASE=process.env.NOVAAI_URL||'http://127.0.0.1:8787';
 const browser=await chromium.launch({headless:true});
+// Isolate browser contexts from each other and runtime-smoke's per-IP test window.
 const errors=[],cspErrors=[];
 const track=page=>{
  page.on('pageerror',e=>errors.push(String(e.message||e)));
@@ -42,7 +43,7 @@ async function verifyIntroDoesNotReplay(page){
   ['legacy cookie',()=>{document.cookie='nova_intro_seen_v1=1; Path=/; SameSite=Lax'}]
  ];
  for(const [name,seed] of legacyCases){
-  const legacyContext=await browser.newContext({viewport:{width:412,height:915}});
+  const legacyContext=await browser.newContext({viewport:{width:412,height:915},extraHTTPHeaders:{'x-forwarded-for':'198.51.100.246'}});
   const legacyPage=await legacyContext.newPage();
   track(legacyPage);
   await legacyPage.addInitScript(seed);
@@ -57,7 +58,7 @@ async function verifyIntroDoesNotReplay(page){
 }
 
 try{
- const desktop=await browser.newPage({viewport:{width:1365,height:900}});
+ const desktop=await browser.newPage({viewport:{width:1365,height:900},extraHTTPHeaders:{'x-forwarded-for':'198.51.100.249'}});
  track(desktop);
  await desktop.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js',route=>route.fulfill({status:200,contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{onAuthStateChange(){},getSession:async()=>({data:{session:null}})}})};'}));
  await desktop.goto(BASE,{waitUntil:'domcontentloaded'});
@@ -336,7 +337,7 @@ try{
  await desktop.waitForFunction(()=>document.querySelector('#photo').hidden);
  console.log('PASS Learn Photo Questions launcher opens and closes the existing photo-question panel');
 
- const mobileContext=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+ const mobileContext=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2,isMobile:true,hasTouch:true,extraHTTPHeaders:{'x-forwarded-for':'198.51.100.248'}});
  const mobile=await mobileContext.newPage();
  track(mobile);
  await mobile.goto(BASE,{waitUntil:'domcontentloaded'});
@@ -386,7 +387,7 @@ try{
  console.log('PASS Android-sized touch navigation, strict Build/Agents placement and Agents-only chat composer');
  await mobileContext.close();
 
- const reducedContext=await browser.newContext({viewport:{width:412,height:915},reducedMotion:'reduce'});
+ const reducedContext=await browser.newContext({viewport:{width:412,height:915},reducedMotion:'reduce',extraHTTPHeaders:{'x-forwarded-for':'198.51.100.247'}});
  const reduced=await reducedContext.newPage();
  track(reduced);
  await reduced.goto(BASE,{waitUntil:'domcontentloaded'});
