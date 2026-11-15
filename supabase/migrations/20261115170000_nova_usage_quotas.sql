@@ -178,9 +178,9 @@ begin
   if v_status <> 'reserved' then
     return v_status = p_status
        and v_input_tokens_known = (p_input_tokens is not null)
-       and v_input_tokens = coalesce(p_input_tokens, 0)
+       and (p_input_tokens is null or v_input_tokens = p_input_tokens)
        and v_output_tokens_known = (p_output_tokens is not null)
-       and v_output_tokens = coalesce(p_output_tokens, 0);
+       and (p_output_tokens is null or v_output_tokens = p_output_tokens);
   end if;
   update public.usage_ledger
      set input_tokens = coalesce(p_input_tokens, input_tokens),
