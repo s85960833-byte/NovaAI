@@ -203,8 +203,9 @@ test('authenticated chat settles durable quota with streamed provider output-tok
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer local-mock-user-token' },
       body: JSON.stringify({ answer_mode: 'quick', stream: true, messages: [{ role: 'user', content: 'Say hello.' }] })
     });
-    assert.equal(response.status, 200);
-    assert.match(await response.text(), /mock-response/);
+    const responseText = await response.text();
+    assert.equal(response.status, 200, responseText + '\nmock-ledger=' + (fs.existsSync(usageCapture) ? fs.readFileSync(usageCapture, 'utf8') : 'no-ledger-requests'));
+    assert.match(responseText, /mock-response/);
     const providerRequests = fs.readFileSync(capture, 'utf8').trim().split('\n').map(line => JSON.parse(line));
     assert.equal(providerRequests[0].payload.stream_options.include_usage, true);
     const ledger = fs.readFileSync(usageCapture, 'utf8').trim().split('\n').map(line => JSON.parse(line));
