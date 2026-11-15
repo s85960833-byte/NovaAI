@@ -102,6 +102,17 @@ Names only; values are deliberately excluded:
 
 This is the set statically referenced in the configured server file; Render's configured environment may contain additional names and was not read/exported by this inventory.
 
+### Other repository-side environment references
+
+The following names occur outside the configured server's `nova-server.txt` environment reads. They are separated here so CI/test variables are not mistaken for production secrets:
+
+- Supabase Edge Function: `NOVA_BI_SITE_URL` — allowed site origin and auth invitation redirect.
+- Runtime policy: `NODE_ENV` — permits local HTTP provider bases only in explicit development mode.
+- Operator/test scripts: `NOVAAI_URL` (target host for smoke/browser scripts), `NOVA_LIVE_FULL_TESTS` (explicit opt-in for live provider checks).
+- CI-only PostgreSQL service variables: `PGDATABASE`, `PGHOST`, `PGPASSWORD`, `PGPORT`, `PGUSER`, `POSTGRES_DB`, `POSTGRES_PASSWORD`. These configure the disposable workflow database, not Render production.
+
+This source inventory does not query or disclose secret values from GitHub, Render or Supabase. Platform-injected environment variables may exist without being referenced literally by the application source.
+
 ## 4. External APIs, feeds and hosted dependencies
 
 These are source references, not a statement that each is currently configured, available or healthy.
