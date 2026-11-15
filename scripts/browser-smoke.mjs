@@ -249,6 +249,11 @@ try{
  // Exercise a complete Agents chat round trip against deterministic local API responses.
  const modeChatRequests=[];
  await desktop.route('**/api/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({model:'browser-test-model',image:true})}));
+ await desktop.route('**/api/features',route=>route.fulfill({
+  status:200,
+  contentType:'application/json',
+  body:JSON.stringify({flags:{aiChat:true,imageStudio:true,accountDeletion:false,usageQuotaRequired:true}})
+ }));
  await desktop.route('**/api/chat/completions',async route=>{
   const payload=route.request().postDataJSON();
   modeChatRequests.push(payload);
@@ -306,6 +311,7 @@ try{
  // The Build workspace Image Studio action must reveal the existing image composer from the dashboard.
  await desktop.locator('#hi .nr-card[data-group="build"]').click();
  await desktop.locator('#novaModes.open').waitFor();
+ await desktop.waitForFunction(()=>document.querySelector('#nmContent [data-quick="openImageStudio"]')?.hidden===false);
  await desktop.locator('#nmContent [data-quick="openImageStudio"]').click();
  await desktop.locator('#imbar').waitFor({state:'visible',timeout:5000});
  assert.equal(await desktop.locator('#box').isVisible(),true,'Image Studio must reveal the composer while the workspace dashboard is mounted');

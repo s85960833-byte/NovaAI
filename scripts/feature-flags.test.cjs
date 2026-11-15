@@ -9,7 +9,7 @@ test('risky flags default OFF and quota enforcement defaults fail-closed', () =>
   assert.equal(flags.aiChat, true);
   assert.equal(flags.usageQuotaRequired, true);
   for (const name of [
-    'accountDeletion', 'paidImage', 'pollinationsSpend', 'aiHorde',
+    'accountDeletion', 'paidImage', 'pollinationsSpend', 'aiHorde', 'imageStudio',
     'cloudflareWorkersAi', 'companyCloud', 'proBilling', 'ultraBilling'
   ]) assert.equal(flags[name], false, name);
 });
@@ -35,4 +35,12 @@ test('risky flags require explicit opt-in and billing cannot be enabled by envir
   ]) assert.equal(flags[name], true, name);
   assert.equal(flags.proBilling, false);
   assert.equal(flags.ultraBilling, false);
+});
+
+test('Image Studio is visible only when an explicitly enabled server image provider is configured', () => {
+  assert.equal(getFeatureFlags({ ALLOW_PAID_IMAGE: 'true' }).imageStudio, false);
+  assert.equal(getFeatureFlags({ ALLOW_PAID_IMAGE: 'true', IMAGE_KEY: 'fake', IMAGE_MODEL: 'fake-model' }).imageStudio, true);
+  assert.equal(getFeatureFlags({ NOVA_ALLOW_AI_HORDE: '1', HORDE_API_KEY: 'fake' }).imageStudio, true);
+  assert.equal(getFeatureFlags({ NOVA_ALLOW_POLLINATIONS_SPEND: '1', POLLI_KEY: 'fake' }).imageStudio, true);
+  assert.equal(getFeatureFlags({ IMAGE_OFF: '1', NOVA_ALLOW_AI_HORDE: '1', HORDE_API_KEY: 'fake' }).imageStudio, false);
 });

@@ -440,20 +440,35 @@ declare
   v_first boolean;
   v_retry boolean;
   v_second boolean;
-  v_used integer;
-  v_rows integer;
 begin
   v_first := public.nova_reserve_usage(v_user,'2026-11','free',1,'quick','ci-mock',32,0,'aaaaaaaa-0000-4000-8000-000000000001');
   v_retry := public.nova_reserve_usage(v_user,'2026-11','free',1,'quick','ci-mock',32,0,'aaaaaaaa-0000-4000-8000-000000000001');
   v_second := public.nova_reserve_usage(v_user,'2026-11','free',1,'standard','ci-mock',48,0,'aaaaaaaa-0000-4000-8000-000000000002');
-  select used_credits into v_used from public.nova_usage_monthly where user_id=v_user and period='2026-11';
-  select count(*) into v_rows from public.usage_ledger where user_id=v_user and period='2026-11';
   if v_first is not true or v_retry is not true or v_second is not false then
     raise exception 'Monthly usage reservation did not enforce its configured cap';
   end if;
-  if v_used <> 1 or v_rows <> 1 then
-    raise exception 'Idempotent reservation retry consumed more than one credit';
-  end if;
+  perform set_config('nova.test_usage_first',v_first::text,true);
+  perform set_config('nova.test_usage_retry',v_retry::text,true);
+  perform set_config('nova.test_usage_second',v_second::text,true);
 end $usage_reservation$;
 reset role;
+
+-- Only the migration owner inspects private ledger rows; service_role has RPC
+-- execute and entitlement-read access, but no direct usage-table SELECT.
+do $usage_reservation_assert$
+declare
+  v_used integer;
+  v_rows integer;
+begin
+  select used_credits into v_used from public.nova_usage_monthly
+   where user_id='11111111-1111-4111-8111-111111111111' and period='2026-11';
+  select count(*) into v_rows from public.usage_ledger
+   where user_id='11111111-1111-4111-8111-111111111111' and period='2026-11';
+  if current_setting('nova.test_usage_first',true) <> 'true'
+     or current_setting('nova.test_usage_retry',true) <> 'true'
+     or current_setting('nova.test_usage_second',true) <> 'false'
+     or v_used <> 1 or v_rows <> 1 then
+    raise exception 'Idempotent reservation retry consumed more than one credit or exceeded its monthly cap';
+  end if;
+end $usage_reservation_assert$;
 rollback;

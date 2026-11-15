@@ -734,7 +734,8 @@
       "id": "openImageStudio",
       "featureId": "image.studio",
       "planTier": "free",
-      "status": "hidden"
+      "status": "beta",
+      "flag": "imageStudio"
     },
     {
       "id": "startVoice",
