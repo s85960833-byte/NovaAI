@@ -36,16 +36,24 @@ async function verifyIntroDoesNotReplay(page){
  assert.equal(await page.locator('#novaEntryVideo').count(),0,'legacy video element must never be reintroduced');
  console.log('PASS intro is tap-proof, one-time and persistent after reload');
 
- const legacyContext=await browser.newContext({viewport:{width:412,height:915}});
- const legacyPage=await legacyContext.newPage();
- track(legacyPage);
- await legacyPage.addInitScript(()=>localStorage.setItem('nova_intro_completed_v1','1'));
- await legacyPage.goto(BASE,{waitUntil:'domcontentloaded'});
- await legacyPage.locator('#novaEntryGate').waitFor({state:'detached',timeout:5000});
- await legacyPage.locator('#hi').waitFor({state:'visible',timeout:10000});
- assert.equal(await legacyPage.evaluate(()=>localStorage.getItem('nova_intro_completed_v2')),'1','legacy completion marker must be migrated to the current marker');
- await legacyContext.close();
- console.log('PASS legacy intro marker migration prevents replay after upgrades');
+ const legacyCases=[
+  ['localStorage',()=>localStorage.setItem('nova_intro_completed_v1','1')],
+  ['sessionStorage',()=>sessionStorage.setItem('nova_intro_completed_v1','1')],
+  ['legacy cookie',()=>{document.cookie='nova_intro_seen_v1=1; Path=/; SameSite=Lax'}]
+ ];
+ for(const [name,seed] of legacyCases){
+  const legacyContext=await browser.newContext({viewport:{width:412,height:915}});
+  const legacyPage=await legacyContext.newPage();
+  track(legacyPage);
+  await legacyPage.addInitScript(seed);
+  await legacyPage.goto(BASE,{waitUntil:'domcontentloaded'});
+  await legacyPage.locator('#novaEntryGate').waitFor({state:'detached',timeout:5000});
+  await legacyPage.locator('#hi').waitFor({state:'visible',timeout:10000});
+  assert.equal(await legacyPage.evaluate(()=>localStorage.getItem('nova_intro_completed_v2')),'1',name+' legacy marker must migrate to the current durable marker');
+  assert.equal(await legacyPage.evaluate(()=>document.cookie.split(';').map(x=>x.trim()).includes('nova_intro_seen_v2=1')),true,name+' legacy marker must migrate to the current cookie');
+  await legacyContext.close();
+ }
+ console.log('PASS localStorage, sessionStorage and legacy cookie intro marker migration prevents replay after upgrades');
 }
 
 try{
@@ -203,7 +211,12 @@ try{
  const businessHindiText=await desktop.locator('#nbBody').innerText();
  console.log('BUSINESS_HINDI_TEXT:',businessHindiText.slice(0,500));
  assert.ok(businessHindiText.includes('बिज़नेस इंटेलिजेंस डैशबोर्ड'),'Business Intelligence must re-render in Hindi');
+ for(const untranslated of ['No data loaded','Run an analysis to populate this card','Explainable heuristic, not a probability','illustrative scenario only'])assert.ok(!businessHindiText.includes(untranslated),'Business Intelligence Hindi overview contains untranslated text: '+untranslated);
  await desktop.locator('#uiLangTop').selectOption('en');
+ await desktop.waitForFunction(()=>document.querySelector('#nbBody')?.innerText.includes('No data loaded'));
+ const businessEnglishText=await desktop.locator('#nbBody').innerText();
+ for(const translated of ['कोई डेटा लोड नहीं हुआ','विश्लेषण चलाएँ','संभावना नहीं','उदाहरणात्मक परिदृश्य'])assert.ok(!businessEnglishText.includes(translated),'Business Intelligence English overview retained Hindi text: '+translated);
+ assert.ok(businessEnglishText.includes('Explainable heuristic, not a probability'),'Business Intelligence must switch back to English');
  await desktop.keyboard.press('Escape');
  await desktop.waitForFunction(()=>!document.querySelector('#novaBusiness').classList.contains('show'));
  assert.equal(await desktop.locator('#novaModes').evaluate(el=>el.classList.contains('open')),true,'Agents workspace should remain open after closing Business Intelligence');
@@ -224,6 +237,14 @@ try{
  await desktop.keyboard.press('Escape');
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
  console.log('PASS Business Intelligence and Company Cloud launch only from Agents; nested dialogs restore focus');
+
+ // Image Studio must not appear in Build while the real test server has no approved image provider.
+ await desktop.locator('#hi .nr-card[data-group="build"]').click();
+ await desktop.locator('#novaModes.open').waitFor();
+ assert.equal(await desktop.locator('#nmContent [data-quick="openImageStudio"]').count(),0,'Image Studio shortcut must be hidden when no image provider is configured');
+ await desktop.keyboard.press('Escape');
+ await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
+ console.log('PASS Build workspace hides Image Studio when no approved image provider is configured');
 
  // Exercise a complete Agents chat round trip against deterministic local API responses.
  const modeChatRequests=[];
@@ -277,6 +298,11 @@ try{
  await desktop.locator('#nmClose').click();
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
 
+ // Re-bootstrap NOVA after installing the mocked image config and job routes.
+ // The app reads /api/config once during startup; a late route alone cannot change SV.image.
+ await desktop.reload({waitUntil:'domcontentloaded'});
+ await enterNOVA(desktop);
+ await desktop.waitForFunction(()=>document.querySelector('#gen') && !document.querySelector('#gen').hidden);
  // The Build workspace Image Studio action must reveal the existing image composer from the dashboard.
  await desktop.locator('#hi .nr-card[data-group="build"]').click();
  await desktop.locator('#novaModes.open').waitFor();
@@ -328,7 +354,7 @@ try{
  await mobile.locator('#novaModes.open').waitFor();
  const buildText=await mobile.locator('#nmContent').innerText();
  assert.ok(buildText.includes('NOVA Build'));
- assert.ok(buildText.includes('Image Studio'));
+ assert.ok(!buildText.includes('Image Studio'),'mobile Build must hide Image Studio when no approved image provider is configured');
  assert.ok(!buildText.includes('Live Voice'));
  assert.ok(!buildText.includes('Photo Questions'));
  await mobile.locator('#nmClose').tap();

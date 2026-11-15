@@ -22,11 +22,10 @@ NOVA is an India-oriented Hindi-English AI web workspace:
 
 ## Verified engineering evidence
 
-- Current main commit: `94be54b3e94f2dbccb039425b51d936565ab9eed`.
-- Render deployment `dep-dbo5sdbm8hqs73fkvnrg` is `live` for that commit. Render logs confirm successful build, app process startup and port 10000.
-- GitHub Actions run [#42476098568](https://github.com/s85960833-byte/NovaAI/actions/runs/42476098568) completed successfully. It passed syntax/security checks, PostgreSQL migration and RLS integration tests, Deno and deployed Edge Function checks, BI calculation/CSV tests, AI evaluation fixture validation, dependency audit, local runtime/PWA tests, Chromium browser tests, mobile viewport regression tests and the live smoke gate.
-- The live smoke gate in that run occurred before the latest deployment. A fresh post-deployment live smoke verification is still required; direct HTTP checks from the current review environment were unavailable.
-- Automated browser/mobile tests do not replace a physical Android device test.
+- Repository Production main is `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7` via live deployment `dep-dbom7bbm8hqs73ec2gi0`.
+- PR #98 candidate `cd073c966d9a00bbb922ef3e12be4db1660b1723` passed Main workflow [#43206866629](https://github.com/s85960833-byte/NovaAI/actions/runs/43206866629) (47/47 steps) and Browser workflow [#43206866508](https://github.com/s85960833-byte/NovaAI/actions/runs/43206866508) (16/16 steps).
+- PR #98 remains Draft and unmerged. Staging is still on commit `195739a04895de364a5af22aa61f930d5d782cbb`, not the candidate head; its Render Health Check Path is blank. No latest-head Staging/live smoke claim is made.
+- Automated browser/mobile tests do not replace physical Android and microphone checks.
 
 ## Important limitations to disclose
 
@@ -65,3 +64,20 @@ Code review of `nova-account.js` and `nova-app.js` found that when a chat with t
 ## Cloud-sync patch status — 8 November 2026
 
 A follow-up patch now merges remote and local chat histories by their shared sequence overlap rather than globally deduplicating identical message text. This preserves legitimate repeated messages (for example, the same short reply sent twice) while appending local messages that follow the remote overlap. This is still a candidate code change, not a verified release: automated regression, browser, two-device concurrency, document-conflict, deletion/tombstone and live hosted-account tests have not yet passed. The implementation retains the local document when both copies differ because the current snapshot schema has no reliable per-document version or timestamp; memory/custom-instruction conflict resolution also remains limited. Do not claim conflict-safe multi-device sync until those tests and versioned conflict handling are complete.
+
+
+## Cloud-sync verification update — 12 November 2026
+
+The current PR candidate adds regression coverage for newest-chat selection, overlapping message histories, timestamp-based memory/custom-instruction edits and explicit clears, plus explicit document deletion. Main and Browser CI have passed on candidate `eb258ba4e81a873537aaa8a53576955a726bcff3`. These are code-level tests only: real two-device Supabase concurrency, recovery after interruption and account deletion/retention remain unverified. Do not claim fully conflict-safe multi-device sync.
+
+
+## Latest candidate evidence — 12 November 2026
+
+The PR candidate passed Main CI 47/47 and Browser CI 16/16. The same candidate contains Docker packaging and health smoke coverage, a read-only Supabase security audit and a 24-category buyer map. This does not mean the candidate is deployed: Staging still serves the older commit and its health-check path is blank. The current production URL is unchanged.
+
+The buyer map is illustrative only. No company is a confirmed prospect, no buyer interest is evidenced, and no outreach or sale discussion has occurred. Discovery remains adult-supervised, non-paid and limited to non-sensitive/synthetic data.
+
+
+## Exact-head CI update — 12 November 2026
+
+The latest candidate head `671f6dcec0842106ba1b0a5a946bd69c01001abb` passed Main workflow #43207317636 and Browser workflow #43207318043. PR #98 remains Draft and unmerged; Staging is still stale and no latest-head hosted test is claimed. All limitations above remain in force. This brief is for supervised, non-paid product discovery only and is not an offer or price indication.

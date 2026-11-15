@@ -318,7 +318,7 @@ await page.locator('#nbProofExport').click();
 const proofDownload = await proofDownloadPromise;
 console.log('PASS BI Action Proof download');
 progress('Action Proof export passed');
-assert.match(proofDownload.suggestedFilename(), /nova-action-proof\.json$/);
+assert.equal(proofDownload.suggestedFilename(), 'nova-action-proof-bundle.json');
 await page.keyboard.press('Escape');
 assert.equal(await page.locator('#novaBusiness').evaluate(el => el.classList.contains('show')), false);
 assert.equal(await page.locator('#novaModes').evaluate(el => el.classList.contains('open')), true, 'Agents workspace must remain open underneath Business Intelligence');

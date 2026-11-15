@@ -1,0 +1,356 @@
+## Exact-head verification — 14 November 2026
+
+- PR #98 head: `261cc04fdbc8b34cd0072c6e127c5bfaca6f2199`; status Open / Draft / unmerged. Production `main` has not been changed by this PR.
+- Main CI [#43572626246](https://github.com/s85960833-byte/NovaAI/actions/runs/43572626246): **success**, 58/58 steps. The new `Verify always-on Universal Accuracy Instruction` step passed (step 10), including the 10-test source-contract suite.
+- Browser CI [#43572626253](https://github.com/s85960833-byte/NovaAI/actions/runs/43572626253): **success**, 17/17 steps. Includes account/cloud-sync, Company Cloud, mobile layout/drawer and graceful-shutdown checks.
+- Staging deployed-PR smoke passed against `https://novaai-pr98-staging.onrender.com`: `GET /health` returned HTTP 200 with ready payload; homepage and entry assets loaded; missing/malformed/invalid API credentials returned HTTP 401 before provider routing.
+- Staging `GET /api/config` returned HTTP 503 with the explicit warning that no AI chat provider is configured. Live provider and live free-image smoke steps were skipped. No model-backed answer, search result or generated image is claimed.
+- Render Staging service `srv-dbqm035g1s2s73eogao0` is on the PR branch with Auto Deploy enabled, but latest confirmed Live deploy is still `dep-dbs0g58n74is738h58s0` on older SHA `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`. The current PR head is not Live on Staging. Staging `healthCheckPath` is blank.
+- Existing Production service `srv-dbidhpc9v7es73d6ia80` remains on branch `main`, same URL `https://novaai-4auo.onrender.com`, last confirmed Live SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. Its `healthCheckPath` is also blank. No production merge/deploy occurred.
+- Both Render web services report the Free plan. Render's official docs say Free web services are for preview/testing, not production; they spin down after 15 minutes idle and can take about a minute to wake. Source: https://render.com/docs/free. HTTP health checks require a configured path returning 2xx/3xx: https://render.com/docs/health-checks.
+- Provider age review remains corrected: OpenRouter current Terms (31 Aug 2026), Groq Services Agreement and Tavily customer-app guidance require 18+ account operators. Adult legal/vendor review is required; no provider account, key or paid spend was created.
+
+**Phase 1 remains IN PROGRESS. Master Prompt Definition of Done NOT MET. Production NO-GO.**
+
+# LATEST PHASE 1 AUDIT — 14 November 2026 (Asia/Kolkata)
+
+**Scope:** exact-head repository, GitHub workflow and Render Staging recheck. This is an in-progress engineering audit, not a certification.
+
+## Verified current state
+
+- PR #98 is Open / Draft / unmerged at `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`.
+- Main CI [#43565665119](https://github.com/s85960833-byte/NovaAI/actions/runs/43565665119) completed successfully. Its code, security, provider-routing, orchestration, DB/RLS, container and local browser checks passed; live provider smoke steps were skipped.
+- Browser CI [#43565665079](https://github.com/s85960833-byte/NovaAI/actions/runs/43565665079) completed successfully, 17/17 steps.
+- Render Staging is now Live on the exact PR head via deploy `dep-dbs0g58n74is738h58s0`. This supersedes older history below that described Staging as running an older SHA.
+- Latest Render build used Node 22.23.5, `npm install`, then `node nova-server.txt`; the runtime log says account authentication is REQUIRED.
+- Render `healthCheckPath` remains blank. Render health-check documentation describes setting an HTTP GET path that returns 2xx/3xx.
+- Main CI passed its deployed-PR smoke and negative-auth checks. It skipped the merged-Production wait, live AI/provider smoke and live free-image smoke. No real authenticated inference/search/image call is evidenced.
+- The feature inventory is in `FEATURE_REGISTRY.json`; a human-readable status map is in `docs/FEATURE_REGISTER.md`.
+
+## Phase 1 findings
+
+**Completed at source/test level:** route and environment inventory; server-side secret boundaries; authentication middleware wiring; provider URL/redirect/body safeguards; sequential search-provider routing and tests; multi-vendor AI adapter/failover code and mocked circuit tests; central intent-routing classifier and contract tests; first provider-rights review; feature inventory; browser viewport and drawer regressions.
+
+**Still open:** four-company production-cleared task-specific provider chains; quality-parity evidence and 100+ prompt bake-offs; predictive quota tracking; durable per-user usage and hard monetary spend caps; response-language/format validator; seamless mid-stream provider switch; full UI/error-state/accessibility review; valid/expired hosted Auth, email delivery, redirect allow-list and two-account isolation; safe full account deletion/retention; real provider-backed Staging chat/search; Android physical camera/gallery/microphone; backup/restore, monitoring, SLO, load/soak and incident/rollback drill; legal/vendor/IP/privacy review.
+
+**Owner/vendor blocked:** Render Staging Health Check Path entry; eligible adult operator/provider terms and privately configured keys; physical-device interaction.
+
+## Decisions
+
+- Preserve the existing Production URL and current `main` deployment. No merge or Production change.
+- Keep all paid provider spend, Pollinations spend and image-provider switches disabled unless an eligible adult operator has confirmed terms, budget and hard cost controls.
+- Do not create multiple accounts or rotate multiple credentials at one provider to bypass limits.
+- Do not call the four-company/equal-quality failover complete: current adapters include primary OpenAI-compatible, Groq and OpenRouter, with optional Cloudflare restricted to a subset of tasks and default-off.
+- Keep unsupported modules hidden or clearly marked as preview/blocked; do not advertise plans, checkout, Build, Agent, document export or voice/image provider behavior as complete unless real end-to-end evidence exists.
+
+**Phase 1 remains IN PROGRESS. Master Prompt Definition of Done NOT MET. Production NO-GO.**
+
+---
+
+# NOVA AI — Phase 1 Product and Technical Audit
+
+**Audit started:** 12 November 2026 (Asia/Kolkata)  
+**Repository:** `s85960833-byte/NovaAI`  
+**Branch:** `fix/nova-home-learn-first-mobile-20261109`  
+**Scope:** Source-level product, route, security, UX, documentation and Render configuration review. This is an in-progress audit, not a certification or a claim that all pages/features are defect-free.
+
+## Verified Master-Prompt checkpoint — 13 November 2026
+
+- PR #98 current head at this checkpoint: `624c58ab05ed809182be3b075404dace7761cdc7`; Open / Draft / unmerged.
+- Exact-head Main CI [#43373351355](https://github.com/s85960833-byte/NovaAI/actions/runs/43373351355) and Browser CI [#43373351271](https://github.com/s85960833-byte/NovaAI/actions/runs/43373351271) both passed.
+- The new external Staging auth smoke passed missing Bearer, malformed Basic and invalid Bearer cases with HTTP 401 before provider routing.
+- Current Render deploy `dep-dbra3et9fdbs73dosl7g` is Live on branch commit `2459da827e825e5c07a20e22d69fb84367ad6a5f`. Render runtime logs now explicitly say `NOVA API account authentication is REQUIRED`; prior “Auth disabled” checkpoint statements are stale.
+- Staging HTTP checks: `/health` returns 200/ready; homepage and entry JS assets pass; `/api/config` returns 503 because no AI chat provider key/model is configured. No paid provider calls.
+- Render Health Check Path remains blank. The current connector can read the service/deploy/logs but cannot write that setting.
+- Supabase catalog check shows no end-user NOVA usage/quota ledger; `nova_bi_rate_limits` is a separate BI tenant boundary. Do not reuse it.
+- The current prompt fact-check is appended to `API_AUDIT_2026-11-13.md`; its 14 Nov correction confirms OpenRouter's current 18+ Terms (the earlier 13+ / parent-permission note was wrong), Groq/Razorpay 18+ restrictions, Tavily's adult-operator condition, Exa not integrated, and provider-specific cache/transfer restrictions.
+
+### Phase 1 progress
+- **Done:** source route/secret inventory, provider inventory, search sequential-routing fix and tests, basic feature descriptions, Staging health/static smoke, Staging negative-token smoke, first official terms review.
+- **In progress:** provider-by-provider rights and replacement plan; full UI/control/accessibility review; live valid/expired Auth and email/redirect/two-account tests; complete security/operational review.
+- **Blocked:** real AI test without configured provider; Render health-check setting without service-setting write tool; physical Android/microphone; adult/vendor-only commercial accounts and agreements.
+- **Decision:** NO-GO for Production. No paid spend, secrets or production data mutation.
+
+---
+
+
+# NOVA AI — Phase 1 Product and Technical Audit
+
+**Audit started:** 12 November 2026 (Asia/Kolkata)  
+**Repository:** `s85960833-byte/NovaAI`  
+**Branch:** `fix/nova-home-learn-first-mobile-20261109`  
+**Scope:** Source-level product, route, security, UX, documentation and Render configuration review. This is an in-progress audit, not a certification or a claim that all pages/features are defect-free.
+
+## New audit checkpoint — 13 November 2026
+
+### Updated deployment and verification evidence
+- Render Staging is Live on code-bearing app SHA `2e4eb204ff99790b55aef426fa0c38fc9a313d30` (deploy `dep-dbr6dul6e07s73ama50g`).
+- GitHub-hosted Staging smoke verified `GET /health` HTTP 200 with `ok=true`, `ready=true`, `status=ok`; homepage HTML and `/nova-entry.js`, `/nova-config.js` assets succeeded.
+- Staging `GET /api/config` returned HTTP 503 because no AI provider is configured. No AI chat, image, search-provider or paid-provider call was made by that smoke.
+- Runtime logs report `NOVA_API_AUTH_REQUIRED` is disabled. Render Staging Health Check Path remains blank.
+- Latest PR head when this checkpoint was authored: `a875ab19ae9df5c7a0598aa9845bc280343caf45`. Browser CI #43371767444 passed; Main CI #43371767554 remains in progress. Its sequential search-provider test completed successfully.
+- PR #98 is Open/Draft/unmerged; Production branch and deployment remain unchanged.
+
+### New confirmed Phase 1 findings
+- The API route and provider terms review is captured in `API_AUDIT_2026-11-13.md`. It documents each source-integrated API, credentials, route, authentication gate, rate limit, fallback, cache policy and unresolved vendor rights.
+- A source-derived feature guide with bilingual in-app help is captured in `FEATURES.md`.
+- Search router code previously used parallel `Promise.any` calls across configured Tavily and Brave providers. It has been replaced with sequential first-usable routing and a unit-tested helper. This prevents the router from starting multiple paid search provider requests concurrently for one question.
+- DuckDuckGo HTML result-page scraping has been removed from the general web search fallback; Wikimedia API is used as the reference fallback instead.
+- Tavily cross-user/shared output caching is now explicitly gated by `TAVILY_SHARED_CACHE_ALLOWED=1`, default `0`; do not set it to 1 without written vendor permission.
+- Provider terms review found Open-Meteo free tier non-commercial, CoinGecko keyless/free plan without commercial rights, TheSportsDB free API restricted to development and app-store publishing, and 18+ / non-transferable contractual terms for Tavily and Groq. These are not eligible for public production use under current operator circumstances without responsible-adult/vendor/legal review.
+- Brave results are not persisted in shared cache by the updated router. GDELT/Google News RSS/publisher RSS, wttr.in, Coinbase/Frankfurter, ESPN, Hacker News, EONET, Pollinations legacy endpoint and several other public endpoints still lack fully verified commercial/reuse/transfer terms.
+- Exa is listed in the master prompt but is not integrated in the current source.
+- No durable consumer quota table/function, monthly usage accounting, plan entitlements or global provider spend cap exists. The separate `nova_bi_rate_limits` object must not be repurposed for consumer API quotas.
+
+### Phase 1 status
+- **Done:** Source route inventory; environment variable/key inventory; first-party Auth middleware/code review; existing rate-limit and request-size controls; current Staging external health/static smoke; sequential search router fix; API rights and feature documentation.
+- **In progress:** Exact-head Main CI; remaining dynamic UI/error/loading/accessibility review; provider-by-provider rights verification and replacement decisions; route-level live Auth/provider tests.
+- **Blocked by owner/vendor:** Staging health-check setting; approved AI provider account/key privately configured on Staging; hosted Auth email/redirect configuration; physical Android and microphone tests; provider contracts and any 18+ vendor relationship.
+- **Release decision:** NO-GO. No Production change, paid service or paid API call.
+
+---
+
+## Exact-head audit update — 13 November 2026
+
+- PR #98 latest head: `d0fc94f4b5bf562dde75008b721faaaf9ff05984`; Open/Draft/unmerged; mergeable=true.
+- Main CI [#43372176067](https://github.com/s85960833-byte/NovaAI/actions/runs/43372176067): success, **49 successful, 3 skipped, 0 failed**. The new sequential search-router test passed. The three skipped steps are merged-Production wait, Production/provider smoke and live free-image smoke.
+- Browser CI [#43372175932](https://github.com/s85960833-byte/NovaAI/actions/runs/43372175932): **17/17 successful**.
+- Staging smoke on earlier code-bearing revision passed `/health`, homepage and `nova-entry.js`/`nova-config.js`; `/api/config` returned 503 because AI chat provider configuration is absent. Current search-router candidate is not yet confirmed deployed to Staging.
+- Search router changed from parallel `Promise.any` to sequential first-usable provider routing, stops on first success, removes DuckDuckGo HTML scraping fallback and makes Tavily shared-output caching require explicit permission (`TAVILY_SHARED_CACHE_ALLOWED=1`, default 0).
+- Provider rights, limits, caching, age and transfer constraints are in `API_AUDIT_2026-11-13.md`; bilingual user and engineering explanations are in `FEATURES.md`.
+- Phase 1 remains **IN PROGRESS** because live provider/Auth checks, physical Android/microphone checks, complete UI accessibility review and legal/provider ownership clearance remain incomplete. Production remains NO-GO.
+
+---
+
+## Evidence reviewed
+
+- Repository tree: 107 tracked files before cleanup; 2 obsolete HTML artifacts were removed from this branch because one was empty and the other was an unreferenced, explicitly labelled untested starter server from the previous architecture.
+- Production and Staging Render service configuration, deployment history, events, metrics and available logs.
+- `index.html`, `nova-app.js`, `nova-account.js`, `nova-business-cloud.js`, `nova-server.txt`, `nova-http.js`, `nova-provider-url.js`, `nova-rate-limit.js`, Supabase Edge Function and migrations.
+- Main and Browser CI, Playwright viewport tests, runtime smoke tests, security tests, tenant-RLS integration tests and dependency audit.
+- README, API integration audit, dependency inventory, India privacy review, Privacy Notice draft, Terms draft and incident runbook.
+
+## Confirmed positive controls
+
+- Main app preserves the existing `nova` local-storage key and filters provider secrets from persisted client state.
+- Optional account cloud sync is OFF by default and requires explicit opt-in. It has per-user RLS integration tests. A recent patch fixes newest-chat selection, message overlap merging, explicit empty-field deletion timestamps and document deletion semantics.
+- The NOVA BI Edge Function uses authenticated Supabase user context, per-user server-enforced rate limiting, bounded JSON request bodies and exact-origin CORS checks.
+- Express applies security headers including nosniff, frame denial, Referrer Policy, Permissions Policy and HSTS; CSP blocks inline executable scripts and frames.
+- Provider HTTP helper enforces HTTPS, blocks credentials and unsafe redirect targets, restricts redirects to the original host and bounds response bodies. Provider configuration is operator-controlled, not user-supplied.
+- The public provider self-test route returns 404 unless `LIVE_SELFTEST_ENABLED=1`.
+- Static markup scan found 49 buttons and no unnamed static button. This test does not prove every dynamic control or screen-reader workflow is accessible.
+- Previous candidate `3720d278c151194f9213c55a352d528ec5f05f1c` passed Main CI #43201234510 and Browser CI #43201234633. The current SEO patch must pass fresh CI before it is accepted as verified.
+- Two obsolete files were removed: an empty HTML artifact and an unreferenced, untested starter server accidentally stored with an HTML-like filename.
+
+## Frontend and route inventory
+
+- Main page: one SPA-style page in `index.html`, with modular browser scripts. It contains 49 static buttons, 0 static HTML forms and account/settings/chat controls created partly at runtime.
+- Main workspace areas: NOVA Learn, NOVA Build and NOVA Agents. Playwright checks 360, 390, 412, 760 and 1280 CSS-pixel viewports and drawer/settings interactions.
+- Express API routes include public config, chat, transcription, search, image job submission/status, live retrieval, provider self-test (disabled by default), news feed and health.
+- Static routes explicitly serve the PWA manifest/icons, service worker, app modules, mode registry/workspace, Company Cloud modules and feature bundles. The server does not mount a generic public directory.
+- External runtime origins found in the page: Google Fonts and jsDelivr (Supabase JS UMD client). The current HTML does not set Subresource Integrity hashes on the external runtime script.
+- Before this audit patch, the page had a title but no description, canonical, Open Graph or Twitter summary metadata, and no explicit robots/sitemap route. This branch adds the metadata plus a root-only sitemap and robots policy that disallows crawling `/api/`; runtime smoke assertions were added. Search indexing and social previews still require a post-deploy check.
+
+## Release-blocking findings
+
+1. **Public provider endpoints are not account-authenticated.** Express chat, transcription, search, image and live routes can be called without a NOVA account. Existing limits are process-local per-IP limits; they are not durable per-user quotas, monthly spend caps or abuse-resistant billing controls. Do not enable billable public keys or customer onboarding until authentication/abuse controls and hard quotas are implemented and tested.
+2. **No self-service account deletion.** The current Account control deletes only the cloud workspace row; it does not delete the Supabase Auth account or every associated record/log/provider copy.
+3. **No published retention schedule or complete data-rights workflow.** Privacy notice and Terms remain drafts. Operator legal identity, support contact, subprocessors, retention, deletion and grievance procedures are not finalized.
+4. **Commercial API rights are not cleared.** The API audit identifies non-commercial, undocumented, community or resale-restricted providers. Credentials, terms, account ownership and transfer rights have not been independently verified.
+5. **Staging is stale.** Render staging is configured for this PR branch with Auto Deploy, but the last recorded live SHA is `195739a04895de364a5af22aa61f930d5d782cbb`, not the current PR head. Staging Health Check Path is blank.
+6. **Production evidence is limited.** Production still serves `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. The review environment could not fetch the live URL directly. Render logs show successful startup on the last recorded deploy, but available request logs/HTTP metrics were empty; this is not uptime or user-traffic evidence.
+7. **Physical-device checks remain outstanding.** Chromium emulation cannot verify real Android full-width rendering, touch behavior, microphone permission/capture or device-specific performance.
+8. **No commercial readiness.** No checkout, server-side subscription entitlements, invoices/refunds, customer support operations, custom domain, monitoring/error-tracking service, tested restore drill or SLA is evidenced.
+9. **Portability and handover are incomplete.** A Node 22 Dockerfile, Compose file, .dockerignore, local/OCI deployment notes and transfer checklist now exist. Static configuration/secret-exclusion tests and a Docker image build plus container /health smoke test have passed on candidate `eb258ba4e81a873537aaa8a53576955a726bcff3`. No second-host deployment or database backup/restore drill has been run; portability remains partial.
+10. **SEO and accessibility coverage is partial.** This patch adds basic search/social metadata and crawler files. A full keyboard/screen-reader audit, dynamic control labels, SEO indexing and real social-preview validation remain outstanding.
+
+## Current staging and production state
+
+- Production URL: https://novaai-4auo.onrender.com
+- Production Render dashboard: https://dashboard.render.com/web/srv-dbidhpc9v7es73d6ia80
+- Staging URL: https://novaai-pr98-staging.onrender.com
+- Staging Render dashboard: https://dashboard.render.com/web/srv-dbqm035g1s2s73eogao0
+- PR: https://github.com/s85960833-byte/NovaAI/pull/98
+- Production service is on Render Free, Singapore, one instance, with no configured health-check path or SLA.
+- Staging is on Render Free, Singapore, one instance; Auto Deploy is enabled and its Health Check Path is blank.
+
+## Phase 1 work remaining
+
+- Verify current-head Main and Browser CI after the SEO changes.
+- Configure staging health check and deploy the current PR head to staging; run staging smoke tests.
+- Inspect all dynamic feature dialogs, buttons, forms, errors, loading/empty states and keyboard/screen-reader behavior.
+- Inspect every API route for authentication, input bounds, error leakage, rate limits, quota/spend protection and CORS.
+- Complete account lifecycle, Auth redirects/email, two-user tenant isolation, cloud-sync concurrency, backup/restore and deletion tests.
+- Complete physical Android and microphone checks.
+- Verify real uptime/latency evidence and production smoke only after the approved release gates.
+- Repeat the audit after fixes; do not declare zero known issues until every blocker has evidence.
+
+## Decision
+
+**Phase 1 is IN PROGRESS. Production release remains NO-GO.** This report deliberately separates automated/source-level evidence from live and physical-device verification.
+
+
+## Exact-head verification update — 12 November 2026
+
+- The SEO implementation on candidate `0a48f4c2bc1a9b34a240433dfd4adac0dcb9b261` passed Main workflow #43201970588 and Browser workflow #43201971052. Main: 44/44 steps successful. Browser: 16/16 steps successful.
+- The local runtime smoke suite now checks homepage description/canonical/Open Graph metadata, `/robots.txt` and `/sitemap.xml`. Search indexing and social previews are not verified until the code is deployed and checked from the public URL.
+- Reviewed `innerHTML` use in the main app, workspace modes, account, Company Cloud, NOVA BI and Agents. User/model-derived strings in reviewed paths are escaped or inserted as text. Remaining full dynamic-DOM and browser security verification is open.
+- Market scan shows existing app builders and AI workspaces already cover major requested baseline features such as prompt-to-app, code handoff, deployment, databases, agents and research. No broad uniqueness claim is supportable from this scan; the differentiator must be narrowed to a measurable workflow and user evidence.
+- Production remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`; Staging remains on `195739a04895de364a5af22aa61f930d5d782cbb`. Staging Health Check Path is blank. Live HTTP inspection and usable request/latency metrics were unavailable in this review.
+- Phase 1 remains IN PROGRESS and Production release remains NO-GO. Staging deployment, Android/microphone, live provider/auth, account deletion/retention, API commercial rights, asset provenance, final legal review and backup/restore are not verified.
+
+
+## Container verification update — 12 November 2026
+
+- Candidate `eb258ba4e81a873537aaa8a53576955a726bcff3` built the production Docker image successfully and passed the container `/health` smoke test using an ephemeral host port.
+- The CI smoke test currently exercises the default container port 3000. The image health check is being made `PORT`-aware and the test is extended to run on container port 3001 before portability is counted as verified.
+- This is a local CI container test, not deployment to a second hosting provider.
+
+
+## Supabase live read-only review — 12 November 2026
+
+Project qrfwsewppafhxibdboam, PostgreSQL 17.11, eu-west-1, ACTIVE_HEALTHY. No database writes or secret retrieval were performed.
+
+- 17 migration versions are present. 11 public base tables all have RLS enabled; no public views; 24 public policies; no anon table grants. The only policy including anon is the explicit deny-all policy on nova_bi_rate_limits. The nova_bi_audit_events SELECT policy requires an active owner/admin membership.
+- Eight SECURITY DEFINER functions have empty search_path and are executable only by service_role, not anon/authenticated.
+- nova-bi-api is ACTIVE v14 with verify_jwt=true. Its five primary deployed files exactly match the candidate repository files at review time.
+- Security and Health Advisors returned no lints; Performance Advisor returned 13 informational unused-index findings. All inspected application tables report zero rows.
+- This does not replace two-real-account authorization tests, live signup/reset/email, backup/restore, deletion/retention or penetration testing. FORCE RLS is not enabled, so privileged table owners/service roles must remain server-side.
+
+
+## Current exact-head checkpoint — 12 November 2026, 16:45 IST
+
+- PR #98 branch head: `671f6dcec0842106ba1b0a5a946bd69c01001abb`; PR remains Draft, Open and unmerged.
+- Exact-head Main workflow #43207317636: **success**. Exact-head Browser workflow #43207318043: **success**. Both runs reference the same SHA above. This verifies only the checks in those workflows, not production readiness.
+- Added a market/differentiation review based on official Lovable, v0 and Bolt product documentation. Existing platforms already offer many baseline app-builder, backend, Git and deployment capabilities. NOVA makes no broad exclusivity or category-first claim; differentiation remains a hypothesis until user testing and repeatable comparisons.
+- Added a non-root Node 22 Docker image, Compose setup, secret-excluding build context and static CI checks. Container config checks do not prove a successful external-host deployment or operational portability.
+- Render Staging remains on `195739a04895de364a5af22aa61f930d5d782cbb`; Health Check Path is still blank. The latest PR head has not been deployed to Staging. Auto Deploy is enabled, but current deployment evidence is stale.
+- Production main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; Production Render remains on `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No Production merge or deploy was performed.
+- Live blockers: current-head Staging deployment and smoke; owner Health Check configuration; physical Android/microphone checks; public AI route authentication and durable quotas; provider commercial rights; account deletion/retention; backup/restore and load evidence; full asset/IP/legal review.
+- Overall Definition-of-Done progress: **23% estimated**. Buyer-readiness: **37/100 estimated**. These are internal qualitative estimates, not a formal appraisal.
+
+
+## Visual review of the exact-head browser artifact — 12 November 2026
+
+- Reviewed the PNG screenshots from Main CI run [#43260317789](https://github.com/s85960833-byte/NovaAI/actions/runs/43260317789), artifact `nova-integrated-browser-verification`, generated from code-bearing SHA `be4287fde83d7adcca5a41b13674d29f31383af6`.
+- Screenshots reviewed: 360×800, 390×844, 412×915, 760×1024 and 1280×800.
+- At the three phone-width emulated viewports, the workspace fills the screenshot width and stacks the Learn/Build cards vertically; no half-width page clipping or obvious horizontal cut-off was visible in the captured first screen.
+- At 1280×800, the desktop layout uses a left navigation rail and three side-by-side workspace cards. At 760×1024, the layout returns to a stacked/tablet presentation.
+- This is a visual spot-check of CI-generated local Chromium screenshots, not a live Render screenshot, physical Android certification, touch/keyboard test or microphone test. The mobile live-release gate remains open until the latest candidate is deployed and the owner's actual phone is checked.
+
+
+## Repository secret-hygiene spot-check — 12 November 2026
+
+- Scanned all 78 files changed in PR #98, covering 3,639 added patch lines, for common exposed credential formats (OpenAI-style keys, Supabase secret keys, AWS access-key IDs, private-key headers, GitHub tokens, Slack tokens and long Bearer credentials). No matches were found in added lines.
+- Reviewed `.env.example`: secret fields are blank; it contains only non-secret defaults and the public Supabase project URL. No secret values were read from Render or Supabase.
+- Reviewed `.dockerignore`: it excludes `.env`, `.env.*`, private-key/certificate files and credential JSON, while explicitly allowing `.env.example`. Dockerfile/Compose copy and env-file behavior are covered by CI configuration tests.
+- This is a scan of the current PR's added diff and selected build/config files only. It does not establish that all Git history, all unchanged files, every external service, or account secret stores are clean. GitHub secret-scanning configuration and historical remediation still require owner verification.
+
+
+## AI provider failover implementation checkpoint — 14 November 2026
+
+- PR #98 was re-queried before this work; it remained Open / Draft / unmerged. Production remained untouched.
+- Added `nova-llm-router.js` with provider-chain construction, host-based vendor de-duplication, independent per-attempt timeout signals, caller cancellation, sequential fallback and process-local circuit state.
+- Integrated the module into `POST /api/chat/completions`. Network exceptions/timeouts no longer escape the provider loop; a failing provider is skipped and the next configured vendor is attempted. HTTP 429 uses Retry-After when present; invalid provider credentials open a temporary circuit.
+- Added `scripts/llm-router.test.cjs` and `npm run test:llm-router` for host de-duplication, vision model filtering, independent timeout signals, timeout fallback, 429 fallback, retry behavior, caller cancellation and circuit recovery.
+- **Not yet verified:** exact-head CI, staging deployment of this code, authenticated live chat, or stream continuation after an upstream stream has already begun.
+- **Provider count decision:** only three configured company routes are present. Gemini's current API additional terms prohibit API clients directed to or likely accessed by under-18 users; Nova's intended student audience makes Gemini an unsuitable route. Mistral's published Free API mode is described as evaluation/prototyping with the lowest limits, not a production service guarantee. No fourth free provider is being added without verified commercial-production terms and age eligibility.
+- **Known limits:** circuit state is in-memory per Render process; quota prediction from remaining-quota headers, durable user quotas, hard daily spend cap, response quality validation and stream-mid-answer continuation remain unimplemented.
+- **Phase 1 status:** provider-routing defect repaired in source; implementation is still **pending automated CI and staging proof**. Production remains NO-GO.
+
+
+## Exact provider-router verification and feature audit — 14 November 2026
+
+This addendum supersedes the earlier “CI pending” notes above for the provider-router change only. It does not declare Phase 1 complete.
+
+### Code-bearing revision and automated evidence
+
+- Code-bearing PR head tested: `035f8beec51f9f3cdb9fd0b09c6c6dde91ee49c3`.
+- Main verification workflow [#43557378141](https://github.com/s85960833-byte/NovaAI/actions/runs/43557378141): **success**. The workflow passed syntax, feature-registry, answer-mode, provider-default, the new provider failover contract, link escaping, cloud-sync merge/conflict, rate-window, search-router, Supabase auth wiring, timezone, environment/secret, HTTPS provider URL, bounded-response, data rights, PDF.js, PostgreSQL/RLS, NOVA BI, dependency audit, container and local route checks. The Staging PR smoke and negative-token checks also passed; production-live steps were skipped because this is an unmerged PR.
+- Browser workflow [#43557378058](https://github.com/s85960833-byte/NovaAI/actions/runs/43557378058): **success**. Account UI, privacy/opt-in cloud sync, Company Cloud, NOVA BI proof bundle, mobile layout/drawer at five emulated viewports and graceful shutdown passed.
+- Local Node.js 22.16.0 run of `node --test` for `scripts/llm-router.test.cjs`: **9/9 passed**.
+- The first test attempt exposed a cancellation-reason assertion/behavior defect; the router was fixed to propagate the original caller abort reason and the subsequent CI suite passed. A safe error-body reader was also added so oversized/unreadable provider error payloads do not stop trying the next provider.
+- These are unit/CI/browser-emulation checks. They do not demonstrate identical model quality, working live provider accounts, live search quality, physical Android behavior, real microphone/camera capture, or 100% uptime.
+
+### Feature audit — status labels are evidence-based
+
+| Requested capability | Audit status | Evidence and remaining limit |
+|---|---|---|
+| Main app shell and responsive workspace | **WORKS — automated emulation only** | Browser CI passed five viewports and drawer regression. No physical Android/touch certification. |
+| Account UI and optional cloud-sync UI | **WORKS — local browser tests** | Account/privacy/opt-in sync and merge/conflict tests passed. Hosted valid/expired token, real email delivery/redirect and two-real-account isolation remain unverified. |
+| AI chat and chat modes | **BROKEN in current Staging runtime / source tests pass** | Staging previously returned `/api/config` HTTP 503 because no AI provider/model is configured. Quick/Standard/Detailed and provider failover contract tests pass. No real authenticated provider-backed chat has been run. |
+| Live Search | **NOT VERIFIED end-to-end** | Sequential provider-router contract tests pass. No current exact-head provider-backed search result, citation correctness or live India-aware ranking was verified. |
+| News feeds | **BLOCKED** | Article/feed redistribution rights are not cleared as a blanket licence; sources are fail-closed/restricted. |
+| Weather / air quality | **BLOCKED** | Free endpoint rights are not established for a commercial product. |
+| Finance / crypto / FX | **BLOCKED / FAIL-CLOSED** | Listed equities/commodities require a documented licensed provider; other market-data/FX reuse terms are not cleared. |
+| Sports schedules / scores | **BLOCKED** | Existing unofficial/free sources do not establish commercial publishing rights. |
+| Research / public statistics | **PREVIEW / CONDITIONAL** | Metadata routes exist; licences vary by dataset and individual paper/content. |
+| Image Studio | **BLOCKED for production** | Process-local jobs are not durable; image provider/model output rights are not cleared. |
+| Photo question / Vision | **NOT VERIFIED** | No current-head camera/gallery + real vision-provider test. Browser/in-app viewer permissions and actual phone capture remain open. |
+| Voice input / speech-to-text | **BLOCKED / NOT VERIFIED** | No Staging speech provider configured; Android microphone capture and Hindi quality not verified. Browser TTS depends on supported device voices. |
+| PDF/file assistant and export | **PARTIAL / EXPORT MISSING** | PDF.js reading and input-validation protections exist; complete Hindi-safe PDF, DOCX, XLSX and Slides answer-export workflow is not evidenced. |
+| Prompt Studio | **MISSING** | Chat can help draft prompts, but a separately tested Prompt Studio/improver workflow is not implemented. |
+| Code workspace / isolated execution | **MISSING** | Chat-based code assistance is not a secure sandbox. |
+| Nova Build app/site generator | **MISSING** | No end-to-end sandbox preview, chat editing, source export and publishing workflow. |
+| Nova Agent durable runtime | **MISSING** | No durable queue, resumable multi-step task or scheduled agent runtime. |
+| User-controlled persistent Memory | **PARTIAL** | Local settings/memory and optional cloud backup exist; complete view/edit/delete, account-wide deletion and all-retention guarantees are not evidenced. |
+| PWA offline shell | **WORKS — automated shell checks only** | Local route/PWA checks passed. Offline AI is not available; physical Android install/update/storage not checked. |
+| NOVA BI / Company Cloud | **PREVIEW — synthetic test data only** | PostgreSQL/RLS, Deno function, deterministic synthetic calculations and browser proof tests passed. Not approved for confidential/customer/employee data; no signed proof/production operations. |
+| Free / Pro / Ultra, checkout and payments | **MISSING** | No durable entitlements/credits, gateway test checkout, webhook reconciliation, refund or tax-invoice flow. |
+| Durable cost guard and provider quotas | **MISSING** | Current request limits/circuits are process-local; no hard global rupee cap or durable per-user token ledger. |
+| Startup Readiness Kit | **MISSING as a complete package** | India legal/finance/customer/pitch templates and a fully source-backed finance workbook have not been completed. |
+
+### Current Staging/Production evidence
+
+- Render Staging service: `srv-dbqm035g1s2s73eogao0`, URL https://novaai-pr98-staging.onrender.com, branch `fix/nova-home-learn-first-mobile-20261109`, Auto Deploy = `yes`, Health Check Path = blank.
+- Latest confirmed Live Staging deploy remains `dep-dbrhab6i0phs73fs2ni0` at stale SHA `286ddbc6c4a96e5f62c50ada1aa9c2a890633527`. The Render event list has no newer `deploy_started` event after the 13 November deploy. The current PR commit is therefore **not confirmed live**.
+- No manual duplicate deploy was issued while Auto Deploy is enabled. The GitHub-to-Render webhook/auto-deploy handoff needs investigation. Do not call Staging current until a Live deploy's SHA equals the current branch head.
+- Health Check Path is still blank; owner step remains Render Dashboard → Staging → Settings → Health Checks → `/health` → Save.
+- Production `https://novaai-4auo.onrender.com` remains unchanged. No Production merge/deploy, paid provider usage, payment setup or secret modification occurred.
+
+### Phase 1 decision
+
+**Phase 1 remains IN PROGRESS; Production remains NO-GO.** Provider routing contract tests are now green, but current-head Staging deployment, real provider and live-search validation, full account lifecycle/deletion, durable usage/cost guard, remaining provider terms, physical Android/microphone/camera, backup/restore, accessibility and legal review are still open.
+
+
+## Central request orchestrator checkpoint — 14 November 2026
+
+- Added `nova-orchestrator.js` with the requested 10-route vocabulary and an explicit capability status/execution boundary for every route.
+- Integrated the classifier into `POST /api/chat/completions`; responses expose `X-Nova-Route` and `X-Nova-Capability-Status`, and route-specific honesty instructions are appended to the system message.
+- Existing live retrieval continues through `/api/live`; the orchestrator only recognizes supplied `== LIVE DATA ==` context and does not itself crawl/search external pages.
+- Added `scripts/orchestrator.test.cjs`, `npm run test:orchestrator`, and a Main CI step. Tests cover all route families, missing-vs-present live context, document context, image input, voice metadata, unsupported Build/Agent/Deep Research workflows, PDF output requests in English/Hindi, code fences and website-explanation false positives.
+- **Not a claim of feature completion:** Build App/site, durable Agent, Deep Research, sandboxed code execution and complete export are explicitly not implemented. Prompt writing/code are chat assistance only. Document/PDF, image and voice remain partial. Voice-source metadata is not yet attached by every frontend speech path.
+- New orchestrator integration and updated tests require exact-head CI success and current-SHA Staging confirmation before this checkpoint can be considered verified.
+
+
+## Phase 1 update — 14 November 2026 (Asia/Kolkata)
+
+### New code and regression coverage on PR #98
+
+- The request classifier now recognizes common Hindi/Hinglish requests for website creation, code/debugging, prompt improvement, research, PDF/document help, image creation and current information. It remains an intent classifier, not a separate runtime for every route.
+- A conditional fourth company adapter, Cloudflare Workers AI, is present in the failover router. It is gated by `NOVA_ALLOW_CLOUDFLARE=1`, a valid account ID, API token and explicit model. It is restricted to ordinary chat, prompt-writing and voice-originated text. The flag stays `0`; no Cloudflare credentials or live requests have been used.
+- Image Studio now reports enabled only when a provider has its explicit operator opt-in and required credentials. The default environment keeps paid image generation, Pollinations spend and AI Horde disabled. Without a configured approved provider, the image API returns a friendly HTTP 503 and the UI does not call public Pollinations hosts directly.
+- The photo helper's browser link now points to the existing Nova Production URL rather than the embedded Claude preview artifact. Unsupported in-app voice browsers receive bilingual instructions to continue with text and open Nova in Chrome/Edge.
+- Regression tests were added for bilingual routing, optional Cloudflare routing, explicit image-provider gates, default-off image settings, the photo fallback URL and unsupported voice messaging. These are source/CI assertions, not physical Android or real-provider tests.
+
+### Remaining Phase 1 and release blockers
+
+- Render Staging still uses the existing service and branch, but its Health Check Path is blank and its latest known Live deploy is older than the current PR head. A new Live deploy must be confirmed by matching its deployed SHA to the PR head.
+- The last known Staging `/api/config` returned HTTP 503 because no AI chat provider/model was configured. Real provider-backed chat, authenticated live search, voice transcription and image generation remain unverified.
+- The router contains four possible adapters, but only when configured; it does not yet establish four independent, commercial-rights-cleared providers with task-specific same-tier quality. Cloudflare remains unconfigured/default-off.
+- Predictive quota switching, durable token ledger, hard rupee spend cap, quality validation, golden set, interrupted-stream continuation and durable circuit state remain missing.
+- Camera/gallery and microphone behavior must still be checked on a physical Android device. Chromium automation is not a substitute for actual mobile permissions.
+- Full account deletion, valid/expired user-session testing, child-data/privacy/legal review, backup/restore and operational load/rollback drills remain open.
+
+**Status: Phase 1 IN PROGRESS. Production remains NO-GO.** The above updates do not establish live feature completion or production readiness.
+
+## Model-quality tier gate — 14 November 2026
+
+- Added `provider-quality-evidence.json` with a `golden-100-v1` suite requirement, minimum 100 cases and minimum score 90/100. The models list is empty by design; no model has yet been evaluated and approved.
+- Added `nova-provider-quality.js` to filter exact provider/model IDs using committed evidence.
+- `POST /api/chat/completions` now returns `quality_tier_unverified` (HTTP 503) for Code or Deep Research when no qualifying T1/T2 model remains.
+- Added `nova-quality-route.js` and wired it before the chat UI. BYOK and embedded-preview routes are blocked for code/research too, preventing a client-side bypass.
+- Added `scripts/provider-quality.test.cjs`, `npm run test:provider-quality` and a Main CI step. Tests cover the empty evidence state, threshold validation, exact provider/model pairing, unaffected ordinary chat, no mutation of the chain and server/client enforcement.
+- **Not yet complete:** no 100-case evaluation runner or real model score/report exists; no model should be entered into the evidence file yet; scheduled model evaluation/reranking and admin score display are missing.
+
+This gate reduces the risk of silently sending high-skill requests to an unverified model. It does not establish any provider's real quality score. Phase 1 remains IN PROGRESS.
