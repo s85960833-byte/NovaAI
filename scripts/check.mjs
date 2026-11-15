@@ -159,7 +159,13 @@ if (!server.includes("const { gateProvidersForRoute } = require('./nova-provider
 if (!pkg.scripts?.['test:provider-quality']) throw new Error('Provider quality evidence tests must be available as an npm script');
 if (!server.includes("'/nova-quality-route.js'")) throw new Error('Quality-route helper must be present in the offline cache core');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'") || !server.includes("app.get('/nova-account.js'")) throw new Error('Existing optional feature asset routes missing');
-if (!server.includes("const CACHE='nova-shell-v20-quality-route'") || !server.includes("'/nova-account.js'") || !server.includes("'/nova-quality-route.js'")) throw new Error('NOVA account and quality-route clients must be part of the current versioned offline shell');
+if (!server.includes("const CACHE='nova-shell-v21-feature-registry'") ||
+    !server.includes("'/nova-account.js'") ||
+    !server.includes("'/nova-quality-route.js'") ||
+    !server.includes("'/nova-feature-registry-ui.js'") ||
+    !server.includes("'/FEATURE_REGISTRY.json'")) {
+  throw new Error('NOVA account, quality-route and Feature Registry assets must be part of the current versioned offline shell');
+}
 // Frontend entry points are external files and are syntax-checked above.
 
 const entryClient = readFileSync('nova-entry.js', 'utf8');
