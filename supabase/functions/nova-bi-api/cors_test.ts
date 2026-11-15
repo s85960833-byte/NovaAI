@@ -102,3 +102,14 @@ Deno.test("NOVA BI preserves existing Vary Origin tokens case-insensitively", as
     }
   }
 });
+
+Deno.test("NOVA BI preserves wildcard Vary without appending field names", async () => {
+  const site = "https://nova.example.com";
+  const wrapped = withSiteOrigin(async () => new Response("ok", { headers: { "Vary": "*" } }), site);
+  const response = await wrapped(new Request(site + "/functions/v1/nova-bi-api/me", {
+    headers: { Origin: site },
+  }));
+  if (response.headers.get("Vary") !== "*") {
+    throw new Error("Vary: * must remain the standalone wildcard value");
+  }
+});
