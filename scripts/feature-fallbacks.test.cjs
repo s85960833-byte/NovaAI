@@ -11,9 +11,9 @@ const app = fs.readFileSync(path.join(root, 'nova-app.js'), 'utf8');
 const env = fs.readFileSync(path.join(root, '.env.example'), 'utf8');
 
 test('image generation is unavailable unless at least one provider is explicitly configured', () => {
-  assert.match(server, /const paidImageConfigured = E\.ALLOW_PAID_IMAGE === 'true' && !!\(E\.IMAGE_KEY && E\.IMAGE_MODEL\);/);
-  assert.match(server, /const pollinationsImageConfigured = E\.NOVA_ALLOW_POLLINATIONS_SPEND === '1' && !!E\.POLLI_KEY;/);
-  assert.match(server, /const hordeImageConfigured = E\.NOVA_ALLOW_AI_HORDE === '1' && !!E\.HORDE_API_KEY;/);
+  assert.match(server, /const paidImageConfigured = FEATURE_FLAGS\.paidImage && !!\(E\.IMAGE_KEY && E\.IMAGE_MODEL\);/);
+  assert.match(server, /const pollinationsImageConfigured = FEATURE_FLAGS\.pollinationsSpend && !!E\.POLLI_KEY;/);
+  assert.match(server, /const hordeImageConfigured = FEATURE_FLAGS\.aiHorde && !!E\.HORDE_API_KEY;/);
   assert.match(server, /const imageProviderConfigured = E\.IMAGE_OFF !== '1' &&/);
   assert.match(server, /image: imageProviderConfigured/);
   assert.match(server, /if \(!imageProviderConfigured\) return r\.status\(503\)/);
