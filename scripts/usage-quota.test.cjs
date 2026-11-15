@@ -26,7 +26,7 @@ function okJson(value) { return new Response(JSON.stringify(value), { status: 20
 
 test('monthly period and conservative input-token estimate are stable', () => {
   assert.equal(currentPeriod(new Date('2026-11-15T00:00:00Z')), '2026-11');
-  assert.equal(estimateInputTokens([{ role: 'user', content: '12345678' }]), 8);
+  assert.equal(estimateInputTokens([{ role: 'user', content: '12345678' }]), 10);
 });
 
 test('usage reservation below the configured monthly limit passes', async () => {
