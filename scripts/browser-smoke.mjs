@@ -233,7 +233,13 @@ try{
   modeChatRequests.push(payload);
   const answer='NOVA_CHAT_FLOW_OK_'+modeChatRequests.length;
   if(payload.stream===true){
-   const body='data: '+JSON.stringify({choices:[{delta:{content:answer}}]})+'\\n\\ndata: [DONE]\\n\\n';
+   const body=[
+    'data: '+JSON.stringify({choices:[{delta:{content:answer}}]}),
+    '',
+    'data: [DONE]',
+    '',
+    ''
+   ].join(String.fromCharCode(10));
    await route.fulfill({status:200,contentType:'text/event-stream; charset=utf-8',body});
   }else{
    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({choices:[{message:{role:'assistant',content:answer}}]})});
