@@ -1,5 +1,5 @@
 const BASE=process.env.NOVAAI_URL||'http://127.0.0.1:8787';
-async function req(path,options={}){return fetch(BASE+path,{...options,signal:AbortSignal.timeout(12000)})}
+async function req(path,options={}){const headers=new Headers(options.headers||{});if(!headers.has('x-forwarded-for'))headers.set('x-forwarded-for','198.51.100.250');return fetch(BASE+path,{...options,headers,signal:AbortSignal.timeout(12000)})}
 async function expect(name,path,options,check){const r=await req(path,options);const body=await r.text();if(!check(r,body))throw new Error(name+' failed: HTTP '+r.status+' '+body.slice(0,180));console.log('PASS '+name);return body}
 let ready=false;for(let i=0;i<30;i++){try{const r=await req('/api/config');if(r.ok){ready=true;break}}catch{}await new Promise(x=>setTimeout(x,500))}
 if(!ready)throw new Error('local Express server did not become ready');
