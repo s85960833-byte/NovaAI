@@ -49,6 +49,8 @@ jobs:
         run: npm run test:config-route
       - name: Test default-off account deletion planning with mocks
         run: npm run test:account-deletion
+      - name: Test fail-closed monthly usage quota reservations
+        run: npm run test:usage-quota
       - name: Verify image and voice fallback honesty
         run: npm run test:feature-fallbacks
 

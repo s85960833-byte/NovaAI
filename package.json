@@ -31,7 +31,8 @@
     "test:ai-safety": "node --test scripts/ai-provider-safety.test.cjs",
     "test:rls-inventory": "node --test scripts/rls-inventory.test.cjs",
     "test:rls-isolation": "node scripts/run-rls-isolation.mjs",
-    "test:account-deletion": "node --test scripts/account-deletion.test.cjs"
+    "test:account-deletion": "node --test scripts/account-deletion.test.cjs",
+    "test:usage-quota": "node --test scripts/usage-quota.test.cjs"
   },
   "engines": {
     "node": "22.x"
