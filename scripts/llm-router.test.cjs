@@ -2,6 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const serverSource = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'nova-server.txt'), 'utf8');
 const {
   buildChatProviders,
   calculateRetryDelayMs,
