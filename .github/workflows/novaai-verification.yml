@@ -265,6 +265,22 @@ jobs:
             exit 1
           fi
           echo "Staging rejects missing, malformed and invalid sessions with HTTP 401 before provider routing."
+      - name: Run fail-closed release check and verify expected NO-GO
+        if: github.ref != 'refs/heads/main'
+        timeout-minutes: 12
+        run: |
+          set +e
+          npm run release:check > /tmp/nova-release-check.log 2>&1
+          status=$?
+          set -e
+          cat /tmp/nova-release-check.log
+          if [ "$status" -ne 1 ]; then
+            echo "Expected exit code 1 while human release gates remain unverified; received $status"
+            exit 1
+          fi
+          grep -F "Automated failures: 0;" /tmp/nova-release-check.log
+          grep -F "RELEASE: NO-GO" /tmp/nova-release-check.log
+          grep -F "Owner release approval | UNVERIFIED" /tmp/nova-release-check.log
       - name: Wait for the merged bilingual revision to become live on Render
         if: github.ref == 'refs/heads/main'
         env:
