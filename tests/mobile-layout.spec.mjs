@@ -127,3 +127,73 @@ test('English is the first-run default and the global UI switch supports only En
   await expect(page.locator('#uiLang')).toHaveValue('en');
   await expect(page.locator('#hi .nr-card h2')).toHaveText(['NOVA Learn', 'NOVA Build', 'NOVA Agents']);
 });
+
+
+test('Pixel 7 viewport keeps full-screen navigation and opens all three workspaces', async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 915 });
+  await skipIntroForLayoutTest(page);
+  await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+
+  const width = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    document: document.documentElement.scrollWidth,
+    body: document.body.scrollWidth
+  }));
+  expect(width.document).toBeLessThanOrEqual(412);
+  expect(width.body).toBeLessThanOrEqual(412);
+  expect(width.viewport).toBe(412);
+
+  const workspaces = [
+    { id: 'learn', mode: 'math' },
+    { id: 'build', mode: 'builder' },
+    { id: 'agents', mode: 'general' }
+  ];
+  for (const workspace of workspaces) {
+    await page.locator('#hi .nr-card[data-group="' + workspace.id + '"]').click();
+    await expect(page.locator('#novaModes.open')).toBeVisible();
+    await expect(page.locator('#nmContent [data-mode="' + workspace.mode + '"]')).toBeVisible();
+    expect(await page.locator('#nmContent .nmgroup').count()).toBe(1);
+    await page.locator('#nmClose').click();
+    await expect(page.locator('#novaModes.open')).toBeHidden();
+  }
+
+  await page.locator('#nrSidebarLinks button').nth(0).click();
+  await expect(page.locator('#novaModes.open')).toBeVisible();
+  await expect(page.locator('#nmContent [data-mode="math"]')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#novaModes.open')).toBeHidden();
+});
+
+test('legacy nova chat storage fixture remains readable at Pixel 7 size', async ({ page }) => {
+  const legacyState = {
+    chats: [{
+      id: 'legacy-chat-001',
+      title: 'Legacy saved conversation',
+      m: [
+        { r: 'user', c: 'Legacy user message' },
+        { r: 'assistant', c: 'Legacy assistant reply' }
+      ]
+    }],
+    cur: 'legacy-chat-001',
+    rl: 'English',
+    mem: 'legacy memory fixture',
+    uiLang: 'en'
+  };
+
+  await page.setViewportSize({ width: 412, height: 915 });
+  await page.addInitScript(state => {
+    localStorage.setItem('nova_intro_completed_v2', '1');
+    localStorage.setItem('nova', JSON.stringify(state));
+  }, legacyState);
+  await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+
+  await expect(page.locator('#list .it span').filter({ hasText: 'Legacy saved conversation' })).toBeVisible();
+  await expect(page.locator('#msgs')).toContainText('Legacy user message');
+  await expect(page.locator('#msgs')).toContainText('Legacy assistant reply');
+  const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem('nova') || '{}'));
+  expect(persisted.chats[0].id).toBe('legacy-chat-001');
+  expect(persisted.chats[0].m[0]).toEqual({ r: 'user', c: 'Legacy user message' });
+  expect(persisted.cur).toBe('legacy-chat-001');
+  expect(persisted.mem).toBe('legacy memory fixture');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(412);
+});
