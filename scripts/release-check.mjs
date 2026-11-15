@@ -127,7 +127,7 @@ async function run() {
   command('node scripts/shutdown-smoke.mjs', process.execPath, ['scripts/shutdown-smoke.mjs']);
 
   // This audit may require internet access. It never contacts a production app/provider.
-  command('npm audit --omit=dev --audit-level=high', 'npm', ['audit', '--omit=dev', '--audit-level=high']);
+  command('npm audit --audit-level=high', 'npm', ['audit', '--audit-level=high']);
 
   record('throwaway PostgreSQL migration/RLS integration', 'SKIP',
     'run in disposable CI PostgreSQL or a dedicated throwaway database; never point it at a hosted production database');

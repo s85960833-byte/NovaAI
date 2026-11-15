@@ -41,3 +41,16 @@ test('release check skips destructive throwaway RLS tests unless run separately 
   assert.match(script, /throwaway PostgreSQL migration\/RLS integration/);
   assert.match(script, /never point it at a hosted production database/);
 });
+
+
+test('release audit covers development and production dependencies', () => {
+  assert.match(script, /npm audit --audit-level=high/);
+  assert.doesNotMatch(script, /npm audit --omit=dev/);
+  assert.match(workflow, /Audit all dependency vulnerabilities[\s\S]*?npm audit --audit-level=high/);
+});
+
+test('Gitleaks scans full Git history using pinned Node 24-compatible action', () => {
+  assert.match(workflow, /actions\/checkout@d23441a48e516b6c34aea4fa41551a30e30af803[\s\S]*?fetch-depth: 0/);
+  assert.match(workflow, /gitleaks\/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e/);
+  assert.match(workflow, /GITLEAKS_ENABLE_COMMENTS: "false"/);
+});
