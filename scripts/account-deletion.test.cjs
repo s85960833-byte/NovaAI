@@ -21,7 +21,11 @@ function fakeSupabaseFetch(options = {}) {
     if (url.pathname.endsWith('/nova_bi_memberships') && url.searchParams.has('organization_id')) {
       return new Response(JSON.stringify(options.members || []), { status: 200 });
     }
-    const count = options.counts && options.counts[url.pathname.split('/').pop()] || 0;
+    const table = url.pathname.split('/').pop();
+    if (options.unknownCountTable === table) {
+      return new Response('[]', { status: 200, headers: { 'content-range': '*/*' } });
+    }
+    const count = options.counts && options.counts[table] || 0;
     return new Response('[]', { status: 200, headers: { 'content-range': '*/' + String(count) } });
   };
   return { fetchImpl, calls };
@@ -56,6 +60,18 @@ test('dry-run requires explicit confirmation and returns counts without mutating
   assert.ok(calls.every(call => call.method === 'GET'));
   assert.ok(calls.every(call => call.url.pathname.startsWith('/rest/v1/')));
   assert.equal(JSON.stringify(res.body).includes('fake-service-role-only'), false);
+});
+
+test('unknown row count fails the deletion dry-run closed instead of reporting zero', async () => {
+  const { fetchImpl, calls } = fakeSupabaseFetch({ unknownCountTable: 'nova_user_workspaces' });
+  const handler = createAccountDeletionHandler({ enabled: true, supabaseUrl: 'https://test-project.supabase.co', serviceRoleKey: 'fake-service-role-only', fetchImpl });
+  const res = recorder();
+  await handler(request(), res);
+  assert.equal(res.statusCode, 503);
+  assert.deepEqual(res.body, { error: 'account_deletion_planning_unavailable' });
+  assert.equal(Object.hasOwn(res.body, 'dry_run'), false);
+  assert.ok(calls.length > 0);
+  assert.ok(calls.every(call => call.method === 'GET'));
 });
 
 test('shared company owner with other members receives 409 before row counts', async () => {
