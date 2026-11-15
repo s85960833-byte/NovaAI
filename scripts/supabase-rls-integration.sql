@@ -392,3 +392,68 @@ reset role;
 rollback;
 
 select 'PASS: migrations, tenant RLS, invitation, approval, branding, audited deletion and server-only rate limiting' as result;
+
+
+-- Usage ledger tables are private to the server-side reservation workflow.
+do $usage_privileges$
+begin
+  if not has_table_privilege('anon','public.nova_user_entitlements','select')
+     and not has_table_privilege('authenticated','public.nova_user_entitlements','select') then
+    null;
+  else
+    raise exception 'Client roles must not read subscription entitlements';
+  end if;
+  if has_table_privilege('authenticated','public.nova_usage_monthly','select')
+     or has_table_privilege('authenticated','public.nova_usage_monthly','insert')
+     or has_table_privilege('authenticated','public.nova_usage_monthly','update')
+     or has_table_privilege('authenticated','public.usage_ledger','select') then
+    raise exception 'Client roles must not access usage quota or ledger tables';
+  end if;
+  if not has_table_privilege('service_role','public.nova_user_entitlements','select') then
+    raise exception 'Service role must read entitlements for the quota gate';
+  end if;
+  if has_table_privilege('service_role','public.usage_ledger','select')
+     or has_table_privilege('service_role','public.nova_usage_monthly','select') then
+    raise exception 'Service role must use the narrow RPC rather than direct usage-table access';
+  end if;
+  if has_function_privilege('authenticated','public.nova_reserve_usage(uuid,text,text,integer,text,text,integer,integer,uuid)','execute')
+     or has_function_privilege('anon','public.nova_reserve_usage(uuid,text,text,integer,text,text,integer,integer,uuid)','execute') then
+    raise exception 'Client roles must not reserve usage credits directly';
+  end if;
+  if not has_function_privilege('service_role','public.nova_reserve_usage(uuid,text,text,integer,text,text,integer,integer,uuid)','execute') then
+    raise exception 'Service role must execute the monthly reservation RPC';
+  end if;
+  if not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='nova_user_entitlements' and c.relrowsecurity)
+     or not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='nova_usage_monthly' and c.relrowsecurity)
+     or not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='usage_ledger' and c.relrowsecurity) then
+    raise exception 'All usage tables must keep Row Level Security enabled';
+  end if;
+end $usage_privileges$;
+
+-- Exercise actual reservation SQL: one credit succeeds, same reservation retries
+-- idempotently, and a second distinct reservation is denied at the monthly cap.
+begin;
+set local role service_role;
+do $usage_reservation$
+declare
+  v_user uuid := '11111111-1111-4111-8111-111111111111';
+  v_first boolean;
+  v_retry boolean;
+  v_second boolean;
+  v_used integer;
+  v_rows integer;
+begin
+  v_first := public.nova_reserve_usage(v_user,'2026-11','free',1,'quick','ci-mock',32,0,'aaaaaaaa-0000-4000-8000-000000000001');
+  v_retry := public.nova_reserve_usage(v_user,'2026-11','free',1,'quick','ci-mock',32,0,'aaaaaaaa-0000-4000-8000-000000000001');
+  v_second := public.nova_reserve_usage(v_user,'2026-11','free',1,'standard','ci-mock',48,0,'aaaaaaaa-0000-4000-8000-000000000002');
+  select used_credits into v_used from public.nova_usage_monthly where user_id=v_user and period='2026-11';
+  select count(*) into v_rows from public.usage_ledger where user_id=v_user and period='2026-11';
+  if v_first is not true or v_retry is not true or v_second is not false then
+    raise exception 'Monthly usage reservation did not enforce its configured cap';
+  end if;
+  if v_used <> 1 or v_rows <> 1 then
+    raise exception 'Idempotent reservation retry consumed more than one credit';
+  end if;
+end $usage_reservation$;
+reset role;
+rollback;

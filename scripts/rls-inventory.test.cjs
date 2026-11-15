@@ -41,7 +41,10 @@ test('known per-user and tenant tables remain in the RLS inventory', () => {
     'nova_bi_workflow_executions',
     'nova_bi_branding',
     'nova_bi_audit_events',
-    'nova_bi_rate_limits'
+    'nova_bi_rate_limits',
+    'nova_user_entitlements',
+    'nova_usage_monthly',
+    'usage_ledger'
   ]) {
     assert.ok(tables.has(table), 'missing migration-managed table: ' + table);
     assert.ok(protectedTables.has(table), 'missing RLS on: ' + table);
