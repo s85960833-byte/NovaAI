@@ -28,7 +28,15 @@ async function startServer(extra = {}) {
   const env = { ...process.env, NODE_ENV: 'test', PORT: String(port),
     NOVA_API_AUTH_REQUIRED: '0', SELFTEST_ON_START: '0', LIVE_SELFTEST_ENABLED: '0',
     NODE_OPTIONS: [process.env.NODE_OPTIONS || '', '--require=' + preload].filter(Boolean).join(' '),
-    NOVA_MOCK_FETCH_LOG: marker, ...extra };
+    NOVA_MOCK_FETCH_LOG: marker };
+  for (const name of [
+    'AI_DISABLED', 'NOVA_USAGE_QUOTA_REQUIRED',
+    'LLM_KEY', 'LLM_MODEL', 'LLM_BASE', 'LLM_FALLBACK_MODELS',
+    'GROQ_API_KEY', 'GROQ_MODEL', 'GROQ_BASE',
+    'OPENROUTER_API_KEY', 'OPENROUTER_MODEL', 'OPENROUTER_BASE',
+    'CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_MODEL', 'NOVA_ALLOW_CLOUDFLARE'
+  ]) delete env[name];
+  Object.assign(env, extra);
   const child = spawn(process.execPath, ['nova-server.txt'], { cwd: root, env, stdio: ['ignore', 'ignore', 'ignore'] });
   const url = 'http://127.0.0.1:' + port;
   for (let n = 0; n < 60; n += 1) {
@@ -93,7 +101,10 @@ test('all provider failures return a safe JSON error without upstream body or st
     assert.equal(body.error, 'AI service is temporarily unavailable. Please retry shortly.');
     assert.equal(text.includes('PRIVATE_PROVIDER_BODY_SENTINEL'), false);
     assert.equal(text.toLowerCase().includes('stack'), false);
-    assert.equal(fs.readFileSync(app.marker, 'utf8').trim().split('\\n').length, 2);
+    assert.deepEqual(fs.readFileSync(app.marker, 'utf8').trim().split('\n'), [
+      'mock.provider.invalid',
+      'mock.groq.invalid'
+    ]);
   } finally {
     await stopServer(app.child);
   }
@@ -124,7 +135,7 @@ test('Quick, Standard and Detailed modes change the actual upstream prompt and o
       assert.equal(response.status, 200);
       await response.text();
     }
-    const requests = fs.readFileSync(capture, 'utf8').trim().split('\\n').map(line => JSON.parse(line));
+    const requests = fs.readFileSync(capture, 'utf8').trim().split('\n').map(line => JSON.parse(line));
     assert.equal(requests.length, 3);
     const expected = [
       { mode: 'QUICK', tokens: 220 },

@@ -8,18 +8,18 @@ global.fetch = async function mockedProviderFetch(input, init = {}) {
   let url;
   try { url = new URL(String(rawUrl || '')); } catch { return originalFetch(input, init); }
   if (url.hostname.startsWith('mock.') && url.hostname.endsWith('.invalid')) {
-    if (process.env.NOVA_MOCK_FETCH_LOG) fs.appendFileSync(process.env.NOVA_MOCK_FETCH_LOG, 'called\\n');
+    if (process.env.NOVA_MOCK_FETCH_LOG) fs.appendFileSync(process.env.NOVA_MOCK_FETCH_LOG, url.hostname + '\n');
     if (process.env.NOVA_MOCK_FETCH_CAPTURE) {
       let payload = null;
       try { payload = typeof init.body === 'string' ? JSON.parse(init.body) : null; } catch {}
       fs.appendFileSync(process.env.NOVA_MOCK_FETCH_CAPTURE, JSON.stringify({
         host: url.hostname,
         payload
-      }) + '\\n');
+      }) + '\n');
     }
     if (process.env.NOVA_MOCK_FETCH_MODE === 'capture') {
       return new Response(
-        'data: {"choices":[{"delta":{"content":"mock-response"}}]}\\n\\ndata: [DONE]\\n\\n',
+        'data: {"choices":[{"delta":{"content":"mock-response"}}]}\n\ndata: [DONE]\n\n',
         { status: 200, headers: { 'content-type': 'text/event-stream' } }
       );
     }
