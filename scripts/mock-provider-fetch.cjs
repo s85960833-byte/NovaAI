@@ -22,9 +22,9 @@ global.fetch = async function mockedProviderFetch(input, init = {}) {
   }
   if (url.hostname.startsWith('mock.') && url.hostname.endsWith('.invalid')) {
     if (process.env.NOVA_MOCK_FETCH_LOG) fs.appendFileSync(process.env.NOVA_MOCK_FETCH_LOG, url.hostname + '\n');
+    let payload = null;
+    try { payload = typeof init.body === 'string' ? JSON.parse(init.body) : null; } catch {}
     if (process.env.NOVA_MOCK_FETCH_CAPTURE) {
-      let payload = null;
-      try { payload = typeof init.body === 'string' ? JSON.parse(init.body) : null; } catch {}
       fs.appendFileSync(process.env.NOVA_MOCK_FETCH_CAPTURE, JSON.stringify({
         host: url.hostname,
         payload
