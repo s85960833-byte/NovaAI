@@ -350,3 +350,31 @@ test('server honors the configured retry budget for payload-trim retries and pre
   assert.match(serverSource, /Math\.max\(0, Math\.min\(5000, retryBaseValue\)\)/);
   assert.match(serverSource, /Math\.max\(retryBaseDelayMs, Math\.min\(10000, retryMaxValue\)\)/);
 });
+
+
+test('HTTP 500 on one provider fails over to the next provider', async () => {
+  const attempted = [];
+  const providers = [
+    { id: 'primary', base: 'https://primary.example/v1', key: 'fake-a', models: ['model-a'] },
+    { id: 'fallback', base: 'https://fallback.example/v1', key: 'fake-b', models: ['model-b'] }
+  ];
+  const result = await runWithFailover({
+    providers,
+    circuit: createCircuitRegistry(),
+    request: async provider => {
+      attempted.push(provider.id);
+      return provider.id === 'primary' ? response(500) : response(200);
+    }
+  });
+  assert.deepEqual(attempted, ['primary', 'fallback']);
+  assert.equal(result.provider, 'fallback');
+  assert.equal(result.failures.length, 1);
+});
+
+test('server AI_DISABLED gate and output-token ceilings are enforced before provider fetch', () => {
+  assert.match(serverSource, /E\.AI_DISABLED === '1'\) return r\.status\(503\)\.json\(\{ error: 'ai_disabled' \}\)/);
+  assert.ok(serverSource.indexOf("if (E.AI_DISABLED === '1') return r.status(503)") < serverSource.indexOf("request: (provider, model, signal) => fetch("));
+  assert.match(serverSource, /Math\.min\(requestedOutput, outputLimit, answerModeTokens\[answerMode\]\)/);
+  assert.match(serverSource, /body\.max_completion_tokens = Math\.max\(1, Math\.min\(Number\(body\.max_completion_tokens\) \|\| outputLimit, outputLimit\)\)/);
+  assert.match(serverSource, /delete body\.answer_mode/);
+});
