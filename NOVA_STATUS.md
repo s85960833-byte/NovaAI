@@ -580,3 +580,18 @@ This section supersedes earlier checkpoint statements below wherever they descri
 ### Release gate
 - Production `main` and `https://novaai-4auo.onrender.com` remain untouched.
 - PR #98 remains Draft / unmerged. No paid service, provider secret, payment setup, destructive Supabase migration, or production deployment was performed.
+
+
+## Exact-head verification — 15 November 2026 (latest)
+
+- PR #98 exact head: `de7e07e4d124fef04610da404a8d41f7530e81b2`; PR remains Open / Draft / unmerged.
+- Main CI [#43669103395](https://github.com/s85960833-byte/NovaAI/actions/runs/43669103395): **success**. All required verification steps passed, including provider failover/circuit tests, central orchestrator boundaries, security checks, Postgres/RLS migrations, Edge Function checks, NOVA BI calculations/CSV validation, Docker build, browser workflows and Staging smoke.
+- Browser CI [#43669103393](https://github.com/s85960833-byte/NovaAI/actions/runs/43669103393): **success**. Account UI/cloud sync, Company Cloud, Agents chat mock, voice mock, Build image-job mock, Learn photo-question launcher, Android-sized touch navigation and five-viewport mobile/drawer tests passed. Mobile layout suite: 7 passed.
+- Main CI Staging smoke: `GET /health` returned a ready payload; homepage and entry assets loaded; missing, malformed and invalid Bearer sessions returned HTTP 401 before provider routing. `GET /api/config` returned HTTP 503 because no AI chat provider is configured. The workflow intentionally skipped live provider calls; steps for live website/provider and free-image smoke were skipped, not passed.
+- Render Staging service `srv-dbqm035g1s2s73eogao0` still has Auto Deploy enabled for the PR branch, but latest confirmed Live deploy remains `dep-dbs0g58n74is738h58s0` at SHA `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`, not the exact PR head. No newer deploy event exists in the latest returned event list. Health Check Path remains blank. Do not claim latest PR source is Live.
+- Render connector remains read-only for service configuration; owner must set Health Check Path to `/health` in the existing Staging dashboard. Do not manually trigger a deployment while Auto Deploy is enabled; verify its automatic handoff instead.
+- Supabase Security and Health Advisors returned zero findings. Performance Advisor reported 13 unused indexes; none were removed because usage is not established.
+- Still unverified/blocked: real provider-backed AI (provider config absent), valid real Supabase session/email/two-account isolation, full account deletion and retention, durable consumer quotas and hard provider spend caps, physical Android camera/microphone tests, and final privacy/IP/provider/legal review.
+- Production `main` and `https://novaai-4auo.onrender.com` remain untouched. No merge, production deployment, paid API/service spend, provider secret edit, payment setup or Supabase schema mutation occurred.
+
+**CI is green on this exact PR head. Release Definition of Done is NOT MET. Keep PR #98 Draft/unmerged and Production NO-GO.**
