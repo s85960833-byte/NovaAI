@@ -537,3 +537,14 @@ This section supersedes earlier checkpoint statements below wherever they descri
 - Remaining blockers: set Staging Health Check Path to `/health`; resolve GitHub-to-Render auto-deploy handoff; verify latest PR SHA Live; adult/operator-approved provider configuration and authenticated live provider tests; durable user quota/spend ledger and hard cost caps; valid/expired sessions and two-account isolation; safe full account deletion; physical Android camera/microphone; legal/provider/IP/privacy review; backup/restore, load/monitoring/rollback.
  
 **Phase 1 remains IN PROGRESS. Definition of Done NOT MET. Production NO-GO.**
+
+
+## CI failure repair — 15 November 2026
+
+- PR #98 head before repair: `210252e7e7fff846a4b529659eee668dc2b85695`; Open / Draft / unmerged.
+- Exact-head Main CI run `43574193526` failed in step 13, `Test independent AI provider failover and circuit behavior`. Browser CI run `43574193391` passed.
+- Failure diagnosis from the job log: test 19, “server honors the configured retry budget for payload-trim retries and preserves zero delay”, threw `ReferenceError: serverSource is not defined`. The production server implementation was not shown to have failed; the test fixture omitted loading `nova-server.txt`.
+- Repair committed on the same PR branch as `d9eb47efd76697b3fea3747dad222689b1d91bfb`: `scripts/llm-router.test.cjs` now reads the server source using Node built-in `fs` and `path` before the source-contract assertion.
+- **Verification pending:** the GitHub run lookup returned no workflow runs for the repair commit at the time of this note. Do not mark the repaired test or full Main CI as passed until a run on the exact repair SHA completes.
+- Render Staging last confirmed Live deploy remains `dep-dbs0g58n74is738h58s0` on `7e816af473d29f9dd2e1d4cab775cb905f1a82fe`; it does not include this repair commit. Auto Deploy is enabled, but no deployment for `d9eb47e` is recorded yet. Health Check Path remains blank.
+- Production remains unchanged. PR #98 remains Open / Draft / unmerged. No provider keys, paid spend, payment setup, Supabase schema mutation or production deployment was performed.
