@@ -15,10 +15,10 @@ const tables = new Set();
 const protectedTables = new Set();
 
 for (const migration of migrations) {
-  for (const match of migration.sql.matchAll(/create\\s+table(?:\\s+if\\s+not\\s+exists)?\\s+public\\.([a-z0-9_]+)/ig)) {
+  for (const match of migration.sql.matchAll(/create\s+table(?:\s+if\s+not\s+exists)?\s+public\.([a-z0-9_]+)/ig)) {
     tables.add(match[1]);
   }
-  for (const match of migration.sql.matchAll(/alter\\s+table\\s+public\\.([a-z0-9_]+)\\s+enable\\s+row\\s+level\\s+security/ig)) {
+  for (const match of migration.sql.matchAll(/alter\s+table\s+public\.([a-z0-9_]+)\s+enable\s+row\s+level\s+security/ig)) {
     protectedTables.add(match[1]);
   }
 }
