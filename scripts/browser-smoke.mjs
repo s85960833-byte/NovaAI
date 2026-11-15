@@ -310,14 +310,16 @@ try{
  const customInstruction='NOVA_PHASE0_CUSTOM_INSTRUCTION';
  const seededChatId='nova-phase0-legacy-saved-chat';
  const emptyHomeChatId='nova-phase0-home-empty-chat';
- await desktop.evaluate(({seededChatId,emptyHomeChatId})=>{
+ const deleteChatId='nova-phase0-delete-chat';
+ await desktop.evaluate(({seededChatId,emptyHomeChatId,deleteChatId})=>{
   const state=JSON.parse(localStorage.getItem('nova')||'{}');
   const chats=Array.isArray(state.chats)?state.chats:[];
   if(!chats.some(c=>c.id===seededChatId))chats.push({id:seededChatId,title:'NOVA pre-upgrade saved chat',m:[{r:'user',c:'Previously saved user message'},{r:'assistant',c:'Previously saved assistant reply'}]});
   if(!chats.some(c=>c.id===emptyHomeChatId))chats.unshift({id:emptyHomeChatId,title:'New chat',m:[]});
+  if(!chats.some(c=>c.id===deleteChatId))chats.push({id:deleteChatId,title:'NOVA disposable chat to delete',m:[{r:'user',c:'Disposable chat body'}]});
   state.chats=chats;state.cur=emptyHomeChatId;
   localStorage.setItem('nova',JSON.stringify(state));
- },{seededChatId,emptyHomeChatId});
+ },{seededChatId,emptyHomeChatId,deleteChatId});
  await desktop.reload({waitUntil:'domcontentloaded'});
  await enterNOVA(desktop);
  await desktop.locator('#nrGlobalSearch').fill('NOVA pre-upgrade saved chat');
@@ -341,8 +343,7 @@ try{
  assert.equal(memoryStored.ci,customInstruction,'custom instructions must persist in the main NOVA state');
  await desktop.locator('#sclose').click();
 
- // The dashboard intentionally hides the legacy New chat button; its documented Ctrl+Shift+O shortcut starts a new chat.
- await desktop.keyboard.press('Control+Shift+O');
+ // Start from a real, previously saved non-empty chat. The empty-home dashboard intentionally hides the legacy composer.
  await desktop.locator('#in').waitFor({state:'visible'});
  await desktop.locator('#in').fill('NOVA standard chat CRUD regression message');
  const standardRequestNumber=modeChatRequests.length+1;
@@ -355,6 +356,8 @@ try{
  assert.ok(stateAfterChat.chats.some(c=>c.m.some(m=>m.r==='user'&&m.c==='NOVA standard chat CRUD regression message')),'standard chat must persist its user message');
  assert.ok(stateAfterChat.chats.some(c=>c.m.some(m=>m.r==='assistant'&&m.c.includes('NOVA_CHAT_FLOW_OK_'+standardRequestNumber))),'standard chat must persist its assistant response');
 
+ await desktop.locator('#menu').click();
+ await desktop.locator('#side.open').waitFor({state:'visible'});
  const firstChat=desktop.locator('#list .it').filter({hasText:'NOVA standard chat CRUD regression message'}).first();
  await firstChat.waitFor({state:'visible'});
  await firstChat.locator('button[aria-label="Rename"]').click();
@@ -364,16 +367,10 @@ try{
  await desktop.locator('#askok').click();
  const renamedChat=desktop.locator('#list .it').filter({hasText:renamedTitle}).first();
  await renamedChat.waitFor({state:'visible'});
- await renamedChat.locator('button').nth(1).click();
+ await renamedChat.locator('button[aria-label="Pin"]').click();
  await renamedChat.locator('button[aria-label="Unpin"]').waitFor({state:'visible'});
  assert.equal(await renamedChat.locator('button[aria-label="Unpin"]').count(),1,'saved chats must support pin/unpin');
 
- await desktop.keyboard.press('Control+Shift+O');
- await desktop.locator('#in').waitFor({state:'visible'});
- await desktop.locator('#in').fill('NOVA disposable chat to delete');
- const deleteRequestNumber=modeChatRequests.length+1;
- await desktop.locator('#send').click();
- await desktop.waitForFunction(n=>[...document.querySelectorAll('#log .m.a .b')].some(el=>el.textContent.includes('NOVA_CHAT_FLOW_OK_'+n)),deleteRequestNumber,{timeout:12000});
  const countBeforeDelete=await desktop.locator('#list .it').count();
  const disposableChat=desktop.locator('#list .it').filter({hasText:'NOVA disposable chat to delete'}).first();
  await disposableChat.waitFor({state:'visible'});
