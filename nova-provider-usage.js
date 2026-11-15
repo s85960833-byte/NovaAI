@@ -8,12 +8,15 @@ function tokenCount(value) {
 function createProviderUsageObserver(contentType = '') {
   const isEventStream = /text\/event-stream/i.test(String(contentType));
   const decoder = new TextDecoder();
-  let pending = '', collectedBytes = 0, completionTokens = null, disabled = false;
+  let pending = '', collectedBytes = 0, promptTokens = null, completionTokens = null, disabled = false;
   function inspectJson(text) {
     try {
       const usage = JSON.parse(text)?.usage;
-      const count = usage && tokenCount(usage.completion_tokens ?? usage.output_tokens);
-      if (count !== null && count !== undefined) completionTokens = count;
+      if (!usage || typeof usage !== 'object') return;
+      const inputCount = tokenCount(usage.prompt_tokens ?? usage.input_tokens);
+      const outputCount = tokenCount(usage.completion_tokens ?? usage.output_tokens);
+      if (inputCount !== null) promptTokens = inputCount;
+      if (outputCount !== null) completionTokens = outputCount;
     } catch {}
   }
   function inspectLine(line) {
@@ -37,7 +40,7 @@ function createProviderUsageObserver(contentType = '') {
     try { pending += decoder.decode(); } catch {}
     if (isEventStream) inspectLine(pending);
     else if (pending.length <= MAX_USAGE_BYTES) inspectJson(pending);
-    return completionTokens;
+    return Object.freeze({ inputTokens: promptTokens, outputTokens: completionTokens });
   }
   return Object.freeze({ push, finish });
 }

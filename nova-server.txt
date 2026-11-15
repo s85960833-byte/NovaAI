@@ -225,10 +225,16 @@ const RETRY = [413, 429, 500, 502, 503, 504];
 app.post('/api/chat/completions', async (q, r) => {
   let quotaReservation = null;
   let quotaSettled = false;
-  const settleQuota = async (status, outputTokens) => {
+  const settleQuota = async (status, usage) => {
     if (!quotaReservation || quotaSettled) return;
     try {
-      const result = await usageQuota.settle({ userId: q.novaUser?.id, reservationId: quotaReservation.reservationId, outputTokens, status });
+      const result = await usageQuota.settle({
+        userId: q.novaUser?.id,
+        reservationId: quotaReservation.reservationId,
+        inputTokens: usage?.inputTokens ?? null,
+        outputTokens: usage?.outputTokens ?? null,
+        status
+      });
       if (result.ok) quotaSettled = true;
       else console.warn('NOVA usage settlement incomplete:', result.reason);
     } catch { console.warn('NOVA usage settlement incomplete: unexpected ledger error'); }
@@ -400,11 +406,11 @@ app.post('/api/chat/completions', async (q, r) => {
         });
       }
     }
-    const outputTokens = usageObserver.finish();
+    const providerUsage = usageObserver.finish();
     if (r.destroyed) {
       await settleQuota('provider_failed', null);
     } else {
-      await settleQuota('completed', outputTokens);
+      await settleQuota('completed', providerUsage);
       r.end();
     }
   } catch (e) {

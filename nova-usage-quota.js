@@ -97,18 +97,27 @@ function createUsageQuota(options = {}) {
     if (!uuid.test(userId) || !uuid.test(reservationId)) return { ok: false, reason: 'invalid_reservation' };
     const status = input.status === 'provider_failed' ? 'provider_failed' : input.status === 'completed' ? 'completed' : '';
     if (!status) return { ok: false, reason: 'invalid_settlement_status' };
+    const inputTokens = input.inputTokens == null ? null : Number(input.inputTokens);
     const outputTokens = input.outputTokens == null ? null : Number(input.outputTokens);
-    if (outputTokens !== null && (!Number.isSafeInteger(outputTokens) || outputTokens < 0 || outputTokens > 2147483647)) {
-      return { ok: false, reason: 'invalid_output_tokens' };
+    for (const [name, value] of [['input', inputTokens], ['output', outputTokens]]) {
+      if (value !== null && (!Number.isSafeInteger(value) || value < 0 || value > 2147483647)) {
+        return { ok: false, reason: 'invalid_' + name + '_tokens' };
+      }
     }
     try {
       const response = await request('/rest/v1/rpc/nova_settle_usage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p_user_id: userId, p_reservation_id: reservationId, p_output_tokens: outputTokens, p_status: status })
+        body: JSON.stringify({
+          p_user_id: userId,
+          p_reservation_id: reservationId,
+          p_input_tokens: inputTokens,
+          p_output_tokens: outputTokens,
+          p_status: status
+        })
       });
       const settled = await response.json();
-      if (settled === true) return { ok: true, usageKnown: outputTokens !== null };
+      if (settled === true) return { ok: true, inputUsageKnown: inputTokens !== null, outputUsageKnown: outputTokens !== null };
       if (settled === false) return { ok: false, reason: 'usage_reservation_not_found' };
       throw new Error('Usage settlement returned an invalid result');
     } catch { return { ok: false, reason: 'quota_ledger_unavailable' }; }

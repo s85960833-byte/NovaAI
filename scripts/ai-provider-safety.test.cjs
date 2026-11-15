@@ -213,6 +213,7 @@ test('authenticated chat settles durable quota with streamed provider output-tok
     const settle = ledger.find(call => call.path.endsWith('/nova_settle_usage'));
     assert.ok(reserve && settle);
     assert.equal(settle.payload.p_reservation_id, reserve.payload.p_reservation_id);
+    assert.equal(settle.payload.p_input_tokens, 12);
     assert.equal(settle.payload.p_output_tokens, 7);
     assert.equal(settle.payload.p_status, 'completed');
   } finally { await stopServer(app.child); }
@@ -244,6 +245,7 @@ test('provider rejecting optional stream usage retries and records usage as unkn
     const ledger = fs.readFileSync(usageCapture, 'utf8').trim().split('\n').map(line => JSON.parse(line));
     const settle = ledger.find(call => call.path.endsWith('/nova_settle_usage'));
     assert.ok(settle);
+    assert.equal(settle.payload.p_input_tokens, null);
     assert.equal(settle.payload.p_output_tokens, null);
     assert.equal(settle.payload.p_status, 'completed');
   } finally { await stopServer(app.child); }

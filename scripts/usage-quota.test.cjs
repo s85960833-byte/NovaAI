@@ -90,20 +90,21 @@ test('ledger outage and unconfigured owner credits fail closed', async () => {
 test('settlement persists provider-reported output tokens', async () => {
   let recorded;
   const quota = makeQuota(async (_url, init) => { recorded = JSON.parse(init.body); return okJson(true); });
-  const result = await quota.settle({ userId: USER, reservationId: '33333333-3333-4333-8333-333333333333', outputTokens: 37, status: 'completed' });
-  assert.deepEqual(result, { ok: true, usageKnown: true });
-  assert.deepEqual(recorded, { p_user_id: USER, p_reservation_id: '33333333-3333-4333-8333-333333333333', p_output_tokens: 37, p_status: 'completed' });
+  const result = await quota.settle({ userId: USER, reservationId: '33333333-3333-4333-8333-333333333333', inputTokens: 12, outputTokens: 37, status: 'completed' });
+  assert.deepEqual(result, { ok: true, inputUsageKnown: true, outputUsageKnown: true });
+  assert.deepEqual(recorded, { p_user_id: USER, p_reservation_id: '33333333-3333-4333-8333-333333333333', p_input_tokens: 12, p_output_tokens: 37, p_status: 'completed' });
 });
 
 test('settlement records unknown usage without inventing a count', async () => {
   let recorded;
   const quota = makeQuota(async (_url, init) => { recorded = JSON.parse(init.body); return okJson(true); });
   const result = await quota.settle({ userId: USER, reservationId: '44444444-4444-4444-8444-444444444444', outputTokens: null, status: 'provider_failed' });
-  assert.deepEqual(result, { ok: true, usageKnown: false });
+  assert.deepEqual(result, { ok: true, inputUsageKnown: false, outputUsageKnown: false });
+  assert.equal(recorded.p_input_tokens, null);
   assert.equal(recorded.p_output_tokens, null);
 });
 
 test('settlement fails closed when ledger is unavailable', async () => {
   const quota = makeQuota(async () => { throw new Error('mock ledger unavailable'); });
-  assert.deepEqual(await quota.settle({ userId: USER, reservationId: '55555555-5555-4555-8555-555555555555', outputTokens: 10, status: 'completed' }), { ok: false, reason: 'quota_ledger_unavailable' });
+  assert.deepEqual(await quota.settle({ userId: USER, reservationId: '55555555-5555-4555-8555-555555555555', inputTokens: 12, outputTokens: 10, status: 'completed' }), { ok: false, reason: 'quota_ledger_unavailable' });
 });
