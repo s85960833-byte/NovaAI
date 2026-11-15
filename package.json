@@ -26,7 +26,8 @@
     "test:provider-quality": "node --test scripts/provider-quality.test.cjs",
     "test:accuracy-instruction": "node --test scripts/accuracy-instruction.test.cjs",
     "test:health-version": "node --test scripts/health-version.test.cjs",
-    "verify:staging-deploy": "node scripts/verify-staging-deploy.mjs"
+    "verify:staging-deploy": "node scripts/verify-staging-deploy.mjs",
+    "test:config-route": "node --test scripts/config-route.test.cjs"
   },
   "engines": {
     "node": "22.x"

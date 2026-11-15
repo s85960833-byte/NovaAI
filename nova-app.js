@@ -676,7 +676,14 @@ delete a.gen;busy=false;if(ctl&&ctl.signal===sig)ctl=null;save();render()}
 $('gen').onclick=()=>setIM(IM?null:{name:t('imMode')});
 $('imbar').onclick=()=>setIM(null);
 setTimeout(()=>{loadJS('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js').then(()=>{try{render()}catch(e){}}).catch(()=>{})},1200);
-fetch(API+'/config').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.model){SV=j;$('cfg').style.display='none';if(j.live||j.web){$('web').hidden=false;paintLive();loadWN()}first=true;syncFeatures();render();trUI()}}).catch(()=>{});
+fetch(API+'/config').then(async r=>{
+if(!r.ok){
+const info=await r.json().catch(()=>({}));
+if(r.status===503&&info.error==='ai_not_configured')toast(S.uiLang==='hi'?'सर्वर AI अभी कॉन्फ़िगर नहीं है। आप Settings में अपना provider जोड़ सकते हैं।':'Server AI is not configured yet. You can add your own provider in Settings.');
+return null
+}
+return r.json()
+}).then(j=>{if(j&&j.model){SV=j;$('cfg').style.display='none';if(j.live||j.web){$('web').hidden=false;paintLive();loadWN()}first=true;syncFeatures();render();trUI()}}).catch(()=>{});
 $('web').onclick=()=>{const o=['auto','on','off'],n=o[(o.indexOf(S.live||'auto')+1)%3];S.live=n;save();paintLive();toast(LS(n==='on'?'liveOn':n==='off'?'liveOff':'liveAuto'))};
 try{if(window.claude&&claude.use)claude.use('sample').then(s=>{if(s){SMP=s;$('cfg').style.display='none';first=true;syncFeatures();render();trUI()}}).catch(()=>{})}catch(e){}
 
