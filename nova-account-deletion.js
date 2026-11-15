@@ -54,7 +54,7 @@ function createAccountDeletionHandler(options = {}) {
     const separator = range.lastIndexOf('/');
     if (separator < 0) throw new Error('Deletion planning count was not returned');
     const totalText = range.slice(separator + 1);
-    if (totalText === '*') return 0;
+    if (totalText === '*') throw new Error('Deletion planning count is unavailable');
     const total = Number(totalText);
     if (!Number.isSafeInteger(total) || total < 0) throw new Error('Deletion planning count was invalid');
     return total;
