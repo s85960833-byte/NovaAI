@@ -77,6 +77,8 @@ test('every UI workspace, mode and quick action maps to an existing registry fea
     assert.equal(planTiers.has(action.planTier), true);
   }
   assert.ok(uiAdapter.includes('/FEATURE_REGISTRY.json') && uiAdapter.includes('/api/features'));
+  assert.match(uiAdapter, /if \(badge\.textContent !== statusText\) badge\.textContent = statusText/,
+    'MutationObserver must not rewrite an unchanged badge and create a DOM mutation loop');
 });
 
 test('paid plans remain disabled without measured unit economics', () => {

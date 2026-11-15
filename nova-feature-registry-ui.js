@@ -26,7 +26,8 @@
         badge.style.cssText = 'display:inline-block;margin-top:8px;padding:3px 8px;border:1px solid #8495d1;border-radius:99px;font-size:10px;font-weight:800;color:#d8e3ff;background:#101d50';
         card.append(badge);
       }
-      badge.textContent = labels[item.status] + ' · ' + planLabel(item.planTier);
+      const statusText = labels[item.status] + ' · ' + planLabel(item.planTier);
+      if (badge.textContent !== statusText) badge.textContent = statusText;
     });
 
     document.querySelectorAll('#nmContent [data-mode]').forEach(button => {
