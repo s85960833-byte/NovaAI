@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const originalFetch = global.fetch;
 
 global.fetch = async function mockedProviderFetch(input, init = {}) {
-  const rawUrl = typeof input === 'string' ? input : input && input.url;
+  const rawUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input && input.url;
   let url;
   try { url = new URL(String(rawUrl || '')); } catch { return originalFetch(input, init); }
   if (url.hostname === 'mock-project.supabase.invalid') {
