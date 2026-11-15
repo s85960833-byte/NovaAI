@@ -1,16 +1,18 @@
 const BASE=process.env.NOVAAI_URL||'http://127.0.0.1:8787';
-async function req(path,options={}){return fetch(BASE+path,{...options,signal:AbortSignal.timeout(12000)})}
+async function req(path,options={}){const headers=new Headers(options.headers||{});if(!headers.has('x-forwarded-for'))headers.set('x-forwarded-for','198.51.100.250');return fetch(BASE+path,{...options,headers,signal:AbortSignal.timeout(12000)})}
 async function expect(name,path,options,check){const r=await req(path,options);const body=await r.text();if(!check(r,body))throw new Error(name+' failed: HTTP '+r.status+' '+body.slice(0,180));console.log('PASS '+name);return body}
 let ready=false;for(let i=0;i<30;i++){try{const r=await req('/api/config');if(r.ok){ready=true;break}}catch{}await new Promise(x=>setTimeout(x,500))}
 if(!ready)throw new Error('local Express server did not become ready');
 const html=await expect('previous standard chat UI','/',{},(r,b)=>r.ok&&b.includes('<html lang="en">')&&b.includes('id="msgs"')&&b.includes('id="dset"')&&b.includes('id="photo"')&&['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>b.includes(x))&&!b.includes('id="nova-future-style"')&&!b.includes('id="nova-future-script"')&&!b.includes('nova-living-core')&&!b.includes('INDIAN SOUL • FUTURE INTELLIGENCE'));
-await expect('NOVA workspace scripts connected','/',{},(r,b)=>r.ok&&['src="/nova-config.js"','src="/nova-app.js"','src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>b.includes(x))&&!/<script\b(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i.test(b));
+await expect('NOVA workspace scripts connected','/',{},(r,b)=>r.ok&&['src="/nova-config.js"','src="/nova-app.js"','src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"','src="/nova-reference.js"','src="/nova-feature-registry-ui.js"'].every(x=>b.includes(x))&&!/<script\b(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i.test(b));
 await expect('externalized NOVA app script','/nova-app.js',{},(r,b)=>r.ok&&b.includes('const CFG=Object.assign')&&b.includes("localStorage.getItem('nova')")&&b.includes('const persistable=()=>')&&b.includes('JSON.stringify(persistable())')&&b.length>100000);
 await expect('externalized NOVA config script','/nova-config.js',{},(r,b)=>r.ok&&b.includes('window.NOVA_CONFIG'));
 await expect('Business Intelligence scripts included on homepage','/',{},(r,b)=>r.ok&&b.includes('src="/nova-business-core.js"')&&b.includes('src="/nova-business.js"')&&b.includes('src="/nova-business-cloud.js"'));
 await expect('standard UI language dictionaries','/nova-app.js',{},(r,b)=>r.ok&&b.includes('hi:{')&&b.includes('phSolve:'));
 await expect('standard UI Settings and image panels','/',{},(r,b)=>r.ok&&b.includes('id="dset"')&&b.includes('id="photo"')&&b.includes('id="pprev"'));
-await expect('instant health endpoint','/health',{},(r,b)=>r.ok&&JSON.parse(b).status==='ok'&&JSON.parse(b).ready===true);
+await expect('instant health endpoint','/health',{},(r,b)=>{const j=JSON.parse(b);return r.ok&&j.ok===true&&j.ready===true&&j.service==='nova-ai'&&j.status==='ok'});
+await expect('health endpoint disables caching','/health',{},r=>r.ok&&r.headers.get('cache-control')==='no-store');
+await expect('version endpoint exposes Render commit or unknown','/version',{},(r,b)=>{const j=JSON.parse(b);return r.ok&&typeof j.commit==='string'&&j.commit===(process.env.RENDER_GIT_COMMIT||'unknown')});
 await expect('HTTP security headers and full CSP policy','/health',{},r=>{const csp=r.headers.get('content-security-policy')||'';return r.ok&&r.headers.get('x-content-type-options')==='nosniff'&&r.headers.get('x-frame-options')==='DENY'&&r.headers.get('referrer-policy')==='strict-origin-when-cross-origin'&&r.headers.get('permissions-policy')==='camera=(self), microphone=(self), geolocation=()'&&csp.includes("default-src 'self'")&&csp.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net")&&csp.includes("object-src 'none'")&&csp.includes("base-uri 'none'")&&csp.includes("form-action 'self'")&&csp.includes("frame-ancestors 'none'")&&!/script-src[^;]*unsafe-inline/.test(csp)&&r.headers.get('strict-transport-security')==='max-age=31536000; includeSubDomains'&&!r.headers.has('x-powered-by')});
 await expect('optional S-tier feature bundle','/s-tier.js',{},(r,b)=>r.ok&&b.length>1000);
 await expect('reference dashboard asset and home mount','/nova-reference.js',{},(r,b)=>r.ok&&b.includes("const root=$('#hi');")&&b.includes("const host=$('#log');")&&!b.includes('#novaSHome')&&b.includes('data-group=\"build\"')&&b.includes('data-group=\"learn\"')&&b.includes('data-group=\"agents\"'));
@@ -55,4 +57,21 @@ for(let i=0;i<60;i++){
 const blocked=await req('/api/config',{headers:{'x-forwarded-for':rateLimitIp}});
 if(blocked.status!==429) throw new Error('API rate limit did not reject request 61: HTTP '+blocked.status);
 console.log('PASS integrated per-IP API rate limit (60 allowed, 61st blocked)');
+await expect('SEO robots policy','/robots.txt',{},(r,b)=>r.ok&&b.includes('Allow: /')&&b.includes('Disallow: /api/')&&b.includes('/sitemap.xml'));
+await expect('SEO sitemap','/sitemap.xml',{},(r,b)=>r.ok&&b.includes('<urlset')&&b.includes('https://novaai-4auo.onrender.com/'));
+await expect('SEO page metadata','/',{},(r,b)=>r.ok&&b.includes('name="description"')&&b.includes('property="og:title"')&&b.includes('rel="canonical"'));
+
+for (const [name,header] of [
+  ['demo-expenses.csv','Date,Category,Amount (INR)'],
+  ['demo-clients.csv','Client,Revenue (INR),Direct Cost (INR)'],
+  ['demo-team-tasks.csv','Task,Team,Status,Created Date,Completed Date,Due Date']
+]) {
+  await expect('synthetic demo CSV '+name,'/demo-data/'+name,{},(r,b)=>r.ok&&r.headers.get('x-nova-demo-data')==='synthetic'&&r.headers.get('content-type')?.includes('text/csv')&&r.headers.get('content-disposition')?.includes('attachment')&&b.startsWith(header));
+}
+await expect('demo CSV allowlist blocks unknown names','/demo-data/not-a-demo.csv',{},(r,b)=>r.status===404&&JSON.parse(b).error==='Demo file not found');
+await expect('demo CSV allowlist blocks path traversal','/demo-data/%2e%2e%2fnova-server.txt',{},r=>r.status===404);
+
+await expect('machine-readable Feature Registry','/FEATURE_REGISTRY.json',{},(r,b)=>{const j=JSON.parse(b);return r.ok&&Array.isArray(j.features)&&Array.isArray(j.uiModes)&&Array.isArray(j.workspaces)});
+await expect('runtime feature flags endpoint is read-only and secret-free','/api/features',{},(r,b)=>{const j=JSON.parse(b);return r.ok&&typeof j.flags.aiChat==='boolean'&&typeof j.flags.accountDeletion==='boolean'&&!b.includes('SERVICE_ROLE')&&!b.includes('API_KEY')});
+await expect('registry UI adapter is served','/nova-feature-registry-ui.js',{},(r,b)=>r.ok&&b.includes('/FEATURE_REGISTRY.json')&&b.includes('/api/features')&&b.includes('dataset.registryStatus')&&b.includes('dataset.registryPlan'));
 console.log('PASS local runtime smoke tests');

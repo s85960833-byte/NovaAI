@@ -1,14 +1,14 @@
 # NOVA Support and Incident Runbook — Draft
 
-> Internal draft. Assign a responsible adult/operator, verified support contact and escalation owner before accepting customers.
+ > Internal draft. This runbook is not an operational support service. A responsible adult/operator, verified support contact and escalation owner must be established before any customer onboarding.
 
 ## Required owner decisions
 
-- Support inbox and monitored contact channel: **[OWNER TO COMPLETE]**
-- Named incident owner and backup: **[OWNER TO COMPLETE]**
-- Support hours and response targets: **[OWNER TO APPROVE]**
-- Privacy/data deletion request owner: **[OWNER TO APPROVE]**
-- Hosting/Supabase account recovery and billing owner: **[OWNER TO APPROVE]**
+- Support inbox and monitored contact channel: **Not configured. No customer onboarding.**
+- Named incident owner and backup: **Not assigned. A responsible adult operator must be named before onboarding.**
+- Support hours and response targets: **Not approved. Do not promise a response SLA.**
+- Privacy/data deletion request owner: **Not assigned. Do not collect customer personal data until the process is staffed and tested.**
+- Hosting/Supabase account recovery and billing owner: **Not verified. Account ownership and recovery must be checked by the responsible adult operator.**
 
 ## Before each preview
 

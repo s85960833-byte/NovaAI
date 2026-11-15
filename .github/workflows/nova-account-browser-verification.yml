@@ -14,7 +14,7 @@ on:
       - supabase/migrations/**
       - .github/workflows/nova-account-browser-verification.yml
   push:
-    branches: [feature/nova-account-cloud-sync-20261108]
+    branches: [feature/nova-account-cloud-sync-20261108, fix/nova-home-learn-first-mobile-20261109, fix/nova-hardening-codex-20261115]
   workflow_dispatch:
 concurrency:
   group: nova-account-browser-${{ github.ref }}
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 18
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - uses: actions/setup-node@v5
         with:
           node-version: 22
@@ -55,6 +55,10 @@ jobs:
         env:
           NOVAAI_URL: http://127.0.0.1:8787
         run: node scripts/company-cloud-browser.mjs
+      - name: Verify NOVA BI source SHA-256 and portable proof bundle
+        env:
+          NOVAAI_URL: http://localhost:8787
+        run: node scripts/bi-proof-browser.mjs
       - name: Verify mobile layout and drawer regression
         run: npm run test:mobile-layout
       - name: Verify graceful shutdown

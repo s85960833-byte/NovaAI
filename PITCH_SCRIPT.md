@@ -59,3 +59,23 @@ A code review found that local chats with the same ID overwrite remote versions 
 ## Cloud-sync patch status — 8 November 2026
 
 A follow-up patch now merges remote and local chat histories by their shared sequence overlap rather than globally deduplicating identical message text. This preserves legitimate repeated messages (for example, the same short reply sent twice) while appending local messages that follow the remote overlap. This is still a candidate code change, not a verified release: automated regression, browser, two-device concurrency, document-conflict, deletion/tombstone and live hosted-account tests have not yet passed. The implementation retains the local document when both copies differ because the current snapshot schema has no reliable per-document version or timestamp; memory/custom-instruction conflict resolution also remains limited. Do not claim conflict-safe multi-device sync until those tests and versioned conflict handling are complete.
+
+
+## Two-minute demo script — synthetic data only
+
+**0:00–0:20 — Introduce honestly**  
+“NOVA is a Hindi-English workspace with Learn, Build and Agents areas. This Business Intelligence screen is an early preview. Every row today is synthetic demo data, not a real customer, team or company result.”
+
+**0:20–0:50 — Cost Leak Detector**  
+“Import `samples/demo-expenses.csv`, select Cost Leak Detector and enter a monthly budget of ₹1,00,000. The browser calculates ₹2,12,000 total across the two sample months, identifies November as ₹18,000 above the sample budget, and points to source rows. These are review signals, not proof of fraud or waste.”
+
+**0:50–1:15 — Client Profitability**  
+“Import `samples/demo-clients.csv`. It calculates ₹8,00,000 supplied revenue less ₹5,30,000 supplied direct costs, giving ₹2,70,000 contribution. It does not infer overhead, taxes or net profit.”
+
+**1:15–1:40 — Team workflow**  
+“Import `samples/demo-team-tasks.csv`. At the fixed demo reference date of 12 November 2026, the fixture has seven tasks, three completed, four open and two overdue. The four-day average cycle is calculated only from the three completed examples. No individual employee ranking or surveillance is performed.”
+
+**1:40–2:00 — Limits and feedback**  
+“Risk and Digital Twin outputs are rule-based or assumption-based examples, not trained predictions or guaranteed savings. The current preview is not approved for confidential/customer data or paid onboarding. Which single workflow would you want to test against your current process?”
+
+Do not show personal data, customer data, real employee records or private credentials. Do not promise accuracy, financial gains, sale price or uptime.

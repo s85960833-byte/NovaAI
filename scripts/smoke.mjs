@@ -23,6 +23,16 @@ const health = await request('/health', { timeout: 10000 });
 const healthData = await json(health);
 if (!health.ok || healthData.status !== 'ok' || healthData.ready !== true) throw new Error('Instant /health endpoint is not ready');
 console.log('PASS instant /health');
+if (health.headers.get('cache-control') !== 'no-store') throw new Error('Live /health must use Cache-Control: no-store');
+const versionResponse = await request('/version', { timeout: 10000 });
+const versionData = await json(versionResponse);
+if (!versionResponse.ok || typeof versionData.commit !== 'string' || !versionData.commit) {
+  throw new Error('Live /version did not return a deployment commit');
+}
+if (process.env.EXPECTED_DEPLOY_SHA && versionData.commit !== process.env.EXPECTED_DEPLOY_SHA) {
+  throw new Error('Live deployment SHA mismatch: expected ' + process.env.EXPECTED_DEPLOY_SHA + ', received ' + versionData.commit);
+}
+console.log('PASS deployment /version endpoint (' + versionData.commit + ')');
 const requiredSecurityHeaders = [
   ['x-content-type-options', 'nosniff'],
   ['x-frame-options', 'DENY'],

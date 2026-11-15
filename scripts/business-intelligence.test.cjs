@@ -168,9 +168,14 @@ test('CSV malformed-row warnings report physical source line numbers after blank
  assert.deepEqual(parsed.rows.map(row=>row.__novaSourceRowNumber),[2,5]);
 });
 
-test('CSV file size is checked before reading the selected file into memory',()=>{
+test('CSV file size is checked before reading exact file bytes for SHA-256',()=>{
  const ui=readFileSync(path.join(__dirname,'..','nova-business.js'),'utf8');
- assert.ok(ui.indexOf('f.size>core.MAX_CSV_BYTES')<ui.indexOf('await f.text()'));
+ const sizeCheck=ui.indexOf('f.size>core.MAX_CSV_BYTES');
+ const byteRead=ui.indexOf('await f.arrayBuffer()');
+ const digest=ui.indexOf('core.sha256Hex(rawBytes)');
+ assert.ok(sizeCheck>=0,'file-size guard must exist');
+ assert.ok(byteRead>sizeCheck,'file-size guard must run before reading the file into memory');
+ assert.ok(digest>byteRead,'SHA-256 must be computed from the exact uploaded file bytes');
 });
 
 test('date-only task deadlines remain due through the end of their calendar day',()=>{
