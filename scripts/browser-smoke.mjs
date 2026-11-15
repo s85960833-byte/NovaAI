@@ -231,7 +231,13 @@ try{
  await desktop.route('**/api/chat/completions',async route=>{
   const payload=route.request().postDataJSON();
   modeChatRequests.push(payload);
-  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({choices:[{message:{role:'assistant',content:'NOVA_CHAT_FLOW_OK_'+modeChatRequests.length}}]})});
+  const answer='NOVA_CHAT_FLOW_OK_'+modeChatRequests.length;
+  if(payload.stream===true){
+   const body='data: '+JSON.stringify({choices:[{delta:{content:answer}}]})+'\\n\\ndata: [DONE]\\n\\n';
+   await route.fulfill({status:200,contentType:'text/event-stream; charset=utf-8',body});
+  }else{
+   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({choices:[{message:{role:'assistant',content:answer}}]})});
+  }
  });
  const imageRequests=[];
  const testImage='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/Yf8AAAAASUVORK5CYII=';
