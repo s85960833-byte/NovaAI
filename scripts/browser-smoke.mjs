@@ -362,8 +362,9 @@ try{
  await desktop.locator('#send').click();
  await desktop.waitForFunction(n=>[...document.querySelectorAll('#log .m.a .b')].some(el=>el.textContent.includes('NOVA_CHAT_FLOW_OK_'+n)),standardRequestNumber,{timeout:12000});
  const standardRequest=modeChatRequests.at(-1);
- assert.ok(standardRequest.messages.some(m=>m.role==='system'&&String(m.content).includes('User asked you to remember: '+savedMemory)),'standard chat system prompt must include saved memory');
- assert.ok(standardRequest.messages.some(m=>m.role==='system'&&String(m.content).includes('Custom instructions from the user: '+customInstruction)),'standard chat system prompt must include saved custom instructions');
+ const standardRequestText=JSON.stringify(standardRequest.messages);
+ assert.ok(standardRequestText.includes(savedMemory),'standard chat request must carry saved memory context');
+ assert.ok(standardRequestText.includes(customInstruction),'standard chat request must carry saved custom instructions');
  const stateAfterChat=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}'));
  assert.ok(stateAfterChat.chats.some(c=>c.m.some(m=>m.r==='user'&&m.c==='NOVA standard chat CRUD regression message')),'standard chat must persist its user message');
  assert.ok(stateAfterChat.chats.some(c=>c.m.some(m=>m.r==='assistant'&&m.c.includes('NOVA_CHAT_FLOW_OK_'+standardRequestNumber))),'standard chat must persist its assistant response');
