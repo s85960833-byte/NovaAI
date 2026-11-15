@@ -111,10 +111,15 @@ test('Express API routes are gated before JSON body parsing when enabled', () =>
   const fs = require('node:fs');
   const path = require('node:path');
   const server = fs.readFileSync(path.join(__dirname, '..', 'nova-server.txt'), 'utf8');
-  const gate = server.indexOf("app.use('/api', (q, r, next) => {\n  if (q.path === '/config' || q.path === '/feed') return next();");
+  const firstApiMiddleware = server.indexOf("app.use('/api',");
+  const gate = server.indexOf("app.use('/api',", firstApiMiddleware + 1);
   const parser = server.indexOf("app.use(express.json({ limit: '6mb' }));");
-  assert.ok(gate >= 0, 'API auth gate must exist');
+  assert.ok(firstApiMiddleware >= 0 && gate > firstApiMiddleware, 'API rate limiter and auth gate must both exist');
   assert.ok(parser > gate, 'unauthenticated requests must be rejected before JSON parsing');
+  const authGate = server.slice(gate, parser);
+  assert.match(authGate, /q\.path === '\/config' \|\| q\.path === '\/feed' \|\| q\.path === '\/features'/);
+  assert.match(authGate, /q\.path === '\/account' && !FEATURE_FLAGS\.accountDeletion/);
+  assert.match(authGate, /return requireNovaUser\(q, r, next\);/);
   assert.match(server, /const apiAuthRequired = E\.NOVA_API_AUTH_REQUIRED === '1'/);
   assert.match(server, /userId: q\.novaUser\?\.id \|\| null/);
   assert.match(server, /job\.userId !== q\.novaUser\?\.id/);
