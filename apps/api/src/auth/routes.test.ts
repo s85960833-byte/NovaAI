@@ -85,6 +85,16 @@ describe("auth routes", () => {
     });
     expect(response.status).toBe(202);
     expect((await response.json()).confirmationRequired).toBe(true);
+    mocks.auth.signUp.mockResolvedValueOnce({
+      data: { session, user: { id: "synthetic-user", email: "test@example.com" } },
+      error: null,
+    });
+    const immediate = await request("POST", "/api/auth/signup", {
+      email: "test@example.com",
+      password: "a-long-test-password",
+    });
+    expect(immediate.status).toBe(202);
+    expect(immediate.headers.get("set-cookie")).toContain("HttpOnly");
   });
   it("handles sign-up provider errors", async () => {
     mocks.auth.signUp.mockResolvedValueOnce({
@@ -186,4 +196,54 @@ describe("auth routes", () => {
       ).status,
     ).toBe(200);
   });
+  it("rejects missing and malformed Origin headers", async () => {
+    const missing = await fetch(baseUrl + "/api/auth/logout", { method: "POST" });
+    expect(missing.status).toBe(403);
+    const malformed = await fetch(baseUrl + "/api/auth/logout", {
+      method: "POST",
+      headers: { origin: "not-a-valid-url" },
+    });
+    expect(malformed.status).toBe(403);
+  });
+  it("clears cookies when a refresh token is rejected", async () => {
+    mocks.auth.refreshSession.mockResolvedValueOnce({
+      data: { session: null },
+      error: new Error("expired"),
+    });
+    const response = await request("POST", "/api/auth/refresh", {}, "nova_refresh=bad-token");
+    expect(response.status).toBe(401);
+    expect(response.headers.get("set-cookie")).toContain("Expires=Thu, 01 Jan 1970 00:00:00 GMT");
+  });
+  it("rejects confirmation provider errors", async () => {
+    mocks.auth.verifyOtp.mockResolvedValueOnce({ data: { session: null }, error: new Error("bad token") });
+    const response = await request("POST", "/api/auth/confirm", {
+      token_hash: "12345678901234567890",
+      type: "email",
+    });
+    expect(response.status).toBe(400);
+  });
+  it("rejects expired sessions and provider password-update failures", async () => {
+    mocks.auth.setSession.mockResolvedValueOnce({ error: new Error("expired") });
+    const expired = await request(
+      "POST",
+      "/api/auth/update-password",
+      { password: "a-long-new-password" },
+      "nova_access=bad; nova_refresh=bad",
+    );
+    expect(expired.status).toBe(401);
+    mocks.auth.updateUser.mockResolvedValueOnce({ error: new Error("provider failure") });
+    const failed = await request(
+      "POST",
+      "/api/auth/update-password",
+      { password: "a-long-new-password" },
+      "nova_access=access-token; nova_refresh=refresh-token",
+    );
+    expect(failed.status).toBe(400);
+  });
+  it("clears cookies on logout when no session is present", async () => {
+    const response = await request("POST", "/api/auth/logout");
+    expect(response.status).toBe(200);
+    expect(mocks.auth.signOut).not.toHaveBeenCalled();
+  });
+
 });
