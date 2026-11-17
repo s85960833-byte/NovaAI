@@ -11,7 +11,7 @@ export function requestContext(req: Request, res: Response, next: NextFunction) 
   res.setHeader("x-request-id", req.requestId);
   const started = performance.now();
   res.on("finish", () => {
-    const route = typeof req.route?.path === "string" ? req.route.path : req.path;
+    const route = typeof req.route?.path === "string" ? req.baseUrl + req.route.path : "/unmatched";
     process.stdout.write(
       JSON.stringify({
         level: "info",
