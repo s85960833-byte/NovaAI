@@ -8,6 +8,7 @@ const SakhaPanel = lazy(async () => ({
   default: (await import("../sakha/SakhaPanel")).SakhaPanel,
 }));
 import { startFrameBudgetMonitor } from "../perf/frame-budget";
+import { PerfPage } from "../perf/PerfPage";
 type View = "home" | "diwan" | "sakha" | "wallet" | "me";
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -68,6 +69,7 @@ export function App() {
       setIntro(false);
     }
   }, []);
+  if (window.location.pathname === "/perf") return <PerfPage />;
   function closeIntro() {
     sessionStorage.setItem("nova2-intro-seen", "1");
     setIntro(false);
