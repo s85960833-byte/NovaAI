@@ -1,0 +1,33 @@
+project_id = "nova-2-rebuild"
+[api]
+enabled = true
+port = 54331
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+[db]
+port = 54332
+major_version = 17
+[studio]
+enabled = true
+port = 54333
+[storage]
+enabled = true
+file_size_limit = "8MiB"
+[storage.buckets.private-documents]
+public = false
+file_size_limit = "8MiB"
+allowed_mime_types = ["application/pdf", "image/jpeg", "image/png", "image/webp", "text/plain"]
+[auth]
+enabled = true
+site_url = "http://localhost:4173"
+additional_redirect_urls = ["http://localhost:4173/**"]
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+[functions.delete-account]
+verify_jwt = true
+[functions.export-account]
+verify_jwt = true
+[functions.expire-files]
+verify_jwt = false
