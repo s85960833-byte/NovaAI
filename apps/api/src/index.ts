@@ -205,6 +205,7 @@ app.use((_req, res) =>
 );
 app.use(
   (err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    void _next;
     const id = req.requestId ?? randomUUID();
     process.stderr.write(
       JSON.stringify({
