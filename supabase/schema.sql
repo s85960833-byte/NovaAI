@@ -150,3 +150,16 @@ grant select,insert,update on public.profiles to authenticated;
 grant select,insert,update,delete on public.chats,public.messages to authenticated;
 grant select on public.files,public.wallets,public.ledger_entries,public.mock_payments,public.usage_events,public.diwan_jobs to authenticated;
 grant select on public.schemes to anon,authenticated;
+
+create policy files_insert_own on public.files for insert to authenticated
+  with check ((select auth.uid()) = user_id and expires_at > now() and expires_at <= now() + interval '24 hours');
+
+grant select,insert on public.files to authenticated;
+
+-- Private Storage bucket: object paths must begin with the authenticated user's UUID.
+create policy private_docs_upload_own on storage.objects for insert to authenticated
+  with check (bucket_id = 'private-documents' and (storage.foldername(name))[1] = (select auth.uid())::text);
+create policy private_docs_read_own on storage.objects for select to authenticated
+  using (bucket_id = 'private-documents' and (storage.foldername(name))[1] = (select auth.uid())::text);
+create policy private_docs_delete_own on storage.objects for delete to authenticated
+  using (bucket_id = 'private-documents' and (storage.foldername(name))[1] = (select auth.uid())::text);
