@@ -28,30 +28,19 @@ function measureCadence(frames: number[]): Result {
   const droppedPercent = frames.length ? (droppedFrames / frames.length) * 100 : 100;
   const p50Ms = percentile(frames, 50);
   const p95Ms = percentile(frames, 95);
-  return {
-    refreshRate,
-    budgetMs,
-    p50Ms,
-    p95Ms,
-    droppedFrames,
-    droppedPercent,
-    samples: frames.length,
-    pass: p95Ms <= budgetMs && droppedPercent <= 5,
-  };
+  return { refreshRate, budgetMs, p50Ms, p95Ms, droppedFrames, droppedPercent, samples: frames.length, pass: p95Ms <= budgetMs && droppedPercent <= 5 };
 }
 
 export function PerfPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [measuring, setMeasuring] = useState(false);
   const [startedAt, setStartedAt] = useState<string | null>(null);
-
   const device = useMemo(() => ({
-    viewport: \`\${window.innerWidth} × \${window.innerHeight}\`,
-    screen: \`\${window.screen.width} × \${window.screen.height}\`,
+    viewport: String(window.innerWidth) + ' × ' + String(window.innerHeight),
+    screen: String(window.screen.width) + ' × ' + String(window.screen.height),
     dpr: window.devicePixelRatio || 1,
-    cores: navigator.hardwareConcurrency || "unknown",
-    memory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? "unknown",
-    userAgent: navigator.userAgent,
+    cores: navigator.hardwareConcurrency || 'unknown',
+    memory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 'unknown',
   }), []);
 
   const runMeasurement = useCallback(() => {
@@ -83,30 +72,24 @@ export function PerfPage() {
   }, [runMeasurement]);
 
   const value = result;
+  const verdictClass = value ? (value.pass ? 'perf-verdict pass' : 'perf-verdict fail') : 'perf-verdict';
   return (
     <main className="perf-page">
       <section className="perf-card" aria-labelledby="perf-title">
         <a className="perf-back" href="/">← NOVA</a>
         <p className="perf-kicker">DEVICE PERFORMANCE · LOCAL MEASUREMENT</p>
         <h1 id="perf-title">NOVA Frame Check</h1>
-        <p className="perf-intro">
-          Keep this page open in the foreground for five seconds. It measures the frame cadence
-          delivered to this browser on this device.
-        </p>
+        <p className="perf-intro">Keep this page open in the foreground for five seconds. It measures the frame cadence delivered to this browser on this device.</p>
         <div className="perf-device">
           <span>Viewport</span><strong>{device.viewport}</strong>
           <span>Screen / DPR</span><strong>{device.screen} · {device.dpr}×</strong>
           <span>CPU cores / memory</span><strong>{device.cores} / {device.memory} GB</strong>
         </div>
-        {measuring && (
-          <div className="perf-status" role="status" aria-live="polite">
-            <span className="perf-pulse" /> Measuring frame cadence…
-          </div>
-        )}
+        {measuring && <div className="perf-status" role="status" aria-live="polite"><span className="perf-pulse" /> Measuring frame cadence…</div>}
         {value && (
           <>
-            <div className={\`perf-verdict \${value.pass ? "pass" : "fail"}\`} role="status" aria-live="polite">
-              <strong>{value.pass ? "PASS" : "FAIL"}</strong>
+            <div className={verdictClass} role="status" aria-live="polite">
+              <strong>{value.pass ? 'PASS' : 'FAIL'}</strong>
               <span>{value.refreshRate} Hz observed cadence · {value.budgetMs.toFixed(2)} ms budget</span>
             </div>
             <div className="perf-metrics">
@@ -119,15 +102,9 @@ export function PerfPage() {
             </div>
           </>
         )}
-        {!measuring && value && (
-          <button className="perf-rerun" onClick={runMeasurement}>Measure again</button>
-        )}
-        <p className="perf-caveat">
-          Refresh rate is an estimate inferred from requestAnimationFrame timing, not a direct
-          hardware-panel reading. Browser throttling, power saver, background tabs and variable
-          refresh rate can affect it. This page does not certify 90/120 Hz hardware.
-        </p>
-        <p className="perf-time">Started: {startedAt ? new Date(startedAt).toLocaleTimeString() : "—"}</p>
+        {!measuring && value && <button className="perf-rerun" onClick={runMeasurement}>Measure again</button>}
+        <p className="perf-caveat">Refresh rate is an estimate inferred from requestAnimationFrame timing, not a direct hardware-panel reading. Browser throttling, power saver, background tabs and variable refresh rate can affect it. This page does not certify 90/120 Hz hardware.</p>
+        <p className="perf-time">Started: {startedAt ? new Date(startedAt).toLocaleTimeString() : '—'}</p>
       </section>
     </main>
   );
