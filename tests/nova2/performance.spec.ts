@@ -119,7 +119,12 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
   expect(
     Object.entries(scenarios)
       .filter(([, item]) => !item.pass)
-      .map(([name, item]) => ({ name, p50: item.p50Ms, p95: item.p95Ms, dropped: item.droppedFrames })),
+      .map(([name, item]) => ({
+        name,
+        p50: item.p50Ms,
+        p95: item.p95Ms,
+        dropped: item.droppedFrames,
+      })),
   ).toEqual([]);
 });
 
