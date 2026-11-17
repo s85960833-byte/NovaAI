@@ -134,7 +134,7 @@ describe("auth routes", () => {
       headers: { cookie: "nova_access=bad" },
     });
     expect(expired.status).toBe(401);
-    expect(expired.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(expired.headers.get("set-cookie")).toContain("Expires=Thu, 01 Jan 1970 00:00:00 GMT");
   });
   it("refreshes sessions and rejects missing refresh tokens", async () => {
     expect((await request("POST", "/api/auth/refresh")).status).toBe(401);
