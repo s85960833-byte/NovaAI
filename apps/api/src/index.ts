@@ -200,12 +200,9 @@ app.post("/api/wallet/mock/simulate", async (req, res) => {
       return res.status(404).json({ error: { code: "ORDER_NOT_FOUND" } });
     const eventId =
       typeof req.body?.eventId === "string" ? req.body.eventId : "mock-event-" + randomUUID();
-    const type =
-      req.body?.type === "refund.processed"
-        ? "refund.processed"
-        : req.body?.type === "payment.failed"
-          ? "payment.failed"
-          : "payment.captured";
+    const type = req.body?.type;
+    if (type !== "payment.captured" && type !== "payment.failed" && type !== "refund.processed")
+      return res.status(400).json({ error: { code: "INVALID_MOCK_EVENT_TYPE" } });
     const raw = JSON.stringify({ id: eventId, type, orderId, amountPaise: req.body?.amountPaise });
     const signature = wallet.sign(raw, config.MOCK_WEBHOOK_SECRET);
     const result = await wallet.processWebhook(raw, signature, config.MOCK_WEBHOOK_SECRET);
