@@ -27,16 +27,19 @@ jobs:
       - name: Generate initial migration using Supabase CLI v3 (local only)
         shell: bash
         run: |
-          mkdir -p supabase/migrations
-          if ! compgen -G "supabase/migrations/*_nova2_initial.sql" > /dev/null; then
-            supabase migration new nova2_initial < supabase/schema.sql
+          mkdir -p supabase-v2/migrations
+          if ! compgen -G "supabase-v2/migrations/*_nova2_initial.sql" > /dev/null; then
+            (cd supabase-v2 && supabase migration new nova2_initial)
+            generated=$(find supabase-v2/migrations -maxdepth 1 -name '*_nova2_initial.sql' -print -quit)
+            test -n "$generated"
+            cp supabase-v2/schema.sql "$generated"
           fi
       - name: Persist generated migration on rebuild branch
         run: |
-          if ! git diff --quiet -- supabase/migrations; then
+          if ! git diff --quiet -- supabase-v2/migrations; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add supabase/migrations
+            git add supabase-v2/migrations
             git commit -m "db: scaffold initial migration using Supabase CLI"
             git push
           fi
@@ -87,11 +90,11 @@ jobs:
         with:
           version: 3.2.0
       - name: Start isolated local Supabase stack
-        run: supabase start
+        run: cd supabase-v2 && supabase start
       - name: Apply and verify local synthetic schema
         run: |
-          supabase db reset
-          supabase migration list
+          cd supabase-v2 && supabase db reset
+          cd supabase-v2 && supabase migration list
       - name: Stop local Supabase stack
         if: always()
-        run: supabase stop
+        run: cd supabase-v2 && supabase stop
