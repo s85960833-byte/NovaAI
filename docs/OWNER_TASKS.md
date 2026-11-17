@@ -60,3 +60,14 @@ Every item is short. All are **PENDING OWNER REVIEW** unless marked NOT VERIFIED
     3. Only when ready, type exactly `APPROVE RELEASE` in ChatGPT. No other wording starts Phase 7.
 
 11. **GitHub Actions approval — NOT REQUIRED for current run.** Run #421 started automatically after the CI workflow was changed to read-only repository permissions. The `checks` job passed; the `database` job is running. No owner action is currently requested.
+
+12. **NOVA live performance check — PENDING OWNER REVIEW (about 1 minute).**
+    1. Open https://nova-2-staging.onrender.com/perf in Chrome on your phone.
+    2. Keep the page in the foreground for the 5-second measurement.
+    3. Screenshot the one-screen result showing the observed refresh estimate, p50/p95 and dropped frames.
+    4. Share the screenshot on PR #103. Browser timing is an estimate, not proof of panel hardware refresh capability.
+
+13. **Phone acceptance test — PENDING OWNER REVIEW (about 5 minutes).**
+    1. Follow the exact 10 steps and sample inputs in `docs/PHONE_TEST.md`.
+    2. Use only synthetic samples and built-in mock wallet controls.
+    3. Attach the `/perf` screenshot and any UI issue to PR #103.
