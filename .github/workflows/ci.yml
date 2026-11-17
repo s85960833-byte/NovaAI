@@ -58,6 +58,9 @@ jobs:
         run: |
           cd supabase-v2 && supabase db reset
           cd supabase-v2 && supabase migration list
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase-v2/scripts/check-schema.sql
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
       - name: Verify durable mock wallet integration
         run: npm run test:db
         env:
