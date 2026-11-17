@@ -17,3 +17,5 @@ test-results/
 *.pfx
 secrets/
 artifacts/
+service-account*.json
+credentials*.json
