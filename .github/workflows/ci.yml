@@ -6,7 +6,7 @@ on:
     branches: ["nova-2.0/rebuild"]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
   pull-requests: read
 concurrency:
   group: nova2-ci-${{ github.ref }}
@@ -24,6 +24,17 @@ jobs:
       - name: Refresh lockfile from pinned workspace manifests
         run: npm install --package-lock-only --ignore-scripts --no-audit
       - run: npm ci
+      - name: Format rebuild branch and commit formatting changes
+        if: github.event_name == 'push' && github.ref == 'refs/heads/nova-2.0/rebuild'
+        run: |
+          npx prettier --write apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/run-real-provider-evals.mjs scripts/check-bundle-budget.mjs tests/nova2 vitest.config.ts playwright.config.ts
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/run-real-provider-evals.mjs scripts/check-bundle-budget.mjs tests/nova2 vitest.config.ts playwright.config.ts
+            git commit -m "style: format NOVA 2.0 source"
+            git push origin HEAD:nova-2.0/rebuild
+          fi
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
