@@ -97,7 +97,15 @@
     "copied": "Copied.",
     "copyFailed": "Copy was unavailable in this browser.",
     "scamNotice": "This is an automated indicator check, not a definitive fraud finding.",
-    "schemesEmpty": "The official scheme dataset is empty until every record has been verified and owner-reviewed."
+    "schemesEmpty": "The official scheme dataset is empty until every record has been verified and owner-reviewed.",
+    "uploadPaper": "Or choose a PDF / text file (max 8 MB, PDF up to 5 pages)",
+    "fileConsentRequired": "Please confirm the document-processing consent first.",
+    "fileLogin": "Sign in to upload a document to your private temporary storage.",
+    "fileError": "The file could not be uploaded or read. Check sign-in, file type and size.",
+    "fileSelected": "Extracted from",
+    "fileExtracted": "Text extracted. Review it below before running the Paper Reader.",
+    "pdfLimit": "This PDF is longer than the 5-page preview limit.",
+    "scannedPdf": "This PDF has no extractable text. OCR is not enabled; no result was invented."
   },
   "settings": {
     "smoothMotion": "Smooth motion",
