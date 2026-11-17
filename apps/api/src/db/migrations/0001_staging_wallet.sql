@@ -44,16 +44,21 @@ begin
   return new;
 end;
 $$;
-drop trigger if exists wallet_ledger_balance_trigger on nova2_staging.wallet_ledger;
-create trigger wallet_ledger_balance_trigger
-after insert on nova2_staging.wallet_ledger
-for each row execute function nova2_staging.apply_wallet_ledger_delta();
+do $ begin
+  if not exists (select 1 from pg_trigger where tgname = 'wallet_ledger_balance_trigger' and tgrelid = 'nova2_staging.wallet_ledger'::regclass) then
+    create trigger wallet_ledger_balance_trigger after insert on nova2_staging.wallet_ledger
+      for each row execute function nova2_staging.apply_wallet_ledger_delta();
+  end if;
+end $;
 create or replace function nova2_staging.prevent_wallet_ledger_mutation()
 returns trigger language plpgsql as $$
 begin
   raise exception 'WALLET_LEDGER_APPEND_ONLY';
 end;
 $$;
-drop trigger if exists wallet_ledger_no_update on nova2_staging.wallet_ledger;
-create trigger wallet_ledger_no_update before update or delete on nova2_staging.wallet_ledger
-for each row execute function nova2_staging.prevent_wallet_ledger_mutation();
+do $ begin
+  if not exists (select 1 from pg_trigger where tgname = 'wallet_ledger_no_update' and tgrelid = 'nova2_staging.wallet_ledger'::regclass) then
+    create trigger wallet_ledger_no_update before update or delete on nova2_staging.wallet_ledger
+      for each row execute function nova2_staging.prevent_wallet_ledger_mutation();
+  end if;
+end $;
