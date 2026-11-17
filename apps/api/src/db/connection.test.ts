@@ -1,0 +1,2 @@
+import {it,expect} from "vitest";import {databaseHealth} from "./connection.js";
+it("reports the database as unconfigured rather than ready when no URL is present",async()=>{const result=await databaseHealth();expect(result.configured).toBe(false);expect(result.ok).toBe(false);});
