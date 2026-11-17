@@ -72,11 +72,15 @@ jobs:
           version: 3.2.0
       - name: Start isolated local Supabase stack
         run: cd supabase-v2 && supabase start
-      - name: Apply and verify local synthetic schema
+      - name: Apply migrations from scratch and verify isolated schema/RLS
         run: |
-          cd supabase-v2 && supabase db reset
-          cd supabase-v2 && supabase migration list
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/check-schema.sql
+          set -euo pipefail
+          cd supabase-v2
+          supabase db reset
+          supabase migration list
+          cd ..
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase-v2/scripts/check-schema.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase-v2/scripts/check-account-lifecycle.sql
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
       - name: Verify durable mock wallet integration
@@ -87,16 +91,29 @@ jobs:
       - name: Rehearse synthetic schema backup and restore
         run: |
           set -euo pipefail
-          pg_dump "$DATABASE_URL" --schema=nova2_staging --format=custom --no-owner --file=/tmp/nova2-staging.dump
-          pg_restore --list /tmp/nova2-staging.dump >/tmp/nova2-staging.contents
-          PGPASSWORD=postgres createdb -h 127.0.0.1 -p 54332 -U postgres nova2_restore_check
+          mkdir -p "$RUNNER_TEMP/nova2-backup"
           RESTORE_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54332/nova2_restore_check
-          pg_restore --no-owner --dbname="$RESTORE_DATABASE_URL" /tmp/nova2-staging.dump
-          TABLES=$(psql "$RESTORE_DATABASE_URL" -Atc "select count(*) from information_schema.tables where table_schema = 'nova2_staging'")
-          test "$TABLES" -ge 5
-          echo "SYNTHETIC BACKUP/RESTORE PASS: $TABLES tables restored"
+          docker run --rm --network host             -e DATABASE_URL="$DATABASE_URL"             -e RESTORE_DATABASE_URL="$RESTORE_DATABASE_URL"             -v "$RUNNER_TEMP/nova2-backup:/backup"             postgres:17-alpine sh -ec '
+              pg_dump "$DATABASE_URL" --schema=nova2_staging --format=custom --no-owner --file=/backup/nova2-staging.dump
+              pg_restore --list /backup/nova2-staging.dump >/backup/nova2-staging.contents
+              PGPASSWORD=postgres createdb -h 127.0.0.1 -p 54332 -U postgres nova2_restore_check
+              pg_restore --no-owner --single-transaction --dbname="$RESTORE_DATABASE_URL" /backup/nova2-staging.dump
+              ORIGINAL=$(psql "$DATABASE_URL" -Atc "select concat_ws(chr(58),(select count(*) from nova2_staging.wallet_accounts),(select count(*) from nova2_staging.wallet_orders),(select count(*) from nova2_staging.wallet_ledger),(select count(*) from nova2_staging.wallet_events),(select count(*) from nova2_staging.ai_spend_events))")
+              RESTORED=$(psql "$RESTORE_DATABASE_URL" -Atc "select concat_ws(chr(58),(select count(*) from nova2_staging.wallet_accounts),(select count(*) from nova2_staging.wallet_orders),(select count(*) from nova2_staging.wallet_ledger),(select count(*) from nova2_staging.wallet_events),(select count(*) from nova2_staging.ai_spend_events))")
+              test "$ORIGINAL" = "$RESTORED"
+              TABLES=$(psql "$RESTORE_DATABASE_URL" -Atc "select count(*) from information_schema.tables where table_schema = chr(110)||chr(111)||chr(118)||chr(97)||chr(50)||chr(95)||chr(115)||chr(116)||chr(97)||chr(103)||chr(105)||chr(110)||chr(103)")
+              test "$TABLES" -ge 5
+              echo "SYNTHETIC BACKUP/RESTORE PASS: $TABLES tables; row counts $RESTORED"
+            '
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
+      - name: Upload isolated database evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nova2-database-evidence
+          path: ${{ runner.temp }}/nova2-backup/
+          if-no-files-found: ignore
       - name: Stop local Supabase stack
         if: always()
         run: cd supabase-v2 && supabase stop
