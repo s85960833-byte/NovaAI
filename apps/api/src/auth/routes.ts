@@ -28,17 +28,15 @@ function sameOrigin(req: Request, res: Response, next: NextFunction) {
   next();
 }
 function unavailable(res: Response) {
-  return res
-    .status(503)
-    .json({
-      error: {
-        code: "AUTH_NOT_CONFIGURED",
-        message: {
-          en: "Sign-in is not configured on this staging build.",
-          hi: "इस staging बिल्ड में साइन-इन सेट नहीं है।",
-        },
+  return res.status(503).json({
+    error: {
+      code: "AUTH_NOT_CONFIGURED",
+      message: {
+        en: "Sign-in is not configured on this staging build.",
+        hi: "इस staging बिल्ड में साइन-इन सेट नहीं है।",
       },
-    });
+    },
+  });
 }
 function setSessionCookies(
   res: Response,
@@ -76,28 +74,24 @@ router.post("/signup", authLimiter, sameOrigin, async (req, res) => {
     options: { emailRedirectTo: new URL("/auth/confirm", config.APP_BASE_URL).toString() },
   });
   if (error)
-    return res
-      .status(400)
-      .json({
-        error: {
-          code: "SIGNUP_FAILED",
-          message: {
-            en: "Could not create the account. Check the details and try again.",
-            hi: "खाता नहीं बन पाया। जानकारी जाँचकर फिर कोशिश करें।",
-          },
+    return res.status(400).json({
+      error: {
+        code: "SIGNUP_FAILED",
+        message: {
+          en: "Could not create the account. Check the details and try again.",
+          hi: "खाता नहीं बन पाया। जानकारी जाँचकर फिर कोशिश करें।",
         },
-      });
-  if (data.session) setSessionCookies(res, data.session);
-  return res
-    .status(202)
-    .json({
-      ok: true,
-      confirmationRequired: !data.session,
-      message: {
-        en: "Check your email to confirm the account.",
-        hi: "खाता पक्का करने के लिए अपना ईमेल देखें।",
       },
     });
+  if (data.session) setSessionCookies(res, data.session);
+  return res.status(202).json({
+    ok: true,
+    confirmationRequired: !data.session,
+    message: {
+      en: "Check your email to confirm the account.",
+      hi: "खाता पक्का करने के लिए अपना ईमेल देखें।",
+    },
+  });
 });
 router.post("/signin", authLimiter, sameOrigin, async (req, res) => {
   const client = createAuthClient();
@@ -106,17 +100,15 @@ router.post("/signin", authLimiter, sameOrigin, async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_INPUT" } });
   const { data, error } = await client.auth.signInWithPassword(parsed.data);
   if (error || !data.session)
-    return res
-      .status(401)
-      .json({
-        error: {
-          code: "SIGNIN_FAILED",
-          message: {
-            en: "Email or password was not accepted.",
-            hi: "ईमेल या पासवर्ड सही नहीं है।",
-          },
+    return res.status(401).json({
+      error: {
+        code: "SIGNIN_FAILED",
+        message: {
+          en: "Email or password was not accepted.",
+          hi: "ईमेल या पासवर्ड सही नहीं है।",
         },
-      });
+      },
+    });
   setSessionCookies(res, data.session);
   return res.json({ ok: true, user: { id: data.user.id, email: data.user.email } });
 });
@@ -168,15 +160,13 @@ router.post("/password-reset", authLimiter, sameOrigin, async (req, res) => {
     redirectTo: new URL("/auth/reset", config.APP_BASE_URL).toString(),
   });
   if (error) return res.status(400).json({ error: { code: "RESET_REQUEST_FAILED" } });
-  return res
-    .status(202)
-    .json({
-      ok: true,
-      message: {
-        en: "If the account exists, a reset email will be sent.",
-        hi: "यदि यह खाता मौजूद है, तो पासवर्ड रीसेट ईमेल भेजा जाएगा।",
-      },
-    });
+  return res.status(202).json({
+    ok: true,
+    message: {
+      en: "If the account exists, a reset email will be sent.",
+      hi: "यदि यह खाता मौजूद है, तो पासवर्ड रीसेट ईमेल भेजा जाएगा।",
+    },
+  });
 });
 router.post("/confirm", sameOrigin, async (req, res) => {
   const client = createAuthClient();

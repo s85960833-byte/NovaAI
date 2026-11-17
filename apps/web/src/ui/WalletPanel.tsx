@@ -1,9 +1,148 @@
-import {useEffect,useState} from "react";import {RefreshCw,Wallet as WalletIcon} from "lucide-react";import {translate,type Locale} from "../i18n";
-type Props={locale:Locale};type LedgerRow={deltaCredits:number;reason:string;createdAt:string};type WalletData={balance:number;ledger:LedgerRow[]};type MockOrder={id:string;amountPaise:number;credits:number;packId:string};
-function getSyntheticUser(){const key="nova2_synthetic_wallet_user";let value=localStorage.getItem(key);if(!value){value="synthetic-"+crypto.randomUUID().replaceAll("-","").slice(0,24);localStorage.setItem(key,value);}return value;}
-export function WalletPanel({locale}:Props){const [wallet,setWallet]=useState<WalletData>({balance:0,ledger:[]});const [order,setOrder]=useState<MockOrder|null>(null);const [busy,setBusy]=useState(false);const [notice,setNotice]=useState("");const t=(key:string)=>translate(locale,key);const user=getSyntheticUser();
-async function refresh(){try{const response=await fetch("/api/wallet/mock",{headers:{"x-nova-synthetic-user":user}});if(!response.ok)throw new Error("MOCK_WALLET_DISABLED");const data=await response.json() as WalletData;setWallet(data);}catch{setNotice(t("wallet.mockUnavailable"));}}
-useEffect(()=>{void refresh();},[]);
-async function simulate(packId:"starter"|"standard"|"plus"){setBusy(true);setNotice("");try{const created=await fetch("/api/wallet/mock/orders",{method:"POST",headers:{"Content-Type":"application/json","x-nova-synthetic-user":user},body:JSON.stringify({packId})});if(!created.ok)throw new Error("MOCK_ORDER_FAILED");const orderData=(await created.json() as {order:MockOrder}).order;setOrder(orderData);const captured=await fetch("/api/wallet/mock/simulate",{method:"POST",headers:{"Content-Type":"application/json","x-nova-synthetic-user":user},body:JSON.stringify({orderId:orderData.id,eventId:"evt-"+crypto.randomUUID(),type:"payment.captured",amountPaise:orderData.amountPaise})});if(!captured.ok)throw new Error("MOCK_CAPTURE_FAILED");setNotice(t("wallet.mockCaptured"));await refresh();}catch{setNotice(t("wallet.mockUnavailable"));}finally{setBusy(false);}}
-async function refund(){if(!order)return;setBusy(true);try{const response=await fetch("/api/wallet/mock/simulate",{method:"POST",headers:{"Content-Type":"application/json","x-nova-synthetic-user":user},body:JSON.stringify({orderId:order.id,eventId:"refund-"+crypto.randomUUID(),type:"refund.processed",amountPaise:order.amountPaise})});if(!response.ok)throw new Error("MOCK_REFUND_FAILED");setNotice(t("wallet.mockRefunded"));setOrder(null);await refresh();}catch{setNotice(t("wallet.mockUnavailable"));}finally{setBusy(false);}}
-return <section className="workspace wallet-workspace"><h1>{t("wallet.title")}</h1><div className="wallet-panel"><WalletIcon/><strong>{wallet.balance} credits</strong><p>{t("wallet.mockOnly")}</p><p>{t("wallet.notActive")}</p></div><h2>{t("wallet.testPacks")}</h2><div className="wallet-packs">{(["starter","standard","plus"] as const).map((id,index)=><button key={id} disabled={busy} onClick={()=>void simulate(id)}><strong>₹{[49,99,199][index]}</strong><span>{[49,99,199][index]} credits</span><small>{t("wallet.mockButton")}</small></button>)}</div>{order&&<button className="wallet-refund" disabled={busy} onClick={()=>void refund()}>{t("wallet.simulateRefund")}</button>}{notice&&<p className="chat-notice" role="status">{notice}</p>}<div className="ledger-list"><div className="ledger-head"><h2>{t("wallet.ledger")}</h2><button className="icon-button" onClick={()=>void refresh()} aria-label={t("wallet.refresh")}><RefreshCw size={17}/></button></div>{wallet.ledger.map((row,index)=><div className="ledger-row" key={row.createdAt+"-"+index}><span>{row.reason}</span><strong>{row.deltaCredits>0?"+":""}{row.deltaCredits}</strong></div>)}{wallet.ledger.length===0&&<p>{t("wallet.noEntries")}</p>}</div><p className="owner-review">{t("wallet.ownerReview")}</p></section>;}
+import { useEffect, useState } from "react";
+import { RefreshCw, Wallet as WalletIcon } from "lucide-react";
+import { translate, type Locale } from "../i18n";
+type Props = { locale: Locale };
+type LedgerRow = { deltaCredits: number; reason: string; createdAt: string };
+type WalletData = { balance: number; ledger: LedgerRow[] };
+type MockOrder = { id: string; amountPaise: number; credits: number; packId: string };
+function getSyntheticUser() {
+  const key = "nova2_synthetic_wallet_user";
+  let value = localStorage.getItem(key);
+  if (!value) {
+    value = "synthetic-" + crypto.randomUUID().replaceAll("-", "").slice(0, 24);
+    localStorage.setItem(key, value);
+  }
+  return value;
+}
+export function WalletPanel({ locale }: Props) {
+  const [wallet, setWallet] = useState<WalletData>({ balance: 0, ledger: [] });
+  const [order, setOrder] = useState<MockOrder | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const t = (key: string) => translate(locale, key);
+  const user = getSyntheticUser();
+  async function refresh() {
+    try {
+      const response = await fetch("/api/wallet/mock", {
+        headers: { "x-nova-synthetic-user": user },
+      });
+      if (!response.ok) throw new Error("MOCK_WALLET_DISABLED");
+      const data = (await response.json()) as WalletData;
+      setWallet(data);
+    } catch {
+      setNotice(t("wallet.mockUnavailable"));
+    }
+  }
+  useEffect(() => {
+    void refresh();
+  }, []);
+  async function simulate(packId: "starter" | "standard" | "plus") {
+    setBusy(true);
+    setNotice("");
+    try {
+      const created = await fetch("/api/wallet/mock/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-nova-synthetic-user": user },
+        body: JSON.stringify({ packId }),
+      });
+      if (!created.ok) throw new Error("MOCK_ORDER_FAILED");
+      const orderData = ((await created.json()) as { order: MockOrder }).order;
+      setOrder(orderData);
+      const captured = await fetch("/api/wallet/mock/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-nova-synthetic-user": user },
+        body: JSON.stringify({
+          orderId: orderData.id,
+          eventId: "evt-" + crypto.randomUUID(),
+          type: "payment.captured",
+          amountPaise: orderData.amountPaise,
+        }),
+      });
+      if (!captured.ok) throw new Error("MOCK_CAPTURE_FAILED");
+      setNotice(t("wallet.mockCaptured"));
+      await refresh();
+    } catch {
+      setNotice(t("wallet.mockUnavailable"));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function refund() {
+    if (!order) return;
+    setBusy(true);
+    try {
+      const response = await fetch("/api/wallet/mock/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-nova-synthetic-user": user },
+        body: JSON.stringify({
+          orderId: order.id,
+          eventId: "refund-" + crypto.randomUUID(),
+          type: "refund.processed",
+          amountPaise: order.amountPaise,
+        }),
+      });
+      if (!response.ok) throw new Error("MOCK_REFUND_FAILED");
+      setNotice(t("wallet.mockRefunded"));
+      setOrder(null);
+      await refresh();
+    } catch {
+      setNotice(t("wallet.mockUnavailable"));
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <section className="workspace wallet-workspace">
+      <h1>{t("wallet.title")}</h1>
+      <div className="wallet-panel">
+        <WalletIcon />
+        <strong>{wallet.balance} credits</strong>
+        <p>{t("wallet.mockOnly")}</p>
+        <p>{t("wallet.notActive")}</p>
+      </div>
+      <h2>{t("wallet.testPacks")}</h2>
+      <div className="wallet-packs">
+        {(["starter", "standard", "plus"] as const).map((id, index) => (
+          <button key={id} disabled={busy} onClick={() => void simulate(id)}>
+            <strong>₹{[49, 99, 199][index]}</strong>
+            <span>{[49, 99, 199][index]} credits</span>
+            <small>{t("wallet.mockButton")}</small>
+          </button>
+        ))}
+      </div>
+      {order && (
+        <button className="wallet-refund" disabled={busy} onClick={() => void refund()}>
+          {t("wallet.simulateRefund")}
+        </button>
+      )}
+      {notice && (
+        <p className="chat-notice" role="status">
+          {notice}
+        </p>
+      )}
+      <div className="ledger-list">
+        <div className="ledger-head">
+          <h2>{t("wallet.ledger")}</h2>
+          <button
+            className="icon-button"
+            onClick={() => void refresh()}
+            aria-label={t("wallet.refresh")}
+          >
+            <RefreshCw size={17} />
+          </button>
+        </div>
+        {wallet.ledger.map((row, index) => (
+          <div className="ledger-row" key={row.createdAt + "-" + index}>
+            <span>{row.reason}</span>
+            <strong>
+              {row.deltaCredits > 0 ? "+" : ""}
+              {row.deltaCredits}
+            </strong>
+          </div>
+        ))}
+        {wallet.ledger.length === 0 && <p>{t("wallet.noEntries")}</p>}
+      </div>
+      <p className="owner-review">{t("wallet.ownerReview")}</p>
+    </section>
+  );
+}

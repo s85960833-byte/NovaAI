@@ -1,2 +1,18 @@
-import {defineConfig} from "vitest/config";
-export default defineConfig({test:{include:["apps/api/src/**/*.test.ts","apps/web/src/**/*.test.ts"],coverage:{provider:"v8",reporter:["text","json-summary"],include:["apps/api/src/money/**/*.ts","apps/api/src/diwan/**/*.ts","apps/api/src/files/**/*.ts","apps/api/src/sync/**/*.ts"],exclude:["**/*.test.ts"],thresholds:{lines:80,functions:80,branches:80,statements:80}}}});
+import { defineConfig } from "vitest/config";
+export default defineConfig({
+  test: {
+    include: ["apps/api/src/**/*.test.ts", "apps/web/src/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json-summary"],
+      include: [
+        "apps/api/src/money/**/*.ts",
+        "apps/api/src/diwan/**/*.ts",
+        "apps/api/src/files/**/*.ts",
+        "apps/api/src/sync/**/*.ts",
+      ],
+      exclude: ["**/*.test.ts"],
+      thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
+    },
+  },
+});

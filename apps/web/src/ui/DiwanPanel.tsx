@@ -1,14 +1,353 @@
-import {useState,type FormEvent} from "react";import {Copy,Download,ShieldAlert} from "lucide-react";import {translate,type Locale} from "../i18n";
-type Task="paper"|"scam"|"rti"|"complaint"|"schemes";type Props={locale:Locale};type Result=Record<string,unknown>;const categories=["consumer","police","municipal","electricity","bank","telecom","education"] as const;
-function displayResult(result:Result){if(typeof result.draft==="string")return result.draft;return JSON.stringify(result,null,2)??"";}
-export function DiwanPanel({locale}:Props){const [task,setTask]=useState<Task>("paper");const [paperText,setPaperText]=useState("");const [scamText,setScamText]=useState("");const [authority,setAuthority]=useState("");const [subject,setSubject]=useState("");const [questions,setQuestions]=useState("");const [period,setPeriod]=useState("");const [category,setCategory]=useState<(typeof categories)[number]>("consumer");const [facts,setFacts]=useState("");const [relief,setRelief]=useState("");const [consent,setConsent]=useState(false);const [busy,setBusy]=useState(false);const [uploading,setUploading]=useState(false);const [fileName,setFileName]=useState("");const [notice,setNotice]=useState("");const [result,setResult]=useState<Result|null>(null);const t=(key:string)=>translate(locale,key);const tasks:Task[]=["paper","scam","rti","complaint","schemes"];
-async function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();setBusy(true);setNotice("");setResult(null);let endpoint="/api/diwan/schemes/match";let body:Record<string,unknown>={};if(task==="paper"){endpoint="/api/diwan/paper-reader";body={documentText:paperText,language:locale,consent};}else if(task==="scam"){endpoint="/api/diwan/scam-check";body={text:scamText,language:locale};}else if(task==="rti"){endpoint="/api/diwan/rti";body={authority,subject,questions:questions.split("\n").map(item=>item.trim()).filter(Boolean),period:period||undefined,language:locale};}else if(task==="complaint"){endpoint="/api/diwan/complaint";body={category,facts,relief,language:locale};}
-try{const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const data=await response.json() as Result;if(!response.ok)throw new Error(typeof data.error==="object"&&data.error!==null&&"code" in data.error?String((data.error as {code:string}).code):"REQUEST_FAILED");setResult(data);setNotice(t("diwan.ready"));}catch{setNotice(t("diwan.failed"));}finally{setBusy(false);}}
-async function uploadPaper(file?:File){if(!file)return;if(!consent){setNotice(t("diwan.fileConsentRequired"));return;}setUploading(true);setNotice("");const form=new FormData();form.append("file",file);form.append("consent","true");try{const uploaded=await fetch("/api/files/upload",{method:"POST",credentials:"include",body:form});if(!uploaded.ok){const err=await uploaded.json() as {error?:{code?:string}};setNotice(err.error?.code==="SESSION_REQUIRED"?t("diwan.fileLogin"):t("diwan.fileError"));return;}const data=await uploaded.json() as {file:{id:string}};const extracted=await fetch("/api/files/"+encodeURIComponent(data.file.id)+"/text",{credentials:"include"});if(!extracted.ok){const err=await extracted.json() as {error?:{code?:string}};setNotice(err.error?.code==="OCR_NOT_AVAILABLE"?t("diwan.scannedPdf"):err.error?.code==="PDF_PAGE_LIMIT"?t("diwan.pdfLimit"):t("diwan.fileError"));await fetch("/api/files/"+encodeURIComponent(data.file.id),{method:"DELETE",credentials:"include"});return;}const result=await extracted.json() as {text:string};setPaperText(result.text);setFileName(file.name);setNotice(t("diwan.fileExtracted"));await fetch("/api/files/"+encodeURIComponent(data.file.id),{method:"DELETE",credentials:"include"});}catch{setNotice(t("diwan.fileError"));}finally{setUploading(false);}}
-const output=result?displayResult(result):"";async function copy(){try{await navigator.clipboard.writeText(output);setNotice(t("diwan.copied"));}catch{setNotice(t("diwan.copyFailed"));}}
-return <section className="workspace diwan-workspace"><p className="eyebrow">MINISTER · 01</p><h1>{t("diwan.title")}</h1><p>{t("diwan.subtitle")}</p><div className="diwan-tabs">{tasks.map((key,index)=><button key={key} className={task===key?"selected":""} onClick={()=>{setTask(key);setResult(null);setNotice("");}}><span>0{index+1}</span>{t("diwan."+key)}</button>)}</div><form className="diwan-form" onSubmit={submit}>
-{task==="paper"&&<><label>{t("diwan.paperText")}<textarea required minLength={1} maxLength={40000} rows={6} value={paperText} onChange={e=>setPaperText(e.target.value)} placeholder={t("diwan.paperPlaceholder")}/></label><label>{t("diwan.uploadPaper")}<input type="file" accept="application/pdf,text/plain" onChange={event=>{void uploadPaper(event.target.files?.[0]);event.currentTarget.value="";}} disabled={uploading}/></label>{fileName&&<p className="file-name">{t("diwan.fileSelected")}: {fileName}</p>}<label className="consent-line"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)}/>{t("diwan.paperConsent")}</label><p className="disclaimer">{t("diwan.paperLimit")}</p></>}
-{task==="scam"&&<label>{t("diwan.scamText")}<textarea required minLength={8} maxLength={8000} rows={5} value={scamText} onChange={e=>setScamText(e.target.value)} placeholder={t("diwan.scamPlaceholder")}/></label>}
-{task==="rti"&&<><label>{t("diwan.authority")}<input required minLength={2} maxLength={200} value={authority} onChange={e=>setAuthority(e.target.value)}/></label><label>{t("diwan.subject")}<input required minLength={5} maxLength={500} value={subject} onChange={e=>setSubject(e.target.value)}/></label><label>{t("diwan.questions")}<textarea required rows={5} value={questions} onChange={e=>setQuestions(e.target.value)} placeholder={t("diwan.questionsPlaceholder")}/></label><label>{t("diwan.period")}<input maxLength={100} value={period} onChange={e=>setPeriod(e.target.value)}/></label></>}
-{task==="complaint"&&<><label>{t("diwan.category")}<select value={category} onChange={e=>setCategory(e.target.value as typeof category)}>{categories.map(item=><option value={item} key={item}>{t("diwan.category."+item)}</option>)}</select></label><label>{t("diwan.facts")}<textarea required minLength={20} maxLength={5000} rows={5} value={facts} onChange={e=>setFacts(e.target.value)}/></label><label>{t("diwan.relief")}<textarea required minLength={5} maxLength={500} rows={3} value={relief} onChange={e=>setRelief(e.target.value)}/></label></>}
-{task==="schemes"&&<p className="disclaimer">{t("diwan.schemesEmpty")}</p>}<button className="auth-primary" disabled={busy||(task==="paper"&&!consent)}>{busy||uploading?t("common.loading"):t("diwan.run")}</button></form>{notice&&<p className="chat-notice" role="status">{notice}</p>}{result&&<section className="diwan-result print-area"><div className="result-head"><h2>{t("diwan.result")}</h2><div><button className="icon-button" onClick={()=>void copy()} aria-label={t("diwan.copy")}><Copy size={17}/></button><button className="icon-button" onClick={()=>window.print()} aria-label={t("diwan.exportPdf")}><Download size={17}/></button></div></div>{task==="scam"&&<div className="result-warning"><ShieldAlert/>{t("diwan.scamNotice")}</div>}<pre>{output}</pre><p className="disclaimer">{t("diwan.disclaimer")}</p></section>}</section>;}
+import { useState, type FormEvent } from "react";
+import { Copy, Download, ShieldAlert } from "lucide-react";
+import { translate, type Locale } from "../i18n";
+type Task = "paper" | "scam" | "rti" | "complaint" | "schemes";
+type Props = { locale: Locale };
+type Result = Record<string, unknown>;
+const categories = [
+  "consumer",
+  "police",
+  "municipal",
+  "electricity",
+  "bank",
+  "telecom",
+  "education",
+] as const;
+function displayResult(result: Result) {
+  if (typeof result.draft === "string") return result.draft;
+  return JSON.stringify(result, null, 2) ?? "";
+}
+export function DiwanPanel({ locale }: Props) {
+  const [task, setTask] = useState<Task>("paper");
+  const [paperText, setPaperText] = useState("");
+  const [scamText, setScamText] = useState("");
+  const [authority, setAuthority] = useState("");
+  const [subject, setSubject] = useState("");
+  const [questions, setQuestions] = useState("");
+  const [period, setPeriod] = useState("");
+  const [category, setCategory] = useState<(typeof categories)[number]>("consumer");
+  const [facts, setFacts] = useState("");
+  const [relief, setRelief] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [notice, setNotice] = useState("");
+  const [result, setResult] = useState<Result | null>(null);
+  const t = (key: string) => translate(locale, key);
+  const tasks: Task[] = ["paper", "scam", "rti", "complaint", "schemes"];
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setNotice("");
+    setResult(null);
+    let endpoint = "/api/diwan/schemes/match";
+    let body: Record<string, unknown> = {};
+    if (task === "paper") {
+      endpoint = "/api/diwan/paper-reader";
+      body = { documentText: paperText, language: locale, consent };
+    } else if (task === "scam") {
+      endpoint = "/api/diwan/scam-check";
+      body = { text: scamText, language: locale };
+    } else if (task === "rti") {
+      endpoint = "/api/diwan/rti";
+      body = {
+        authority,
+        subject,
+        questions: questions
+          .split("\n")
+          .map((item) => item.trim())
+          .filter(Boolean),
+        period: period || undefined,
+        language: locale,
+      };
+    } else if (task === "complaint") {
+      endpoint = "/api/diwan/complaint";
+      body = { category, facts, relief, language: locale };
+    }
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = (await response.json()) as Result;
+      if (!response.ok)
+        throw new Error(
+          typeof data.error === "object" && data.error !== null && "code" in data.error
+            ? String((data.error as { code: string }).code)
+            : "REQUEST_FAILED",
+        );
+      setResult(data);
+      setNotice(t("diwan.ready"));
+    } catch {
+      setNotice(t("diwan.failed"));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function uploadPaper(file?: File) {
+    if (!file) return;
+    if (!consent) {
+      setNotice(t("diwan.fileConsentRequired"));
+      return;
+    }
+    setUploading(true);
+    setNotice("");
+    const form = new FormData();
+    form.append("file", file);
+    form.append("consent", "true");
+    try {
+      const uploaded = await fetch("/api/files/upload", {
+        method: "POST",
+        credentials: "include",
+        body: form,
+      });
+      if (!uploaded.ok) {
+        const err = (await uploaded.json()) as { error?: { code?: string } };
+        setNotice(
+          err.error?.code === "SESSION_REQUIRED" ? t("diwan.fileLogin") : t("diwan.fileError"),
+        );
+        return;
+      }
+      const data = (await uploaded.json()) as { file: { id: string } };
+      const extracted = await fetch("/api/files/" + encodeURIComponent(data.file.id) + "/text", {
+        credentials: "include",
+      });
+      if (!extracted.ok) {
+        const err = (await extracted.json()) as { error?: { code?: string } };
+        setNotice(
+          err.error?.code === "OCR_NOT_AVAILABLE"
+            ? t("diwan.scannedPdf")
+            : err.error?.code === "PDF_PAGE_LIMIT"
+              ? t("diwan.pdfLimit")
+              : t("diwan.fileError"),
+        );
+        await fetch("/api/files/" + encodeURIComponent(data.file.id), {
+          method: "DELETE",
+          credentials: "include",
+        });
+        return;
+      }
+      const result = (await extracted.json()) as { text: string };
+      setPaperText(result.text);
+      setFileName(file.name);
+      setNotice(t("diwan.fileExtracted"));
+      await fetch("/api/files/" + encodeURIComponent(data.file.id), {
+        method: "DELETE",
+        credentials: "include",
+      });
+    } catch {
+      setNotice(t("diwan.fileError"));
+    } finally {
+      setUploading(false);
+    }
+  }
+  const output = result ? displayResult(result) : "";
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(output);
+      setNotice(t("diwan.copied"));
+    } catch {
+      setNotice(t("diwan.copyFailed"));
+    }
+  }
+  return (
+    <section className="workspace diwan-workspace">
+      <p className="eyebrow">MINISTER · 01</p>
+      <h1>{t("diwan.title")}</h1>
+      <p>{t("diwan.subtitle")}</p>
+      <div className="diwan-tabs">
+        {tasks.map((key, index) => (
+          <button
+            key={key}
+            className={task === key ? "selected" : ""}
+            onClick={() => {
+              setTask(key);
+              setResult(null);
+              setNotice("");
+            }}
+          >
+            <span>0{index + 1}</span>
+            {t("diwan." + key)}
+          </button>
+        ))}
+      </div>
+      <form className="diwan-form" onSubmit={submit}>
+        {task === "paper" && (
+          <>
+            <label>
+              {t("diwan.paperText")}
+              <textarea
+                required
+                minLength={1}
+                maxLength={40000}
+                rows={6}
+                value={paperText}
+                onChange={(e) => setPaperText(e.target.value)}
+                placeholder={t("diwan.paperPlaceholder")}
+              />
+            </label>
+            <label>
+              {t("diwan.uploadPaper")}
+              <input
+                type="file"
+                accept="application/pdf,text/plain"
+                onChange={(event) => {
+                  void uploadPaper(event.target.files?.[0]);
+                  event.currentTarget.value = "";
+                }}
+                disabled={uploading}
+              />
+            </label>
+            {fileName && (
+              <p className="file-name">
+                {t("diwan.fileSelected")}: {fileName}
+              </p>
+            )}
+            <label className="consent-line">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+              />
+              {t("diwan.paperConsent")}
+            </label>
+            <p className="disclaimer">{t("diwan.paperLimit")}</p>
+          </>
+        )}
+        {task === "scam" && (
+          <label>
+            {t("diwan.scamText")}
+            <textarea
+              required
+              minLength={8}
+              maxLength={8000}
+              rows={5}
+              value={scamText}
+              onChange={(e) => setScamText(e.target.value)}
+              placeholder={t("diwan.scamPlaceholder")}
+            />
+          </label>
+        )}
+        {task === "rti" && (
+          <>
+            <label>
+              {t("diwan.authority")}
+              <input
+                required
+                minLength={2}
+                maxLength={200}
+                value={authority}
+                onChange={(e) => setAuthority(e.target.value)}
+              />
+            </label>
+            <label>
+              {t("diwan.subject")}
+              <input
+                required
+                minLength={5}
+                maxLength={500}
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+              />
+            </label>
+            <label>
+              {t("diwan.questions")}
+              <textarea
+                required
+                rows={5}
+                value={questions}
+                onChange={(e) => setQuestions(e.target.value)}
+                placeholder={t("diwan.questionsPlaceholder")}
+              />
+            </label>
+            <label>
+              {t("diwan.period")}
+              <input maxLength={100} value={period} onChange={(e) => setPeriod(e.target.value)} />
+            </label>
+          </>
+        )}
+        {task === "complaint" && (
+          <>
+            <label>
+              {t("diwan.category")}
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as typeof category)}
+              >
+                {categories.map((item) => (
+                  <option value={item} key={item}>
+                    {t("diwan.category." + item)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              {t("diwan.facts")}
+              <textarea
+                required
+                minLength={20}
+                maxLength={5000}
+                rows={5}
+                value={facts}
+                onChange={(e) => setFacts(e.target.value)}
+              />
+            </label>
+            <label>
+              {t("diwan.relief")}
+              <textarea
+                required
+                minLength={5}
+                maxLength={500}
+                rows={3}
+                value={relief}
+                onChange={(e) => setRelief(e.target.value)}
+              />
+            </label>
+          </>
+        )}
+        {task === "schemes" && <p className="disclaimer">{t("diwan.schemesEmpty")}</p>}
+        <button className="auth-primary" disabled={busy || (task === "paper" && !consent)}>
+          {busy || uploading ? t("common.loading") : t("diwan.run")}
+        </button>
+      </form>
+      {notice && (
+        <p className="chat-notice" role="status">
+          {notice}
+        </p>
+      )}
+      {result && (
+        <section className="diwan-result print-area">
+          <div className="result-head">
+            <h2>{t("diwan.result")}</h2>
+            <div>
+              <button
+                className="icon-button"
+                onClick={() => void copy()}
+                aria-label={t("diwan.copy")}
+              >
+                <Copy size={17} />
+              </button>
+              <button
+                className="icon-button"
+                onClick={() => window.print()}
+                aria-label={t("diwan.exportPdf")}
+              >
+                <Download size={17} />
+              </button>
+            </div>
+          </div>
+          {task === "scam" && (
+            <div className="result-warning">
+              <ShieldAlert />
+              {t("diwan.scamNotice")}
+            </div>
+          )}
+          <pre>{output}</pre>
+          <p className="disclaimer">{t("diwan.disclaimer")}</p>
+        </section>
+      )}
+    </section>
+  );
+}

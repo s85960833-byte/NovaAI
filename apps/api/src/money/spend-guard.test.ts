@@ -1,3 +1,20 @@
-import {it,expect} from "vitest";import {canStartProviderCall} from "./spend-guard.js";const base={globalTodayInr:0,userTodayInr:0,globalCapInr:10,userCapInr:2,killSwitch:false};
-it("allows only calls inside both budgets",()=>{expect(canStartProviderCall(base,1)).toEqual({allowed:true,reason:"OK"});expect(canStartProviderCall({...base,userTodayInr:1.5},1).reason).toBe("USER_CAP");expect(canStartProviderCall({...base,globalTodayInr:9.5},1).reason).toBe("GLOBAL_CAP");});
-it("fails closed on kill switch, invalid estimates and zero budget",()=>{expect(canStartProviderCall({...base,killSwitch:true},0).reason).toBe("KILL_SWITCH");expect(canStartProviderCall(base,-1).reason).toBe("INVALID_ESTIMATE");expect(canStartProviderCall(base,Number.NaN).reason).toBe("INVALID_ESTIMATE");expect(canStartProviderCall({...base,globalCapInr:0},0).reason).toBe("ZERO_BUDGET");});
+import { it, expect } from "vitest";
+import { canStartProviderCall } from "./spend-guard.js";
+const base = {
+  globalTodayInr: 0,
+  userTodayInr: 0,
+  globalCapInr: 10,
+  userCapInr: 2,
+  killSwitch: false,
+};
+it("allows only calls inside both budgets", () => {
+  expect(canStartProviderCall(base, 1)).toEqual({ allowed: true, reason: "OK" });
+  expect(canStartProviderCall({ ...base, userTodayInr: 1.5 }, 1).reason).toBe("USER_CAP");
+  expect(canStartProviderCall({ ...base, globalTodayInr: 9.5 }, 1).reason).toBe("GLOBAL_CAP");
+});
+it("fails closed on kill switch, invalid estimates and zero budget", () => {
+  expect(canStartProviderCall({ ...base, killSwitch: true }, 0).reason).toBe("KILL_SWITCH");
+  expect(canStartProviderCall(base, -1).reason).toBe("INVALID_ESTIMATE");
+  expect(canStartProviderCall(base, Number.NaN).reason).toBe("INVALID_ESTIMATE");
+  expect(canStartProviderCall({ ...base, globalCapInr: 0 }, 0).reason).toBe("ZERO_BUDGET");
+});

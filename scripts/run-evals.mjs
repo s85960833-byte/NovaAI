@@ -25,4 +25,6 @@ for (const task of tasks) {
   if (!ok) failed = true;
 }
 if (failed) process.exit(1);
-process.stdout.write("EVAL FIXTURE VALIDATION PASS — semantic model quality NOT VERIFIED (mock mode).\\n");
+process.stdout.write(
+  "EVAL FIXTURE VALIDATION PASS — semantic model quality NOT VERIFIED (mock mode).\\n",
+);

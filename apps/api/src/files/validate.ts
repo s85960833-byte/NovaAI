@@ -1,4 +1,38 @@
-export const MAX_UPLOAD_BYTES=8_000_000;
-export const ALLOWED_UPLOAD_MIME=["application/pdf","image/jpeg","image/png","image/webp","text/plain"] as const;
-export type UploadCheck={ok:true}|{ok:false;code:"FILE_TOO_LARGE"|"MIME_NOT_ALLOWED"|"CONTENT_MISMATCH"|"EMPTY_FILE"};
-export function validateUpload(input:{mime:string;bytes:Uint8Array}):UploadCheck{const {mime,bytes}=input;if(!bytes.byteLength)return {ok:false,code:"EMPTY_FILE"};if(bytes.byteLength>MAX_UPLOAD_BYTES)return {ok:false,code:"FILE_TOO_LARGE"};if(!(ALLOWED_UPLOAD_MIME as readonly string[]).includes(mime))return {ok:false,code:"MIME_NOT_ALLOWED"};const starts=(v:number[])=>v.every((n,i)=>bytes[i]===n);if(mime==="application/pdf"&&!starts([37,80,68,70,45]))return {ok:false,code:"CONTENT_MISMATCH"};if(mime==="image/jpeg"&&!starts([255,216,255]))return {ok:false,code:"CONTENT_MISMATCH"};if(mime==="image/png"&&!starts([137,80,78,71,13,10,26,10]))return {ok:false,code:"CONTENT_MISMATCH"};if(mime==="image/webp"&&!(starts([82,73,70,70])&&bytes[8]===87&&bytes[9]===69&&bytes[10]===66&&bytes[11]===80))return {ok:false,code:"CONTENT_MISMATCH"};if(mime==="text/plain"&&bytes.includes(0))return {ok:false,code:"CONTENT_MISMATCH"};return {ok:true};}
+export const MAX_UPLOAD_BYTES = 8_000_000;
+export const ALLOWED_UPLOAD_MIME = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "text/plain",
+] as const;
+export type UploadCheck =
+  | { ok: true }
+  | { ok: false; code: "FILE_TOO_LARGE" | "MIME_NOT_ALLOWED" | "CONTENT_MISMATCH" | "EMPTY_FILE" };
+export function validateUpload(input: { mime: string; bytes: Uint8Array }): UploadCheck {
+  const { mime, bytes } = input;
+  if (!bytes.byteLength) return { ok: false, code: "EMPTY_FILE" };
+  if (bytes.byteLength > MAX_UPLOAD_BYTES) return { ok: false, code: "FILE_TOO_LARGE" };
+  if (!(ALLOWED_UPLOAD_MIME as readonly string[]).includes(mime))
+    return { ok: false, code: "MIME_NOT_ALLOWED" };
+  const starts = (v: number[]) => v.every((n, i) => bytes[i] === n);
+  if (mime === "application/pdf" && !starts([37, 80, 68, 70, 45]))
+    return { ok: false, code: "CONTENT_MISMATCH" };
+  if (mime === "image/jpeg" && !starts([255, 216, 255]))
+    return { ok: false, code: "CONTENT_MISMATCH" };
+  if (mime === "image/png" && !starts([137, 80, 78, 71, 13, 10, 26, 10]))
+    return { ok: false, code: "CONTENT_MISMATCH" };
+  if (
+    mime === "image/webp" &&
+    !(
+      starts([82, 73, 70, 70]) &&
+      bytes[8] === 87 &&
+      bytes[9] === 69 &&
+      bytes[10] === 66 &&
+      bytes[11] === 80
+    )
+  )
+    return { ok: false, code: "CONTENT_MISMATCH" };
+  if (mime === "text/plain" && bytes.includes(0)) return { ok: false, code: "CONTENT_MISMATCH" };
+  return { ok: true };
+}

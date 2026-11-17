@@ -66,30 +66,41 @@ app.use("/api/auth", authRouter);
 app.use("/api/files", fileRouter);
 app.get("/api/health", async (req, res) => {
   const database = await databaseHealth();
-  return res
-    .status(database.configured && !database.ok ? 503 : 200)
-    .json({
-      ok: true,
-      ready: database.ok,
-      requestId: req.requestId,
-      service: "nova-api",
-      version: "2.0.0",
-      mode: config.AI_PROVIDER,
-      aiEnabled: config.AI_PROVIDER !== "disabled" && !config.AI_KILL_SWITCH,
-      mockPreviewEnabled: config.AI_PROVIDER === "mock",
-      mockFeatures: config.MOCK_FEATURES_ENABLED,
-      authConfigured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
-      dependencies: { database, provider: config.AI_PROVIDER },
-      timestamp: new Date().toISOString(),
-    });
+  return res.status(database.configured && !database.ok ? 503 : 200).json({
+    ok: true,
+    ready: database.ok,
+    requestId: req.requestId,
+    service: "nova-api",
+    version: "2.0.0",
+    mode: config.AI_PROVIDER,
+    aiEnabled: config.AI_PROVIDER !== "disabled" && !config.AI_KILL_SWITCH,
+    mockPreviewEnabled: config.AI_PROVIDER === "mock",
+    mockFeatures: config.MOCK_FEATURES_ENABLED,
+    authConfigured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
+    dependencies: { database, provider: config.AI_PROVIDER },
+    timestamp: new Date().toISOString(),
+  });
 });
 app.get("/health", (_req, res) => res.redirect(308, "/api/health"));
 app.post("/api/sakha/chat", async (req, res) => {
   const parsed = chatMessageSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_INPUT", requestId: req.requestId } });
+  if (!parsed.success)
+    return res.status(400).json({ error: { code: "INVALID_INPUT", requestId: req.requestId } });
   try {
-    const generated = await textProvider.generate({ content: parsed.data.content, language: parsed.data.language });
-    return res.json({ ok: true, mode: generated.provider, model: generated.model, reply: generated.text, chargedCredits: 0, costPaise: generated.costPaise, stored: false, requestId: req.requestId });
+    const generated = await textProvider.generate({
+      content: parsed.data.content,
+      language: parsed.data.language,
+    });
+    return res.json({
+      ok: true,
+      mode: generated.provider,
+      model: generated.model,
+      reply: generated.text,
+      chargedCredits: 0,
+      costPaise: generated.costPaise,
+      stored: false,
+      requestId: req.requestId,
+    });
   } catch {
     return res.status(503).json({ error: { code: "PROVIDER_DISABLED", requestId: req.requestId } });
   }
@@ -131,7 +142,14 @@ app.post("/api/diwan/schemes/match", (req, res) => {
   const parsed = schemeMatchSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_INPUT" } });
   const result = matchSchemes(approvedSchemes, parsed.data);
-  return res.json({ ok: true, ...result, message: result.datasetStatus === "owner_review_pending" ? "The official scheme dataset is awaiting owner review." : undefined });
+  return res.json({
+    ok: true,
+    ...result,
+    message:
+      result.datasetStatus === "owner_review_pending"
+        ? "The official scheme dataset is awaiting owner review."
+        : undefined,
+  });
 });
 function syntheticUser(req: express.Request) {
   const value = req.header("x-nova-synthetic-user") ?? "";
@@ -194,14 +212,12 @@ app.get("*", (req, res, next) => {
   });
 });
 app.use((_req, res) =>
-  res
-    .status(404)
-    .json({
-      error: {
-        code: "NOT_FOUND",
-        message: { en: "The requested route was not found.", hi: "यह पेज उपलब्ध नहीं है।" },
-      },
-    }),
+  res.status(404).json({
+    error: {
+      code: "NOT_FOUND",
+      message: { en: "The requested route was not found.", hi: "यह पेज उपलब्ध नहीं है।" },
+    },
+  }),
 );
 app.use(
   (err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -214,18 +230,16 @@ app.use(
         kind: err instanceof Error ? err.name : "unknown",
       }) + "\n",
     );
-    res
-      .status(500)
-      .json({
-        error: {
-          code: "INTERNAL_ERROR",
-          requestId: id,
-          message: {
-            en: "Something went wrong. Please try again.",
-            hi: "कुछ गड़बड़ हुई। कृपया दोबारा कोशिश करें।",
-          },
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        requestId: id,
+        message: {
+          en: "Something went wrong. Please try again.",
+          hi: "कुछ गड़बड़ हुई। कृपया दोबारा कोशिश करें।",
         },
-      });
+      },
+    });
   },
 );
 if (config.NODE_ENV !== "test")

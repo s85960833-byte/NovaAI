@@ -1,12 +1,187 @@
-import {randomUUID} from "node:crypto";import {Router,type Request,type Response,type NextFunction} from "express";import multer from "multer";import {createClient,type SupabaseClient,type User} from "@supabase/supabase-js";import {config} from "../config.js";import {ALLOWED_UPLOAD_MIME,MAX_UPLOAD_BYTES,validateUpload} from "./validate.js";import {extractPdfText} from "./pdf-text.js";
-type FileRequest=Request&{novaUser?:User;novaClient?:SupabaseClient};const router=Router();const bucket="private-documents";const parser=multer({storage:multer.memoryStorage(),limits:{fileSize:MAX_UPLOAD_BYTES,files:1}});
-function clientForToken(token:string){if(!config.SUPABASE_URL||!config.SUPABASE_ANON_KEY)return null;return createClient(config.SUPABASE_URL,config.SUPABASE_ANON_KEY,{global:{headers:{Authorization:"Bearer "+token}},auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});}
-async function requireUser(req:Request,res:Response,next:NextFunction){const token=req.cookies?.nova_access;if(typeof token!=="string")return res.status(401).json({error:{code:"SESSION_REQUIRED"}});const client=clientForToken(token);if(!client)return res.status(503).json({error:{code:"STORAGE_NOT_CONFIGURED"}});const {data,error}=await client.auth.getUser(token);if(error||!data.user)return res.status(401).json({error:{code:"SESSION_EXPIRED"}});const target=req as FileRequest;target.novaUser=data.user;target.novaClient=client;next();}
-function sameOrigin(req:Request,res:Response,next:NextFunction){const origin=req.header("origin");try{if(!origin||new URL(origin).origin!==new URL(config.APP_BASE_URL).origin)return res.status(403).json({error:{code:"ORIGIN_REJECTED"}});}catch{return res.status(403).json({error:{code:"ORIGIN_REJECTED"}});}next();}
-function parseUpload(req:Request,res:Response,next:NextFunction){parser.single("file")(req,res,error=>{if(error instanceof multer.MulterError){const status=error.code==="LIMIT_FILE_SIZE"?413:400;return res.status(status).json({error:{code:error.code}});}if(error)return res.status(400).json({error:{code:"UPLOAD_PARSE_FAILED"}});next();});}
-const extension:Record<string,string>={"application/pdf":"pdf","image/jpeg":"jpg","image/png":"png","image/webp":"webp","text/plain":"txt"};
-router.post("/upload",sameOrigin,requireUser,parseUpload,async(req,res)=>{const target=req as FileRequest;const file=req.file;if(!target.novaUser||!target.novaClient)return res.status(401).json({error:{code:"SESSION_REQUIRED"}});if(req.body?.consent!=="true")return res.status(400).json({error:{code:"CONSENT_REQUIRED"}});if(!file)return res.status(400).json({error:{code:"FILE_REQUIRED"}});if(!(ALLOWED_UPLOAD_MIME as readonly string[]).includes(file.mimetype))return res.status(415).json({error:{code:"MIME_NOT_ALLOWED"}});const check=validateUpload({mime:file.mimetype,bytes:file.buffer});if(!check.ok)return res.status(check.code==="FILE_TOO_LARGE"?413:400).json({error:{code:check.code}});const userId=target.novaUser.id;const key=userId+"/"+randomUUID()+"."+extension[file.mimetype];const now=new Date();const expires=new Date(now.getTime()+24*60*60*1000);const {error:storageError}=await target.novaClient.storage.from(bucket).upload(key,file.buffer,{contentType:file.mimetype,upsert:false});if(storageError)return res.status(502).json({error:{code:"STORAGE_UPLOAD_FAILED"}});const {data,error}=await target.novaClient.from("files").insert({user_id:userId,kind:file.mimetype.startsWith("image/")?"image":"document",mime:file.mimetype,size_bytes:file.size,storage_key:key,consent_at:now.toISOString(),expires_at:expires.toISOString()}).select("id,kind,mime,size_bytes,expires_at").single();if(error){await target.novaClient.storage.from(bucket).remove([key]);return res.status(502).json({error:{code:"FILE_METADATA_FAILED"}});}return res.status(201).json({ok:true,file:data,expiresInHours:24});});
-router.get("/:id/signed-url",requireUser,async(req,res)=>{const target=req as FileRequest;if(!target.novaUser||!target.novaClient)return res.status(401).json({error:{code:"SESSION_REQUIRED"}});const {data:file,error}=await target.novaClient.from("files").select("storage_key,mime").eq("id",req.params.id).eq("user_id",target.novaUser.id).maybeSingle();if(error||!file)return res.status(404).json({error:{code:"FILE_NOT_FOUND"}});const {data,error:signedError}=await target.novaClient.storage.from(bucket).createSignedUrl(file.storage_key,60);if(signedError||!data)return res.status(502).json({error:{code:"SIGNED_URL_FAILED"}});return res.json({ok:true,url:data.signedUrl,expiresInSeconds:60,mime:file.mime});});
-router.get("/:id/text",requireUser,async(req,res)=>{const target=req as FileRequest;if(!target.novaUser||!target.novaClient)return res.status(401).json({error:{code:"SESSION_REQUIRED"}});const {data:file,error}=await target.novaClient.from("files").select("storage_key,mime,expires_at").eq("id",req.params.id).eq("user_id",target.novaUser.id).maybeSingle();if(error||!file)return res.status(404).json({error:{code:"FILE_NOT_FOUND"}});if(Date.parse(file.expires_at)<=Date.now())return res.status(410).json({error:{code:"FILE_EXPIRED"}});if(file.mime!=="application/pdf"&&file.mime!=="text/plain")return res.status(415).json({error:{code:"TEXT_EXTRACTION_UNSUPPORTED"}});const {data:blob,error:downloadError}=await target.novaClient.storage.from(bucket).download(file.storage_key);if(downloadError||!blob)return res.status(502).json({error:{code:"FILE_DOWNLOAD_FAILED"}});const bytes=new Uint8Array(await blob.arrayBuffer());if(file.mime==="text/plain")return res.json({ok:true,text:new TextDecoder().decode(bytes).slice(0,40000),pages:0,scannedOrEmpty:false});try{const result=await extractPdfText(bytes);if(result.scannedOrEmpty)return res.status(422).json({error:{code:"OCR_NOT_AVAILABLE"},pages:result.pages,scannedOrEmpty:true});return res.json({ok:true,...result});}catch(cause){const code=cause instanceof Error&&cause.message==="PDF_PAGE_LIMIT"?"PDF_PAGE_LIMIT":"PDF_PARSE_FAILED";return res.status(code==="PDF_PAGE_LIMIT"?413:422).json({error:{code}});}});
-router.delete("/:id",sameOrigin,requireUser,async(req,res)=>{const target=req as FileRequest;if(!target.novaUser||!target.novaClient)return res.status(401).json({error:{code:"SESSION_REQUIRED"}});const {data:file,error}=await target.novaClient.from("files").select("storage_key").eq("id",req.params.id).eq("user_id",target.novaUser.id).maybeSingle();if(error||!file)return res.status(404).json({error:{code:"FILE_NOT_FOUND"}});const {error:storageError}=await target.novaClient.storage.from(bucket).remove([file.storage_key]);if(storageError)return res.status(502).json({error:{code:"STORAGE_DELETE_FAILED"}});const {error:rowError}=await target.novaClient.from("files").delete().eq("id",req.params.id).eq("user_id",target.novaUser.id);if(rowError)return res.status(502).json({error:{code:"FILE_METADATA_DELETE_FAILED"}});return res.json({ok:true,deleted:true});});
-export {router as fileRouter};
+import { randomUUID } from "node:crypto";
+import { Router, type Request, type Response, type NextFunction } from "express";
+import multer from "multer";
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { config } from "../config.js";
+import { ALLOWED_UPLOAD_MIME, MAX_UPLOAD_BYTES, validateUpload } from "./validate.js";
+import { extractPdfText } from "./pdf-text.js";
+type FileRequest = Request & { novaUser?: User; novaClient?: SupabaseClient };
+const router = Router();
+const bucket = "private-documents";
+const parser = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 },
+});
+function clientForToken(token: string) {
+  if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) return null;
+  return createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: "Bearer " + token } },
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+}
+async function requireUser(req: Request, res: Response, next: NextFunction) {
+  const token = req.cookies?.nova_access;
+  if (typeof token !== "string")
+    return res.status(401).json({ error: { code: "SESSION_REQUIRED" } });
+  const client = clientForToken(token);
+  if (!client) return res.status(503).json({ error: { code: "STORAGE_NOT_CONFIGURED" } });
+  const { data, error } = await client.auth.getUser(token);
+  if (error || !data.user) return res.status(401).json({ error: { code: "SESSION_EXPIRED" } });
+  const target = req as FileRequest;
+  target.novaUser = data.user;
+  target.novaClient = client;
+  next();
+}
+function sameOrigin(req: Request, res: Response, next: NextFunction) {
+  const origin = req.header("origin");
+  try {
+    if (!origin || new URL(origin).origin !== new URL(config.APP_BASE_URL).origin)
+      return res.status(403).json({ error: { code: "ORIGIN_REJECTED" } });
+  } catch {
+    return res.status(403).json({ error: { code: "ORIGIN_REJECTED" } });
+  }
+  next();
+}
+function parseUpload(req: Request, res: Response, next: NextFunction) {
+  parser.single("file")(req, res, (error) => {
+    if (error instanceof multer.MulterError) {
+      const status = error.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+      return res.status(status).json({ error: { code: error.code } });
+    }
+    if (error) return res.status(400).json({ error: { code: "UPLOAD_PARSE_FAILED" } });
+    next();
+  });
+}
+const extension: Record<string, string> = {
+  "application/pdf": "pdf",
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "text/plain": "txt",
+};
+router.post("/upload", sameOrigin, requireUser, parseUpload, async (req, res) => {
+  const target = req as FileRequest;
+  const file = req.file;
+  if (!target.novaUser || !target.novaClient)
+    return res.status(401).json({ error: { code: "SESSION_REQUIRED" } });
+  if (req.body?.consent !== "true")
+    return res.status(400).json({ error: { code: "CONSENT_REQUIRED" } });
+  if (!file) return res.status(400).json({ error: { code: "FILE_REQUIRED" } });
+  if (!(ALLOWED_UPLOAD_MIME as readonly string[]).includes(file.mimetype))
+    return res.status(415).json({ error: { code: "MIME_NOT_ALLOWED" } });
+  const check = validateUpload({ mime: file.mimetype, bytes: file.buffer });
+  if (!check.ok)
+    return res
+      .status(check.code === "FILE_TOO_LARGE" ? 413 : 400)
+      .json({ error: { code: check.code } });
+  const userId = target.novaUser.id;
+  const key = userId + "/" + randomUUID() + "." + extension[file.mimetype];
+  const now = new Date();
+  const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const { error: storageError } = await target.novaClient.storage
+    .from(bucket)
+    .upload(key, file.buffer, { contentType: file.mimetype, upsert: false });
+  if (storageError) return res.status(502).json({ error: { code: "STORAGE_UPLOAD_FAILED" } });
+  const { data, error } = await target.novaClient
+    .from("files")
+    .insert({
+      user_id: userId,
+      kind: file.mimetype.startsWith("image/") ? "image" : "document",
+      mime: file.mimetype,
+      size_bytes: file.size,
+      storage_key: key,
+      consent_at: now.toISOString(),
+      expires_at: expires.toISOString(),
+    })
+    .select("id,kind,mime,size_bytes,expires_at")
+    .single();
+  if (error) {
+    await target.novaClient.storage.from(bucket).remove([key]);
+    return res.status(502).json({ error: { code: "FILE_METADATA_FAILED" } });
+  }
+  return res.status(201).json({ ok: true, file: data, expiresInHours: 24 });
+});
+router.get("/:id/signed-url", requireUser, async (req, res) => {
+  const target = req as FileRequest;
+  if (!target.novaUser || !target.novaClient)
+    return res.status(401).json({ error: { code: "SESSION_REQUIRED" } });
+  const { data: file, error } = await target.novaClient
+    .from("files")
+    .select("storage_key,mime")
+    .eq("id", req.params.id)
+    .eq("user_id", target.novaUser.id)
+    .maybeSingle();
+  if (error || !file) return res.status(404).json({ error: { code: "FILE_NOT_FOUND" } });
+  const { data, error: signedError } = await target.novaClient.storage
+    .from(bucket)
+    .createSignedUrl(file.storage_key, 60);
+  if (signedError || !data) return res.status(502).json({ error: { code: "SIGNED_URL_FAILED" } });
+  return res.json({ ok: true, url: data.signedUrl, expiresInSeconds: 60, mime: file.mime });
+});
+router.get("/:id/text", requireUser, async (req, res) => {
+  const target = req as FileRequest;
+  if (!target.novaUser || !target.novaClient)
+    return res.status(401).json({ error: { code: "SESSION_REQUIRED" } });
+  const { data: file, error } = await target.novaClient
+    .from("files")
+    .select("storage_key,mime,expires_at")
+    .eq("id", req.params.id)
+    .eq("user_id", target.novaUser.id)
+    .maybeSingle();
+  if (error || !file) return res.status(404).json({ error: { code: "FILE_NOT_FOUND" } });
+  if (Date.parse(file.expires_at) <= Date.now())
+    return res.status(410).json({ error: { code: "FILE_EXPIRED" } });
+  if (file.mime !== "application/pdf" && file.mime !== "text/plain")
+    return res.status(415).json({ error: { code: "TEXT_EXTRACTION_UNSUPPORTED" } });
+  const { data: blob, error: downloadError } = await target.novaClient.storage
+    .from(bucket)
+    .download(file.storage_key);
+  if (downloadError || !blob)
+    return res.status(502).json({ error: { code: "FILE_DOWNLOAD_FAILED" } });
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  if (file.mime === "text/plain")
+    return res.json({
+      ok: true,
+      text: new TextDecoder().decode(bytes).slice(0, 40000),
+      pages: 0,
+      scannedOrEmpty: false,
+    });
+  try {
+    const result = await extractPdfText(bytes);
+    if (result.scannedOrEmpty)
+      return res
+        .status(422)
+        .json({ error: { code: "OCR_NOT_AVAILABLE" }, pages: result.pages, scannedOrEmpty: true });
+    return res.json({ ok: true, ...result });
+  } catch (cause) {
+    const code =
+      cause instanceof Error && cause.message === "PDF_PAGE_LIMIT"
+        ? "PDF_PAGE_LIMIT"
+        : "PDF_PARSE_FAILED";
+    return res.status(code === "PDF_PAGE_LIMIT" ? 413 : 422).json({ error: { code } });
+  }
+});
+router.delete("/:id", sameOrigin, requireUser, async (req, res) => {
+  const target = req as FileRequest;
+  if (!target.novaUser || !target.novaClient)
+    return res.status(401).json({ error: { code: "SESSION_REQUIRED" } });
+  const { data: file, error } = await target.novaClient
+    .from("files")
+    .select("storage_key")
+    .eq("id", req.params.id)
+    .eq("user_id", target.novaUser.id)
+    .maybeSingle();
+  if (error || !file) return res.status(404).json({ error: { code: "FILE_NOT_FOUND" } });
+  const { error: storageError } = await target.novaClient.storage
+    .from(bucket)
+    .remove([file.storage_key]);
+  if (storageError) return res.status(502).json({ error: { code: "STORAGE_DELETE_FAILED" } });
+  const { error: rowError } = await target.novaClient
+    .from("files")
+    .delete()
+    .eq("id", req.params.id)
+    .eq("user_id", target.novaUser.id);
+  if (rowError) return res.status(502).json({ error: { code: "FILE_METADATA_DELETE_FAILED" } });
+  return res.json({ ok: true, deleted: true });
+});
+export { router as fileRouter };
