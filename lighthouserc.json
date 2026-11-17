@@ -74,6 +74,10 @@
           }
         ]
       }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "artifacts/lighthouse"
     }
   }
 }
