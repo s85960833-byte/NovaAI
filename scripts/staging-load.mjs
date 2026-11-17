@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 const base = (process.env.STAGING_URL ?? "https://nova-2-staging.onrender.com").replace(/\/+$/, "");
-const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-async function request(url: string) {
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+async function request(url) {
   const start = performance.now();
   const response = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { "cache-control": "no-cache" } });
   const ms = performance.now() - start;
