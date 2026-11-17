@@ -1,7 +1,78 @@
-import {pgTable,uuid,text,integer,bigint,timestamp,jsonb,boolean,uniqueIndex} from "drizzle-orm/pg-core";
-export const profiles=pgTable("profiles",{id:uuid("id").primaryKey(),displayName:text("display_name"),language:text("language").notNull().default("hi"),theme:text("theme").notNull().default("midnight"),legacyNova1Id:text("legacy_nova1_id"),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),deletedAt:timestamp("deleted_at",{withTimezone:true})},t=>[uniqueIndex("profiles_legacy_id_uidx").on(t.legacyNova1Id)]);
-export const chats=pgTable("chats",{id:uuid("id").primaryKey().defaultRandom(),userId:uuid("user_id").notNull(),title:text("title").notNull(),minister:text("minister").notNull(),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),version:bigint("version",{mode:"number"}).notNull().default(1)});
-export const messages=pgTable("messages",{id:uuid("id").primaryKey().defaultRandom(),chatId:uuid("chat_id").notNull(),userId:uuid("user_id").notNull(),role:text("role").notNull(),content:text("content").notNull(),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()});
-export const ledgerEntries=pgTable("ledger_entries",{id:uuid("id").primaryKey().defaultRandom(),userId:uuid("user_id").notNull(),deltaCredits:bigint("delta_credits",{mode:"number"}).notNull(),reason:text("reason").notNull(),refType:text("ref_type").notNull(),refId:text("ref_id").notNull(),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()},t=>[uniqueIndex("ledger_idempotency_uidx").on(t.userId,t.reason,t.refType,t.refId)]);
-export const usageEvents=pgTable("usage_events",{id:uuid("id").primaryKey().defaultRandom(),userId:uuid("user_id"),feature:text("feature").notNull(),model:text("model").notNull(),inputUnits:bigint("input_units",{mode:"number"}).notNull().default(0),outputUnits:bigint("output_units",{mode:"number"}).notNull().default(0),costPaise:bigint("cost_paise",{mode:"number"}).notNull().default(0),latencyMs:integer("latency_ms").notNull().default(0),ok:boolean("ok").notNull().default(false),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()});
-export const diwanJobs=pgTable("diwan_jobs",{id:uuid("id").primaryKey().defaultRandom(),userId:uuid("user_id").notNull(),kind:text("kind").notNull(),status:text("status").notNull().default("queued"),inputRef:text("input_ref"),outputJson:jsonb("output_json"),pdfKey:text("pdf_key"),creditsCharged:integer("credits_charged").notNull().default(0),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),expiresAt:timestamp("expires_at",{withTimezone:true})});
+import {
+  pgTable,
+  uuid,
+  text,
+  integer,
+  bigint,
+  timestamp,
+  jsonb,
+  boolean,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
+export const profiles = pgTable(
+  "profiles",
+  {
+    id: uuid("id").primaryKey(),
+    displayName: text("display_name"),
+    language: text("language").notNull().default("hi"),
+    theme: text("theme").notNull().default("midnight"),
+    legacyNova1Id: text("legacy_nova1_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  },
+  (t) => [uniqueIndex("profiles_legacy_id_uidx").on(t.legacyNova1Id)],
+);
+export const chats = pgTable("chats", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  title: text("title").notNull(),
+  minister: text("minister").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  version: bigint("version", { mode: "number" }).notNull().default(1),
+});
+export const messages = pgTable("messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  chatId: uuid("chat_id").notNull(),
+  userId: uuid("user_id").notNull(),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const ledgerEntries = pgTable(
+  "ledger_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    deltaCredits: bigint("delta_credits", { mode: "number" }).notNull(),
+    reason: text("reason").notNull(),
+    refType: text("ref_type").notNull(),
+    refId: text("ref_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("ledger_idempotency_uidx").on(t.userId, t.reason, t.refType, t.refId)],
+);
+export const usageEvents = pgTable("usage_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id"),
+  feature: text("feature").notNull(),
+  model: text("model").notNull(),
+  inputUnits: bigint("input_units", { mode: "number" }).notNull().default(0),
+  outputUnits: bigint("output_units", { mode: "number" }).notNull().default(0),
+  costPaise: bigint("cost_paise", { mode: "number" }).notNull().default(0),
+  latencyMs: integer("latency_ms").notNull().default(0),
+  ok: boolean("ok").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const diwanJobs = pgTable("diwan_jobs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(),
+  kind: text("kind").notNull(),
+  status: text("status").notNull().default("queued"),
+  inputRef: text("input_ref"),
+  outputJson: jsonb("output_json"),
+  pdfKey: text("pdf_key"),
+  creditsCharged: integer("credits_charged").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+});

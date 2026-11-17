@@ -1,4 +1,71 @@
-import {z} from "zod";
-export const paperReaderOutputSchema=z.object({document_type:z.string(),confidence:z.number().min(0).max(1),language_detected:z.string(),sender:z.object({name:z.string().nullable(),kind:z.enum(["government","bank","court","utility","school","employer","private","unknown"])}),summary_simple:z.array(z.string()).max(6),key_dates:z.array(z.object({label:z.string(),date_iso:z.string().nullable(),original_text:z.string()})),amounts:z.array(z.object({label:z.string(),value:z.number(),currency:z.literal("INR"),original_text:z.string()})),actions:z.array(z.object({step:z.string(),deadline_iso:z.string().nullable(),priority:z.enum(["high","medium","low"])})),do_not:z.array(z.string()),red_flags:z.array(z.object({flag:z.string(),why:z.string()})),who_to_contact:z.array(z.object({name:z.string(),how:z.string(),source:z.enum(["document","official_contacts"])})),unclear_or_unreadable:z.array(z.string()),disclaimer_key:z.literal("guidance_not_legal_advice")});
-export type PaperReaderOutput=z.infer<typeof paperReaderOutputSchema>;
-export function conservativePaperFallback(documentText:string):PaperReaderOutput{const isHindi=/[\u0900-\u097F]/.test(documentText);return paperReaderOutputSchema.parse({document_type:"unknown",confidence:0.1,language_detected:isHindi?"hi":"unknown",sender:{name:null,kind:"unknown"},summary_simple:["Text was received, but an automatic interpretation is not available in this preview.","Please verify every date, amount and instruction with the issuing organisation."],key_dates:[],amounts:[],actions:[],do_not:["Do not make a payment or miss a deadline based only on this preview."],red_flags:[],who_to_contact:[],unclear_or_unreadable:documentText.trim()?[]:["No readable text was provided."],disclaimer_key:"guidance_not_legal_advice"});}
+import { z } from "zod";
+export const paperReaderOutputSchema = z.object({
+  document_type: z.string(),
+  confidence: z.number().min(0).max(1),
+  language_detected: z.string(),
+  sender: z.object({
+    name: z.string().nullable(),
+    kind: z.enum([
+      "government",
+      "bank",
+      "court",
+      "utility",
+      "school",
+      "employer",
+      "private",
+      "unknown",
+    ]),
+  }),
+  summary_simple: z.array(z.string()).max(6),
+  key_dates: z.array(
+    z.object({ label: z.string(), date_iso: z.string().nullable(), original_text: z.string() }),
+  ),
+  amounts: z.array(
+    z.object({
+      label: z.string(),
+      value: z.number(),
+      currency: z.literal("INR"),
+      original_text: z.string(),
+    }),
+  ),
+  actions: z.array(
+    z.object({
+      step: z.string(),
+      deadline_iso: z.string().nullable(),
+      priority: z.enum(["high", "medium", "low"]),
+    }),
+  ),
+  do_not: z.array(z.string()),
+  red_flags: z.array(z.object({ flag: z.string(), why: z.string() })),
+  who_to_contact: z.array(
+    z.object({
+      name: z.string(),
+      how: z.string(),
+      source: z.enum(["document", "official_contacts"]),
+    }),
+  ),
+  unclear_or_unreadable: z.array(z.string()),
+  disclaimer_key: z.literal("guidance_not_legal_advice"),
+});
+export type PaperReaderOutput = z.infer<typeof paperReaderOutputSchema>;
+export function conservativePaperFallback(documentText: string): PaperReaderOutput {
+  const isHindi = /[\u0900-\u097F]/.test(documentText);
+  return paperReaderOutputSchema.parse({
+    document_type: "unknown",
+    confidence: 0.1,
+    language_detected: isHindi ? "hi" : "unknown",
+    sender: { name: null, kind: "unknown" },
+    summary_simple: [
+      "Text was received, but an automatic interpretation is not available in this preview.",
+      "Please verify every date, amount and instruction with the issuing organisation.",
+    ],
+    key_dates: [],
+    amounts: [],
+    actions: [],
+    do_not: ["Do not make a payment or miss a deadline based only on this preview."],
+    red_flags: [],
+    who_to_contact: [],
+    unclear_or_unreadable: documentText.trim() ? [] : ["No readable text was provided."],
+    disclaimer_key: "guidance_not_legal_advice",
+  });
+}

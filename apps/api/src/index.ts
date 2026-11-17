@@ -1,25 +1,239 @@
-import express from "express";import helmet from "helmet";import rateLimit from "express-rate-limit";import {randomUUID} from "node:crypto";import {dirname,resolve} from "node:path";import {fileURLToPath} from "node:url";
-import {chatMessageSchema,diwanScamSchema,paperReaderSchema,rtiDraftSchema,complaintSchema,walletTopupSchema} from "@nova/shared/schemas";
-import {config} from "./config.js";import {MockWalletLedger} from "./money/ledger.js";import {checkScamText} from "./diwan/scam-check.js";import {conservativePaperFallback} from "./diwan/paper-reader.js";import {buildRtiDraft,buildComplaintDraft} from "./diwan/drafts.js";import {databaseHealth} from "./db/connection.js";
-type RawRequest=express.Request&{rawBody?:Buffer};const app=express();const wallet=new MockWalletLedger();
-app.disable("x-powered-by");app.use(helmet({contentSecurityPolicy:{directives:{"default-src":["'self'"],"base-uri":["'self'"],"frame-ancestors":["'none'"],"object-src":["'none'"],"script-src":["'self'"],"style-src":["'self'","'unsafe-inline'"],"img-src":["'self'","data:","blob:"],"connect-src":["'self'"],"upgrade-insecure-requests":config.NODE_ENV==="production"?[]:null}}}));
-app.use(express.json({limit:"1mb",strict:true,verify:(req,_res,buf)=>{(req as RawRequest).rawBody=Buffer.from(buf);}}));app.use(rateLimit({windowMs:60_000,limit:60,standardHeaders:"draft-8",legacyHeaders:false}));
-app.get("/api/health",async(_req,res)=>{const database=await databaseHealth();return res.status(database.configured&&!database.ok?503:200).json({ok:true,ready:database.ok,service:"nova-api",version:"2.0.0",mode:config.AI_PROVIDER,aiEnabled:config.AI_PROVIDER==="mock"||!config.AI_KILL_SWITCH,mockFeatures:config.MOCK_FEATURES_ENABLED,dependencies:{database,provider:config.AI_PROVIDER},timestamp:new Date().toISOString()});});
-app.get("/health",(_req,res)=>res.redirect(308,"/api/health"));
-app.post("/api/sakha/chat",(req,res)=>{const parsed=chatMessageSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:{code:"INVALID_INPUT"}});const reply=parsed.data.language==="hi"?"यह NOVA 2.0 का सुरक्षित mock preview है। असली AI provider अभी बंद है; इसलिए इसे वास्तविक AI उत्तर न मानें।":"This is a safe NOVA 2.0 mock preview. The real AI provider is disabled, so this is not a live AI answer.";return res.json({ok:true,mode:"mock",reply,chargedCredits:0,stored:false});});
-app.post("/api/diwan/scam-check",(req,res)=>{const parsed=diwanScamSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:{code:"INVALID_INPUT"}});return res.json({ok:true,result:checkScamText(parsed.data.text)});});
-app.post("/api/diwan/paper-reader",(req,res)=>{const parsed=paperReaderSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:{code:"CONSENT_OR_INPUT_INVALID"}});return res.json({ok:true,mode:"conservative-fallback",result:conservativePaperFallback(parsed.data.documentText)});});
-app.post("/api/diwan/rti",(req,res)=>{const parsed=rtiDraftSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:{code:"INVALID_INPUT"}});return res.json({ok:true,draft:buildRtiDraft(parsed.data),notice:"Verify the authority, fee and submission process using the official portal before sending."});});
-app.post("/api/diwan/complaint",(req,res)=>{const parsed=complaintSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:{code:"INVALID_INPUT"}});return res.json({ok:true,draft:buildComplaintDraft(parsed.data),notice:"Verify the correct official filing channel before sending."});});
-app.post("/api/diwan/schemes/match",(_req,res)=>res.json({ok:true,records:[],datasetStatus:"owner_review_pending",message:"No scheme records are published until official sources are verified and reviewed."}));
-function syntheticUser(req:express.Request){const value=req.header("x-nova-synthetic-user")??"";return /^synthetic-[a-z0-9-]{1,40}$/.test(value)?value:null;}
-app.get("/api/wallet/mock",(req,res)=>{if(!config.MOCK_FEATURES_ENABLED)return res.status(404).json({error:{code:"MOCK_WALLET_DISABLED"}});const user=syntheticUser(req);if(!user)return res.status(400).json({error:{code:"SYNTHETIC_USER_REQUIRED"}});return res.json({ok:true,balance:wallet.balance(user),ledger:wallet.ledger(user),mode:"mock-only"});});
-app.post("/api/wallet/mock/orders",(req,res)=>{if(!config.MOCK_FEATURES_ENABLED)return res.status(404).json({error:{code:"MOCK_WALLET_DISABLED"}});const user=syntheticUser(req);if(!user)return res.status(400).json({error:{code:"SYNTHETIC_USER_REQUIRED"}});const parsed=walletTopupSchema.safeParse(req.body);if(!parsed.success)return res.status(400).json({error:{code:"INVALID_PACK"}});return res.status(201).json({ok:true,order:wallet.createOrder(user,parsed.data.packId)});});
-app.post("/api/wallet/mock/webhook",(req,res)=>{if(!config.MOCK_FEATURES_ENABLED)return res.status(404).json({error:{code:"MOCK_WALLET_DISABLED"}});const raw=(req as RawRequest).rawBody;if(!raw)return res.status(400).json({error:{code:"RAW_BODY_REQUIRED"}});try{const result=wallet.processWebhook(raw.toString("utf8"),req.header("x-mock-signature")??"",config.MOCK_WEBHOOK_SECRET);return res.json({ok:true,...result});}catch(error){return res.status(400).json({error:{code:error instanceof Error?error.message:"WEBHOOK_REJECTED"}});}});
-app.post("/api/wallet/mock/simulate",(req,res)=>{if(!config.MOCK_FEATURES_ENABLED)return res.status(404).json({error:{code:"MOCK_WALLET_DISABLED"}});const user=syntheticUser(req);if(!user)return res.status(400).json({error:{code:"SYNTHETIC_USER_REQUIRED"}});const orderId=typeof req.body?.orderId==="string"?req.body.orderId:"";if(!wallet.ownsOrder(user,orderId))return res.status(404).json({error:{code:"ORDER_NOT_FOUND"}});const eventId=typeof req.body?.eventId==="string"?req.body.eventId:"mock-event-"+randomUUID();const type=req.body?.type==="refund.processed"?"refund.processed":req.body?.type==="payment.failed"?"payment.failed":"payment.captured";const raw=JSON.stringify({id:eventId,type,orderId,amountPaise:req.body?.amountPaise});try{const signature=wallet.sign(raw,config.MOCK_WEBHOOK_SECRET);const result=wallet.processWebhook(raw,signature,config.MOCK_WEBHOOK_SECRET);return res.json({ok:true,...result,mode:"mock-only"});}catch(error){return res.status(400).json({error:{code:error instanceof Error?error.message:"MOCK_EVENT_REJECTED"}});}});
-const webRoot=resolve(dirname(fileURLToPath(import.meta.url)),"../../web/dist");app.use(express.static(webRoot,{index:false,fallthrough:true}));
-app.get("*",(req,res,next)=>{if(req.path.startsWith("/api/"))return next();return res.sendFile(resolve(webRoot,"index.html"),error=>{if(error)next(error);});});
-app.use((_req,res)=>res.status(404).json({error:{code:"NOT_FOUND",message:{en:"The requested route was not found.",hi:"यह पेज उपलब्ध नहीं है।"}}}));
-app.use((err:unknown,_req:express.Request,res:express.Response,_next:express.NextFunction)=>{const id=randomUUID();process.stderr.write(JSON.stringify({level:"error",requestId:id,kind:err instanceof Error?err.name:"unknown"})+"\n");res.status(500).json({error:{code:"INTERNAL_ERROR",requestId:id,message:{en:"Something went wrong. Please try again.",hi:"कुछ गड़बड़ हुई। कृपया दोबारा कोशिश करें।"}}});});
-if(config.NODE_ENV!=="test")app.listen(config.API_PORT,"0.0.0.0",()=>process.stdout.write(JSON.stringify({level:"info",event:"api_started",port:config.API_PORT})+"\n"));
-export {app};
+import express from "express";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import { randomUUID } from "node:crypto";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  chatMessageSchema,
+  diwanScamSchema,
+  paperReaderSchema,
+  rtiDraftSchema,
+  complaintSchema,
+  walletTopupSchema,
+} from "@nova/shared/schemas";
+import { config } from "./config.js";
+import { MockWalletLedger } from "./money/ledger.js";
+import { checkScamText } from "./diwan/scam-check.js";
+import { conservativePaperFallback } from "./diwan/paper-reader.js";
+import { buildRtiDraft, buildComplaintDraft } from "./diwan/drafts.js";
+import { databaseHealth } from "./db/connection.js";
+type RawRequest = express.Request & { rawBody?: Buffer };
+const app = express();
+const wallet = new MockWalletLedger();
+app.disable("x-powered-by");
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "default-src": ["'self'"],
+        "base-uri": ["'self'"],
+        "frame-ancestors": ["'none'"],
+        "object-src": ["'none'"],
+        "script-src": ["'self'"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "img-src": ["'self'", "data:", "blob:"],
+        "connect-src": ["'self'"],
+        "upgrade-insecure-requests": config.NODE_ENV === "production" ? [] : null,
+      },
+    },
+  }),
+);
+app.use(
+  express.json({
+    limit: "1mb",
+    strict: true,
+    verify: (req, _res, buf) => {
+      (req as RawRequest).rawBody = Buffer.from(buf);
+    },
+  }),
+);
+app.use(
+  rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: "draft-8", legacyHeaders: false }),
+);
+app.get("/api/health", async (_req, res) => {
+  const database = await databaseHealth();
+  return res
+    .status(database.configured && !database.ok ? 503 : 200)
+    .json({
+      ok: true,
+      ready: database.ok,
+      service: "nova-api",
+      version: "2.0.0",
+      mode: config.AI_PROVIDER,
+      aiEnabled: config.AI_PROVIDER === "mock" || !config.AI_KILL_SWITCH,
+      mockFeatures: config.MOCK_FEATURES_ENABLED,
+      dependencies: { database, provider: config.AI_PROVIDER },
+      timestamp: new Date().toISOString(),
+    });
+});
+app.get("/health", (_req, res) => res.redirect(308, "/api/health"));
+app.post("/api/sakha/chat", (req, res) => {
+  const parsed = chatMessageSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_INPUT" } });
+  const reply =
+    parsed.data.language === "hi"
+      ? "यह NOVA 2.0 का सुरक्षित mock preview है। असली AI provider अभी बंद है; इसलिए इसे वास्तविक AI उत्तर न मानें।"
+      : "This is a safe NOVA 2.0 mock preview. The real AI provider is disabled, so this is not a live AI answer.";
+  return res.json({ ok: true, mode: "mock", reply, chargedCredits: 0, stored: false });
+});
+app.post("/api/diwan/scam-check", (req, res) => {
+  const parsed = diwanScamSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_INPUT" } });
+  return res.json({ ok: true, result: checkScamText(parsed.data.text) });
+});
+app.post("/api/diwan/paper-reader", (req, res) => {
+  const parsed = paperReaderSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: { code: "CONSENT_OR_INPUT_INVALID" } });
+  return res.json({
+    ok: true,
+    mode: "conservative-fallback",
+    result: conservativePaperFallback(parsed.data.documentText),
+  });
+});
+app.post("/api/diwan/rti", (req, res) => {
+  const parsed = rtiDraftSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_INPUT" } });
+  return res.json({
+    ok: true,
+    draft: buildRtiDraft(parsed.data),
+    notice:
+      "Verify the authority, fee and submission process using the official portal before sending.",
+  });
+});
+app.post("/api/diwan/complaint", (req, res) => {
+  const parsed = complaintSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_INPUT" } });
+  return res.json({
+    ok: true,
+    draft: buildComplaintDraft(parsed.data),
+    notice: "Verify the correct official filing channel before sending.",
+  });
+});
+app.post("/api/diwan/schemes/match", (_req, res) =>
+  res.json({
+    ok: true,
+    records: [],
+    datasetStatus: "owner_review_pending",
+    message: "No scheme records are published until official sources are verified and reviewed.",
+  }),
+);
+function syntheticUser(req: express.Request) {
+  const value = req.header("x-nova-synthetic-user") ?? "";
+  return /^synthetic-[a-z0-9-]{1,40}$/.test(value) ? value : null;
+}
+app.get("/api/wallet/mock", (req, res) => {
+  if (!config.MOCK_FEATURES_ENABLED)
+    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+  const user = syntheticUser(req);
+  if (!user) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED" } });
+  return res.json({
+    ok: true,
+    balance: wallet.balance(user),
+    ledger: wallet.ledger(user),
+    mode: "mock-only",
+  });
+});
+app.post("/api/wallet/mock/orders", (req, res) => {
+  if (!config.MOCK_FEATURES_ENABLED)
+    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+  const user = syntheticUser(req);
+  if (!user) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED" } });
+  const parsed = walletTopupSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_PACK" } });
+  return res.status(201).json({ ok: true, order: wallet.createOrder(user, parsed.data.packId) });
+});
+app.post("/api/wallet/mock/webhook", (req, res) => {
+  if (!config.MOCK_FEATURES_ENABLED)
+    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+  const raw = (req as RawRequest).rawBody;
+  if (!raw) return res.status(400).json({ error: { code: "RAW_BODY_REQUIRED" } });
+  try {
+    const result = wallet.processWebhook(
+      raw.toString("utf8"),
+      req.header("x-mock-signature") ?? "",
+      config.MOCK_WEBHOOK_SECRET,
+    );
+    return res.json({ ok: true, ...result });
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ error: { code: error instanceof Error ? error.message : "WEBHOOK_REJECTED" } });
+  }
+});
+app.post("/api/wallet/mock/simulate", (req, res) => {
+  if (!config.MOCK_FEATURES_ENABLED)
+    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+  const user = syntheticUser(req);
+  if (!user) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED" } });
+  const orderId = typeof req.body?.orderId === "string" ? req.body.orderId : "";
+  if (!wallet.ownsOrder(user, orderId))
+    return res.status(404).json({ error: { code: "ORDER_NOT_FOUND" } });
+  const eventId =
+    typeof req.body?.eventId === "string" ? req.body.eventId : "mock-event-" + randomUUID();
+  const type =
+    req.body?.type === "refund.processed"
+      ? "refund.processed"
+      : req.body?.type === "payment.failed"
+        ? "payment.failed"
+        : "payment.captured";
+  const raw = JSON.stringify({ id: eventId, type, orderId, amountPaise: req.body?.amountPaise });
+  try {
+    const signature = wallet.sign(raw, config.MOCK_WEBHOOK_SECRET);
+    const result = wallet.processWebhook(raw, signature, config.MOCK_WEBHOOK_SECRET);
+    return res.json({ ok: true, ...result, mode: "mock-only" });
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ error: { code: error instanceof Error ? error.message : "MOCK_EVENT_REJECTED" } });
+  }
+});
+const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../web/dist");
+app.use(express.static(webRoot, { index: false, fallthrough: true }));
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api/")) return next();
+  return res.sendFile(resolve(webRoot, "index.html"), (error) => {
+    if (error) next(error);
+  });
+});
+app.use((_req, res) =>
+  res
+    .status(404)
+    .json({
+      error: {
+        code: "NOT_FOUND",
+        message: { en: "The requested route was not found.", hi: "यह पेज उपलब्ध नहीं है।" },
+      },
+    }),
+);
+app.use(
+  (err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    const id = randomUUID();
+    process.stderr.write(
+      JSON.stringify({
+        level: "error",
+        requestId: id,
+        kind: err instanceof Error ? err.name : "unknown",
+      }) + "\n",
+    );
+    res
+      .status(500)
+      .json({
+        error: {
+          code: "INTERNAL_ERROR",
+          requestId: id,
+          message: {
+            en: "Something went wrong. Please try again.",
+            hi: "कुछ गड़बड़ हुई। कृपया दोबारा कोशिश करें।",
+          },
+        },
+      });
+  },
+);
+if (config.NODE_ENV !== "test")
+  app.listen(config.API_PORT, "0.0.0.0", () =>
+    process.stdout.write(
+      JSON.stringify({ level: "info", event: "api_started", port: config.API_PORT }) + "\n",
+    ),
+  );
+export { app };

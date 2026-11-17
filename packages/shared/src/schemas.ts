@@ -1,9 +1,44 @@
-import {z} from "zod";
-export const chatMessageSchema=z.object({content:z.string().trim().min(1).max(20_000),language:z.enum(["hi","en","hinglish"]).default("hi")});
-export const diwanScamSchema=z.object({text:z.string().trim().min(8).max(8_000),language:z.enum(["hi","en"]).default("hi")});
-export const rtiDraftSchema=z.object({authority:z.string().trim().min(2).max(200),subject:z.string().trim().min(5).max(500),questions:z.array(z.string().trim().min(5).max(500)).min(1).max(10),period:z.string().max(100).optional(),language:z.enum(["hi","en"]).default("hi")});
-export const complaintSchema=z.object({category:z.enum(["consumer","police","municipal","electricity","bank","telecom","education"]),facts:z.string().trim().min(20).max(5_000),relief:z.string().trim().min(5).max(500),language:z.enum(["hi","en"]).default("hi")});
-export const paperReaderSchema=z.object({documentText:z.string().trim().min(1).max(40_000),language:z.enum(["hi","en"]).default("hi"),consent:z.literal(true)});
-export const walletTopupSchema=z.object({packId:z.enum(["starter","standard","plus"])});
-export const webhookEventSchema=z.object({id:z.string().min(1).max(160),type:z.enum(["payment.captured","payment.failed","refund.processed"]),orderId:z.string().min(1),amountPaise:z.number().int().nonnegative()});
-export type ChatMessageInput=z.infer<typeof chatMessageSchema>;export type PaperReaderInput=z.infer<typeof paperReaderSchema>;
+import { z } from "zod";
+export const chatMessageSchema = z.object({
+  content: z.string().trim().min(1).max(20_000),
+  language: z.enum(["hi", "en", "hinglish"]).default("hi"),
+});
+export const diwanScamSchema = z.object({
+  text: z.string().trim().min(8).max(8_000),
+  language: z.enum(["hi", "en"]).default("hi"),
+});
+export const rtiDraftSchema = z.object({
+  authority: z.string().trim().min(2).max(200),
+  subject: z.string().trim().min(5).max(500),
+  questions: z.array(z.string().trim().min(5).max(500)).min(1).max(10),
+  period: z.string().max(100).optional(),
+  language: z.enum(["hi", "en"]).default("hi"),
+});
+export const complaintSchema = z.object({
+  category: z.enum([
+    "consumer",
+    "police",
+    "municipal",
+    "electricity",
+    "bank",
+    "telecom",
+    "education",
+  ]),
+  facts: z.string().trim().min(20).max(5_000),
+  relief: z.string().trim().min(5).max(500),
+  language: z.enum(["hi", "en"]).default("hi"),
+});
+export const paperReaderSchema = z.object({
+  documentText: z.string().trim().min(1).max(40_000),
+  language: z.enum(["hi", "en"]).default("hi"),
+  consent: z.literal(true),
+});
+export const walletTopupSchema = z.object({ packId: z.enum(["starter", "standard", "plus"]) });
+export const webhookEventSchema = z.object({
+  id: z.string().min(1).max(160),
+  type: z.enum(["payment.captured", "payment.failed", "refund.processed"]),
+  orderId: z.string().min(1),
+  amountPaise: z.number().int().nonnegative(),
+});
+export type ChatMessageInput = z.infer<typeof chatMessageSchema>;
+export type PaperReaderInput = z.infer<typeof paperReaderSchema>;

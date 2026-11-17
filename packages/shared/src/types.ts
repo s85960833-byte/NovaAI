@@ -1,1 +1,4 @@
-export type Locale="hi"|"en";export type Minister="darbar"|"sakha"|"diwan";export type MotionPreference="full"|"reduced"|"off";export type ApiError={code:string;requestId:string;message:{hi:string;en:string}};
+export type Locale = "hi" | "en";
+export type Minister = "darbar" | "sakha" | "diwan";
+export type MotionPreference = "full" | "reduced" | "off";
+export type ApiError = { code: string; requestId: string; message: { hi: string; en: string } };
