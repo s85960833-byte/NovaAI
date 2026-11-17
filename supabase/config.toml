@@ -11,6 +11,13 @@ major_version = 17
 [studio]
 enabled = true
 port = 54323
+[storage]
+enabled = true
+file_size_limit = "8MiB"
+[storage.buckets.private-documents]
+public = false
+file_size_limit = "8MiB"
+allowed_mime_types = ["application/pdf", "image/jpeg", "image/png", "image/webp", "text/plain"]
 [auth]
 enabled = true
 site_url = "http://localhost:4173"
@@ -18,3 +25,9 @@ additional_redirect_urls = ["http://localhost:4173/**"]
 [auth.email]
 enable_signup = true
 enable_confirmations = true
+[functions.delete-account]
+verify_jwt = true
+[functions.export-account]
+verify_jwt = true
+[functions.expire-files]
+verify_jwt = false
