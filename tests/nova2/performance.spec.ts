@@ -1,6 +1,8 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
+test.use({ trace: "off", screenshot: "off", video: "off" });
+
 type Scenario = {
   p50Ms: number;
   p95Ms: number;
@@ -36,6 +38,17 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
   const sample = async (name: string) => {
     const frames = await page.evaluate(async () => {
       const values: number[] = [];
+      const longTasks: number[] = [];
+      let observer: PerformanceObserver | undefined;
+      if (
+        typeof PerformanceObserver !== "undefined" &&
+        PerformanceObserver.supportedEntryTypes?.includes("longtask")
+      ) {
+        observer = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) longTasks.push(entry.duration);
+        });
+        observer.observe({ type: "longtask", buffered: true });
+      }
       let previous = 0;
       await new Promise<void>((resolve) => {
         const tick = (now: number) => {
@@ -46,10 +59,12 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
         };
         requestAnimationFrame(tick);
       });
-      return values;
+      observer?.disconnect();
+      return { values, longTasks };
     });
 
-    const sorted = [...frames].sort((a, b) => a - b);
+    const { values: intervals, longTasks } = frames;
+    const sorted = [...intervals].sort((a, b) => a - b);
     const percentile = (p: number) =>
       sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * p) - 1)] ?? 0;
     const p50Ms = Number(percentile(0.5).toFixed(2));
@@ -69,7 +84,11 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
       budgetMs: Number(budgetMs.toFixed(2)),
       droppedFrames,
       droppedPercent,
-      samples: frames.length,
+      samples: intervals.length,
+      maxFrameMs: Number(Math.max(...intervals).toFixed(2)),
+      overBudgetIntervals: intervals.filter((ms) => ms > budgetMs).length,
+      longTaskCount: longTasks.length,
+      maxLongTaskMs: Number(Math.max(...longTasks, 0).toFixed(2)),
       pass: p95Ms <= budgetMs && droppedPercent <= 5,
     };
   };
@@ -78,6 +97,8 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
   await expect(page.locator(".minister-card.diwan")).toBeVisible();
   const skip = page.locator(".skip");
   if (await skip.isVisible().catch(() => false)) await skip.click({ force: true });
+  await expect(page.locator(".intro")).toHaveCount(0);
+  await page.waitForTimeout(300);
   await sample("darbar-idle");
 
   const drawerMeasurement = sample("drawer-open");
@@ -124,6 +145,9 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
         p50: item.p50Ms,
         p95: item.p95Ms,
         dropped: item.droppedFrames,
+        overBudget: item.overBudgetIntervals,
+        maxFrame: item.maxFrameMs,
+        longTasks: item.longTaskCount,
       })),
   ).toEqual([]);
 });
