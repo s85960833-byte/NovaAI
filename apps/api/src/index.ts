@@ -81,6 +81,7 @@ app.use(
 );
 app.use(cookieParser());
 app.use(
+  "/api",
   rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: "draft-8", legacyHeaders: false }),
 );
 app.use("/api/auth", authRouter);
