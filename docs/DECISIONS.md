@@ -22,3 +22,5 @@
 | 2026-11-17 | Add account-export Edge Function source and retain account-deletion source, but do not deploy either to a hosted Supabase project. | Hosted Auth project is not yet configured; source code alone is not proof of deletion/export. | NOT VERIFIED |
 | 2026-11-17 | Report native refresh-rate estimate and frame p50/p95/drop estimates; do not claim physical 120 FPS. | Browser instrumentation is a lab proxy; target Infinix and true 120 Hz hardware require physical testing. | NOT VERIFIED |
 | 2026-11-17 | Keep marketing materials pre-release and prohibit unverified performance, legal, fraud-detection or official-partner claims. | Trust and safety require explicit caveats and owner review. | PENDING OWNER REVIEW |
+
+| 2026-11-17 | Run the idempotent staging DB migration in the service start command, not Render pre-deploy. | Render Free does not support pre-deploy commands; the app must not require a paid plan. Migration uses CREATE/IF NOT EXISTS and is restricted to `nova2_staging`. | Autonomous safe default |
