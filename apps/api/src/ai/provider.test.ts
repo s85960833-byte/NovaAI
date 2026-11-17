@@ -131,10 +131,14 @@ it("does not obey prompt injection in user content when using the fixed mock pro
   expect(result.text).not.toContain("API secret");
   expect(fetchMock).not.toHaveBeenCalled();
 });
+
 it("fails closed when an upstream AI provider is unavailable", async () => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("unavailable", { status: 503 })));
   const provider = createTextProvider({
-    provider: "openai", killSwitch: false, apiKey: "fixture-secret-only", model: "fixture-model",
+    provider: "openai",
+    killSwitch: false,
+    apiKey: "fixture-secret-only",
+    model: "fixture-model",
   });
   await expect(provider.generate(input)).rejects.toThrow("PROVIDER_REQUEST_FAILED");
 });
