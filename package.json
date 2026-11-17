@@ -23,7 +23,8 @@
     "check:schemes": "node scripts/check-schemes.mjs",
     "evals": "node scripts/run-evals.mjs",
     "audit": "npm audit --audit-level=high",
-    "build": "npm run build --workspace @nova/shared && npm run build --workspace @nova/web && npm run build --workspace @nova/api"
+    "build": "npm run build --workspace @nova/shared && npm run build --workspace @nova/web && npm run build --workspace @nova/api",
+    "db:migrate:staging": "node scripts/migrate-staging.mjs"
   },
   "simple-git-hooks": {
     "pre-commit": "npm run lint && npm run typecheck"
