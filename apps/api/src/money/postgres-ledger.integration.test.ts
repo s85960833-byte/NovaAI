@@ -37,4 +37,17 @@ suite("durable staging mock wallet (synthetic database only)", () => {
     expect(rows.reduce((sum, row) => sum + row.deltaCredits, 0)).toBe(89);
     expect(rows).toHaveLength(4);
   });
+  it("reserves daily global and per-synthetic-user provider budgets atomically", async () => {
+    const actor = "synthetic-spend-" + randomUUID().replaceAll("-", "").slice(0, 20);
+    const first = await reserveProviderSpend(pool, actor, 60, 1, 1);
+    expect(first).toBeTruthy();
+    expect(await reserveProviderSpend(pool, actor, 50, 1, 1)).toBeNull();
+    expect(await settleProviderSpend(pool, first!, 40)).toBe(true);
+    const next = await reserveProviderSpend(pool, actor, 60, 1, 1);
+    expect(next).toBeTruthy();
+    expect(await failProviderSpend(pool, next!)).toBe(true);
+    await expect(reserveProviderSpend(pool, "real-user-id", 1, 1, 1)).rejects.toThrow("SYNTHETIC_ACTOR_REQUIRED");
+    expect(await reserveProviderSpend(pool, actor, 1, 0, 0)).toBeNull();
+  });
+
 });
