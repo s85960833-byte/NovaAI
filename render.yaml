@@ -6,8 +6,7 @@ services:
     region: singapore
     branch: nova-2.0/rebuild
     buildCommand: npm ci --include=dev && npm run build
-    preDeployCommand: npm run db:migrate:staging
-    startCommand: npm run start --workspace @nova/api
+    startCommand: npm run db:migrate:staging && npm run start --workspace @nova/api
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
