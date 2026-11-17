@@ -41,6 +41,28 @@ export function App() {
   }, [locale, theme, motion]);
   useEffect(() => startFrameBudgetMonitor(), []);
   useEffect(() => {
+    let cancelled = false;
+    const prewarmDiwan = () => {
+      if (!cancelled) void import("./DiwanPanel");
+    };
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    let idleHandle: number | undefined;
+    let timeoutHandle: number | undefined;
+    if (idleWindow.requestIdleCallback) {
+      idleHandle = idleWindow.requestIdleCallback(prewarmDiwan, { timeout: 1800 });
+    } else {
+      timeoutHandle = window.setTimeout(prewarmDiwan, 1400);
+    }
+    return () => {
+      cancelled = true;
+      if (idleHandle !== undefined) idleWindow.cancelIdleCallback?.(idleHandle);
+      if (timeoutHandle !== undefined) window.clearTimeout(timeoutHandle);
+    };
+  }, []);
+  useEffect(() => {
     const onOnline = () => setOnline(true);
     const onOffline = () => setOnline(false);
     const onInstall = (event: Event) => {
@@ -106,7 +128,14 @@ export function App() {
         </button>
       </header>
       {intro && (
-        <div className="intro" role="dialog" aria-label="Darbar Pravesh">
+        <div
+          className="intro"
+          role="dialog"
+          aria-label="Darbar Pravesh"
+          onAnimationEnd={(event) => {
+            if (event.animationName === "fade-away") closeIntro();
+          }}
+        >
           <div className="intro-arch">
             <span className="intro-flame">◆</span>
             <strong>NOVA</strong>
