@@ -15,8 +15,11 @@ A separate free project is required. The organization must be explicitly selecte
 8. Open Storage → Buckets → New bucket. Create private-documents, keep it Private, set the file limit to 8 MB and allow PDF, JPEG, PNG, WebP and plain text.
 9. Do not import production data or production migrations.
 
+## Supabase code isolation
+NOVA 2.0 uses the separate supabase-v2/ directory. Existing supabase/ migrations and functions belong to NOVA 1.0 / NOVA Business Intelligence and must not be replayed, edited or deployed by this rebuild. CI runs local Supabase CLI commands from supabase-v2/ only.
+
 ## Render staging
-The branch includes a free-only render.yaml blueprint. Create only a new service named nova-2-staging, branch nova-2.0/rebuild, plan Free, build npm ci && npm run build, start npm run start --workspace @nova/api, health path /api/health. Do not select or edit the production service.
+The branch includes a free-only render.yaml blueprint. Create only a service named nova-2-staging, branch nova-2.0/rebuild, plan Free, build npm ci && npm run build, start npm run start --workspace @nova/api, health path /api/health. Do not select or edit the production service.
 
 ## Environment variables
 Use only the new staging project:
@@ -28,4 +31,4 @@ Use only the new staging project:
 - Edge Function secrets in the new Supabase project only: SUPABASE_SERVICE_ROLE_KEY, PRIVATE_FILE_BUCKET=private-documents, APP_BASE_URL and CRON_SECRET. Never put the service-role key in Render or browser variables.
 
 ## Deployment guard
-Do not run supabase db push, supabase link or any command with --remote until the selected staging project ref has been verified. Current CI uses only local Supabase CLI commands. Production remains read-only.
+Do not run supabase link, supabase db push or any command with --remote until the selected staging project ref has been verified. Current CI uses only local commands from supabase-v2/. Production remains read-only.
