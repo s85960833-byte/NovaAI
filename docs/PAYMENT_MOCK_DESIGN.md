@@ -10,6 +10,8 @@
 - The staging UI simulates capture/refund entirely inside the mock API. It never opens a checkout page or contacts a payment network.
 
 ## Razorpay test-mode design (not connected)
+
+A disconnected contract helper exists at `apps/api/src/money/razorpay-test-design.ts`. It verifies the raw-body HMAC-SHA256 signature and maps captured/failed/refund fixtures while keeping the provider payment ID separate from the internal order ID. Unit tests use synthetic fixture payloads only. It is not mounted as a webhook route and makes no network calls. Refunds still require a server-side provider-payment-to-internal-order lookup before a future integration can safely use the event.
 A future test-only adapter may map a provider test order/payment event into the same validated internal event contract. The server must verify the provider signature against the exact raw request body, fetch/verify the order amount and currency, enforce order ownership, deduplicate provider event IDs, and append a ledger entry in one database transaction. The client must never choose the amount or credit count. Test and live credentials must be separate.
 
 ## Hard boundary
