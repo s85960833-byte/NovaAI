@@ -72,7 +72,6 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
       samples: frames.length,
       pass: p95Ms <= budgetMs && droppedPercent <= 5,
     };
-    expect(scenarios[name].pass, name + " must meet the observed frame budget").toBe(true);
   };
 
   await sample("entry-animation");
@@ -81,13 +80,15 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
   if (await skip.isVisible().catch(() => false)) await skip.click({ force: true });
   await sample("darbar-idle");
 
+  const drawerMeasurement = sample("drawer-open");
   await page.locator(".topbar .icon-button").click();
   await expect(page.locator(".drawer")).toBeVisible();
-  await sample("drawer-open");
+  await drawerMeasurement;
   await page.locator(".drawer-head .icon-button").click();
 
+  const diwanMeasurement = sample("diwan-transition");
   await page.locator(".minister-card.diwan").click();
-  await sample("diwan-transition");
+  await diwanMeasurement;
   await page.evaluate(() =>
     window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }),
   );
@@ -115,7 +116,11 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
     contentType: "application/json",
   });
   expect(Object.values(scenarios).every((item) => item.samples === 90)).toBeTruthy();
-  expect(report.allScenarioBudgetsPass).toBe(true);
+  expect(
+    Object.entries(scenarios)
+      .filter(([, item]) => !item.pass)
+      .map(([name, item]) => ({ name, p50: item.p50Ms, p95: item.p95Ms, dropped: item.droppedFrames })),
+  ).toEqual([]);
 });
 
 test("public /perf page measures cadence and displays a one-screen result", async ({ page }) => {
