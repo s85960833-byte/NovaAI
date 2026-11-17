@@ -36,7 +36,18 @@
   "wallet": {
     "title": "वॉलेट",
     "placeholder": "मालिक की समीक्षा के बाद क्रेडिट यहाँ दिखेंगे।",
-    "notActive": "इस बिल्ड में भुगतान चालू नहीं हैं।"
+    "notActive": "इस बिल्ड में भुगतान चालू नहीं हैं।",
+    "mockOnly": "केवल synthetic test credits। कोई पैसा लिया या भेजा नहीं जाता।",
+    "mockUnavailable": "इस staging service पर mock wallet उपलब्ध नहीं है।",
+    "testPacks": "केवल टेस्ट के लिए credit packs",
+    "mockButton": "Test capture simulate करें",
+    "mockCaptured": "Mock capture स्वीकार हुआ। Synthetic credits जुड़ गए।",
+    "simulateRefund": "Mock refund simulate करें",
+    "mockRefunded": "Mock refund दर्ज हुआ; test credits वापस घटे।",
+    "ledger": "Append-only test ledger",
+    "refresh": "Wallet refresh करें",
+    "noEntries": "अभी ledger में कोई entry नहीं है।",
+    "ownerReview": "मालिक की समीक्षा बाकी: सभी कीमतें placeholder हैं। कोई असली payment gateway जुड़ा नहीं है।"
   },
   "sakha": {
     "title": "सखा",
