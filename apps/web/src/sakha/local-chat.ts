@@ -3,7 +3,7 @@ export type LocalMessage = {
   role: "user" | "assistant";
   content: string;
   createdAt: string;
-  mode?: "mock" | "local";
+  mode?: "mock" | "local" | "live";
 };
 export type LocalChat = { id: string; title: string; updatedAt: string; messages: LocalMessage[] };
 export const CHAT_STORAGE_KEY = "nova2_chats_v1";
