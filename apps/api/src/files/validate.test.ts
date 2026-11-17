@@ -38,7 +38,8 @@ it("rejects spoofed MIME headers and binary payloads disguised as plain text", (
       bytes: new TextEncoder().encode("%PDF-1.7"),
     }),
   ).toEqual({ ok: false, code: "CONTENT_MISMATCH" });
-  expect(
-    validateUpload({ mime: "text/plain", bytes: new Uint8Array([0, 1, 2, 3]) }),
-  ).toEqual({ ok: false, code: "CONTENT_MISMATCH" });
+  expect(validateUpload({ mime: "text/plain", bytes: new Uint8Array([0, 1, 2, 3]) })).toEqual({
+    ok: false,
+    code: "CONTENT_MISMATCH",
+  });
 });
