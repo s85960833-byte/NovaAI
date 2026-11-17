@@ -22,4 +22,4 @@ if (errors.length) {
   console.error(errors.join("\n"));
   process.exit(1);
 }
-console.log("scheme validation: PASS (" + files.length + " files)");
+process.stdout.write("scheme validation: PASS (" + files.length + " files)\\n");
