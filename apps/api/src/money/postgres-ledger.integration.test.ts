@@ -84,12 +84,7 @@ suite("durable staging mock wallet (synthetic database only)", () => {
   it("accepts delayed capture after payment.failed, ignores late failure and deduplicates concurrent delivery", async () => {
     const user = newUser();
     const order = await wallet.createOrder(user, "starter");
-    const failed = webhook(
-      "failed-" + randomUUID(),
-      "payment.failed",
-      order.id,
-      order.amountPaise,
-    );
+    const failed = webhook("failed-" + randomUUID(), "payment.failed", order.id, order.amountPaise);
     expect((await wallet.processWebhook(failed.raw, failed.signature, secret)).balance).toBe(0);
 
     const delayedCapture = webhook(
