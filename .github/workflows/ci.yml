@@ -30,7 +30,7 @@ jobs:
           mkdir -p supabase-v2/migrations
           if ! compgen -G "supabase-v2/migrations/*_nova2_initial.sql" > /dev/null; then
             (cd supabase-v2 && supabase migration new nova2_initial)
-            generated=$(find supabase-v2/migrations -maxdepth 1 -name '*_nova2_initial.sql' -print -quit)
+            generated=$(find supabase-v2/supabase/migrations -maxdepth 1 -name '*_nova2_initial.sql' -print -quit)
             test -n "$generated"
             cp supabase-v2/schema.sql "$generated"
           fi
