@@ -6,14 +6,14 @@ async function request(url) {
   const response = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { "cache-control": "no-cache" } });
   const ms = performance.now() - start;
   if (!response.ok) throw new Error("HTTP_" + response.status + "_" + url);
-  if (url.endsWith("/api/health")) { const body = await response.json() as { ok?: boolean; ready?: boolean }; if (!body.ok || !body.ready) throw new Error("STAGING_NOT_READY"); }
+  if (url.endsWith("/api/health")) { const body = await response.json(); if (!body.ok || !body.ready) throw new Error("STAGING_NOT_READY"); }
   else if (!(await response.text()).includes("NOVA")) throw new Error("STAGING_HTML_INVALID");
   return ms;
 }
 let ready = false;
 for (let attempt = 0; attempt < 12; attempt++) { try { await request(base + "/api/health"); ready = true; break; } catch { await pause(5000); } }
 if (!ready) throw new Error("STAGING_HEALTH_WARMUP_FAILED");
-const timings: number[] = []; const errors: string[] = [];
+const timings = []; const errors = [];
 await Promise.all(Array.from({ length: 3 }, async (_, worker) => {
   for (let round = 0; round < 8; round++) {
     const url = (round + worker) % 2 === 0 ? base + "/api/health" : base + "/";
@@ -21,7 +21,7 @@ await Promise.all(Array.from({ length: 3 }, async (_, worker) => {
   }
 }));
 const sorted = [...timings].sort((a, b) => a - b);
-const pct = (p: number) => sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * p) - 1)] ?? 0;
+const pct = (p) => sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * p) - 1)] ?? 0;
 const report = { target: base, profile: "3 concurrent workers × 8 GET; health/static home only; no writes or user data", requests: 24, succeeded: timings.length, failed: errors.length, p50Ms: Number(pct(0.5).toFixed(1)), p95Ms: Number(pct(0.95).toFixed(1)), maxMs: Number(Math.max(...timings, 0).toFixed(1)), errors, pass: errors.length === 0 && pct(0.95) < 3000, capturedAt: new Date().toISOString() };
 mkdirSync("artifacts", { recursive: true });
 writeFileSync("artifacts/staging-load.json", JSON.stringify(report, null, 2));
