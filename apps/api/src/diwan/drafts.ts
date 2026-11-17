@@ -2,7 +2,7 @@ export function buildRtiDraft(input: {
   authority: string;
   subject: string;
   questions: string[];
-  period?: string;
+  period?: string | undefined;
   language: "hi" | "en";
 }) {
   const hi = input.language === "hi";
