@@ -1,4 +1,4 @@
-import {useEffect,useMemo,useState} from "react";import {ArrowUpRight,BookOpen,FileText,Globe2,Home,Menu,MessageCircle,Mic,ShieldCheck,Wallet,X} from "lucide-react";
+import {useEffect,useMemo,useState} from "react";import {ArrowUpRight,FileText,Globe2,Home,Menu,MessageCircle,Mic,ShieldCheck,Wallet,X} from "lucide-react";
 import {translate,type Locale} from "../i18n";
 type View="home"|"diwan"|"sakha"|"wallet"|"me";
 export function App(){const [locale,setLocale]=useState<Locale>("hi");const [view,setView]=useState<View>("home");const [drawer,setDrawer]=useState(false);const [theme,setTheme]=useState<"midnight"|"ivory">("midnight");const [motion,setMotion]=useState<"full"|"reduced"|"off">("full");const [intro,setIntro]=useState(!sessionStorage.getItem("nova2-intro-seen"));const [prompt,setPrompt]=useState("");const t=(key:string)=>translate(locale,key);const labels=useMemo(()=>[{id:"home" as const,icon:Home,key:"nav.home"},{id:"diwan" as const,icon:FileText,key:"nav.diwan"},{id:"sakha" as const,icon:MessageCircle,key:"nav.sakha"},{id:"wallet" as const,icon:Wallet,key:"nav.wallet"},{id:"me" as const,icon:Globe2,key:"nav.me"}],[locale]);
