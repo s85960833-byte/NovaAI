@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, FileText, Globe2, Home, Menu, MessageCircle, Wallet, X } from "lucide-react";
 import { translate, type Locale } from "../i18n";
-import { AuthPanel } from "./AuthPanel";
-import { DiwanPanel } from "./DiwanPanel";
-import { WalletPanel } from "./WalletPanel";
-import { SakhaPanel } from "../sakha/SakhaPanel";
+const AuthPanel = lazy(async () => ({ default: (await import("./AuthPanel")).AuthPanel }));
+const DiwanPanel = lazy(async () => ({ default: (await import("./DiwanPanel")).DiwanPanel }));
+const WalletPanel = lazy(async () => ({ default: (await import("./WalletPanel")).WalletPanel }));
+const SakhaPanel = lazy(async () => ({ default: (await import("../sakha/SakhaPanel")).SakhaPanel }));
 import { startFrameBudgetMonitor } from "../perf/frame-budget";
 type View = "home" | "diwan" | "sakha" | "wallet" | "me";
 type InstallPromptEvent = Event & {
@@ -157,9 +157,13 @@ export function App() {
             </section>
           </>
         )}
-        {view === "diwan" && <DiwanPanel locale={locale} />}
-        {view === "sakha" && <SakhaPanel locale={locale} />}
-        {view === "wallet" && <WalletPanel locale={locale} />}
+        {(view === "diwan" || view === "sakha" || view === "wallet") && (
+          <Suspense fallback={<section className="workspace loading-panel" aria-live="polite">{t("common.loading")}</section>}>
+            {view === "diwan" && <DiwanPanel locale={locale} />}
+            {view === "sakha" && <SakhaPanel locale={locale} />}
+            {view === "wallet" && <WalletPanel locale={locale} />}
+          </Suspense>
+        )}
         {view === "me" && (
           <section className="workspace">
             <h1>{t("common.settings")}</h1>
@@ -194,7 +198,9 @@ export function App() {
             <p className="owner-review">
               {t("common.pendingReview")}: icon, final visual style and visible Hindi copy.
             </p>
-            <AuthPanel locale={locale} />
+            <Suspense fallback={<p className="auth-note">{t("common.loading")}</p>}>
+              <AuthPanel locale={locale} />
+            </Suspense>
           </section>
         )}
       </main>
