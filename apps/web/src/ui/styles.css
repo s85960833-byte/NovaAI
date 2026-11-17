@@ -263,6 +263,13 @@ select:focus-visible {
 .bottom-nav button.active {
   color: var(--gold);
 }
+
+.loading-panel {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  color: var(--gold-light);
+}
 .workspace {
   padding: 8px 0;
 }
@@ -435,7 +442,7 @@ select:focus-visible {
   display: grid;
   place-items: center;
   background: #0a0e1f;
-  animation: fade-away 350ms ease 3.1s forwards;
+  animation: fade-away 250ms ease 850ms forwards;
 }
 .intro-arch {
   width: 210px;
@@ -447,7 +454,7 @@ select:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 14px;
-  animation: arch-open 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: arch-open 450ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   color: var(--gold);
 }
 .intro-arch strong {
@@ -455,16 +462,16 @@ select:focus-visible {
     700 36px Georgia,
     serif;
   letter-spacing: 0.15em;
-  animation: rise 500ms ease 1.8s both;
+  animation: rise 250ms ease 180ms both;
 }
 .intro-arch small {
   color: var(--gold-light);
-  animation: rise 400ms ease 2.2s both;
+  animation: rise 220ms ease 280ms both;
 }
 .intro-flame {
   color: var(--saffron);
   font-size: 28px;
-  animation: flame 800ms ease-in-out infinite alternate;
+  animation: flame 500ms ease-in-out 2 alternate;
 }
 .skip {
   position: absolute;
