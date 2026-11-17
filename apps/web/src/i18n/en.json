@@ -1,1 +1,78 @@
-{"app":{"name":"NOVA","tagline":"A court of helpful specialists"},"nav":{"home":"Home","diwan":"Diwan","sakha":"Sakha","wallet":"Wallet","me":"Me"},"home":{"welcome":"Welcome to Darbar","subtitle":"Choose the help you need today.","diwanTitle":"Diwan","diwanDesc":"Understand papers and public services","sakhaTitle":"Sakha","sakhaDesc":"Your everyday Hindi and English assistant","legacyTitle":"Legacy workspaces","legacyDesc":"Your existing Learn, Build and specialist tools stay available here."},"common":{"language":"Language","theme":"Theme","dark":"Midnight","light":"Ivory","settings":"Settings","openMenu":"Open menu","close":"Close","skip":"Skip intro","loading":"Loading","offline":"You are offline. Saved content remains available.","pendingReview":"Pending owner review"},"wallet":{"title":"Wallet","placeholder":"Credits will appear here after owner review.","notActive":"Payments are not active in this build."},"sakha":{"title":"Sakha","placeholder":"Ask in Hindi, English or Hinglish…","send":"Send","voice":"Voice input","attach":"Attach a file","empty":"Start a new conversation."},"diwan":{"title":"Diwan","subtitle":"Clear, practical help with everyday paperwork.","paper":"Read a paper","scam":"Check a suspicious message","rti":"Draft an RTI request","complaint":"Write a complaint","schemes":"Find schemes and scholarships","disclaimer":"This is guidance, not legal advice. Please verify with official sources."},"settings":{"smoothMotion":"Smooth motion","full":"Full","reduced":"Reduced","off":"Off","sound":"Sound","install":"Install NOVA"},"auth":{"title":"Account","email":"Email","password":"Password","signIn":"Sign in","signUp":"Create account","signOut":"Sign out","forgot":"Forgot password?","notConfigured":"Email sign-in is not connected to the isolated staging database yet.","failed":"We could not complete that request. Please check and try again.","checkEmail":"Check your email to confirm your account.","signedIn":"You are signed in.","signedInAs":"Signed in as","signedOut":"You have signed out.","confirmed":"Email confirmed. You can now sign in.","confirmFailed":"Email confirmation could not be completed.","resetSent":"If the account exists, a password reset email will be sent.","updatePassword":"Update password","passwordUpdated":"Your password has been updated."}}
+{
+  "app": { "name": "NOVA", "tagline": "A court of helpful specialists" },
+  "nav": { "home": "Home", "diwan": "Diwan", "sakha": "Sakha", "wallet": "Wallet", "me": "Me" },
+  "home": {
+    "welcome": "Welcome to Darbar",
+    "subtitle": "Choose the help you need today.",
+    "diwanTitle": "Diwan",
+    "diwanDesc": "Understand papers and public services",
+    "sakhaTitle": "Sakha",
+    "sakhaDesc": "Your everyday Hindi and English assistant",
+    "legacyTitle": "Legacy workspaces",
+    "legacyDesc": "Your existing Learn, Build and specialist tools stay available here."
+  },
+  "common": {
+    "language": "Language",
+    "theme": "Theme",
+    "dark": "Midnight",
+    "light": "Ivory",
+    "settings": "Settings",
+    "openMenu": "Open menu",
+    "close": "Close",
+    "skip": "Skip intro",
+    "loading": "Loading",
+    "offline": "You are offline. Saved content remains available.",
+    "pendingReview": "Pending owner review"
+  },
+  "wallet": {
+    "title": "Wallet",
+    "placeholder": "Credits will appear here after owner review.",
+    "notActive": "Payments are not active in this build."
+  },
+  "sakha": {
+    "title": "Sakha",
+    "placeholder": "Ask in Hindi, English or Hinglish…",
+    "send": "Send",
+    "voice": "Voice input",
+    "attach": "Attach a file",
+    "empty": "Start a new conversation."
+  },
+  "diwan": {
+    "title": "Diwan",
+    "subtitle": "Clear, practical help with everyday paperwork.",
+    "paper": "Read a paper",
+    "scam": "Check a suspicious message",
+    "rti": "Draft an RTI request",
+    "complaint": "Write a complaint",
+    "schemes": "Find schemes and scholarships",
+    "disclaimer": "This is guidance, not legal advice. Please verify with official sources."
+  },
+  "settings": {
+    "smoothMotion": "Smooth motion",
+    "full": "Full",
+    "reduced": "Reduced",
+    "off": "Off",
+    "sound": "Sound",
+    "install": "Install NOVA"
+  },
+  "auth": {
+    "title": "Account",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "signOut": "Sign out",
+    "forgot": "Forgot password?",
+    "notConfigured": "Email sign-in is not connected to the isolated staging database yet.",
+    "failed": "We could not complete that request. Please check and try again.",
+    "checkEmail": "Check your email to confirm your account.",
+    "signedIn": "You are signed in.",
+    "signedInAs": "Signed in as",
+    "signedOut": "You have signed out.",
+    "confirmed": "Email confirmed. You can now sign in.",
+    "confirmFailed": "Email confirmation could not be completed.",
+    "resetSent": "If the account exists, a password reset email will be sent.",
+    "updatePassword": "Update password",
+    "passwordUpdated": "Your password has been updated."
+  }
+}
