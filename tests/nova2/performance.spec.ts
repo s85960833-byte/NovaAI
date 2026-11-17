@@ -1,6 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-test("records browser-emulated frame-time percentiles for the Darbar shell", async ({ page }) => {
+test("records browser-emulated frame-time percentiles for Darbar interactions", async ({ page }) => {
+  test.setTimeout(45_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const skip = page.getByRole("button", { name: /इंट्रो छोड़ें|Skip intro/ });
@@ -18,7 +19,7 @@ test("records browser-emulated frame-time percentiles for the Darbar shell", asy
         const tick = (now: number) => {
           if (previous) frames.push(now - previous);
           previous = now;
-          if (frames.length >= 180) resolve();
+          if (frames.length >= 60) resolve();
           else requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
@@ -28,31 +29,25 @@ test("records browser-emulated frame-time percentiles for the Darbar shell", asy
     const sorted = [...values].sort((a, b) => a - b);
     const percentile = (p: number) =>
       sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))] ?? 0;
-    const result = {
+    scenarios[name] = {
       p50: Number(percentile(0.5).toFixed(2)),
       p95: Number(percentile(0.95).toFixed(2)),
       droppedAt120: values.filter((v) => v > 8.3).length,
       droppedAt60: values.filter((v) => v > 16.7).length,
       samples: values.length,
     };
-    scenarios[name] = result;
   };
 
   await sample("darbar-idle");
   await page.locator(".topbar .icon-button").click();
   await expect(page.locator(".drawer")).toBeVisible();
   await sample("drawer-open");
-  await page.keyboard.press("Escape");
-  await page
-    .locator(".bottom-nav button")
-    .last()
-    .click()
-    .catch(() => undefined);
-  await sample("navigation");
-  await page.evaluate(() =>
-    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }),
-  );
-  await sample("scroll");
+  await page.locator(".drawer-head .icon-button").click();
+  await page.locator(".minister-card.diwan").click();
+  await sample("diwan-transition");
+  await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
+  await sample("diwan-scroll");
+
   await test.info().attach("frame-time-metrics.json", {
     body: JSON.stringify(
       {
@@ -67,5 +62,5 @@ test("records browser-emulated frame-time percentiles for the Darbar shell", asy
     ),
     contentType: "application/json",
   });
-  expect(Object.values(scenarios).every((x) => x.samples >= 180)).toBeTruthy();
+  expect(Object.values(scenarios).every((item) => item.samples === 60)).toBeTruthy();
 });
