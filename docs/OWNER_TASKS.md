@@ -59,7 +59,7 @@ Every item is short. All are **PENDING OWNER REVIEW** unless marked NOT VERIFIED
     2. Confirm legal, privacy, security, data migration, backups and physical-device reviews are complete.
     3. Only when ready, type exactly `APPROVE RELEASE` in ChatGPT. No other wording starts Phase 7.
 
-11. **GitHub Actions approval — NOT REQUIRED for current run.** Run #421 started automatically after the CI workflow was changed to read-only repository permissions. The `checks` job passed; the `database` job is running. No owner action is currently requested.
+11. **GitHub Actions approval — NOT REQUIRED for CI #513.** The checks, database and staging-smoke jobs completed successfully without manual approval.
 
 12. **NOVA live performance check — PENDING OWNER REVIEW (about 1 minute).**
     1. Open https://nova-2-staging.onrender.com/perf in Chrome on your phone.
@@ -71,3 +71,24 @@ Every item is short. All are **PENDING OWNER REVIEW** unless marked NOT VERIFIED
     1. Follow the exact 10 steps and sample inputs in `docs/PHONE_TEST.md`.
     2. Use only synthetic samples and built-in mock wallet controls.
     3. Attach the `/perf` screenshot and any UI issue to PR #103.
+
+
+14. **Staging rollback rehearsal — PENDING OWNER REVIEW (about 2 minutes of Dashboard clicks; target recovery under 5 minutes).**
+    1. Open Render Dashboard → `nova-2-staging` → Events / Deploys: https://dashboard.render.com/web/srv-dbu3b63l550s739qet70.
+    2. Select the previous known-good staging deployment listed in `docs/runbooks/rollback.md` (at report time: `dep-dbu760jrjlhs73af6190`).
+    3. Use Render's Rollback action if shown. Do not change Production or `main`.
+    4. Record the elapsed time from click to Live; target under 5 minutes.
+    5. Verify https://nova-2-staging.onrender.com/api/health returns HTTP 200 and run synthetic Sakha/Diwan/mock-wallet smoke checks.
+    6. Attach timestamp, resulting deploy ID/SHA, health proof and screenshot to PR #103. The rehearsal is not yet performed.
+
+15. **Latest staging source and public /perf route — PENDING OWNER REVIEW (about 1 minute).**
+    1. Open Render Dashboard → `nova-2-staging` → Events / Deploys.
+    2. Confirm deployed SHA matches the PR #103 branch head.
+    3. Open https://nova-2-staging.onrender.com/perf; keep it foregrounded for the 5-second sample.
+    4. Screenshot observed cadence, p50/p95 and dropped frames; note phone/browser version. This is browser timing, not proof of panel hardware refresh.
+
+16. **Hosted account export/delete — PENDING OWNER REVIEW (about 2 minutes to choose a Free test project).**
+    1. Create or select a separate Free Supabase test project; never use production project `qrfwsewppafhxibdboam`.
+    2. Configure only that test project's Auth and Storage credentials in staging secrets.
+    3. Test hosted account export/download and deletion/storage erasure using synthetic account fixtures only; do not import production data.
+    4. Keep this task open until endpoint responses and uploaded-object erasure are evidenced.
