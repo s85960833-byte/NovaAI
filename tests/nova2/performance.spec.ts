@@ -17,7 +17,9 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
 }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => sessionStorage.clear());
   await page.goto("/?perf=1");
+  await expect(page.locator(".intro")).toBeVisible({ timeout: 3000 });
 
   const scenarios: Record<string, Scenario> = {};
   const sample = async (name: string) => {
@@ -42,7 +44,7 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
     const p50Ms = Number(percentile(0.5).toFixed(2));
     const p95Ms = Number(percentile(0.95).toFixed(2));
     const refreshEstimateHz = p50Ms <= 9.5 ? 120 : p50Ms <= 13.8 ? 90 : 60;
-    const budgetMs = 1000 / refreshEstimateHz;
+    const budgetMs = Number((1000 / refreshEstimateHz).toFixed(1));
     const droppedFrames = frames.reduce(
       (total, ms) => total + (ms > budgetMs * 1.5 ? Math.max(1, Math.round(ms / budgetMs) - 1) : 0),
       0,
@@ -59,6 +61,7 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
       samples: frames.length,
       pass: p95Ms <= budgetMs && droppedPercent <= 5,
     };
+    expect(scenarios[name].pass, name + " must meet the observed frame budget").toBe(true);
   };
 
   await expect(page.locator(".minister-card.diwan")).toBeVisible();
@@ -108,6 +111,7 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
     contentType: "application/json",
   });
   expect(Object.values(scenarios).every((item) => item.samples === 90)).toBeTruthy();
+  expect(report.allScenarioBudgetsPass).toBe(true);
 });
 
 test("public /perf page measures cadence and displays a one-screen result", async ({ page }) => {
