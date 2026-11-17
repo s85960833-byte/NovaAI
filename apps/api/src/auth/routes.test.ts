@@ -215,7 +215,10 @@ describe("auth routes", () => {
     expect(response.headers.get("set-cookie")).toContain("Expires=Thu, 01 Jan 1970 00:00:00 GMT");
   });
   it("rejects confirmation provider errors", async () => {
-    mocks.auth.verifyOtp.mockResolvedValueOnce({ data: { session: null }, error: new Error("bad token") });
+    mocks.auth.verifyOtp.mockResolvedValueOnce({
+      data: { session: null },
+      error: new Error("bad token"),
+    });
     const response = await request("POST", "/api/auth/confirm", {
       token_hash: "12345678901234567890",
       type: "email",
@@ -245,5 +248,4 @@ describe("auth routes", () => {
     expect(response.status).toBe(200);
     expect(mocks.auth.signOut).not.toHaveBeenCalled();
   });
-
 });

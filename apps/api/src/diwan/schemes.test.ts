@@ -65,6 +65,10 @@ it("filters mismatched state, tags, age and income", () => {
 it("filters eligibility state lists and malformed verification dates", () => {
   const stateMismatch = matchSchemes([base], { state: "Bihar" }, new Date("2026-11-17"));
   expect(stateMismatch.records).toHaveLength(0);
-  const malformed = matchSchemes([{ ...base, last_verified: "not-a-date" }], {}, new Date("2026-11-17"));
+  const malformed = matchSchemes(
+    [{ ...base, last_verified: "not-a-date" }],
+    {},
+    new Date("2026-11-17"),
+  );
   expect(malformed.records).toHaveLength(0);
 });

@@ -64,10 +64,18 @@ describe("provider spend guard", () => {
 
   it("accepts a verified UUID actor but rejects untrusted actor IDs", async () => {
     const { pool } = fakePool();
-    expect(await reserveProviderSpend(pool, "123e4567-e89b-12d3-a456-426614174000", 1, 1, 1)).toBeTruthy();
-    await expect(reserveProviderSpend(pool, "real-user-id", 1, 1, 1)).rejects.toThrow("ACTOR_ID_REQUIRED");
-    await expect(reserveProviderSpend(pool, "synthetic-user-1", -1, 1, 1)).rejects.toThrow("INVALID_ESTIMATE");
-    await expect(reserveProviderSpend(pool, "synthetic-user-1", 1.5, 1, 1)).rejects.toThrow("INVALID_ESTIMATE");
+    expect(
+      await reserveProviderSpend(pool, "123e4567-e89b-12d3-a456-426614174000", 1, 1, 1),
+    ).toBeTruthy();
+    await expect(reserveProviderSpend(pool, "real-user-id", 1, 1, 1)).rejects.toThrow(
+      "ACTOR_ID_REQUIRED",
+    );
+    await expect(reserveProviderSpend(pool, "synthetic-user-1", -1, 1, 1)).rejects.toThrow(
+      "INVALID_ESTIMATE",
+    );
+    await expect(reserveProviderSpend(pool, "synthetic-user-1", 1.5, 1, 1)).rejects.toThrow(
+      "INVALID_ESTIMATE",
+    );
     expect(await reserveProviderSpend(pool, "synthetic-user-1", 1, 0, 1)).toBeNull();
     expect(await reserveProviderSpend(pool, "synthetic-user-1", 1, 1, 0)).toBeNull();
   });
@@ -87,7 +95,9 @@ describe("provider spend guard", () => {
 
   it("rolls back failed inserts and releases the client", async () => {
     const { pool, client } = fakePool(undefined, true);
-    await expect(reserveProviderSpend(pool, "synthetic-user-1", 10, 1, 1)).rejects.toThrow("DB_WRITE_FAILED");
+    await expect(reserveProviderSpend(pool, "synthetic-user-1", 10, 1, 1)).rejects.toThrow(
+      "DB_WRITE_FAILED",
+    );
     expect(client.query).toHaveBeenCalledWith("rollback");
     expect(client.release).toHaveBeenCalledOnce();
   });
