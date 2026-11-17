@@ -113,7 +113,9 @@
     "reduced": "Reduced",
     "off": "Off",
     "sound": "Sound",
-    "install": "Install NOVA"
+    "install": "Install NOVA",
+    "installNow": "Install app",
+    "installInstructions": "On iPhone: Share → Add to Home Screen. On Android: browser menu → Install app."
   },
   "auth": {
     "title": "Account",
