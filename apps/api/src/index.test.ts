@@ -12,12 +12,12 @@ describe("health route", () => {
       const body = (await response.json()) as {
         ok: boolean;
         service: string;
-        dependencies: { database: string };
+        dependencies: { database: { configured: boolean; ok: boolean } };
       };
       expect(response.status).toBe(200);
       expect(body.ok).toBe(true);
       expect(body.service).toBe("nova-api");
-      expect(body.dependencies.database).toBe("not-configured");
+      expect(body.dependencies.database).toEqual({ configured: false, ok: false });
     } finally {
       await new Promise<void>((resolve, reject) =>
         server.close((error) => (error ? reject(error) : resolve())),
