@@ -54,8 +54,7 @@ test("records browser-emulated frame-time percentiles for Darbar interactions", 
   await sample("diwan-scroll");
 
   const report = {
-    environment:
-      "Playwright Chromium CI; browser-emulated, refresh rate not physically verified",
+    environment: "Playwright Chromium CI; browser-emulated, refresh rate not physically verified",
     budgetsMs: { hz120: 8.3, hz90: 11.1, hz60: 16.7 },
     scenarios,
     appMonitor: await page.evaluate(() => ({
