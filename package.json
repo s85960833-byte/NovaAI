@@ -12,8 +12,8 @@
   "scripts": {
     "prepare": "simple-git-hooks",
     "typecheck": "npm run build --workspace @nova/shared && npm run typecheck --workspaces --if-present",
-    "lint": "eslint apps packages scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/check-bundle-budget.mjs",
-    "format:check": "prettier --check apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/run-real-provider-evals.mjs scripts/check-bundle-budget.mjs tests/nova2 vitest.config.ts playwright.config.ts",
+    "lint": "eslint apps packages scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/check-bundle-budget.mjs scripts/staging-load.mjs",
+    "format:check": "prettier --check apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/run-real-provider-evals.mjs scripts/check-bundle-budget.mjs scripts/staging-load.mjs tests/nova2 vitest.config.ts playwright.config.ts",
     "test": "vitest run --coverage",
     "test:e2e": "playwright test",
     "lighthouse": "lhci autorun --config=lighthouserc.json",
@@ -26,7 +26,9 @@
     "build": "npm run build --workspace @nova/shared && npm run build --workspace @nova/web && npm run build --workspace @nova/api",
     "db:migrate:staging": "node scripts/migrate-staging.mjs",
     "test:db": "vitest run apps/api/src/money/postgres-ledger.integration.test.ts",
-    "evals:real": "npm run build --workspace @nova/api && node scripts/run-real-provider-evals.mjs"
+    "evals:real": "npm run build --workspace @nova/api && node scripts/run-real-provider-evals.mjs",
+    "test:staging:load": "node scripts/staging-load.mjs",
+    "test:a11y": "playwright test tests/nova2/accessibility.spec.ts"
   },
   "simple-git-hooks": {
     "pre-commit": "npm run lint && npm run typecheck"
