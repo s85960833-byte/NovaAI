@@ -51,6 +51,15 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - name: Upload browser evidence even when E2E fails
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nova2-playwright-evidence
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
       - run: npm run check:bundle
       - run: npm run lighthouse
   database:
