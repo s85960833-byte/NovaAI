@@ -38,6 +38,7 @@ INSERT INTO public.diwan_jobs(user_id,kind,status,input_ref,output_json) VALUES
 
 -- Export reads performed as an authenticated owner must see only that owner's rows.
 SELECT set_config('request.jwt.claim.sub', :'user_a', true);
+SELECT set_config('nova2.test.user_b', :'user_b', true);
 SET LOCAL ROLE authenticated;
 DO $$
 DECLARE n integer;
@@ -64,7 +65,7 @@ BEGIN
     RAISE EXCEPTION 'EXPORT_LEAKED_OTHER_USER_MESSAGE';
   END IF;
   BEGIN
-    INSERT INTO public.chats(user_id,title) VALUES (current_setting('request.jwt.claim.sub')::uuid + interval '0 seconds','unauthorized');
+    INSERT INTO public.chats(user_id,title) VALUES (current_setting('nova2.test.user_b')::uuid,'unauthorized');
     RAISE EXCEPTION 'RLS_CROSS_USER_WRITE_WAS_NOT_BLOCKED';
   EXCEPTION WHEN insufficient_privilege THEN
     NULL;
