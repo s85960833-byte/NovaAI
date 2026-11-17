@@ -136,3 +136,64 @@ test("Diwan RTI draft uses only supplied facts and includes a verification notic
   );
   await expect(page.locator(".diwan-result")).toContainText(/कानूनी सलाह नहीं|verify/i);
 });
+
+
+test("synthetic wallet enforces owner isolation and blocks foreign order simulation", async ({ request }) => {
+  const missing = await request.get("/api/wallet/mock");
+  expect(missing.status()).toBe(400);
+
+  const userA = "synthetic-auth-a";
+  const userB = "synthetic-auth-b";
+  const orderResponse = await request.post("/api/wallet/mock/orders", {
+    headers: { "x-nova-synthetic-user": userA },
+    data: { packId: "starter" },
+  });
+  expect(orderResponse.status()).toBe(201);
+  const orderBody = await orderResponse.json();
+  const order = orderBody.order as { id: string; amountPaise: number };
+
+  const before = await request.get("/api/wallet/mock", {
+    headers: { "x-nova-synthetic-user": userB },
+  });
+  expect(before.ok()).toBeTruthy();
+  expect((await before.json()).balance).toBe(0);
+
+  const foreignCapture = await request.post("/api/wallet/mock/simulate", {
+    headers: { "x-nova-synthetic-user": userB },
+    data: {
+      orderId: order.id,
+      amountPaise: order.amountPaise,
+      type: "payment.captured",
+      eventId: "foreign-event-" + crypto.randomUUID(),
+    },
+  });
+  expect(foreignCapture.status()).toBe(404);
+
+  const ownerCapture = await request.post("/api/wallet/mock/simulate", {
+    headers: { "x-nova-synthetic-user": userA },
+    data: {
+      orderId: order.id,
+      amountPaise: order.amountPaise,
+      type: "payment.captured",
+      eventId: "owner-event-" + crypto.randomUUID(),
+    },
+  });
+  expect(ownerCapture.ok()).toBeTruthy();
+  expect((await ownerCapture.json()).balance).toBe(49);
+
+  const after = await request.get("/api/wallet/mock", {
+    headers: { "x-nova-synthetic-user": userB },
+  });
+  expect((await after.json()).balance).toBe(0);
+});
+
+test("account and upload endpoints fail closed when hosted Auth is not configured", async ({ request }) => {
+  const session = await request.get("/api/auth/session");
+  expect(session.status()).toBe(503);
+  const upload = await request.post("/api/files/upload", {
+    headers: { origin: "http://localhost:4173" },
+    multipart: { consent: "true" },
+  });
+  expect(upload.status()).toBe(401);
+  expect((await upload.json()).error.code).toBe("SESSION_REQUIRED");
+});
