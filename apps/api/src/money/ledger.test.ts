@@ -26,7 +26,7 @@ describe("mock append-only wallet", () => {
     const raw = rawEvent("evt-2", "payment.captured", order.id, order.amountPaise);
     expect(() => wallet.processWebhook(raw, "00", secret)).toThrow("INVALID_SIGNATURE");
     expect(() => wallet.processWebhook("{", wallet.sign("{", secret), secret)).toThrow(
-      "INVALID_EVENT",
+      "INVALID_JSON",
     );
     expect(() =>
       wallet.processWebhook("not-json", wallet.sign("not-json", secret), secret),
