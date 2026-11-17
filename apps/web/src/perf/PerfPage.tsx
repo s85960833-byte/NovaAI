@@ -22,12 +22,9 @@ function percentile(values: number[], p: number) {
 function measureCadence(frames: number[]): Result {
   const median = percentile(frames, 50);
   const refreshRate: RefreshRate = median <= 9.5 ? 120 : median <= 13.8 ? 90 : 60;
-  const budgetMs = Number((1000 / refreshRate).toFixed(1));
+  const budgetMs = 1000 / refreshRate;
   const droppedFrames = frames.reduce((total, frame) => {
-    return (
-      total +
-      (frame > budgetMs * 1.5 ? Math.max(1, Math.round(frame / budgetMs) - 1) : 0)
-    );
+    return total + (frame > budgetMs * 1.5 ? Math.max(1, Math.round(frame / budgetMs) - 1) : 0);
   }, 0);
   const droppedPercent = frames.length ? (droppedFrames / frames.length) * 100 : 100;
   const p50Ms = percentile(frames, 50);
@@ -56,8 +53,7 @@ export function PerfPage() {
       screen: String(window.screen.width) + " × " + String(window.screen.height),
       dpr: window.devicePixelRatio || 1,
       cores: navigator.hardwareConcurrency || "unknown",
-      memory:
-        (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? "unknown",
+      memory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? "unknown",
     }),
     [],
   );
