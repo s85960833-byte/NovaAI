@@ -109,7 +109,7 @@ export class HttpTextProvider implements TextProvider {
   }
 }
 export function createTextProvider(options: {
-  provider: ProviderName; killSwitch: boolean; apiKey?: string; model?: string;
+  provider: ProviderName; killSwitch: boolean; apiKey?: string | undefined; model?: string | undefined;
 }): TextProvider {
   if (options.provider === "mock") return new MockTextProvider();
   if (options.killSwitch || options.provider === "disabled") return new DisabledTextProvider();
