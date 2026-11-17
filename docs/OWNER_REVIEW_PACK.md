@@ -14,4 +14,4 @@ All items are non-blocking while building. Each is **PENDING OWNER REVIEW** and 
 10. **Payment/refund wording — PENDING OWNER REVIEW.** Razorpay test-mode design is not connected to a real account. Refund, cancellation, GST/invoice and digital-service compliance need adult/professional review.
 11. **Physical devices — PENDING OWNER REVIEW.** Infinix X6873 Android 16, actual 120 Hz, Chrome Android, Samsung Internet and iOS Safari remain NOT VERIFIED until tested.
 12. **Accessibility — PENDING OWNER REVIEW.** Native speaker, screen-reader, keyboard, contrast and WCAG 2.2 AA review remain open.
-13. **Launch assets — PENDING OWNER REVIEW.** Landing page, marketing kit and short-video scripts are not yet built; not a technical Phase 1–6 release blocker.
+13. **Launch assets — PENDING OWNER REVIEW.** The pre-release `docs/MARKETING_KIT.md` is prepared. Logo export sizes, Open Graph image, screenshots, short-video production and public landing/store assets remain outstanding; no publication is authorised.
