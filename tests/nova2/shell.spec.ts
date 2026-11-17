@@ -54,7 +54,7 @@ test("Sakha API identifies mock replies and does not store server-side", async (
 test("mock wallet capture and refund are synthetic and idempotent", async ({ page }) => {
   await enterDarbar(page);
   await page.getByRole("button", { name: "वॉलेट" }).click();
-  await page.getByRole("button", { name: /Test capture|Test capture simulate करें/ }).click();
+  await page.getByRole("button", { name: /Test capture|Test capture simulate करें/ }).first().click();
   await expect(page.locator(".wallet-panel strong")).toContainText("49");
   await page
     .getByRole("button", { name: /Simulate mock refund|Mock refund simulate करें/ })
@@ -64,7 +64,7 @@ test("mock wallet capture and refund are synthetic and idempotent", async ({ pag
 
 test("Diwan scam check returns cautious risk indicators", async ({ page }) => {
   await enterDarbar(page);
-  await page.getByRole("button", { name: "दीवान" }).last().click();
+  await page.locator(".minister-card.diwan").click();
   await page.getByRole("button", { name: /संदिग्ध संदेश जाँचें/ }).click();
   await page.locator("textarea").fill("बैंक खाता बंद होगा। OTP अभी भेजें।");
   await page.getByRole("button", { name: "Preview चलाएँ" }).click();
@@ -74,7 +74,7 @@ test("Diwan scam check returns cautious risk indicators", async ({ page }) => {
 
 test("Diwan Paper Reader keeps uncertainty and requires consent", async ({ page }) => {
   await enterDarbar(page);
-  await page.getByRole("button", { name: "दीवान" }).click();
+  await page.locator(".minister-card.diwan").click();
   await page
     .locator("textarea")
     .first()
