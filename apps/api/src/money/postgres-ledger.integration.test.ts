@@ -18,6 +18,8 @@ suite("durable staging mock wallet (synthetic database only)", () => {
     const duplicate = await wallet.processWebhook(captureRaw, wallet.sign(captureRaw, secret), secret);
     expect(duplicate.duplicate).toBe(true);
     expect(duplicate.balance).toBe(49);
+    const reusedId = JSON.stringify({ id: JSON.parse(captureRaw).id, type: "payment.failed", orderId: starter.id, amountPaise: starter.amountPaise });
+    await expect(wallet.processWebhook(reusedId, wallet.sign(reusedId, secret), secret)).rejects.toThrow("EVENT_ID_REUSE");
     const refundRaw = JSON.stringify({ id: "refund-" + randomUUID(), type: "refund.processed", orderId: starter.id, amountPaise: starter.amountPaise });
     expect((await wallet.processWebhook(refundRaw, wallet.sign(refundRaw, secret), secret)).balance).toBe(0);
     const secondRefund = JSON.stringify({ id: "refund-again-" + randomUUID(), type: "refund.processed", orderId: starter.id, amountPaise: starter.amountPaise });
