@@ -148,24 +148,6 @@ app.post("/api/wallet/mock/orders", (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_PACK" } });
   return res.status(201).json({ ok: true, order: wallet.createOrder(user, parsed.data.packId) });
 });
-app.post("/api/wallet/mock/webhook", (req, res) => {
-  if (!config.MOCK_FEATURES_ENABLED)
-    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
-  const raw = (req as RawRequest).rawBody;
-  if (!raw) return res.status(400).json({ error: { code: "RAW_BODY_REQUIRED" } });
-  try {
-    const result = wallet.processWebhook(
-      raw.toString("utf8"),
-      req.header("x-mock-signature") ?? "",
-      config.MOCK_WEBHOOK_SECRET,
-    );
-    return res.json({ ok: true, ...result });
-  } catch (error) {
-    return res
-      .status(400)
-      .json({ error: { code: error instanceof Error ? error.message : "WEBHOOK_REJECTED" } });
-  }
-});
 app.post("/api/wallet/mock/simulate", (req, res) => {
   if (!config.MOCK_FEATURES_ENABLED)
     return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
