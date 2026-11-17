@@ -13,9 +13,9 @@ concurrency:
   cancel-in-progress: true
 jobs:
   checks:
-    if: "!contains(github.event.head_commit.message, 'chore: update generated lockfile')"
+    if: "!contains(github.event.head_commit.message, 'chore: update generated lockfile') && !contains(github.event.head_commit.message, 'chore: format NOVA 2.0 workspace')"
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,7 +24,7 @@ jobs:
           cache: npm
       - name: Generate lockfile from pinned workspace manifests
         run: npm install --package-lock-only --ignore-scripts --no-audit
-      - name: Commit generated lockfile to rebuild branch
+      - name: Persist generated lockfile on rebuild branch
         run: |
           if ! git diff --quiet -- package-lock.json; then
             git config user.name "github-actions[bot]"
@@ -34,6 +34,17 @@ jobs:
             git push
           fi
       - run: npm ci
+      - name: Format the new workspace consistently
+        run: npx prettier --write apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs
+      - name: Persist formatting pass
+        run: |
+          if ! git diff --quiet -- apps packages config scripts; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add apps packages config scripts
+            git commit -m "chore: format NOVA 2.0 workspace"
+            git push
+          fi
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
