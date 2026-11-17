@@ -1,78 +1,14 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  integer,
-  bigint,
-  timestamp,
-  jsonb,
-  boolean,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
-export const profiles = pgTable(
-  "profiles",
-  {
-    id: uuid("id").primaryKey(),
-    displayName: text("display_name"),
-    language: text("language").notNull().default("hi"),
-    theme: text("theme").notNull().default("midnight"),
-    legacyNova1Id: text("legacy_nova1_id"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  },
-  (t) => [uniqueIndex("profiles_legacy_id_uidx").on(t.legacyNova1Id)],
-);
-export const chats = pgTable("chats", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull(),
-  title: text("title").notNull(),
-  minister: text("minister").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-  version: bigint("version", { mode: "number" }).notNull().default(1),
-});
-export const messages = pgTable("messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  chatId: uuid("chat_id").notNull(),
-  userId: uuid("user_id").notNull(),
-  role: text("role").notNull(),
-  content: text("content").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
-export const ledgerEntries = pgTable(
-  "ledger_entries",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull(),
-    deltaCredits: bigint("delta_credits", { mode: "number" }).notNull(),
-    reason: text("reason").notNull(),
-    refType: text("ref_type").notNull(),
-    refId: text("ref_id").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [uniqueIndex("ledger_idempotency_uidx").on(t.userId, t.reason, t.refType, t.refId)],
-);
-export const usageEvents = pgTable("usage_events", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id"),
-  feature: text("feature").notNull(),
-  model: text("model").notNull(),
-  inputUnits: bigint("input_units", { mode: "number" }).notNull().default(0),
-  outputUnits: bigint("output_units", { mode: "number" }).notNull().default(0),
-  costPaise: bigint("cost_paise", { mode: "number" }).notNull().default(0),
-  latencyMs: integer("latency_ms").notNull().default(0),
-  ok: boolean("ok").notNull().default(false),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
-export const diwanJobs = pgTable("diwan_jobs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull(),
-  kind: text("kind").notNull(),
-  status: text("status").notNull().default("queued"),
-  inputRef: text("input_ref"),
-  outputJson: jsonb("output_json"),
-  pdfKey: text("pdf_key"),
-  creditsCharged: integer("credits_charged").notNull().default(0),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }),
-});
+import {pgTable,uuid,text,integer,bigint,timestamp,jsonb,boolean,date,uniqueIndex} from "drizzle-orm/pg-core";
+export const profiles=pgTable("profiles",{id:uuid("id").primaryKey(),displayName:text("display_name"),language:text("language").notNull().default("hi"),theme:text("theme").notNull().default("midnight"),legacyNova1Id:text("legacy_nova1_id"),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),deletedAt:timestamp("deleted_at",{withTimezone:true})},t=>[uniqueIndex("profiles_legacy_id_uidx").on(t.legacyNova1Id)]);
+export const chats=pgTable("chats",{id:uuid("id").primaryKey().defaultRandom(),userId:uuid("user_id").notNull().references(()=>profiles.id,{onDelete:"cascade"}),title:text("title").notNull(),minister:text("minister").notNull(),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow(),version:bigint("version",{mode:"number"}).notNull().default(1)});
+export const messages=pgTable("messages",{id:uuid("id").primaryKey().defaultRandom(),chatId:uuid("chat_id").notNull().references(()=>chats.id,{onDelete:"cascade"}),userId:uuid("user_id").notNull().references(()=>profiles.id,{onDelete:"cascade"}),role:text("role").notNull(),content:text("content").notNull(),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()});
+export const files=pgTable("files",{id:uuid("id").primaryKey().defaultRandom(),userId:uuid("user_id").notNull().references(()=>profiles.id,{onDelete:"cascade"}),kind:text("kind").notNull(),mime:text("mime").notNull(),sizeBytes:bigint("size_bytes",{mode:"number"}).notNull(),storageKey:text("storage_key").notNull(),consentAt:timestamp("consent_at",{withTimezone:true}).notNull(),expiresAt:timestamp("expires_at",{withTimezone:true}).notNull(),deletedAt:timestamp("deleted_at",{withTimezone:true}),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()});
+export const wallets=pgTable("wallets",{userId:uuid("user_id").primaryKey().references(()=>profiles.id,{onDelete:"cascade"}),balanceCredits:bigint("balance_credits",{mode:"number"}).notNull().default(0),updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow()});
+export const ledgerEntries=pgTable("ledger_entries",{id:uuid("id").primaryKey().defaultRandom(),userId:uuid("user_id").notNull().references(()=>profiles.id,{onDelete:"cascade"}),deltaCredits:bigint("delta_credits",{mode:"number"}).notNull(),reason:text("reason").notNull(),refType:text("ref_type").notNull(),refId:text("ref_id").notNull(),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()},t=>[uniqueIndex("ledger_idempotency_uidx").on(t.userId,t.reason,t.refType,t.refId)]);
+export const mockPayments=pgTable("mock_payments",{id:uuid("id").primaryKey().defaultRandom(),userId:uuid("user_id").notNull().references(()=>profiles.id,{onDelete:"cascade"}),mockOrderId:text("mock_order_id").notNull(),amountPaise:bigint("amount_paise",{mode:"number"}).notNull(),status:text("status").notNull(),eventIds:text("event_ids").array().notNull().default([]),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()},t=>[uniqueIndex("mock_payments_order_uidx").on(t.mockOrderId)]);
+export const paymentEvents=pgTable("payment_events",{eventId:text("event_id").primaryKey(),mockPaymentId:uuid("mock_payment_id").notNull().references(()=>mockPayments.id,{onDelete:"cascade"}),eventType:text("event_type").notNull(),payloadHash:text("payload_hash").notNull(),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()});
+export const usageEvents=pgTable("usage_events",{id:uuid("id").primaryKey().defaultRandom(),userId:uuid("user_id").references(()=>profiles.id,{onDelete:"set null"}),feature:text("feature").notNull(),model:text("model").notNull(),inputUnits:bigint("input_units",{mode:"number"}).notNull().default(0),outputUnits:bigint("output_units",{mode:"number"}).notNull().default(0),costPaise:bigint("cost_paise",{mode:"number"}).notNull().default(0),latencyMs:integer("latency_ms").notNull().default(0),ok:boolean("ok").notNull().default(false),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()});
+export const diwanJobs=pgTable("diwan_jobs",{id:uuid("id").primaryKey().defaultRandom(),userId:uuid("user_id").notNull().references(()=>profiles.id,{onDelete:"cascade"}),kind:text("kind").notNull(),status:text("status").notNull().default("queued"),inputRef:text("input_ref"),outputJson:jsonb("output_json"),pdfKey:text("pdf_key"),creditsCharged:integer("credits_charged").notNull().default(0),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),expiresAt:timestamp("expires_at",{withTimezone:true})});
+export const schemes=pgTable("schemes",{id:text("id").primaryKey(),nameEn:text("name_en").notNull(),nameHi:text("name_hi").notNull(),level:text("level").notNull(),state:text("state"),tags:text("tags").array().notNull().default([]),eligibilityJson:jsonb("eligibility_json").notNull().default({}),benefits:text("benefits").notNull(),howToApply:text("how_to_apply").array().notNull().default([]),documentsRequired:text("documents_required").array().notNull().default([]),officialUrl:text("official_url").notNull(),lastVerified:date("last_verified").notNull(),status:text("status").notNull()});
+export const auditLog=pgTable("audit_log",{id:uuid("id").primaryKey().defaultRandom(),actor:text("actor").notNull(),action:text("action").notNull(),target:text("target"),meta:jsonb("meta").notNull().default({}),createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow()});
+export const featureFlags=pgTable("feature_flags",{key:text("key").primaryKey(),enabled:boolean("enabled").notNull().default(false),rolloutPct:integer("rollout_pct").notNull().default(0),updatedAt:timestamp("updated_at",{withTimezone:true}).notNull().defaultNow()});
