@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests/nova2",
-  fullyParallel: true,
+  fullyParallel: false,
+  workers: process.env.CI ? 1 : 2,
   reporter: "list",
   timeout: 30_000,
   expect: { timeout: 5_000 },
