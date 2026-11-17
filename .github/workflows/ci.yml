@@ -14,7 +14,7 @@ concurrency:
 jobs:
   checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -52,14 +52,14 @@ jobs:
             git push
           fi
       - run: npm ci
-      - name: Format the new workspace consistently
-        run: npx prettier --write apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs
+      - name: Format workspace
+        run: npx prettier --write apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/check-bundle-budget.mjs vitest.config.ts playwright.config.ts
       - name: Persist formatting pass
         run: |
-          if ! git diff --quiet -- apps packages config scripts; then
+          if ! git diff --quiet -- apps packages config scripts vitest.config.ts playwright.config.ts; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add apps packages config scripts
+            git add apps packages config scripts vitest.config.ts playwright.config.ts
             git commit -m "chore: format NOVA 2.0 workspace"
             git push
           fi
@@ -73,6 +73,10 @@ jobs:
       - run: npm run evals
       - run: npm run audit
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - run: npm run check:bundle
+      - run: npm run lighthouse
   database:
     needs: checks
     runs-on: ubuntu-latest
