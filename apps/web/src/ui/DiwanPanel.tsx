@@ -68,6 +68,13 @@ export function DiwanPanel({ locale }: Props) {
     } else if (task === "complaint") {
       endpoint = "/api/diwan/complaint";
       body = { category, facts, relief, language: locale };
+    } else if (task === "schemes") {
+      body = {
+        state: schemeState.trim() || undefined,
+        tags: schemeTags.split(",").map((tag) => tag.trim()).filter(Boolean),
+        age: schemeAge ? Number(schemeAge) : undefined,
+        annual_income: schemeIncome ? Number(schemeIncome) : undefined,
+      };
     }
     try {
       const response = await fetch(endpoint, {
