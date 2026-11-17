@@ -1,3 +1,4 @@
+import { mkdirSync, writeFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
 test("records browser-emulated frame-time percentiles for Darbar interactions", async ({
@@ -5,9 +6,9 @@ test("records browser-emulated frame-time percentiles for Darbar interactions", 
 }) => {
   test.setTimeout(45_000);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-  const skip = page.getByRole("button", { name: /इंट्रो छोड़ें|Skip intro/ });
-  if (await skip.isVisible().catch(() => false)) await skip.click();
+  await page.goto("/?perf=1");
+  const skip = page.locator(".skip");
+  if (await skip.isVisible().catch(() => false)) await skip.click({ force: true });
 
   const scenarios: Record<
     string,
@@ -52,18 +53,24 @@ test("records browser-emulated frame-time percentiles for Darbar interactions", 
   );
   await sample("diwan-scroll");
 
+  const report = {
+    environment:
+      "Playwright Chromium CI; browser-emulated, refresh rate not physically verified",
+    budgetsMs: { hz120: 8.3, hz90: 11.1, hz60: 16.7 },
+    scenarios,
+    appMonitor: await page.evaluate(() => ({
+      refreshRate: document.documentElement.dataset.frameRefreshRate ?? null,
+      p50Ms: document.documentElement.dataset.frameP50 ?? null,
+      p95Ms: document.documentElement.dataset.frameP95 ?? null,
+      droppedFrames: document.documentElement.dataset.frameDropped ?? null,
+      longAnimationFrames: document.documentElement.dataset.longAnimationFrames ?? "0",
+    })),
+    physical120HzVerified: false,
+  };
+  mkdirSync("artifacts", { recursive: true });
+  writeFileSync("artifacts/frame-time-metrics.json", JSON.stringify(report, null, 2));
   await test.info().attach("frame-time-metrics.json", {
-    body: JSON.stringify(
-      {
-        environment:
-          "Playwright Chromium CI; browser-emulated, refresh rate not physically verified",
-        budgetsMs: { hz120: 8.3, hz90: 11.1, hz60: 16.7 },
-        scenarios,
-        physical120HzVerified: false,
-      },
-      null,
-      2,
-    ),
+    body: JSON.stringify(report, null, 2),
     contentType: "application/json",
   });
   expect(Object.values(scenarios).every((item) => item.samples === 60)).toBeTruthy();
