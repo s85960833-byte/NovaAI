@@ -4,7 +4,9 @@ import { translate, type Locale } from "../i18n";
 const AuthPanel = lazy(async () => ({ default: (await import("./AuthPanel")).AuthPanel }));
 const DiwanPanel = lazy(async () => ({ default: (await import("./DiwanPanel")).DiwanPanel }));
 const WalletPanel = lazy(async () => ({ default: (await import("./WalletPanel")).WalletPanel }));
-const SakhaPanel = lazy(async () => ({ default: (await import("../sakha/SakhaPanel")).SakhaPanel }));
+const SakhaPanel = lazy(async () => ({
+  default: (await import("../sakha/SakhaPanel")).SakhaPanel,
+}));
 import { startFrameBudgetMonitor } from "../perf/frame-budget";
 type View = "home" | "diwan" | "sakha" | "wallet" | "me";
 type InstallPromptEvent = Event & {
@@ -158,7 +160,13 @@ export function App() {
           </>
         )}
         {(view === "diwan" || view === "sakha" || view === "wallet") && (
-          <Suspense fallback={<section className="workspace loading-panel" aria-live="polite">{t("common.loading")}</section>}>
+          <Suspense
+            fallback={
+              <section className="workspace loading-panel" aria-live="polite">
+                {t("common.loading")}
+              </section>
+            }
+          >
             {view === "diwan" && <DiwanPanel locale={locale} />}
             {view === "sakha" && <SakhaPanel locale={locale} />}
             {view === "wallet" && <WalletPanel locale={locale} />}
