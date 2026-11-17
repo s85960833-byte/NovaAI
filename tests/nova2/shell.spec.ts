@@ -89,7 +89,7 @@ test("Diwan Paper Reader keeps uncertainty and requires consent", async ({ page 
 
 test("Diwan scheme search never invents records while official data is empty", async ({ page }) => {
   await enterDarbar(page);
-  await page.getByRole("button", { name: "दीवान" }).click();
+  await page.locator(".minister-card.diwan").click();
   await page.locator(".diwan-tabs button").nth(4).click();
   await page
     .locator(".diwan-form label")
@@ -110,7 +110,7 @@ test("Diwan RTI draft uses only supplied facts and includes a verification notic
   page,
 }) => {
   await enterDarbar(page);
-  await page.getByRole("button", { name: "दीवान" }).click();
+  await page.locator(".minister-card.diwan").click();
   await page.locator(".diwan-tabs button").nth(2).click();
   const labels = page.locator(".diwan-form label");
   await labels
