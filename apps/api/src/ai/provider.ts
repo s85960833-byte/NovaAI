@@ -84,11 +84,13 @@ export class HttpTextProvider implements TextProvider {
       const url = new URL(
         `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(this.config.model)}:generateContent`,
       );
-      url.searchParams.set("key", this.config.apiKey);
       response = await fetch(url, {
         method: "POST",
         signal: timeout,
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "x-goog-api-key": this.config.apiKey,
+        },
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemPrompt(input.language) }] },
           contents: [{ role: "user", parts: [{ text: input.content }] }],
