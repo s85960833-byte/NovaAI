@@ -8,7 +8,14 @@ const schema = z.object({
     .max(65535)
     .default(Number(process.env.PORT ?? 8787)),
   APP_BASE_URL: z.string().url().default("http://localhost:4173"),
-  AI_PROVIDER: z.enum(["mock", "disabled"]).default("mock"),
+  AI_PROVIDER: z.enum(["mock", "disabled", "openai", "gemini", "anthropic"]).default("mock"),
+  AI_MODEL: z.string().min(1).optional(),
+  OPENAI_API_KEY: z.string().min(10).optional(),
+  GEMINI_API_KEY: z.string().min(10).optional(),
+  ANTHROPIC_API_KEY: z.string().min(10).optional(),
+  AI_INPUT_USD_PER_MILLION: z.coerce.number().nonnegative().optional(),
+  AI_OUTPUT_USD_PER_MILLION: z.coerce.number().nonnegative().optional(),
+  AI_USD_INR: z.coerce.number().positive().default(93.66),
   AI_KILL_SWITCH: z
     .string()
     .default("true")
