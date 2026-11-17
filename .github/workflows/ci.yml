@@ -1,7 +1,7 @@
 name: NOVA 2.0 CI
 on:
   pull_request:
-    branches: ["nova-2.0/rebuild"]
+    branches: ["main", "nova-2.0/rebuild"]
   push:
     branches: ["nova-2.0/rebuild"]
   workflow_dispatch:
@@ -34,7 +34,7 @@ jobs:
           if ! git diff --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/run-real-provider-evals.mjs scripts/check-bundle-budget.mjs tests/nova2 vitest.config.ts playwright.config.ts
+            git add package-lock.json apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/run-real-provider-evals.mjs scripts/check-bundle-budget.mjs tests/nova2 vitest.config.ts playwright.config.ts
             git commit -m "style: format NOVA 2.0 source"
             git push origin HEAD:nova-2.0/rebuild
             curl -fsSL -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/dispatches -d '{"ref":"nova-2.0/rebuild"}'
