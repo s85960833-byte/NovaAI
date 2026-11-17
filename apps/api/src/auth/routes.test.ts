@@ -19,7 +19,7 @@ async function request(method: string, path: string, body?: unknown, cookie?: st
   const headers: Record<string, string> = { origin: "http://localhost:4173" };
   if (body !== undefined) headers["content-type"] = "application/json";
   if (cookie) headers.cookie = cookie;
-  return fetch(baseUrl + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  return fetch(baseUrl + path, { method, headers, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
 }
 beforeAll(async () => {
   const app = express();
