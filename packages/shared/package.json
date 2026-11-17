@@ -1,1 +1,1 @@
-{"name":"@nova/shared","version":"2.0.0","private":true,"type":"module","exports":{"./schemas":"./src/schemas.ts","./types":"./src/types.ts"},"dependencies":{"zod":"4.1.12"},"scripts":{"typecheck":"tsc -p tsconfig.json --noEmit"}}
+{"name":"@nova/shared","version":"2.0.0","private":true,"type":"module","exports":{"./schemas":"./src/schemas.ts","./types":"./src/types.ts","./pricing":"./src/pricing.ts"},"dependencies":{"zod":"4.1.12"},"scripts":{"typecheck":"tsc -p tsconfig.json --noEmit"}}
