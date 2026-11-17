@@ -55,7 +55,6 @@ export function PerfPage() {
   }), []);
 
   const runMeasurement = useCallback(() => {
-    if (measuring) return;
     setResult(null);
     setMeasuring(true);
     setStartedAt(new Date().toISOString());
@@ -76,7 +75,7 @@ export function PerfPage() {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [measuring]);
+  }, []);
 
   useEffect(() => {
     const stop = runMeasurement();
