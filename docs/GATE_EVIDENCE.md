@@ -1,31 +1,48 @@
 # NOVA 2.0 Phase 1–6 Gate Evidence
 
-Evidence policy: a gate is PASS only when a recorded command/tool result proves it. Source files and successful builds alone do not prove hosted behaviour. Production and NOVA 1.0 remain read-only.
+**Evidence policy:** a gate is PASS only for the scope directly tested. Local/CI success does not imply hosted Auth, physical-device or production verification. Production and NOVA 1.0 remain read-only.
 
-| Gate | Required evidence | Current result | Evidence / limitation |
-|---|---|---|---|
-| Gate 0 — architecture and parity | Owner-approved ADR, parity, risk and cost pack | PASS | Owner-approved defaults and Phase 0 pack are recorded in docs/PHASE_0_GATE_0_PACK.md. |
-| Gate 1 — isolated rebuild foundation | Dedicated branch, reproducible install, typecheck, lint, tests, secrets/i18n/scheme checks | IN PROGRESS | GitHub Actions run #421 checks job PASS. The separate database job is still running. |
-| Gate 2 — data/security foundation | Local Supabase migration, RLS assertions, append-only wallet ledger, synthetic integration tests, export/deletion review | IN PROGRESS | Local Supabase migration/RLS and mock-wallet DB tests are running in the isolated CI job. Hosted Supabase Auth and full account deletion are NOT VERIFIED. |
-| Gate 3 — product parity and Diwan | Sakha + Diwan flows, mobile E2E, mock AI fixtures, empty scheme data without invented results | IN PROGRESS | Playwright E2E PASS on Chromium CI. Five fixture suites / 150 synthetic cases passed structural validation. Physical Android and real provider parity remain NOT VERIFIED. |
-| Gate 4 — wallet/payment safety | Mock provider, signature validation, idempotency, append-only ledger, refunds, spend caps | IN PROGRESS | Synthetic-only mock wallet and spend guard are implemented. Durable DB integration is pending CI; no real payment provider/account or money movement. |
-| Gate 5 — performance/reliability | Lighthouse, bundle budgets, API latency, browser frame sampling, backup/restore rehearsal | IN PROGRESS | Lighthouse: Performance 95–96, Accessibility 100, Best Practices 100, SEO 91; LCP 1.9–2.1 s, CLS 0, TBT 0–10 ms. Bundle: JS 203.97 kB / 65.76 kB gzip; CSS 15.83 kB / 3.94 kB gzip. Frame report is 60 Hz emulation only (p50/p95 16.70 ms); physical 90/120 Hz, hosted latency and hosted backup/restore are NOT VERIFIED. |
-| Gate 6 — staging and Phase 7 preparation | Staging health, deployed SHA, smoke tests, PR ready, rollback rehearsal, owner pack | IN PROGRESS | Render staging is live; last confirmed SHA 3098a4aa6d98105da930c513894089b949be10b2. The documentation-only candidate 5cf3ed56e92e239945ae476ca40537a8bedb1aab is deploying. Migration applied; API started; /api/health HTTP 200. Draft PR #103 is open. Staging rollback rehearsal is NOT VERIFIED. |
+| Gate | Result | Exact evidence / limitation |
+|---|---|---|
+| Gate 0 — architecture and parity | PASS | Phase 0 ADR, audit, research, parity, risk and cost pack recorded. |
+| Gate 1 — isolated rebuild foundation | PASS | GitHub Actions run #513 checks job completed success: typecheck, lint, formatter, unit, i18n, schemes, secrets, 150 synthetic evals, audit, build, Playwright E2E, bundle and Lighthouse. A final clean CI run after removing the temporary formatter-candidate helper is being run. |
+| Gate 2 — data/security foundation | PASS (isolated CI DB) | Local Supabase stack started. Clean \`supabase db reset\` applied migration \`20261117120000_nova2_initial.sql\`; \`RLS_AND_SCHEMA_CHECK_PASS\`; \`ACCOUNT_EXPORT_RLS_ISOLATION_PASS\`; \`ACCOUNT_DELETE_CASCADE_AND_USAGE_ANONYMISATION_PASS\`. Hosted Auth and application export/download endpoint remain NOT VERIFIED. |
+| Gate 3 — product and Diwan | PASS (Chromium CI) | Playwright E2E passed. Tests include responsive viewports, language, Sakha mock, Diwan Paper Reader, Scam Check, scheme empty state, RTI, mock wallet, /perf and reduced-motion fallback. Physical Android remains NOT VERIFIED. |
+| Gate 4 — wallet/payment safety | PASS (mock-only) | 5 DB integration tests passed: capture/invalid signature/duplicate/event-ID reuse/refund/second refund; delayed capture and late failure; concurrent duplicate; insufficient balance/dedupe/reconciliation/append-only; user/global spend caps and provider failure. No real payment rails or money movement. |
+| Gate 5 — performance/reliability | PASS (automated envelope) | Six frame scenarios × 90 samples: p50/p95 16.7/16.7 ms, zero dropped frames, 60 Hz Chromium emulation. Lighthouse three runs 88/95/95 Performance (median95), A11y100, Best100, SEO91; LCP 2.06–2.28 s; CLS0; TBT 0–260 ms. Staging read-only load 24/24; p50 269.6 ms, p95 762 ms, max773.9 ms. Physical 90/120 Hz, repeated worst-case Lighthouse, hosted backup and sustained load remain NOT VERIFIED. |
+| Gate 6 — staging and release preparation | PARTIAL | Staging /api/health and read-only load passed, but Render's last confirmed Live SHA is older than tested branch source; hosted /perf live route and actual previous-deploy rollback are NOT VERIFIED. |
 
 ## Verified environment facts
-- Rebuild branch: nova-2.0/rebuild.
+- Rebuild branch: \`nova-2.0/rebuild\`.
 - Draft integration PR: https://github.com/s85960833-byte/NovaAI/pull/103 (open, unmerged).
-- Staging Render service: nova-2-staging, Free plan, Singapore region, health path /api/health.
-- Staging URL: https://nova-2-staging.onrender.com.
-- Staging database: separate Render Free Postgres instance, synthetic-only schema nova2_staging.
-- Production Render latest observed live deploy remains the 2026-11-09 deploy at SHA c3cee61906b88ff111b3a645db55c9c2503cd8f7; no production deploy/event was initiated in this work.
-- GitHub main remains identical to base SHA bdbeb20881f9b6cef51ff5a9d8a3b80131079a50.
-- Branch protection was not changed because no branch-protection action is exposed in the available GitHub connection.
+- Verified source under CI #513: \`5976ef98927977ebd93ae1a47b0f83ce4ab89e6b\`.
+- Free staging service: \`nova-2-staging\`, Singapore, health path \`/api/health\`, https://nova-2-staging.onrender.com.
+- Last confirmed Render Live deployment: \`dep-dbu78el6e07s73c17b80\`, SHA \`5cf3ed56e92e239945ae476ca40537a8bedb1aab\`; later branch head has not been observed Live.
+- Database CI uses an ephemeral local Supabase stack only; no production Supabase connection.
+- Production Render latest observed Live deploy: 2026-11-09, SHA \`c3cee61906b88ff111b3a645db55c9c2503cd8f7\`.
+- GitHub \`main\` unchanged at base SHA \`bdbeb20881f9b6cef51ff5a9d8a3b80131079a50\`.
+- Branch protection not changed; no branch-protection API action available.
 
-## Required final evidence to close gates
-1. GitHub Actions run #421 with both checks and database jobs green.
-2. Latest Render staging deploy Live on the rebuild branch SHA.
-3. /api/health HTTP 200 and synthetic Sakha/Diwan/mock-wallet smoke tests.
-4. Lighthouse, bundle and frame-sampling artifacts; physical 120 Hz remains separately NOT VERIFIED.
-5. CI synthetic backup/restore output; hosted staging backup/restore remains separately NOT VERIFIED.
-6. Draft PR #103 with checks green and release instructions; do not merge or deploy to production.
+## Restore evidence
+
+CI #513 backup artifact #14347895119 contains a custom-format dump and table list. Database job used \`postgres:17-alpine\` tools to match Supabase Postgres 17.12, dumped only \`nova2_staging\`, restored to separate local \`nova2_restore_check\`, compared row counts, and passed:
+- Tables restored: 5
+- Rows before/after (wallet_accounts:wallet_orders:wallet_ledger:wallet_events:ai_spend_events): \`3:3:5:6:2\`
+- Output: \`SYNTHETIC BACKUP/RESTORE PASS\`
+This is an ephemeral CI test database rehearsal, not a hosted Render backup.
+
+## Staging read-only load evidence
+
+CI #513 staging-smoke job made 24 requests (3 workers × 8), alternating \`/api/health\` and homepage, no writes/user data:
+- Succeeded 24; failed 0
+- p50 269.6 ms; p95 762 ms; max 773.9 ms
+- PASS, target p95 < 3 seconds
+Artifact #14346728224.
+
+## Remaining release-gate proof required
+1. Fresh clean CI after temporary formatter candidate generation removal; standard \`format:check\` must pass from committed files.
+2. Render latest staging deploy must match reviewed branch SHA; test hosted \`/perf\` after deployment.
+3. Physical phone test and screenshot, including real refresh cadence estimate and Android layout.
+4. Render Dashboard manual rollback rehearsal from the previous known-good deploy, timed target <5 minutes, followed by health and synthetic smoke verification.
+5. Hosted Supabase/Auth, full export/download endpoint, full account deletion and file-storage erasure require a separate Free test project and explicit owner setup/review.
+6. Hosted backup/restore, sustained load and production rollback remain NOT VERIFIED.
