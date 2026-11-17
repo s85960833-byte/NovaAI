@@ -168,6 +168,11 @@ export class PostgresMockWalletLedger {
         [event.id, event.orderId, event.type, payloadHash],
       );
       if (eventInsert.rowCount === 0) {
+        const existing = await client.query<{ payload_hash: string }>(
+          "select payload_hash from nova2_staging.wallet_events where event_id = $1",
+          [event.id],
+        );
+        if (existing.rows[0]?.payload_hash !== payloadHash) throw new Error("EVENT_ID_REUSE");
         const balance = await this.balanceWith(client, order.synthetic_user_id);
         await client.query("commit");
         return { duplicate: true, balance };
