@@ -8,6 +8,7 @@ it("builds an RTI draft in both languages without inventing fees", () => {
     language: "en" as const,
   };
   expect(buildRtiDraft(input)).toContain("Public Information Officer");
+  expect(buildRtiDraft({ ...input, period: "2024-2025" })).toContain("Period: 2024-2025");
   expect(buildRtiDraft({ ...input, language: "hi" })).toContain("लोक सूचना अधिकारी");
 });
 it("builds a complaint draft with supplied facts and requested relief", () => {
@@ -18,5 +19,6 @@ it("builds a complaint draft with supplied facts and requested relief", () => {
     language: "en" as const,
   };
   expect(buildComplaintDraft(input)).toContain(input.facts);
+  expect(buildComplaintDraft({ ...input, language: "hi" })).toContain("अनुरोध");
   expect(buildComplaintDraft({ ...input, language: "hi" })).toContain("शिकायत");
 });
