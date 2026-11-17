@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-test("records browser-emulated frame-time percentiles for Darbar interactions", async ({ page }) => {
+test("records browser-emulated frame-time percentiles for Darbar interactions", async ({
+  page,
+}) => {
   test.setTimeout(45_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
@@ -45,7 +47,9 @@ test("records browser-emulated frame-time percentiles for Darbar interactions", 
   await page.locator(".drawer-head .icon-button").click();
   await page.locator(".minister-card.diwan").click();
   await sample("diwan-transition");
-  await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
+  await page.evaluate(() =>
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }),
+  );
   await sample("diwan-scroll");
 
   await test.info().attach("frame-time-metrics.json", {

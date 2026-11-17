@@ -54,7 +54,10 @@ test("Sakha API identifies mock replies and does not store server-side", async (
 test("mock wallet capture and refund are synthetic and idempotent", async ({ page }) => {
   await enterDarbar(page);
   await page.getByRole("button", { name: "वॉलेट" }).click();
-  await page.getByRole("button", { name: /Test capture|Test capture simulate करें/ }).first().click();
+  await page
+    .getByRole("button", { name: /Test capture|Test capture simulate करें/ })
+    .first()
+    .click();
   await expect(page.locator(".wallet-panel strong")).toContainText("49");
   await page
     .getByRole("button", { name: /Simulate mock refund|Mock refund simulate करें/ })
