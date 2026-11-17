@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 async function enterDarbar(page: import("@playwright/test").Page) {
   await page.goto("/");
-  const skip = page.getByRole("button", { name: /इंट्रो छोड़ें|Skip intro/ });
+  const skip = page.locator(".skip");
   if (await skip.isVisible().catch(() => false)) await skip.click();
 }
 
