@@ -138,7 +138,9 @@ test("Diwan RTI draft uses only supplied facts and includes a verification notic
 });
 
 
-test("synthetic wallet enforces owner isolation and blocks foreign order simulation", async ({ request }) => {
+test("synthetic wallet enforces owner isolation and blocks foreign order simulation", async ({
+  request,
+}) => {
   const missing = await request.get("/api/wallet/mock");
   expect(missing.status()).toBe(400);
 
@@ -149,9 +151,9 @@ test("synthetic wallet enforces owner isolation and blocks foreign order simulat
     data: { packId: "starter" },
   });
   expect(orderResponse.status()).toBe(201);
+
   const orderBody = await orderResponse.json();
   const order = orderBody.order as { id: string; amountPaise: number };
-
   const before = await request.get("/api/wallet/mock", {
     headers: { "x-nova-synthetic-user": userB },
   });
@@ -187,9 +189,12 @@ test("synthetic wallet enforces owner isolation and blocks foreign order simulat
   expect((await after.json()).balance).toBe(0);
 });
 
-test("account and upload endpoints fail closed when hosted Auth is not configured", async ({ request }) => {
+test("account and upload endpoints fail closed when hosted Auth is not configured", async ({
+  request,
+}) => {
   const session = await request.get("/api/auth/session");
   expect(session.status()).toBe(503);
+
   const upload = await request.post("/api/files/upload", {
     headers: { origin: "http://localhost:4173" },
     multipart: { consent: "true" },
