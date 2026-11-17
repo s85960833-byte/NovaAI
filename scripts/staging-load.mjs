@@ -1,9 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 
-const base = (process.env.STAGING_URL ?? "https://nova-2-staging.onrender.com").replace(
-  /\/+$/,
-  "",
-);
+const base = (process.env.STAGING_URL ?? "https://nova-2-staging.onrender.com").replace(/\/+$/, "");
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function request(url) {
