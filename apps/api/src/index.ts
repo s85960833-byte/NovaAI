@@ -30,7 +30,7 @@ import { createTextProvider } from "./ai/provider.js";
 type RawRequest = express.Request & { rawBody?: Buffer };
 const app = express();
 const wallet = pool ? new PostgresMockWalletLedger(pool) : new MockWalletLedger();
-const textProvider = createTextProvider(config.AI_PROVIDER);
+const textProvider = createTextProvider(config.AI_PROVIDER === "mock" ? "mock" : config.AI_KILL_SWITCH ? "disabled" : config.AI_PROVIDER);
 const approvedSchemes = loadApprovedSchemes();
 app.disable("x-powered-by");
 app.use(
