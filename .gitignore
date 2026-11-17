@@ -10,3 +10,10 @@ test-results/
 *.log
 .vite/
 .tmp/
+*.pem
+.env*
+*.key
+*.p12
+*.pfx
+secrets/
+artifacts/
