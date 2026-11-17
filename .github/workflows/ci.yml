@@ -28,9 +28,9 @@ jobs:
           files="apps/web/src/perf/PerfPage.tsx apps/web/src/ui/styles.css apps/api/src/files/validate.test.ts apps/api/src/money/postgres-ledger.integration.test.ts scripts/staging-load.mjs tests/nova2/accessibility.spec.ts tests/nova2/performance.spec.ts tests/nova2/shell.spec.ts"
           npx prettier --write $files
           for file in $files; do
-            printf 'PRETTIER_FILE_BEGIN:%s\\n' "$file"
+            printf 'PRETTIER_FILE_BEGIN:%s\n' "$file"
             base64 -w0 "$file"
-            printf '\\nPRETTIER_FILE_END:%s\\n' "$file"
+            printf '\nPRETTIER_FILE_END:%s\n' "$file"
           done
       - run: npm run format:check
       - run: npm test
