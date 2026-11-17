@@ -28,6 +28,10 @@ export function DiwanPanel({ locale }: Props) {
   const [category, setCategory] = useState<(typeof categories)[number]>("consumer");
   const [facts, setFacts] = useState("");
   const [relief, setRelief] = useState("");
+  const [schemeState, setSchemeState] = useState("");
+  const [schemeTags, setSchemeTags] = useState("");
+  const [schemeAge, setSchemeAge] = useState("");
+  const [schemeIncome, setSchemeIncome] = useState("");
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -307,7 +311,15 @@ export function DiwanPanel({ locale }: Props) {
             </label>
           </>
         )}
-        {task === "schemes" && <p className="disclaimer">{t("diwan.schemesEmpty")}</p>}
+        {task === "schemes" && (
+          <>
+            <label>{t("diwan.state")}<input maxLength={100} value={schemeState} onChange={(event) => setSchemeState(event.target.value)} /></label>
+            <label>{t("diwan.tags")}<input maxLength={300} value={schemeTags} onChange={(event) => setSchemeTags(event.target.value)} placeholder="scholarship, education" /></label>
+            <label>{t("diwan.age")}<input type="number" min="0" max="120" value={schemeAge} onChange={(event) => setSchemeAge(event.target.value)} /></label>
+            <label>{t("diwan.annualIncome")}<input type="number" min="0" max="100000000" value={schemeIncome} onChange={(event) => setSchemeIncome(event.target.value)} /></label>
+            <p className="disclaimer">{t("diwan.schemesEmpty")}</p>
+          </>
+        )}
         <button className="auth-primary" disabled={busy || (task === "paper" && !consent)}>
           {busy || uploading ? t("common.loading") : t("diwan.run")}
         </button>
