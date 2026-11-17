@@ -30,7 +30,8 @@ import { createTextProvider } from "./ai/provider.js";
 type RawRequest = express.Request & { rawBody?: Buffer };
 const app = express();
 const wallet = pool ? new PostgresMockWalletLedger(pool) : new MockWalletLedger();
-const textProvider = createTextProvider(config.AI_PROVIDER === "mock" ? "mock" : config.AI_KILL_SWITCH ? "disabled" : config.AI_PROVIDER);
+const providerKey = config.AI_PROVIDER === "openai" ? config.OPENAI_API_KEY : config.AI_PROVIDER === "gemini" ? config.GEMINI_API_KEY : config.AI_PROVIDER === "anthropic" ? config.ANTHROPIC_API_KEY : undefined;
+const textProvider = createTextProvider({ provider: config.AI_PROVIDER, killSwitch: config.AI_KILL_SWITCH, apiKey: providerKey, model: config.AI_MODEL });
 const approvedSchemes = loadApprovedSchemes();
 app.disable("x-powered-by");
 app.use(
