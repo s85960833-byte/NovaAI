@@ -12,6 +12,7 @@ import {
   rtiDraftSchema,
   complaintSchema,
   walletTopupSchema,
+  schemeMatchSchema,
 } from "@nova/shared/schemas";
 import { config } from "./config.js";
 import { authRouter } from "./auth/routes.js";
@@ -20,6 +21,7 @@ import { MockWalletLedger } from "./money/ledger.js";
 import { checkScamText } from "./diwan/scam-check.js";
 import { conservativePaperFallback } from "./diwan/paper-reader.js";
 import { buildRtiDraft, buildComplaintDraft } from "./diwan/drafts.js";
+import { loadApprovedSchemes, matchSchemes } from "./diwan/schemes.js";
 import { databaseHealth } from "./db/connection.js";
 import { requestContext } from "./middleware/request-context.js";
 import { createTextProvider } from "./ai/provider.js";
@@ -27,6 +29,7 @@ type RawRequest = express.Request & { rawBody?: Buffer };
 const app = express();
 const wallet = new MockWalletLedger();
 const textProvider = createTextProvider(config.AI_PROVIDER);
+const approvedSchemes = loadApprovedSchemes();
 app.disable("x-powered-by");
 app.use(
   helmet({
@@ -124,14 +127,12 @@ app.post("/api/diwan/complaint", (req, res) => {
     notice: "Verify the correct official filing channel before sending.",
   });
 });
-app.post("/api/diwan/schemes/match", (_req, res) =>
-  res.json({
-    ok: true,
-    records: [],
-    datasetStatus: "owner_review_pending",
-    message: "No scheme records are published until official sources are verified and reviewed.",
-  }),
-);
+app.post("/api/diwan/schemes/match", (req, res) => {
+  const parsed = schemeMatchSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_INPUT" } });
+  const result = matchSchemes(approvedSchemes, parsed.data);
+  return res.json({ ok: true, ...result, message: result.datasetStatus === "owner_review_pending" ? "The official scheme dataset is awaiting owner review." : undefined });
+});
 function syntheticUser(req: express.Request) {
   const value = req.header("x-nova-synthetic-user") ?? "";
   return /^synthetic-[a-z0-9-]{1,40}$/.test(value) ? value : null;
