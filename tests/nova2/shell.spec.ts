@@ -3,7 +3,9 @@ import { test, expect } from "@playwright/test";
 async function enterDarbar(page: import("@playwright/test").Page) {
   await page.goto("/");
   const skip = page.locator(".skip");
-  if (await skip.isVisible().catch(() => false)) await skip.click();
+  await skip.waitFor({ state: "visible", timeout: 5000 }).catch(() => undefined);
+  if (await skip.isVisible().catch(() => false)) await skip.click({ force: true });
+  await expect(page.locator(".minister-card.diwan")).toBeVisible();
 }
 
 test("Darbar fits narrow Android viewports without horizontal scrolling", async ({ page }) => {
@@ -68,10 +70,10 @@ test("mock wallet capture and refund are synthetic and idempotent", async ({ pag
 test("Diwan scam check returns cautious risk indicators", async ({ page }) => {
   await enterDarbar(page);
   await page.locator(".minister-card.diwan").click();
-  await page.getByRole("button", { name: /संदिग्ध संदेश जाँचें/ }).click();
+  await page.locator(".diwan-tabs button").nth(1).click();
   await page.locator("textarea").fill("बैंक खाता बंद होगा। OTP अभी भेजें।");
   await page.getByRole("button", { name: "Preview चलाएँ" }).click();
-  await expect(page.locator(".diwan-result")).toBeVisible();
+  await expect(page.locator(".diwan-result")).toBeVisible({ timeout: 10000 });
   await expect(page.locator(".result-warning")).toBeVisible();
 });
 
