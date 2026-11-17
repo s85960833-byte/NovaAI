@@ -23,7 +23,7 @@ jobs:
           node-version: 22
           cache: npm
       - name: Refresh lockfile from pinned workspace manifests
-        run: npm install --package-lock-only --ignore-scripts --no-audit
+        run: rm -f package-lock.json && npm install --package-lock-only --ignore-scripts --no-audit
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
