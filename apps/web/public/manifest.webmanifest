@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "NOVA — Darbar",
+  "short_name": "NOVA",
+  "description": "NOVA Darbar, Sakha and Diwan — a Hindi and English study and work assistant.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0a0e1f",
+  "theme_color": "#0a0e1f",
+  "lang": "hi",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/nova-emblem.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
