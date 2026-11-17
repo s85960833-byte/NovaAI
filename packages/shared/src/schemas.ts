@@ -40,7 +40,10 @@ export const schemeMatchSchema = z.object({
   annual_income: z.number().nonnegative().max(100_000_000).optional(),
 });
 export const walletTopupSchema = z.object({ packId: z.enum(["starter", "standard", "plus"]) });
-export const walletSpendSchema = z.object({ credits: z.number().int().min(1).max(100_000), refId: z.string().trim().min(1).max(160) });
+export const walletSpendSchema = z.object({
+  credits: z.number().int().min(1).max(100_000),
+  refId: z.string().trim().min(1).max(160),
+});
 export const webhookEventSchema = z.object({
   id: z.string().min(1).max(160),
   type: z.enum(["payment.captured", "payment.failed", "refund.processed"]),

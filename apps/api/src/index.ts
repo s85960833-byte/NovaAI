@@ -158,46 +158,66 @@ function syntheticUser(req: express.Request) {
   return /^synthetic-[a-z0-9-]{1,40}$/.test(value) ? value : null;
 }
 app.get("/api/wallet/mock", async (req, res) => {
-  if (!config.MOCK_FEATURES_ENABLED) return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+  if (!config.MOCK_FEATURES_ENABLED)
+    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
   const user = syntheticUser(req);
   if (!user) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED" } });
   try {
-    return res.json({ ok: true, balance: await wallet.balance(user), ledger: await wallet.ledger(user), mode: "mock-only" });
+    return res.json({
+      ok: true,
+      balance: await wallet.balance(user),
+      ledger: await wallet.ledger(user),
+      mode: "mock-only",
+    });
   } catch {
     return res.status(503).json({ error: { code: "MOCK_WALLET_UNAVAILABLE" } });
   }
 });
 app.post("/api/wallet/mock/orders", async (req, res) => {
-  if (!config.MOCK_FEATURES_ENABLED) return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+  if (!config.MOCK_FEATURES_ENABLED)
+    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
   const user = syntheticUser(req);
   if (!user) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED" } });
   const parsed = walletTopupSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_PACK" } });
   try {
-    return res.status(201).json({ ok: true, order: await wallet.createOrder(user, parsed.data.packId) });
+    return res
+      .status(201)
+      .json({ ok: true, order: await wallet.createOrder(user, parsed.data.packId) });
   } catch {
     return res.status(503).json({ error: { code: "MOCK_WALLET_UNAVAILABLE" } });
   }
 });
 app.post("/api/wallet/mock/simulate", async (req, res) => {
-  if (!config.MOCK_FEATURES_ENABLED) return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+  if (!config.MOCK_FEATURES_ENABLED)
+    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
   const user = syntheticUser(req);
   if (!user) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED" } });
   const orderId = typeof req.body?.orderId === "string" ? req.body.orderId : "";
   try {
-    if (!(await wallet.ownsOrder(user, orderId))) return res.status(404).json({ error: { code: "ORDER_NOT_FOUND" } });
-    const eventId = typeof req.body?.eventId === "string" ? req.body.eventId : "mock-event-" + randomUUID();
-    const type = req.body?.type === "refund.processed" ? "refund.processed" : req.body?.type === "payment.failed" ? "payment.failed" : "payment.captured";
+    if (!(await wallet.ownsOrder(user, orderId)))
+      return res.status(404).json({ error: { code: "ORDER_NOT_FOUND" } });
+    const eventId =
+      typeof req.body?.eventId === "string" ? req.body.eventId : "mock-event-" + randomUUID();
+    const type =
+      req.body?.type === "refund.processed"
+        ? "refund.processed"
+        : req.body?.type === "payment.failed"
+          ? "payment.failed"
+          : "payment.captured";
     const raw = JSON.stringify({ id: eventId, type, orderId, amountPaise: req.body?.amountPaise });
     const signature = wallet.sign(raw, config.MOCK_WEBHOOK_SECRET);
     const result = await wallet.processWebhook(raw, signature, config.MOCK_WEBHOOK_SECRET);
     return res.json({ ok: true, ...result, mode: "mock-only" });
   } catch (error) {
-    return res.status(400).json({ error: { code: error instanceof Error ? error.message : "MOCK_EVENT_REJECTED" } });
+    return res
+      .status(400)
+      .json({ error: { code: error instanceof Error ? error.message : "MOCK_EVENT_REJECTED" } });
   }
 });
 app.post("/api/wallet/mock/spend", async (req, res) => {
-  if (!config.MOCK_FEATURES_ENABLED) return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+  if (!config.MOCK_FEATURES_ENABLED)
+    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
   const user = syntheticUser(req);
   if (!user) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED" } });
   const parsed = walletSpendSchema.safeParse(req.body);
