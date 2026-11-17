@@ -27,4 +27,4 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("secret pattern scan: PASS");
+process.stdout.write("secret pattern scan: PASS\\n");
