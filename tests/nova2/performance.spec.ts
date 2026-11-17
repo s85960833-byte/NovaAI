@@ -95,9 +95,7 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
 
   await sample("entry-animation");
   await expect(page.locator(".minister-card.diwan")).toBeVisible();
-  const skip = page.locator(".skip");
-  if (await skip.isVisible().catch(() => false)) await skip.click({ force: true });
-  await expect(page.locator(".intro")).toHaveCount(0);
+  await expect(page.locator(".intro")).toHaveCount(0, { timeout: 2500 });
   await page.waitForTimeout(300);
   await sample("darbar-idle");
 
