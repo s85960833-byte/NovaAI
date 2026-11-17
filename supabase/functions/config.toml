@@ -1,0 +1,6 @@
+[functions.delete-account]
+verify_jwt = true
+[functions.export-account]
+verify_jwt = true
+[functions.expire-files]
+verify_jwt = false
