@@ -155,6 +155,7 @@
     "textAttached": "Text composer में जोड़ा गया। भेजने से पहले जाँचें।",
     "filePending": "PDF और image upload अभी जुड़ा नहीं है; कोई file upload नहीं हुई।",
     "speak": "जवाब सुनें",
-    "stopSpeaking": "पढ़ना रोकें"
+    "stopSpeaking": "पढ़ना रोकें",
+    "live": "Live AI उत्तर"
   }
 }
