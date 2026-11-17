@@ -46,7 +46,7 @@ suite("durable staging mock wallet (synthetic database only)", () => {
     const next = await reserveProviderSpend(pool, actor, 60, 1, 1);
     expect(next).toBeTruthy();
     expect(await failProviderSpend(pool, next!)).toBe(true);
-    await expect(reserveProviderSpend(pool, "real-user-id", 1, 1, 1)).rejects.toThrow("SYNTHETIC_ACTOR_REQUIRED");
+    await expect(reserveProviderSpend(pool, "real-user-id", 1, 1, 1)).rejects.toThrow("ACTOR_ID_REQUIRED");
     expect(await reserveProviderSpend(pool, actor, 1, 0, 0)).toBeNull();
   });
 
