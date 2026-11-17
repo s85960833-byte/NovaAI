@@ -48,3 +48,23 @@ it("keeps an empty dataset explicitly pending owner review", () => {
     records: [],
   });
 });
+
+it("filters mismatched state, tags, age and income", () => {
+  const cases = [
+    { state: "Bihar" },
+    { tags: ["student", "minority"] },
+    { age: 10 },
+    { age: 30 },
+    { annual_income: 400000 },
+  ];
+  for (const query of cases) {
+    const result = matchSchemes([base], query, new Date("2026-11-17"));
+    expect(result.records).toHaveLength(0);
+  }
+});
+it("filters eligibility state lists and malformed verification dates", () => {
+  const stateMismatch = matchSchemes([base], { state: "Bihar" }, new Date("2026-11-17"));
+  expect(stateMismatch.records).toHaveLength(0);
+  const malformed = matchSchemes([{ ...base, last_verified: "not-a-date" }], {}, new Date("2026-11-17"));
+  expect(malformed.records).toHaveLength(0);
+});
