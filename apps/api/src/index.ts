@@ -15,6 +15,7 @@ import {
 } from "@nova/shared/schemas";
 import { config } from "./config.js";
 import { authRouter } from "./auth/routes.js";
+import { fileRouter } from "./files/routes.js";
 import { MockWalletLedger } from "./money/ledger.js";
 import { checkScamText } from "./diwan/scam-check.js";
 import { conservativePaperFallback } from "./diwan/paper-reader.js";
@@ -59,6 +60,7 @@ app.use(
   rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: "draft-8", legacyHeaders: false }),
 );
 app.use("/api/auth", authRouter);
+app.use("/api/files", fileRouter);
 app.get("/api/health", async (req, res) => {
   const database = await databaseHealth();
   return res
