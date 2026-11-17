@@ -33,6 +33,13 @@ export const paperReaderSchema = z.object({
   language: z.enum(["hi", "en"]).default("hi"),
   consent: z.literal(true),
 });
+export const schemeMatchSchema = z.object({
+  state: z.string().trim().min(2).max(100).optional(),
+  tags: z.array(z.string().trim().min(1).max(60)).max(20).default([]),
+  ageBand: z.string().max(40).optional(),
+  education: z.string().max(80).optional(),
+  occupation: z.string().max(80).optional(),
+});
 export const walletTopupSchema = z.object({ packId: z.enum(["starter", "standard", "plus"]) });
 export const webhookEventSchema = z.object({
   id: z.string().min(1).max(160),
