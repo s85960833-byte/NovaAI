@@ -105,7 +105,11 @@
     "fileSelected": "Extracted from",
     "fileExtracted": "Text extracted. Review it below before running the Paper Reader.",
     "pdfLimit": "This PDF is longer than the 5-page preview limit.",
-    "scannedPdf": "This PDF has no extractable text. OCR is not enabled; no result was invented."
+    "scannedPdf": "This PDF has no extractable text. OCR is not enabled; no result was invented.",
+    "state": "State (optional)",
+    "tags": "Scheme tags (comma separated)",
+    "age": "Age (optional)",
+    "annualIncome": "Annual household income ₹ (optional)"
   },
   "settings": {
     "smoothMotion": "Smooth motion",
