@@ -20,7 +20,8 @@ suite("durable staging mock wallet (synthetic database only)", () => {
     expect(duplicate.balance).toBe(49);
     const refundRaw = JSON.stringify({ id: "refund-" + randomUUID(), type: "refund.processed", orderId: starter.id, amountPaise: starter.amountPaise });
     expect((await wallet.processWebhook(refundRaw, wallet.sign(refundRaw, secret), secret)).balance).toBe(0);
-    await expect(wallet.processWebhook(JSON.stringify({ id: "refund-again-" + randomUUID(), type: "refund.processed", orderId: starter.id, amountPaise: starter.amountPaise }), wallet.sign(JSON.stringify({ id: "unused", type: "refund.processed", orderId: starter.id, amountPaise: starter.amountPaise }), secret), secret)).rejects.toThrow();
+    const secondRefund = JSON.stringify({ id: "refund-again-" + randomUUID(), type: "refund.processed", orderId: starter.id, amountPaise: starter.amountPaise });
+    await expect(wallet.processWebhook(secondRefund, wallet.sign(secondRefund, secret), secret)).rejects.toThrow("ORDER_ALREADY_REFUNDED");
   });
   it("prevents negative balances and deduplicates spend references", async () => {
     const order = await wallet.createOrder(user, "standard");
