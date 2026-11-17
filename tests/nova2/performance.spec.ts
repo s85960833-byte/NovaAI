@@ -17,7 +17,18 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
 }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.addInitScript(() => sessionStorage.clear());
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.addInitScript(() => {
+    sessionStorage.clear();
+    Object.defineProperty(navigator, "hardwareConcurrency", {
+      configurable: true,
+      get: () => 8,
+    });
+    Object.defineProperty(navigator, "deviceMemory", {
+      configurable: true,
+      get: () => 8,
+    });
+  });
   await page.goto("/?perf=1");
   await expect(page.locator(".intro")).toBeVisible({ timeout: 3000 });
 
@@ -64,15 +75,8 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
     expect(scenarios[name].pass, name + " must meet the observed frame budget").toBe(true);
   };
 
+  await sample("entry-animation");
   await expect(page.locator(".minister-card.diwan")).toBeVisible();
-  if (
-    await page
-      .locator(".intro")
-      .isVisible()
-      .catch(() => false)
-  ) {
-    await sample("entry-animation");
-  }
   const skip = page.locator(".skip");
   if (await skip.isVisible().catch(() => false)) await skip.click({ force: true });
   await sample("darbar-idle");
@@ -126,4 +130,23 @@ test("public /perf page measures cadence and displays a one-screen result", asyn
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
+});
+
+test("reduced-motion devices skip the entry animation", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    sessionStorage.clear();
+    Object.defineProperty(navigator, "hardwareConcurrency", {
+      configurable: true,
+      get: () => 8,
+    });
+    Object.defineProperty(navigator, "deviceMemory", {
+      configurable: true,
+      get: () => 8,
+    });
+  });
+  await page.goto("/");
+  await expect(page.locator(".minister-card.diwan")).toBeVisible();
+  await expect(page.locator(".intro")).toHaveCount(0);
 });
