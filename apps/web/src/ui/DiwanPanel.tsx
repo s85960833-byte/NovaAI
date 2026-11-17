@@ -71,7 +71,10 @@ export function DiwanPanel({ locale }: Props) {
     } else if (task === "schemes") {
       body = {
         state: schemeState.trim() || undefined,
-        tags: schemeTags.split(",").map((tag) => tag.trim()).filter(Boolean),
+        tags: schemeTags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
         age: schemeAge ? Number(schemeAge) : undefined,
         annual_income: schemeIncome ? Number(schemeIncome) : undefined,
       };
@@ -320,10 +323,43 @@ export function DiwanPanel({ locale }: Props) {
         )}
         {task === "schemes" && (
           <>
-            <label>{t("diwan.state")}<input maxLength={100} value={schemeState} onChange={(event) => setSchemeState(event.target.value)} /></label>
-            <label>{t("diwan.tags")}<input maxLength={300} value={schemeTags} onChange={(event) => setSchemeTags(event.target.value)} placeholder="scholarship, education" /></label>
-            <label>{t("diwan.age")}<input type="number" min="0" max="120" value={schemeAge} onChange={(event) => setSchemeAge(event.target.value)} /></label>
-            <label>{t("diwan.annualIncome")}<input type="number" min="0" max="100000000" value={schemeIncome} onChange={(event) => setSchemeIncome(event.target.value)} /></label>
+            <label>
+              {t("diwan.state")}
+              <input
+                maxLength={100}
+                value={schemeState}
+                onChange={(event) => setSchemeState(event.target.value)}
+              />
+            </label>
+            <label>
+              {t("diwan.tags")}
+              <input
+                maxLength={300}
+                value={schemeTags}
+                onChange={(event) => setSchemeTags(event.target.value)}
+                placeholder="scholarship, education"
+              />
+            </label>
+            <label>
+              {t("diwan.age")}
+              <input
+                type="number"
+                min="0"
+                max="120"
+                value={schemeAge}
+                onChange={(event) => setSchemeAge(event.target.value)}
+              />
+            </label>
+            <label>
+              {t("diwan.annualIncome")}
+              <input
+                type="number"
+                min="0"
+                max="100000000"
+                value={schemeIncome}
+                onChange={(event) => setSchemeIncome(event.target.value)}
+              />
+            </label>
             <p className="disclaimer">{t("diwan.schemesEmpty")}</p>
           </>
         )}

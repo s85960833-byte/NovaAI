@@ -4,7 +4,11 @@ export const LONG_TASK_BUDGET_MS = 8;
 export type RefreshRate = 120 | 90 | 60;
 export function evaluateFrame(durationMs: number, refreshRate: RefreshRate = 120) {
   const budget = FRAME_BUDGET_MS[refreshRate];
-  return { durationMs, budgetMs: budget, withinBudget: Number.isFinite(durationMs) && durationMs <= budget };
+  return {
+    durationMs,
+    budgetMs: budget,
+    withinBudget: Number.isFinite(durationMs) && durationMs <= budget,
+  };
 }
 export function percentile(values: number[], p: number) {
   if (!values.length) return 0;
@@ -43,14 +47,21 @@ export function startFrameBudgetMonitor(root: HTMLElement = document.documentEle
   };
   raf = requestAnimationFrame(tick);
   let observer: PerformanceObserver | undefined;
-  if (typeof PerformanceObserver !== "undefined" && PerformanceObserver.supportedEntryTypes?.includes("long-animation-frame")) {
+  if (
+    typeof PerformanceObserver !== "undefined" &&
+    PerformanceObserver.supportedEntryTypes?.includes("long-animation-frame")
+  ) {
     observer = new PerformanceObserver((list) => {
       const entries = list.getEntries();
-      const count = Number(root.dataset.longAnimationFrames ?? "0") +
+      const count =
+        Number(root.dataset.longAnimationFrames ?? "0") +
         entries.filter((entry) => entry.duration > LONG_TASK_BUDGET_MS).length;
       root.dataset.longAnimationFrames = String(count);
     });
     observer.observe({ type: "long-animation-frame", buffered: true });
   }
-  return () => { cancelAnimationFrame(raf); observer?.disconnect(); };
+  return () => {
+    cancelAnimationFrame(raf);
+    observer?.disconnect();
+  };
 }

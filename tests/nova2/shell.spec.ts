@@ -56,7 +56,9 @@ test("mock wallet capture and refund are synthetic and idempotent", async ({ pag
   await page.getByRole("button", { name: "वॉलेट" }).click();
   await page.getByRole("button", { name: /Test capture|Test capture simulate करें/ }).click();
   await expect(page.locator(".wallet-panel strong")).toContainText("49");
-  await page.getByRole("button", { name: /Simulate mock refund|Mock refund simulate करें/ }).click();
+  await page
+    .getByRole("button", { name: /Simulate mock refund|Mock refund simulate करें/ })
+    .click();
   await expect(page.locator(".wallet-panel strong")).toContainText("0");
 });
 
@@ -73,7 +75,10 @@ test("Diwan scam check returns cautious risk indicators", async ({ page }) => {
 test("Diwan Paper Reader keeps uncertainty and requires consent", async ({ page }) => {
   await enterDarbar(page);
   await page.getByRole("button", { name: "दीवान" }).click();
-  await page.locator("textarea").first().fill("जिला कार्यालय का सूचना पत्र। तारीख साफ़ नहीं दिख रही।");
+  await page
+    .locator("textarea")
+    .first()
+    .fill("जिला कार्यालय का सूचना पत्र। तारीख साफ़ नहीं दिख रही।");
   const run = page.getByRole("button", { name: "Preview चलाएँ" });
   await expect(run).toBeDisabled();
   await page.locator(".consent-line input").check();
@@ -86,22 +91,43 @@ test("Diwan scheme search never invents records while official data is empty", a
   await enterDarbar(page);
   await page.getByRole("button", { name: "दीवान" }).click();
   await page.locator(".diwan-tabs button").nth(4).click();
-  await page.locator(".diwan-form label").filter({ hasText: "राज्य" }).locator("input").fill("Uttar Pradesh");
-  await page.locator(".diwan-form label").filter({ hasText: "योजना के टैग" }).locator("input").fill("student");
+  await page
+    .locator(".diwan-form label")
+    .filter({ hasText: "राज्य" })
+    .locator("input")
+    .fill("Uttar Pradesh");
+  await page
+    .locator(".diwan-form label")
+    .filter({ hasText: "योजना के टैग" })
+    .locator("input")
+    .fill("student");
   await page.getByRole("button", { name: "Preview चलाएँ" }).click();
   await expect(page.locator(".diwan-result pre")).toContainText("owner_review_pending");
   await expect(page.locator(".diwan-result pre")).toContainText('"records": []');
 });
 
-test("Diwan RTI draft uses only supplied facts and includes a verification notice", async ({ page }) => {
+test("Diwan RTI draft uses only supplied facts and includes a verification notice", async ({
+  page,
+}) => {
   await enterDarbar(page);
   await page.getByRole("button", { name: "दीवान" }).click();
   await page.locator(".diwan-tabs button").nth(2).click();
   const labels = page.locator(".diwan-form label");
-  await labels.filter({ hasText: "लोक प्राधिकरण" }).locator("input").fill("Central Public Authority");
-  await labels.filter({ hasText: "विषय" }).locator("input").fill("status of a submitted application");
-  await labels.filter({ hasText: "प्रश्न" }).locator("textarea").fill("Please provide the existing record.");
+  await labels
+    .filter({ hasText: "लोक प्राधिकरण" })
+    .locator("input")
+    .fill("Central Public Authority");
+  await labels
+    .filter({ hasText: "विषय" })
+    .locator("input")
+    .fill("status of a submitted application");
+  await labels
+    .filter({ hasText: "प्रश्न" })
+    .locator("textarea")
+    .fill("Please provide the existing record.");
   await page.getByRole("button", { name: "Preview चलाएँ" }).click();
-  await expect(page.locator(".diwan-result pre")).toContainText("Please provide the existing record.");
+  await expect(page.locator(".diwan-result pre")).toContainText(
+    "Please provide the existing record.",
+  );
   await expect(page.locator(".diwan-result")).toContainText(/verify/i);
 });

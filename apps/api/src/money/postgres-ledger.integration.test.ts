@@ -10,29 +10,72 @@ suite("durable staging mock wallet (synthetic database only)", () => {
   const wallet = new PostgresMockWalletLedger(pool);
   const secret = "local-integration-secret";
   const user = "synthetic-" + randomUUID();
-  afterAll(async () => { await pool.end(); });
+  afterAll(async () => {
+    await pool.end();
+  });
   it("persists captures, refunds, spends and idempotency in append-only rows", async () => {
     const starter = await wallet.createOrder(user, "starter");
-    const captureRaw = JSON.stringify({ id: "capture-" + randomUUID(), type: "payment.captured", orderId: starter.id, amountPaise: starter.amountPaise });
-    const captured = await wallet.processWebhook(captureRaw, wallet.sign(captureRaw, secret), secret);
+    const captureRaw = JSON.stringify({
+      id: "capture-" + randomUUID(),
+      type: "payment.captured",
+      orderId: starter.id,
+      amountPaise: starter.amountPaise,
+    });
+    const captured = await wallet.processWebhook(
+      captureRaw,
+      wallet.sign(captureRaw, secret),
+      secret,
+    );
     expect(captured.balance).toBe(49);
-    const duplicate = await wallet.processWebhook(captureRaw, wallet.sign(captureRaw, secret), secret);
+    const duplicate = await wallet.processWebhook(
+      captureRaw,
+      wallet.sign(captureRaw, secret),
+      secret,
+    );
     expect(duplicate.duplicate).toBe(true);
     expect(duplicate.balance).toBe(49);
-    const reusedId = JSON.stringify({ id: JSON.parse(captureRaw).id, type: "payment.failed", orderId: starter.id, amountPaise: starter.amountPaise });
-    await expect(wallet.processWebhook(reusedId, wallet.sign(reusedId, secret), secret)).rejects.toThrow("EVENT_ID_REUSE");
-    const refundRaw = JSON.stringify({ id: "refund-" + randomUUID(), type: "refund.processed", orderId: starter.id, amountPaise: starter.amountPaise });
-    expect((await wallet.processWebhook(refundRaw, wallet.sign(refundRaw, secret), secret)).balance).toBe(0);
-    const secondRefund = JSON.stringify({ id: "refund-again-" + randomUUID(), type: "refund.processed", orderId: starter.id, amountPaise: starter.amountPaise });
-    await expect(wallet.processWebhook(secondRefund, wallet.sign(secondRefund, secret), secret)).rejects.toThrow("ORDER_ALREADY_REFUNDED");
+    const reusedId = JSON.stringify({
+      id: JSON.parse(captureRaw).id,
+      type: "payment.failed",
+      orderId: starter.id,
+      amountPaise: starter.amountPaise,
+    });
+    await expect(
+      wallet.processWebhook(reusedId, wallet.sign(reusedId, secret), secret),
+    ).rejects.toThrow("EVENT_ID_REUSE");
+    const refundRaw = JSON.stringify({
+      id: "refund-" + randomUUID(),
+      type: "refund.processed",
+      orderId: starter.id,
+      amountPaise: starter.amountPaise,
+    });
+    expect(
+      (await wallet.processWebhook(refundRaw, wallet.sign(refundRaw, secret), secret)).balance,
+    ).toBe(0);
+    const secondRefund = JSON.stringify({
+      id: "refund-again-" + randomUUID(),
+      type: "refund.processed",
+      orderId: starter.id,
+      amountPaise: starter.amountPaise,
+    });
+    await expect(
+      wallet.processWebhook(secondRefund, wallet.sign(secondRefund, secret), secret),
+    ).rejects.toThrow("ORDER_ALREADY_REFUNDED");
   });
   it("prevents negative balances and deduplicates spend references", async () => {
     const order = await wallet.createOrder(user, "standard");
-    const raw = JSON.stringify({ id: "capture-" + randomUUID(), type: "payment.captured", orderId: order.id, amountPaise: order.amountPaise });
+    const raw = JSON.stringify({
+      id: "capture-" + randomUUID(),
+      type: "payment.captured",
+      orderId: order.id,
+      amountPaise: order.amountPaise,
+    });
     await wallet.processWebhook(raw, wallet.sign(raw, secret), secret);
     expect(await wallet.spend(user, 10, "integration-task-1")).toBe(89);
     expect(await wallet.spend(user, 10, "integration-task-1")).toBe(89);
-    await expect(wallet.spend(user, 100, "integration-task-2")).rejects.toThrow("INSUFFICIENT_CREDITS");
+    await expect(wallet.spend(user, 100, "integration-task-2")).rejects.toThrow(
+      "INSUFFICIENT_CREDITS",
+    );
     const rows = await wallet.ledger(user);
     expect(rows.reduce((sum, row) => sum + row.deltaCredits, 0)).toBe(89);
     expect(rows).toHaveLength(4);
@@ -46,8 +89,9 @@ suite("durable staging mock wallet (synthetic database only)", () => {
     const next = await reserveProviderSpend(pool, actor, 60, 1, 1);
     expect(next).toBeTruthy();
     expect(await failProviderSpend(pool, next!)).toBe(true);
-    await expect(reserveProviderSpend(pool, "real-user-id", 1, 1, 1)).rejects.toThrow("ACTOR_ID_REQUIRED");
+    await expect(reserveProviderSpend(pool, "real-user-id", 1, 1, 1)).rejects.toThrow(
+      "ACTOR_ID_REQUIRED",
+    );
     expect(await reserveProviderSpend(pool, actor, 1, 0, 0)).toBeNull();
   });
-
 });

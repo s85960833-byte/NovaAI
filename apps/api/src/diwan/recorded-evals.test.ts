@@ -4,9 +4,18 @@ import { conservativePaperFallback } from "./paper-reader.js";
 import { checkScamText } from "./scam-check.js";
 import { buildRtiDraft, buildComplaintDraft } from "./drafts.js";
 import { matchSchemes } from "./schemes.js";
-type Fixture = { id: string; input: Record<string, unknown>; must_not_include: string[]; schema_valid: boolean };
+type Fixture = {
+  id: string;
+  input: Record<string, unknown>;
+  must_not_include: string[];
+  schema_valid: boolean;
+};
 function fixtures(name: string): Fixture[] {
-  return fs.readFileSync(`evals/${name}.jsonl`, "utf8").trim().split("\n").map((line) => JSON.parse(line) as Fixture);
+  return fs
+    .readFileSync(`evals/${name}.jsonl`, "utf8")
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as Fixture);
 }
 describe("recorded synthetic Diwan evaluations — deterministic mock mode", () => {
   it("paper reader preserves uncertainty for every recorded fixture", () => {
@@ -37,7 +46,8 @@ describe("recorded synthetic Diwan evaluations — deterministic mock mode", () 
     for (const row of rows) {
       const input = row.input;
       const draft = buildRtiDraft({
-        authority: String(input.authority), subject: String(input.subject),
+        authority: String(input.authority),
+        subject: String(input.subject),
         questions: Array.isArray(input.questions) ? input.questions.map(String) : [],
         language: input.language === "en" ? "en" : "hi",
       });
@@ -53,8 +63,10 @@ describe("recorded synthetic Diwan evaluations — deterministic mock mode", () 
     for (const row of rows) {
       const input = row.input;
       const draft = buildComplaintDraft({
-        category: String(input.category), facts: String(input.facts),
-        relief: String(input.relief), language: input.language === "en" ? "en" : "hi",
+        category: String(input.category),
+        facts: String(input.facts),
+        relief: String(input.relief),
+        language: input.language === "en" ? "en" : "hi",
       });
       expect(draft).toContain(String(input.facts));
       expect(draft).toContain(String(input.relief));

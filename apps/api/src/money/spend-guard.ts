@@ -28,10 +28,17 @@ export async function reserveProviderSpend(
   userCapInr: number,
 ): Promise<string | null> {
   if (!allowedActor.test(actorKey)) throw new Error("ACTOR_ID_REQUIRED");
-  if (!Number.isSafeInteger(estimatedCostPaise) || estimatedCostPaise < 0) throw new Error("INVALID_ESTIMATE");
+  if (!Number.isSafeInteger(estimatedCostPaise) || estimatedCostPaise < 0)
+    throw new Error("INVALID_ESTIMATE");
   const globalCap = Math.floor(globalCapInr * 100);
   const userCap = Math.floor(userCapInr * 100);
-  if (!Number.isSafeInteger(globalCap) || !Number.isSafeInteger(userCap) || globalCap <= 0 || userCap <= 0) return null;
+  if (
+    !Number.isSafeInteger(globalCap) ||
+    !Number.isSafeInteger(userCap) ||
+    globalCap <= 0 ||
+    userCap <= 0
+  )
+    return null;
   const client = await pool.connect();
   try {
     await client.query("begin");
@@ -64,8 +71,13 @@ export async function reserveProviderSpend(
     client.release();
   }
 }
-export async function settleProviderSpend(pool: Pool, reservationId: string, actualCostPaise: number) {
-  if (!Number.isSafeInteger(actualCostPaise) || actualCostPaise < 0) throw new Error("INVALID_ACTUAL_COST");
+export async function settleProviderSpend(
+  pool: Pool,
+  reservationId: string,
+  actualCostPaise: number,
+) {
+  if (!Number.isSafeInteger(actualCostPaise) || actualCostPaise < 0)
+    throw new Error("INVALID_ACTUAL_COST");
   const result = await pool.query(
     "update nova2_staging.ai_spend_events set cost_paise=$2,status='settled',updated_at=now() where id=$1 and status='reserved'",
     [reservationId, actualCostPaise],

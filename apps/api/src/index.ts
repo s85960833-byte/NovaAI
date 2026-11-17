@@ -28,12 +28,28 @@ import { loadApprovedSchemes, matchSchemes } from "./diwan/schemes.js";
 import { databaseHealth, pool } from "./db/connection.js";
 import { requestContext } from "./middleware/request-context.js";
 import { createTextProvider, estimateCostPaise } from "./ai/provider.js";
-import { failProviderSpend, reserveProviderSpend, settleProviderSpend } from "./money/spend-guard.js";
+import {
+  failProviderSpend,
+  reserveProviderSpend,
+  settleProviderSpend,
+} from "./money/spend-guard.js";
 type RawRequest = express.Request & { rawBody?: Buffer };
 const app = express();
 const wallet = pool ? new PostgresMockWalletLedger(pool) : new MockWalletLedger();
-const providerKey = config.AI_PROVIDER === "openai" ? config.OPENAI_API_KEY : config.AI_PROVIDER === "gemini" ? config.GEMINI_API_KEY : config.AI_PROVIDER === "anthropic" ? config.ANTHROPIC_API_KEY : undefined;
-const textProvider = createTextProvider({ provider: config.AI_PROVIDER, killSwitch: config.AI_KILL_SWITCH, apiKey: providerKey, model: config.AI_MODEL });
+const providerKey =
+  config.AI_PROVIDER === "openai"
+    ? config.OPENAI_API_KEY
+    : config.AI_PROVIDER === "gemini"
+      ? config.GEMINI_API_KEY
+      : config.AI_PROVIDER === "anthropic"
+        ? config.ANTHROPIC_API_KEY
+        : undefined;
+const textProvider = createTextProvider({
+  provider: config.AI_PROVIDER,
+  killSwitch: config.AI_KILL_SWITCH,
+  apiKey: providerKey,
+  model: config.AI_MODEL,
+});
 const approvedSchemes = loadApprovedSchemes();
 app.disable("x-powered-by");
 app.use(
@@ -102,17 +118,33 @@ app.post("/api/sakha/chat", async (req, res) => {
       if (authError || !authData.user)
         return res.status(401).json({ error: { code: "AUTH_REQUIRED", requestId: req.requestId } });
       const actor = authData.user.id;
-      if (!pool) return res.status(503).json({ error: { code: "SPEND_DATABASE_REQUIRED", requestId: req.requestId } });
+      if (!pool)
+        return res
+          .status(503)
+          .json({ error: { code: "SPEND_DATABASE_REQUIRED", requestId: req.requestId } });
       const estimated = estimateCostPaise(Math.ceil(parsed.data.content.length / 2), 1200);
-      if (estimated === null) return res.status(503).json({ error: { code: "PROVIDER_PRICE_RATES_REQUIRED", requestId: req.requestId } });
-      reservationId = await reserveProviderSpend(pool, actor, estimated, config.AI_GLOBAL_DAILY_SPEND_CAP_INR, config.AI_USER_DAILY_SPEND_CAP_INR);
-      if (!reservationId) return res.status(429).json({ error: { code: "AI_SPEND_CAP_REACHED", requestId: req.requestId } });
+      if (estimated === null)
+        return res
+          .status(503)
+          .json({ error: { code: "PROVIDER_PRICE_RATES_REQUIRED", requestId: req.requestId } });
+      reservationId = await reserveProviderSpend(
+        pool,
+        actor,
+        estimated,
+        config.AI_GLOBAL_DAILY_SPEND_CAP_INR,
+        config.AI_USER_DAILY_SPEND_CAP_INR,
+      );
+      if (!reservationId)
+        return res
+          .status(429)
+          .json({ error: { code: "AI_SPEND_CAP_REACHED", requestId: req.requestId } });
     }
     const generated = await textProvider.generate({
       content: parsed.data.content,
       language: parsed.data.language,
     });
-    if (reservationId && pool) await settleProviderSpend(pool, reservationId, generated.costPaise ?? 0);
+    if (reservationId && pool)
+      await settleProviderSpend(pool, reservationId, generated.costPaise ?? 0);
     return res.json({
       ok: true,
       mode: generated.provider,
