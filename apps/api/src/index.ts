@@ -204,8 +204,8 @@ app.use((_req, res) =>
     }),
 );
 app.use(
-  (err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    const id = randomUUID();
+  (err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    const id = req.requestId ?? randomUUID();
     process.stderr.write(
       JSON.stringify({
         level: "error",
