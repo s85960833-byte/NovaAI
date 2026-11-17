@@ -12,6 +12,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: APP_BASE_URL
+        value: https://nova-2-staging.onrender.com
       - key: AI_PROVIDER
         value: mock
       - key: AI_KILL_SWITCH
@@ -19,10 +21,13 @@ services:
       - key: MOCK_FEATURES_ENABLED
         value: "true"
       - key: DATABASE_URL
-        sync: false
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_ANON_KEY
-        sync: false
-      - key: MOCK_WEBHOOK_SECRET
-        sync: false
+        fromDatabase:
+          name: nova-2-test-db
+          property: connectionString
+databases:
+  - name: nova-2-test-db
+    plan: free
+    region: singapore
+    databaseName: nova_2_test_db
+    user: nova_2_test_db_user
+    postgresMajorVersion: 17
