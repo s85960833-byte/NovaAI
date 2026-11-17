@@ -2,6 +2,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import { PostgresMockWalletLedger } from "./postgres-ledger.js";
+import { failProviderSpend, reserveProviderSpend, settleProviderSpend } from "./spend-guard.js";
 const databaseUrl = process.env.DATABASE_URL;
 const suite = databaseUrl ? describe : describe.skip;
 suite("durable staging mock wallet (synthetic database only)", () => {
