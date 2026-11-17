@@ -1,0 +1,4 @@
+import fs from "node:fs";import path from "node:path";
+const root="data/schemes";const files=fs.existsSync(root)?fs.readdirSync(root).filter(f=>f.endsWith(".json")):[];
+const errors=[];for(const file of files){const records=JSON.parse(fs.readFileSync(path.join(root,file),"utf8"));if(!Array.isArray(records)){errors.push(file+": expected array");continue;}for(const item of records){for(const key of ["id","name_en","name_hi","official_url","last_verified","status"])if(!item[key])errors.push(file+": missing "+key);if(item.official_url&&!/^https:\/\//.test(item.official_url))errors.push(file+": official_url must be HTTPS");if(item.last_verified&&!/^\d{4}-\d{2}-\d{2}$/.test(item.last_verified))errors.push(file+": invalid last_verified");}}
+if(errors.length){console.error(errors.join("\n"));process.exit(1);}console.log("scheme validation: PASS ("+files.length+" files)");
