@@ -113,7 +113,9 @@
     "reduced": "कम",
     "off": "बंद",
     "sound": "आवाज़",
-    "install": "NOVA इंस्टॉल करें"
+    "install": "NOVA इंस्टॉल करें",
+    "installNow": "ऐप इंस्टॉल करें",
+    "installInstructions": "iPhone पर: Share → Add to Home Screen। Android पर: browser menu → Install app।"
   },
   "auth": {
     "title": "खाता",
