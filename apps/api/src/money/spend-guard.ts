@@ -19,7 +19,7 @@ export function canStartProviderCall(state: SpendState, estimatedCostInr: number
     return { allowed: false, reason: "USER_CAP" } as const;
   return { allowed: true, reason: "OK" } as const;
 }
-const syntheticActor = /^synthetic-[a-z0-9-]{1,40}$/;
+const allowedActor = /^(synthetic-[a-z0-9-]{1,40}|[0-9a-fA-F-]{36})$/;
 export async function reserveProviderSpend(
   pool: Pool,
   actorKey: string,
@@ -27,7 +27,7 @@ export async function reserveProviderSpend(
   globalCapInr: number,
   userCapInr: number,
 ): Promise<string | null> {
-  if (!syntheticActor.test(actorKey)) throw new Error("SYNTHETIC_ACTOR_REQUIRED");
+  if (!allowedActor.test(actorKey)) throw new Error("ACTOR_ID_REQUIRED");
   if (!Number.isSafeInteger(estimatedCostPaise) || estimatedCostPaise < 0) throw new Error("INVALID_ESTIMATE");
   const globalCap = Math.floor(globalCapInr * 100);
   const userCap = Math.floor(userCapInr * 100);
