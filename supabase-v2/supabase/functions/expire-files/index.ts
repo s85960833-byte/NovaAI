@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
   if (!url || !service) return Response.json({ error: "NOT_CONFIGURED" }, { status: 503, headers: { "Cache-Control": "no-store" } });
   const admin = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
   const bucket = Deno.env.get("PRIVATE_FILE_BUCKET") ?? "private-documents";
-  const { data: rows, error } = await admin.from("files").select("id,storage_key").is("deleted_at", null).lt("expires_at", new Date().toISOString()).limit(100);
+  const { data: rows, error } = await admin.from("files").select("id,user_id,storage_key").is("deleted_at", null).lt("expires_at", new Date().toISOString()).limit(100);
   if (error) return Response.json({ error: "EXPIRED_FILE_LOOKUP_FAILED" }, { status: 503 });
   const safe = (rows ?? []).filter((row) => typeof row.storage_key === "string" && row.storage_key.startsWith(row.user_id ? row.user_id + "/" : "__never__"));
   const keys = safe.map((row) => row.storage_key);
