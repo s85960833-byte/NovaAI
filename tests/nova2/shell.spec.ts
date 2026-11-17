@@ -62,7 +62,7 @@ test("mock wallet capture and refund are synthetic and idempotent", async ({ pag
 
 test("Diwan scam check returns cautious risk indicators", async ({ page }) => {
   await enterDarbar(page);
-  await page.getByRole("button", { name: "दीवान" }).click();
+  await page.getByRole("button", { name: "दीवान" }).last().click();
   await page.getByRole("button", { name: /संदिग्ध संदेश जाँचें/ }).click();
   await page.locator("textarea").fill("बैंक खाता बंद होगा। OTP अभी भेजें।");
   await page.getByRole("button", { name: "Preview चलाएँ" }).click();
@@ -103,5 +103,5 @@ test("Diwan RTI draft uses only supplied facts and includes a verification notic
   await labels.filter({ hasText: "प्रश्न" }).locator("textarea").fill("Please provide the existing record.");
   await page.getByRole("button", { name: "Preview चलाएँ" }).click();
   await expect(page.locator(".diwan-result pre")).toContainText("Please provide the existing record.");
-  await expect(page.locator(".diwan-result")).toContainText("verify");
+  await expect(page.locator(".diwan-result")).toContainText(/verify/i);
 });
