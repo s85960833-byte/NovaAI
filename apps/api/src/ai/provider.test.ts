@@ -74,6 +74,9 @@ it("parses Gemini fixture output without a network call", async () => {
   }).generate({ content: "नमस्ते", language: "hi" });
   expect(result.text).toBe("नमस्ते");
   expect(result.provider).toBe("gemini");
+  const [url, init] = fetchMock.mock.calls[0] as [URL, RequestInit];
+  expect(String(url)).not.toContain("key=");
+  expect(init.headers).toMatchObject({ "x-goog-api-key": "server-secret-12345" });
 });
 it("parses Anthropic fixture output without a network call", async () => {
   const fetchMock = vi.fn().mockResolvedValue(
