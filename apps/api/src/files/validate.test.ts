@@ -26,10 +26,19 @@ it("rejects oversized, empty and unsupported uploads", () => {
 });
 
 it("rejects spoofed MIME headers and binary payloads disguised as plain text", () => {
-  expect(validateUpload({ mime: "application/pdf", bytes: new TextEncoder().encode("GIF89a<script>") }))
-    .toEqual({ ok: false, code: "CONTENT_MISMATCH" });
-  expect(validateUpload({ mime: "image/jpeg", bytes: new TextEncoder().encode("%PDF-1.7") }))
-    .toEqual({ ok: false, code: "CONTENT_MISMATCH" });
-  expect(validateUpload({ mime: "text/plain", bytes: new Uint8Array([0, 1, 2, 3]) }))
-    .toEqual({ ok: false, code: "CONTENT_MISMATCH" });
+  expect(
+    validateUpload({
+      mime: "application/pdf",
+      bytes: new TextEncoder().encode("GIF89a<script>"),
+    }),
+  ).toEqual({ ok: false, code: "CONTENT_MISMATCH" });
+  expect(
+    validateUpload({
+      mime: "image/jpeg",
+      bytes: new TextEncoder().encode("%PDF-1.7"),
+    }),
+  ).toEqual({ ok: false, code: "CONTENT_MISMATCH" });
+  expect(
+    validateUpload({ mime: "text/plain", bytes: new Uint8Array([0, 1, 2, 3]) }),
+  ).toEqual({ ok: false, code: "CONTENT_MISMATCH" });
 });
