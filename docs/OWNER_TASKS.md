@@ -59,8 +59,4 @@ Every item is short. All are **PENDING OWNER REVIEW** unless marked NOT VERIFIED
     2. Confirm legal, privacy, security, data migration, backups and physical-device reviews are complete.
     3. Only when ready, type exactly `APPROVE RELEASE` in ChatGPT. No other wording starts Phase 7.
 
-11. **GitHub Actions approval — PENDING OWNER REVIEW (about 1 minute).**
-    1. Open GitHub → NOVA AI repository → Actions.
-    2. Open NOVA 2.0 CI run #414 for the `nova-2.0/rebuild` branch.
-    3. If GitHub displays “Review workflows” or “Approve and run”, approve this repository-owned workflow only.
-    4. Confirm the `checks` and `database` jobs start; do not approve unrelated or third-party workflows.
+11. **GitHub Actions approval — NOT REQUIRED for current run.** Run #421 started automatically after the CI workflow was changed to read-only repository permissions. The `checks` job passed; the `database` job is running. No owner action is currently requested.
