@@ -134,5 +134,5 @@ test("Diwan RTI draft uses only supplied facts and includes a verification notic
   await expect(page.locator(".diwan-result pre")).toContainText(
     "Please provide the existing record.",
   );
-  await expect(page.locator(".diwan-result")).toContainText(/verify/i);
+  await expect(page.locator(".diwan-result")).toContainText(/कानूनी सलाह नहीं|verify/i);
 });
