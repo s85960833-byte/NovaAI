@@ -24,3 +24,5 @@
 | 2026-11-17 | Keep marketing materials pre-release and prohibit unverified performance, legal, fraud-detection or official-partner claims. | Trust and safety require explicit caveats and owner review. | PENDING OWNER REVIEW |
 
 | 2026-11-17 | Run the idempotent staging DB migration in the service start command, not Render pre-deploy. | Render Free does not support pre-deploy commands; the app must not require a paid plan. Migration uses CREATE/IF NOT EXISTS and is restricted to `nova2_staging`. | Autonomous safe default |
+
+| 2026-11-17 | Make NOVA 2.0 CI least-privilege and deterministic: `contents: read`, locked `npm ci`, no CI-side lockfile mutation, no `npm audit fix`, and no bot push/format commit. | Avoids privileged PR workflow writes and prevents dependency drift; formatting is verified by `format:check`. | Autonomous engineering decision |
