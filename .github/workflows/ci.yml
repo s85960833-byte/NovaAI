@@ -10,8 +10,8 @@ permissions:
   actions: write
   pull-requests: read
 concurrency:
-  group: nova2-ci-${{ github.ref }}
-  cancel-in-progress: false
+  group: nova2-ci-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
 jobs:
   checks:
     runs-on: ubuntu-latest
@@ -29,20 +29,18 @@ jobs:
       - run: npm run lint
       - name: Apply non-breaking npm security fixes to lockfile
         run: npm audit fix --ignore-scripts
-      - name: Format rebuild branch and commit changes
-        if: github.event_name == 'push' && github.ref == 'refs/heads/nova-2.0/rebuild'
+      - name: Format workspace
+        run: npx prettier --write apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/run-real-provider-evals.mjs scripts/check-bundle-budget.mjs tests/nova2 vitest.config.ts playwright.config.ts
+      - name: Commit formatting and refreshed lockfile
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/nova-2.0/rebuild'
         run: |
-          npx prettier --write apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/run-real-provider-evals.mjs scripts/check-bundle-budget.mjs tests/nova2 vitest.config.ts playwright.config.ts
           if ! git diff --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add package-lock.json apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/run-real-provider-evals.mjs scripts/check-bundle-budget.mjs tests/nova2 vitest.config.ts playwright.config.ts
             git commit -m "style: format NOVA 2.0 source"
             git push origin HEAD:nova-2.0/rebuild
-            curl -fsSL -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/dispatches -d '{"ref":"nova-2.0/rebuild"}'
           fi
-        env:
-          GH_TOKEN: ${{ github.token }}
       - run: npm run format:check
       - run: npm test
       - run: npm run check:i18n
