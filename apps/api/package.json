@@ -21,13 +21,15 @@
     "express-rate-limit": "8.1.0",
     "helmet": "8.1.0",
     "pg": "8.16.3",
-    "zod": "4.1.12"
+    "zod": "4.1.12",
+    "multer": "2.0.2"
   },
   "devDependencies": {
     "@types/cookie-parser": "1.4.9",
     "@types/express": "5.0.5",
     "@types/node": "22.19.1",
     "@types/pg": "8.15.5",
-    "tsx": "4.20.6"
+    "tsx": "4.20.6",
+    "@types/multer": "2.0.0"
   }
 }
