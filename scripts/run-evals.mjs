@@ -21,8 +21,8 @@ for (const task of tasks) {
         Array.isArray(row.must_include) &&
         Array.isArray(row.must_not_include),
     );
-  console.log(task + ": " + rows.length + " cases; " + (ok ? "PASS" : "FAIL"));
+  process.stdout.write(task + ": " + rows.length + " cases; " + (ok ? "PASS" : "FAIL") + "\\n");
   if (!ok) failed = true;
 }
 if (failed) process.exit(1);
-console.log("EVAL FIXTURE VALIDATION PASS — semantic model quality NOT VERIFIED (mock mode).");
+process.stdout.write("EVAL FIXTURE VALIDATION PASS — semantic model quality NOT VERIFIED (mock mode).\\n");
