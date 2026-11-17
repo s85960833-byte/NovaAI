@@ -23,8 +23,10 @@ export function estimateRefreshRate(samples: number[]): RefreshRate {
   return 60;
 }
 export function startFrameBudgetMonitor(root: HTMLElement = document.documentElement) {
+  if (!new URLSearchParams(window.location.search).has("perf")) return () => undefined;
   let previous = 0;
   let raf = 0;
+  let lastPublishedAt = 0;
   const samples: number[] = [];
   let dropped = 0;
   const tick = (now: number) => {
@@ -35,12 +37,15 @@ export function startFrameBudgetMonitor(root: HTMLElement = document.documentEle
       const refreshRate = estimateRefreshRate(samples);
       const budget = FRAME_BUDGET_MS[refreshRate];
       if (delta > budget * 1.5) dropped += Math.max(1, Math.round(delta / budget) - 1);
-      root.dataset.frameRefreshRate = String(refreshRate);
-      root.dataset.frameP50 = percentile(samples, 50).toFixed(2);
-      root.dataset.frameP95 = percentile(samples, 95).toFixed(2);
-      root.dataset.frameBudget120 = String(evaluateFrame(delta, 120).withinBudget);
-      root.dataset.frameBudgetNative = String(evaluateFrame(delta, refreshRate).withinBudget);
-      root.dataset.frameDropped = String(dropped);
+      if (now - lastPublishedAt >= 1000) {
+        root.dataset.frameRefreshRate = String(refreshRate);
+        root.dataset.frameP50 = percentile(samples, 50).toFixed(2);
+        root.dataset.frameP95 = percentile(samples, 95).toFixed(2);
+        root.dataset.frameBudget120 = String(evaluateFrame(delta, 120).withinBudget);
+        root.dataset.frameBudgetNative = String(evaluateFrame(delta, refreshRate).withinBudget);
+        root.dataset.frameDropped = String(dropped);
+        lastPublishedAt = now;
+      }
     }
     previous = now;
     raf = requestAnimationFrame(tick);
@@ -52,10 +57,9 @@ export function startFrameBudgetMonitor(root: HTMLElement = document.documentEle
     PerformanceObserver.supportedEntryTypes?.includes("long-animation-frame")
   ) {
     observer = new PerformanceObserver((list) => {
-      const entries = list.getEntries();
       const count =
         Number(root.dataset.longAnimationFrames ?? "0") +
-        entries.filter((entry) => entry.duration > LONG_TASK_BUDGET_MS).length;
+        list.getEntries().filter((entry) => entry.duration > LONG_TASK_BUDGET_MS).length;
       root.dataset.longAnimationFrames = String(count);
     });
     observer.observe({ type: "long-animation-frame", buffered: true });
