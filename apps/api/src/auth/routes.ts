@@ -1,4 +1,4 @@
-import {Router,type Request,type Response,type NextFunction} from "express";import {authConfirmSchema,authSignInSchema,authSignUpSchema,authEmailSchema} from "@nova/shared/schemas";import {config} from "../config.js";import {supabaseAuthClient,authConfigured} from "./client.js";
+import {Router,type Request,type Response,type NextFunction} from "express";import {authConfirmSchema,authSignInSchema,authSignUpSchema,authEmailSchema} from "@nova/shared/schemas";import {config} from "../config.js";import {supabaseAuthClient} from "./client.js";
 const router=Router();const accessCookie="nova_access";const refreshCookie="nova_refresh";
 function sameOrigin(req:Request,res:Response,next:NextFunction){const origin=req.header("origin");try{if(!origin||new URL(origin).origin!==new URL(config.APP_BASE_URL).origin)return res.status(403).json({error:{code:"ORIGIN_REJECTED"}});}catch{return res.status(403).json({error:{code:"ORIGIN_REJECTED"}});}next();}
 function unavailable(res:Response){return res.status(503).json({error:{code:"AUTH_NOT_CONFIGURED",message:{en:"Sign-in is not configured on this staging build.",hi:"इस staging बिल्ड में साइन-इन सेट नहीं है।"}}});}
