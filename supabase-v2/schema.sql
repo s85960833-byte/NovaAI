@@ -138,6 +138,7 @@ create policy chats_owner_all on public.chats for all to authenticated using ((s
 create policy messages_owner_all on public.messages for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 create policy files_owner_select on public.files for select to authenticated using ((select auth.uid()) = user_id);
 create policy files_insert_own on public.files for insert to authenticated with check ((select auth.uid()) = user_id and expires_at > now() and expires_at <= now() + interval '24 hours');
+create policy files_delete_own on public.files for delete to authenticated using ((select auth.uid()) = user_id);
 create policy wallet_owner_select on public.wallets for select to authenticated using ((select auth.uid()) = user_id);
 create policy ledger_owner_select on public.ledger_entries for select to authenticated using ((select auth.uid()) = user_id);
 create policy mock_payments_owner_select on public.mock_payments for select to authenticated using ((select auth.uid()) = user_id);
@@ -146,7 +147,7 @@ create policy diwan_jobs_owner_select on public.diwan_jobs for select to authent
 create policy schemes_public_read on public.schemes for select to anon,authenticated using (true);
 grant select,insert,update on public.profiles to authenticated;
 grant select,insert,update,delete on public.chats,public.messages to authenticated;
-grant select,insert on public.files to authenticated;
+grant select,insert,delete on public.files to authenticated;
 grant select on public.wallets,public.ledger_entries,public.mock_payments,public.usage_events,public.diwan_jobs to authenticated;
 grant select on public.schemes to anon,authenticated;
 create policy private_docs_upload_own on storage.objects for insert to authenticated with check (bucket_id = 'private-documents' and (storage.foldername(name))[1] = (select auth.uid())::text);
