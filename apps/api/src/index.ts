@@ -26,7 +26,8 @@ import { buildRtiDraft, buildComplaintDraft } from "./diwan/drafts.js";
 import { loadApprovedSchemes, matchSchemes } from "./diwan/schemes.js";
 import { databaseHealth, pool } from "./db/connection.js";
 import { requestContext } from "./middleware/request-context.js";
-import { createTextProvider } from "./ai/provider.js";
+import { createTextProvider, estimateCostPaise } from "./ai/provider.js";
+import { failProviderSpend, reserveProviderSpend, settleProviderSpend } from "./money/spend-guard.js";
 type RawRequest = express.Request & { rawBody?: Buffer };
 const app = express();
 const wallet = pool ? new PostgresMockWalletLedger(pool) : new MockWalletLedger();
@@ -89,11 +90,22 @@ app.post("/api/sakha/chat", async (req, res) => {
   const parsed = chatMessageSchema.safeParse(req.body);
   if (!parsed.success)
     return res.status(400).json({ error: { code: "INVALID_INPUT", requestId: req.requestId } });
+  let reservationId: string | null = null;
   try {
+    if (config.AI_PROVIDER !== "mock") {
+      const actor = syntheticUser(req);
+      if (!actor) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED", requestId: req.requestId } });
+      if (!pool) return res.status(503).json({ error: { code: "SPEND_DATABASE_REQUIRED", requestId: req.requestId } });
+      const estimated = estimateCostPaise(Math.ceil(parsed.data.content.length / 2), 1200);
+      if (estimated === null) return res.status(503).json({ error: { code: "PROVIDER_PRICE_RATES_REQUIRED", requestId: req.requestId } });
+      reservationId = await reserveProviderSpend(pool, actor, estimated, config.AI_GLOBAL_DAILY_SPEND_CAP_INR, config.AI_USER_DAILY_SPEND_CAP_INR);
+      if (!reservationId) return res.status(429).json({ error: { code: "AI_SPEND_CAP_REACHED", requestId: req.requestId } });
+    }
     const generated = await textProvider.generate({
       content: parsed.data.content,
       language: parsed.data.language,
     });
+    if (reservationId && pool) await settleProviderSpend(pool, reservationId, generated.costPaise ?? 0);
     return res.json({
       ok: true,
       mode: generated.provider,
@@ -105,6 +117,7 @@ app.post("/api/sakha/chat", async (req, res) => {
       requestId: req.requestId,
     });
   } catch {
+    if (reservationId && pool) await failProviderSpend(pool, reservationId).catch(() => false);
     return res.status(503).json({ error: { code: "PROVIDER_DISABLED", requestId: req.requestId } });
   }
 });
