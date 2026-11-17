@@ -27,6 +27,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
+      - name: Apply non-breaking npm security fixes to lockfile
+        run: npm audit fix --package-lock-only --ignore-scripts
       - name: Format rebuild branch and commit changes
         if: github.event_name == 'push' && github.ref == 'refs/heads/nova-2.0/rebuild'
         run: |
