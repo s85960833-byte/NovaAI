@@ -15,9 +15,7 @@ test("Darbar has landmarks, headings and named visible controls", async ({ page 
       .filter((node) => {
         const element = node as HTMLButtonElement;
         const label =
-          element.getAttribute("aria-label") ??
-          element.getAttribute("title") ??
-          element.innerText;
+          element.getAttribute("aria-label") ?? element.getAttribute("title") ?? element.innerText;
         return !label.trim();
       })
       .map((node) => node.outerHTML.slice(0, 120)),
