@@ -19,7 +19,7 @@ A separate free project is required. The organization must be explicitly selecte
 NOVA 2.0 uses the separate supabase-v2/ directory. Existing supabase/ migrations and functions belong to NOVA 1.0 / NOVA Business Intelligence and must not be replayed, edited or deployed by this rebuild. CI runs local Supabase CLI commands from supabase-v2/ only.
 
 ## Render staging
-The branch includes a free-only render.yaml blueprint. Create only a service named nova-2-staging, branch nova-2.0/rebuild, plan Free, build npm ci && npm run build, start npm run start --workspace @nova/api, health path /api/health. Do not select or edit the production service.
+The branch includes a free-only render.yaml blueprint. Create only a service named nova-2-staging, branch nova-2.0/rebuild, plan Free, build `npm ci --include=dev && npm run build`, start `npm run db:migrate:staging && npm run start --workspace @nova/api`, health path `/api/health`. The migration runs at startup because Render Free does not support pre-deploy commands; it is idempotent and only creates the isolated synthetic schema. Do not select or edit the production service.
 
 ## Environment variables
 Use only the new staging project:
