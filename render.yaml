@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: nova-2-staging
+    runtime: node
+    plan: free
+    region: singapore
+    branch: nova-2.0/rebuild
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start --workspace @nova/api
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AI_PROVIDER
+        value: mock
+      - key: AI_KILL_SWITCH
+        value: "true"
+      - key: MOCK_FEATURES_ENABLED
+        value: "true"
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: MOCK_WEBHOOK_SECRET
+        sync: false
