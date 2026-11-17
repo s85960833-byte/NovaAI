@@ -155,6 +155,7 @@
     "textAttached": "Text added to the composer. Review it before sending.",
     "filePending": "PDF and image upload is not connected yet; no file was uploaded.",
     "speak": "Read aloud",
-    "stopSpeaking": "Stop reading"
+    "stopSpeaking": "Stop reading",
+    "live": "Live AI response"
   }
 }
