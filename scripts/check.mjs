@@ -88,7 +88,7 @@ const cloudClient = readFileSync('nova-business-cloud.js', 'utf8');
 if (!cloudClient.includes('const orgId=state.orgId') || !cloudClient.includes('if(state.orgId!==orgId)return')) throw new Error('Company switch must discard stale tenant responses');
 if (!cloudClient.includes('if(value!==raw)node.nodeValue=value') || !cloudClient.includes('if(value!==raw)el.setAttribute(attr,value)')) throw new Error('Company Cloud bilingual MutationObserver must skip unchanged DOM values to avoid a self-triggering mutation loop');
 if (!cloudClient.includes('queueMicrotask(()=>refresh().catch(e=>say(e.message,true)))')) throw new Error('Supabase auth refresh must run after the auth callback lock is released');
-if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start command mismatch');
+if (pkg.name === 'nova-2') { if (!pkg.workspaces?.includes('apps/*') || !pkg.scripts?.build) throw new Error('NOVA 2.0 workspace build contract missing'); } else if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start command mismatch');
 if (pkg.engines?.node !== '22.x') throw new Error('Render and CI must use the same pinned Node.js 22 LTS runtime');
 for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api/live/selftest'", "app.get('/api/feed'", "app.get('/nova-reference.js'"]) if (!server.includes(route)) throw new Error('Required backend route missing: ' + route);
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
