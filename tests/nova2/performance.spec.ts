@@ -71,7 +71,7 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
     const p95Ms = Number(percentile(0.95).toFixed(2));
     const refreshEstimateHz = p50Ms <= 9.5 ? 120 : p50Ms <= 13.8 ? 90 : 60;
     const budgetMs = Number((1000 / refreshEstimateHz).toFixed(1));
-    const droppedFrames = frames.reduce(
+    const droppedFrames = intervals.reduce(
       (total, ms) => total + (ms > budgetMs * 1.5 ? Math.max(1, Math.round(ms / budgetMs) - 1) : 0),
       0,
     );
