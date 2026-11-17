@@ -137,7 +137,6 @@ test("Diwan RTI draft uses only supplied facts and includes a verification notic
   await expect(page.locator(".diwan-result")).toContainText(/कानूनी सलाह नहीं|verify/i);
 });
 
-
 test("synthetic wallet enforces owner isolation and blocks foreign order simulation", async ({
   request,
 }) => {
