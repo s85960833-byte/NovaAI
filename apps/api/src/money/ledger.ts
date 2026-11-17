@@ -3,6 +3,7 @@ export type LedgerEntry={id:string;userId:string;deltaCredits:number;reason:"top
 type Order={id:string;userId:string;packId:"starter"|"standard"|"plus";amountPaise:number;credits:number;status:"created"|"captured"|"failed"|"refunded"};
 export class MockWalletLedger{private readonly orders=new Map<string,Order>();private readonly events=new Set<string>();private readonly rows:LedgerEntry[]=[];
 createOrder(userId:string,packId:Order["packId"]){if(!userId.trim())throw new Error("USER_REQUIRED");const pack=PRICING.topups[packId];const order:Order={id:"mock_order_"+randomUUID(),userId,packId,amountPaise:pack.rupees*100,credits:pack.credits,status:"created"};this.orders.set(order.id,order);return {...order};}
+ownsOrder(userId:string,orderId:string){return this.orders.get(orderId)?.userId===userId;}
 balance(userId:string){return this.rows.filter(row=>row.userId===userId).reduce((sum,row)=>sum+row.deltaCredits,0);}
 ledger(userId:string){return this.rows.filter(row=>row.userId===userId).map(row=>({...row}));}
 spend(userId:string,credits:number,refId:string){if(!Number.isSafeInteger(credits)||credits<=0)throw new Error("INVALID_CREDITS");if(this.balance(userId)<credits)throw new Error("INSUFFICIENT_CREDITS");this.append(userId,-credits,"spend",refId);return this.balance(userId);}
