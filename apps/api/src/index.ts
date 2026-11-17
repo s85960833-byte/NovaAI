@@ -20,9 +20,12 @@ import { checkScamText } from "./diwan/scam-check.js";
 import { conservativePaperFallback } from "./diwan/paper-reader.js";
 import { buildRtiDraft, buildComplaintDraft } from "./diwan/drafts.js";
 import { databaseHealth } from "./db/connection.js";
+import { requestContext } from "./middleware/request-context.js";
+import { createTextProvider } from "./ai/provider.js";
 type RawRequest = express.Request & { rawBody?: Buffer };
 const app = express();
 const wallet = new MockWalletLedger();
+const textProvider = createTextProvider(config.AI_PROVIDER);
 app.disable("x-powered-by");
 app.use(
   helmet({
@@ -41,6 +44,7 @@ app.use(
     },
   }),
 );
+app.use(requestContext);
 app.use(
   express.json({
     limit: "1mb",
@@ -55,17 +59,19 @@ app.use(
   rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: "draft-8", legacyHeaders: false }),
 );
 app.use("/api/auth", authRouter);
-app.get("/api/health", async (_req, res) => {
+app.get("/api/health", async (req, res) => {
   const database = await databaseHealth();
   return res
     .status(database.configured && !database.ok ? 503 : 200)
     .json({
       ok: true,
       ready: database.ok,
+      requestId: req.requestId,
       service: "nova-api",
       version: "2.0.0",
       mode: config.AI_PROVIDER,
-      aiEnabled: config.AI_PROVIDER === "mock" || !config.AI_KILL_SWITCH,
+      aiEnabled: config.AI_PROVIDER !== "disabled" && !config.AI_KILL_SWITCH,
+      mockPreviewEnabled: config.AI_PROVIDER === "mock",
       mockFeatures: config.MOCK_FEATURES_ENABLED,
       authConfigured: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
       dependencies: { database, provider: config.AI_PROVIDER },
@@ -73,14 +79,15 @@ app.get("/api/health", async (_req, res) => {
     });
 });
 app.get("/health", (_req, res) => res.redirect(308, "/api/health"));
-app.post("/api/sakha/chat", (req, res) => {
+app.post("/api/sakha/chat", async (req, res) => {
   const parsed = chatMessageSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_INPUT" } });
-  const reply =
-    parsed.data.language === "hi"
-      ? "यह NOVA 2.0 का सुरक्षित mock preview है। असली AI provider अभी बंद है; इसलिए इसे वास्तविक AI उत्तर न मानें।"
-      : "This is a safe NOVA 2.0 mock preview. The real AI provider is disabled, so this is not a live AI answer.";
-  return res.json({ ok: true, mode: "mock", reply, chargedCredits: 0, stored: false });
+  if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_INPUT", requestId: req.requestId } });
+  try {
+    const generated = await textProvider.generate({ content: parsed.data.content, language: parsed.data.language });
+    return res.json({ ok: true, mode: generated.provider, model: generated.model, reply: generated.text, chargedCredits: 0, costPaise: generated.costPaise, stored: false, requestId: req.requestId });
+  } catch {
+    return res.status(503).json({ error: { code: "PROVIDER_DISABLED", requestId: req.requestId } });
+  }
 });
 app.post("/api/diwan/scam-check", (req, res) => {
   const parsed = diwanScamSchema.safeParse(req.body);
