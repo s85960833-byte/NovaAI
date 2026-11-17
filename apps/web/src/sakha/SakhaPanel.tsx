@@ -9,6 +9,16 @@ import {
   type LocalMessage,
 } from "./local-chat";
 type Props = { locale: Locale };
+function getSyntheticUser() {
+  const key = "nova2_synthetic_wallet_user";
+  let value = localStorage.getItem(key);
+  if (!value) {
+    value = "synthetic-" + crypto.randomUUID().replaceAll("-", "").slice(0, 24);
+    localStorage.setItem(key, value);
+  }
+  return value;
+}
+
 type SpeechResult = { results: ArrayLike<ArrayLike<{ transcript: string }>> };
 type Recognition = {
   lang: string;
@@ -83,7 +93,7 @@ export function SakhaPanel({ locale }: Props) {
     try {
       const response = await fetch("/api/sakha/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-nova-synthetic-user": getSyntheticUser() },
         body: JSON.stringify({ content, language: locale }),
       });
       if (!response.ok) throw new Error("MOCK_API_UNAVAILABLE");
