@@ -117,3 +117,27 @@ jobs:
       - name: Stop local Supabase stack
         if: always()
         run: cd supabase-v2 && supabase stop
+
+
+  staging-smoke:
+    needs: [checks, database]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run small read-only load test against Free staging
+        run: npm run test:staging:load
+        env:
+          STAGING_URL: https://nova-2-staging.onrender.com
+      - name: Upload staging load evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nova2-staging-load-evidence
+          path: artifacts/staging-load.json
+          if-no-files-found: ignore
