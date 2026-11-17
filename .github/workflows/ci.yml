@@ -62,6 +62,15 @@ jobs:
           if-no-files-found: ignore
       - run: npm run check:bundle
       - run: npm run lighthouse
+      - name: Upload Lighthouse reports and build evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nova2-lighthouse-evidence
+          path: |
+            .lighthouseci/
+            artifacts/
+          if-no-files-found: ignore
   database:
     needs: checks
     runs-on: ubuntu-latest
