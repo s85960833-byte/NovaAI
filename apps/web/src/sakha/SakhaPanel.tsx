@@ -89,15 +89,15 @@ export function SakhaPanel({ locale }: Props) {
         body: JSON.stringify({ content, language: locale }),
       });
       if (!response.ok) throw new Error("MOCK_API_UNAVAILABLE");
-      const data = (await response.json()) as { reply: string; mode: "mock"; stored: boolean };
+      const data = (await response.json()) as { reply: string; mode: string; stored: boolean };
       addMessage(chat.id, {
         id: crypto.randomUUID(),
         role: "assistant",
         content: data.reply,
         createdAt: new Date().toISOString(),
-        mode: data.mode,
+        mode: data.mode === "mock" ? "mock" : "live",
       });
-      setNotice(t("chat.mock"));
+      setNotice(data.mode === "mock" ? t("chat.mock") : t("chat.live"));
     } catch {
       addMessage(chat.id, {
         id: crypto.randomUUID(),
@@ -216,7 +216,7 @@ export function SakhaPanel({ locale }: Props) {
           <article className={"chat-bubble " + message.role} key={message.id}>
             <small>
               {message.role === "user" ? t("chat.you") : t("chat.assistant")}
-              {message.mode === "mock" ? " · MOCK" : ""}
+              {message.mode === "mock" ? " · MOCK" : message.mode === "live" ? " · LIVE AI" : ""}
             </small>
             <p>{message.content}</p>
             {message.role === "assistant" && (
