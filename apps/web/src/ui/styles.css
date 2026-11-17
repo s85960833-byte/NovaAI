@@ -1083,7 +1083,6 @@ select:focus-visible {
   text-align: right;
 }
 
-
 /* Public /perf page: a single viewport dashboard for on-device cadence sampling. */
 .perf-page {
   min-height: 100svh;
@@ -1121,7 +1120,10 @@ select:focus-visible {
 
 .perf-card h1 {
   margin: 0 0 6px;
-  font: 600 clamp(26px, 7vw, 34px) / 1.2 Georgia, "Noto Serif Devanagari", serif;
+  font:
+    600 clamp(26px, 7vw, 34px) / 1.2 Georgia,
+    "Noto Serif Devanagari",
+    serif;
 }
 
 .perf-intro,
