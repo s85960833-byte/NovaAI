@@ -29,7 +29,7 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
       get: () => 8,
     });
   });
-  await page.goto("/?perf=1");
+  await page.goto("/");
   await expect(page.locator(".intro")).toBeVisible({ timeout: 3000 });
 
   const scenarios: Record<string, Scenario> = {};
