@@ -6,7 +6,7 @@ on:
     branches: ["nova-2.0/rebuild"]
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
   pull-requests: read
 concurrency:
   group: nova2-ci-${{ github.ref }}
@@ -14,58 +14,18 @@ concurrency:
 jobs:
   checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - uses: supabase/setup-cli@v1
-        with:
-          version: 3.2.0
-      - name: Generate initial migration using Supabase CLI v3 (local only)
-        shell: bash
-        run: |
-          mkdir -p supabase-v2/migrations
-          if ! compgen -G "supabase-v2/migrations/*_nova2_initial.sql" > /dev/null; then
-            (cd supabase-v2 && supabase migration new nova2_initial)
-            generated=$(find supabase-v2/supabase/migrations -maxdepth 1 -name '*_nova2_initial.sql' -print -quit)
-            test -n "$generated"
-            cp supabase-v2/schema.sql "$generated"
-          fi
-      - name: Persist generated migration on rebuild branch
-        run: |
-          if ! git diff --quiet -- supabase-v2/migrations; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add supabase-v2/migrations
-            git commit -m "db: scaffold initial migration using Supabase CLI"
-            git push
-          fi
-      - name: Generate lockfile from pinned workspace manifests
+      - name: Refresh lockfile from pinned workspace manifests
         run: npm install --package-lock-only --ignore-scripts --no-audit
-      - name: Persist generated lockfile on rebuild branch
-        run: |
-          if ! git diff --quiet -- package-lock.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "chore: update generated lockfile"
-            git push
-          fi
       - run: npm ci
       - name: Format workspace
         run: npx prettier --write apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/check-bundle-budget.mjs vitest.config.ts playwright.config.ts
-      - name: Persist formatting pass
-        run: |
-          if ! git diff --quiet -- apps packages config scripts vitest.config.ts playwright.config.ts; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add apps packages config scripts vitest.config.ts playwright.config.ts
-            git commit -m "chore: format NOVA 2.0 workspace"
-            git push
-          fi
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
@@ -86,6 +46,11 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
       - uses: supabase/setup-cli@v1
         with:
           version: 3.2.0
@@ -95,6 +60,11 @@ jobs:
         run: |
           cd supabase-v2 && supabase db reset
           cd supabase-v2 && supabase migration list
+      - name: Verify durable mock wallet integration
+        run: npm run test:db
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
+          MOCK_FEATURES_ENABLED: "true"
       - name: Stop local Supabase stack
         if: always()
         run: cd supabase-v2 && supabase stop
