@@ -17,6 +17,7 @@ import {
 } from "@nova/shared/schemas";
 import { config } from "./config.js";
 import { authRouter } from "./auth/routes.js";
+import { createAuthClient } from "./auth/client.js";
 import { fileRouter } from "./files/routes.js";
 import { MockWalletLedger } from "./money/ledger.js";
 import { PostgresMockWalletLedger } from "./money/postgres-ledger.js";
@@ -93,8 +94,14 @@ app.post("/api/sakha/chat", async (req, res) => {
   let reservationId: string | null = null;
   try {
     if (config.AI_PROVIDER !== "mock") {
-      const actor = syntheticUser(req);
-      if (!actor) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED", requestId: req.requestId } });
+      const authClient = createAuthClient();
+      const accessToken = req.cookies?.nova_access;
+      if (!authClient || typeof accessToken !== "string")
+        return res.status(401).json({ error: { code: "AUTH_REQUIRED", requestId: req.requestId } });
+      const { data: authData, error: authError } = await authClient.auth.getUser(accessToken);
+      if (authError || !authData.user)
+        return res.status(401).json({ error: { code: "AUTH_REQUIRED", requestId: req.requestId } });
+      const actor = authData.user.id;
       if (!pool) return res.status(503).json({ error: { code: "SPEND_DATABASE_REQUIRED", requestId: req.requestId } });
       const estimated = estimateCostPaise(Math.ceil(parsed.data.content.length / 2), 1200);
       if (estimated === null) return res.status(503).json({ error: { code: "PROVIDER_PRICE_RATES_REQUIRED", requestId: req.requestId } });
