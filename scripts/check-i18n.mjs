@@ -19,4 +19,4 @@ if (missingHi.length || missingEn.length) {
   console.error(JSON.stringify({ missingHi, missingEn }, null, 2));
   process.exit(1);
 }
-console.log("i18n parity: PASS (" + a.size + " keys)");
+process.stdout.write("i18n parity: PASS (" + a.size + " keys)\\n");
