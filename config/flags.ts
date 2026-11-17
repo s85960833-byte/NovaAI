@@ -1,0 +1,2 @@
+export const FEATURE_FLAGS={sakhaChat:true,sakhaVoice:false,sakhaSearch:false,sakhaFiles:false,sakhaImages:false,diwanPaperReader:true,diwanScamCheck:true,diwanRti:true,diwanComplaint:true,diwanSchemes:false,walletMock:true,realPayments:false,googleAuth:false,phoneOtp:false,cloudSync:false,adminDashboard:false} as const;
+export type FeatureFlag=keyof typeof FEATURE_FLAGS;
