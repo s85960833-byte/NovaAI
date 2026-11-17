@@ -24,8 +24,6 @@ jobs:
       - name: Refresh lockfile from pinned workspace manifests
         run: npm install --package-lock-only --ignore-scripts --no-audit
       - run: npm ci
-      - name: Format workspace
-        run: npx prettier --write apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/check-bundle-budget.mjs vitest.config.ts playwright.config.ts
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
@@ -65,6 +63,19 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
           MOCK_FEATURES_ENABLED: "true"
+      - name: Rehearse synthetic schema backup and restore
+        run: |
+          set -euo pipefail
+          pg_dump "$DATABASE_URL" --schema=nova2_staging --format=custom --no-owner --file=/tmp/nova2-staging.dump
+          pg_restore --list /tmp/nova2-staging.dump >/tmp/nova2-staging.contents
+          PGPASSWORD=postgres createdb -h 127.0.0.1 -p 54332 -U postgres nova2_restore_check
+          RESTORE_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54332/nova2_restore_check
+          pg_restore --no-owner --dbname="$RESTORE_DATABASE_URL" /tmp/nova2-staging.dump
+          TABLES=$(psql "$RESTORE_DATABASE_URL" -Atc "select count(*) from information_schema.tables where table_schema = 'nova2_staging'")
+          test "$TABLES" -ge 5
+          echo "SYNTHETIC BACKUP/RESTORE PASS: $TABLES tables restored"
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
       - name: Stop local Supabase stack
         if: always()
         run: cd supabase-v2 && supabase stop
