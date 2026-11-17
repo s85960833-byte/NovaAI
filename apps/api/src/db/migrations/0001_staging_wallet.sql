@@ -66,7 +66,21 @@ end $;
 
 create table if not exists nova2_staging.ai_spend_events (
   id uuid primary key default gen_random_uuid(),
-  actor_key text not null check (actor_key ~ '^synthetic-[a-z0-9-]{1,40}$'),
+  actor_key text not null check ((actor_key ~ '^synthetic-[a-z0-9-]{1,40}),
+  cost_paise bigint not null check (cost_paise >= 0),
+  status text not null check (status in ('reserved','settled','failed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists ai_spend_daily_idx on nova2_staging.ai_spend_events(created_at,actor_key);
+ or actor_key ~ '^[0-9a-fA-F-]{36}),
+  cost_paise bigint not null check (cost_paise >= 0),
+  status text not null check (status in ('reserved','settled','failed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists ai_spend_daily_idx on nova2_staging.ai_spend_events(created_at,actor_key);
+)),
   cost_paise bigint not null check (cost_paise >= 0),
   status text not null check (status in ('reserved','settled','failed')),
   created_at timestamptz not null default now(),
