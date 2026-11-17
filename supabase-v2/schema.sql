@@ -231,55 +231,33 @@ create table if not exists nova2_staging.wallet_events (
 create or replace function nova2_staging.apply_wallet_ledger_delta()
 returns trigger
 language plpgsql
-as $$
-begin
-  update nova2_staging.wallet_accounts
-    set balance_credits = balance_credits + new.delta_credits,
+as 'BEGIN
+  UPDATE nova2_staging.wallet_accounts
+    SET balance_credits = balance_credits + NEW.delta_credits,
         updated_at = now()
-    where synthetic_user_id = new.synthetic_user_id;
-  if not found then
-    raise exception 'WALLET_ACCOUNT_NOT_FOUND';
-  end if;
-  return new;
-end;
-$$;
+    WHERE synthetic_user_id = NEW.synthetic_user_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION ''WALLET_ACCOUNT_NOT_FOUND'';
+  END IF;
+  RETURN NEW;
+END;';
 
-do $$
-begin
-  if not exists (
-    select 1 from pg_trigger
-    where tgname = 'wallet_ledger_balance_trigger'
-      and tgrelid = 'nova2_staging.wallet_ledger'::regclass
-  ) then
-    create trigger wallet_ledger_balance_trigger
-      after insert on nova2_staging.wallet_ledger
-      for each row execute function nova2_staging.apply_wallet_ledger_delta();
-  end if;
-end;
-$$;
+DROP TRIGGER IF EXISTS wallet_ledger_balance_trigger ON nova2_staging.wallet_ledger;
+CREATE TRIGGER wallet_ledger_balance_trigger
+  AFTER INSERT ON nova2_staging.wallet_ledger
+  FOR EACH ROW EXECUTE FUNCTION nova2_staging.apply_wallet_ledger_delta();
 
 create or replace function nova2_staging.prevent_wallet_ledger_mutation()
 returns trigger
 language plpgsql
-as $$
-begin
-  raise exception 'WALLET_LEDGER_APPEND_ONLY';
-end;
-$$;
+as 'BEGIN
+  RAISE EXCEPTION ''WALLET_LEDGER_APPEND_ONLY'';
+END;';
 
-do $$
-begin
-  if not exists (
-    select 1 from pg_trigger
-    where tgname = 'wallet_ledger_no_update'
-      and tgrelid = 'nova2_staging.wallet_ledger'::regclass
-  ) then
-    create trigger wallet_ledger_no_update
-      before update or delete on nova2_staging.wallet_ledger
-      for each row execute function nova2_staging.prevent_wallet_ledger_mutation();
-  end if;
-end;
-$$;
+DROP TRIGGER IF EXISTS wallet_ledger_no_update ON nova2_staging.wallet_ledger;
+CREATE TRIGGER wallet_ledger_no_update
+  BEFORE UPDATE OR DELETE ON nova2_staging.wallet_ledger
+  FOR EACH ROW EXECUTE FUNCTION nova2_staging.prevent_wallet_ledger_mutation();
 
 create table if not exists nova2_staging.ai_spend_events (
   id uuid primary key default gen_random_uuid(),
