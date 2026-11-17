@@ -36,7 +36,18 @@
   "wallet": {
     "title": "Wallet",
     "placeholder": "Credits will appear here after owner review.",
-    "notActive": "Payments are not active in this build."
+    "notActive": "Payments are not active in this build.",
+    "mockOnly": "Synthetic test credits only. No money is collected or moved.",
+    "mockUnavailable": "Mock wallet is unavailable on this staging service.",
+    "testPacks": "Test-only credit packs",
+    "mockButton": "Simulate test capture",
+    "mockCaptured": "Mock capture accepted. Synthetic credits added.",
+    "simulateRefund": "Simulate mock refund",
+    "mockRefunded": "Mock refund recorded; test credits reversed.",
+    "ledger": "Append-only test ledger",
+    "refresh": "Refresh wallet",
+    "noEntries": "No ledger entries yet.",
+    "ownerReview": "PENDING OWNER REVIEW: all prices are placeholders. No real payment gateway is connected."
   },
   "sakha": {
     "title": "Sakha",
