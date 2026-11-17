@@ -22,7 +22,8 @@
     "helmet": "8.1.0",
     "pg": "8.16.3",
     "zod": "4.1.12",
-    "multer": "2.0.2"
+    "multer": "2.0.2",
+    "pdfjs-dist": "5.4.149"
   },
   "devDependencies": {
     "@types/cookie-parser": "1.4.9",
