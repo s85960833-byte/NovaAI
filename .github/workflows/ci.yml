@@ -13,7 +13,6 @@ concurrency:
   cancel-in-progress: true
 jobs:
   checks:
-    if: "!contains(github.event.head_commit.message, 'chore: update generated lockfile') && !contains(github.event.head_commit.message, 'chore: format NOVA 2.0 workspace')"
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -35,7 +34,7 @@ jobs:
           fi
       - run: npm ci
       - name: Format the new workspace consistently
-        run: npx prettier --write apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs
+        run: npx prettier --write apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs
       - name: Persist formatting pass
         run: |
           if ! git diff --quiet -- apps packages config scripts; then
@@ -52,5 +51,6 @@ jobs:
       - run: npm run check:i18n
       - run: npm run check:schemes
       - run: npm run check:secrets
+      - run: npm run evals
       - run: npm run audit
       - run: npm run build
