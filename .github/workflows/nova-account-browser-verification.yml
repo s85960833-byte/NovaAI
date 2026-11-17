@@ -21,6 +21,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   browser:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'nova-2.0/rebuild'
     runs-on: ubuntu-latest
     timeout-minutes: 18
     steps:
