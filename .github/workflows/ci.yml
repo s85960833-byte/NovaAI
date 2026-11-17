@@ -59,6 +59,7 @@ jobs:
           path: |
             test-results/
             playwright-report/
+            artifacts/frame-time-metrics.json
           if-no-files-found: ignore
       - run: npm run check:bundle
       - run: npm run lighthouse
