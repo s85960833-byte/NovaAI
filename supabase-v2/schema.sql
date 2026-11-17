@@ -152,3 +152,34 @@ grant select on public.schemes to anon,authenticated;
 create policy private_docs_upload_own on storage.objects for insert to authenticated with check (bucket_id = 'private-documents' and (storage.foldername(name))[1] = (select auth.uid())::text);
 create policy private_docs_read_own on storage.objects for select to authenticated using (bucket_id = 'private-documents' and (storage.foldername(name))[1] = (select auth.uid())::text);
 create policy private_docs_delete_own on storage.objects for delete to authenticated using (bucket_id = 'private-documents' and (storage.foldername(name))[1] = (select auth.uid())::text);
+
+create table public.payment_events (
+  event_id text primary key,
+  mock_payment_id uuid not null references public.mock_payments(id) on delete cascade,
+  event_type text not null check (event_type in ('payment.captured','payment.failed','refund.processed')),
+  payload_hash text not null,
+  created_at timestamptz not null default now()
+);
+alter table public.payment_events enable row level security;
+
+-- The balance cache is updated only by an immutable ledger insert.
+create function public.apply_wallet_ledger_entry()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  insert into public.wallets(user_id,balance_credits,updated_at)
+  values(new.user_id,new.delta_credits,now())
+  on conflict(user_id) do update
+    set balance_credits = public.wallets.balance_credits + excluded.balance_credits,
+        updated_at = now();
+  return new;
+end;
+$$;
+create trigger ledger_updates_wallet
+after insert on public.ledger_entries
+for each row execute function public.apply_wallet_ledger_entry();
+revoke all on function public.apply_wallet_ledger_entry() from public, anon, authenticated;
+grant execute on function public.apply_wallet_ledger_entry() to service_role;
