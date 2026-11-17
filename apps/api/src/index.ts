@@ -12,22 +12,24 @@ import {
   rtiDraftSchema,
   complaintSchema,
   walletTopupSchema,
+  walletSpendSchema,
   schemeMatchSchema,
 } from "@nova/shared/schemas";
 import { config } from "./config.js";
 import { authRouter } from "./auth/routes.js";
 import { fileRouter } from "./files/routes.js";
 import { MockWalletLedger } from "./money/ledger.js";
+import { PostgresMockWalletLedger } from "./money/postgres-ledger.js";
 import { checkScamText } from "./diwan/scam-check.js";
 import { conservativePaperFallback } from "./diwan/paper-reader.js";
 import { buildRtiDraft, buildComplaintDraft } from "./diwan/drafts.js";
 import { loadApprovedSchemes, matchSchemes } from "./diwan/schemes.js";
-import { databaseHealth } from "./db/connection.js";
+import { databaseHealth, pool } from "./db/connection.js";
 import { requestContext } from "./middleware/request-context.js";
 import { createTextProvider } from "./ai/provider.js";
 type RawRequest = express.Request & { rawBody?: Buffer };
 const app = express();
-const wallet = new MockWalletLedger();
+const wallet = pool ? new PostgresMockWalletLedger(pool) : new MockWalletLedger();
 const textProvider = createTextProvider(config.AI_PROVIDER);
 const approvedSchemes = loadApprovedSchemes();
 app.disable("x-powered-by");
@@ -155,52 +157,57 @@ function syntheticUser(req: express.Request) {
   const value = req.header("x-nova-synthetic-user") ?? "";
   return /^synthetic-[a-z0-9-]{1,40}$/.test(value) ? value : null;
 }
-app.get("/api/wallet/mock", (req, res) => {
-  if (!config.MOCK_FEATURES_ENABLED)
-    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+app.get("/api/wallet/mock", async (req, res) => {
+  if (!config.MOCK_FEATURES_ENABLED) return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
   const user = syntheticUser(req);
   if (!user) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED" } });
-  return res.json({
-    ok: true,
-    balance: wallet.balance(user),
-    ledger: wallet.ledger(user),
-    mode: "mock-only",
-  });
+  try {
+    return res.json({ ok: true, balance: await wallet.balance(user), ledger: await wallet.ledger(user), mode: "mock-only" });
+  } catch {
+    return res.status(503).json({ error: { code: "MOCK_WALLET_UNAVAILABLE" } });
+  }
 });
-app.post("/api/wallet/mock/orders", (req, res) => {
-  if (!config.MOCK_FEATURES_ENABLED)
-    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+app.post("/api/wallet/mock/orders", async (req, res) => {
+  if (!config.MOCK_FEATURES_ENABLED) return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
   const user = syntheticUser(req);
   if (!user) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED" } });
   const parsed = walletTopupSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_PACK" } });
-  return res.status(201).json({ ok: true, order: wallet.createOrder(user, parsed.data.packId) });
+  try {
+    return res.status(201).json({ ok: true, order: await wallet.createOrder(user, parsed.data.packId) });
+  } catch {
+    return res.status(503).json({ error: { code: "MOCK_WALLET_UNAVAILABLE" } });
+  }
 });
-app.post("/api/wallet/mock/simulate", (req, res) => {
-  if (!config.MOCK_FEATURES_ENABLED)
-    return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+app.post("/api/wallet/mock/simulate", async (req, res) => {
+  if (!config.MOCK_FEATURES_ENABLED) return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
   const user = syntheticUser(req);
   if (!user) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED" } });
   const orderId = typeof req.body?.orderId === "string" ? req.body.orderId : "";
-  if (!wallet.ownsOrder(user, orderId))
-    return res.status(404).json({ error: { code: "ORDER_NOT_FOUND" } });
-  const eventId =
-    typeof req.body?.eventId === "string" ? req.body.eventId : "mock-event-" + randomUUID();
-  const type =
-    req.body?.type === "refund.processed"
-      ? "refund.processed"
-      : req.body?.type === "payment.failed"
-        ? "payment.failed"
-        : "payment.captured";
-  const raw = JSON.stringify({ id: eventId, type, orderId, amountPaise: req.body?.amountPaise });
   try {
+    if (!(await wallet.ownsOrder(user, orderId))) return res.status(404).json({ error: { code: "ORDER_NOT_FOUND" } });
+    const eventId = typeof req.body?.eventId === "string" ? req.body.eventId : "mock-event-" + randomUUID();
+    const type = req.body?.type === "refund.processed" ? "refund.processed" : req.body?.type === "payment.failed" ? "payment.failed" : "payment.captured";
+    const raw = JSON.stringify({ id: eventId, type, orderId, amountPaise: req.body?.amountPaise });
     const signature = wallet.sign(raw, config.MOCK_WEBHOOK_SECRET);
-    const result = wallet.processWebhook(raw, signature, config.MOCK_WEBHOOK_SECRET);
+    const result = await wallet.processWebhook(raw, signature, config.MOCK_WEBHOOK_SECRET);
     return res.json({ ok: true, ...result, mode: "mock-only" });
   } catch (error) {
-    return res
-      .status(400)
-      .json({ error: { code: error instanceof Error ? error.message : "MOCK_EVENT_REJECTED" } });
+    return res.status(400).json({ error: { code: error instanceof Error ? error.message : "MOCK_EVENT_REJECTED" } });
+  }
+});
+app.post("/api/wallet/mock/spend", async (req, res) => {
+  if (!config.MOCK_FEATURES_ENABLED) return res.status(404).json({ error: { code: "MOCK_WALLET_DISABLED" } });
+  const user = syntheticUser(req);
+  if (!user) return res.status(400).json({ error: { code: "SYNTHETIC_USER_REQUIRED" } });
+  const parsed = walletSpendSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: { code: "INVALID_SPEND" } });
+  try {
+    const balance = await wallet.spend(user, parsed.data.credits, parsed.data.refId);
+    return res.json({ ok: true, balance, mode: "mock-only" });
+  } catch (error) {
+    const code = error instanceof Error ? error.message : "MOCK_SPEND_REJECTED";
+    return res.status(code === "INSUFFICIENT_CREDITS" ? 409 : 400).json({ error: { code } });
   }
 });
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../web/dist");
