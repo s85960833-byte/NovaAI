@@ -28,7 +28,12 @@ export function AuthPanel({ locale }: Props) {
         {locale === "hi" ? "खाता खोलें" : "Open account"}
       </button>
       {open && (
-        <div className="auth-frame-overlay" role="dialog" aria-modal="true" aria-labelledby="nova-auth-frame-title">
+        <div
+          className="auth-frame-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="nova-auth-frame-title"
+        >
           <div className="auth-frame-topbar">
             <strong id="nova-auth-frame-title">{title}</strong>
             <button type="button" onClick={() => setOpen(false)}>
