@@ -122,6 +122,15 @@
     }
     return out;
   }
+  async function ocrImage(image, options = {}) {
+    cancelled(options.signal);
+    if (typeof image !== 'string' || !image.startsWith('data:image/')) throw new Error('OCR expects a local image data URL.');
+    const worker = await loadOcr(options.onStatus);
+    cancelled(options.signal);
+    const result = await worker.recognize(image);
+    cancelled(options.signal);
+    return String(result && result.data && result.data.text || '').trim();
+  }
   function normalizeMessages(messages) {
     return (Array.isArray(messages) ? messages : []).map(message => {
       let content = message && message.content;
@@ -170,7 +179,7 @@
     return { text, backend: asrBackend };
   }
   window.NovaLocalAI = Object.freeze({
-    generate, transcribe,
+    generate, transcribe, ocrImage,
     getStatus: () => ({ loaded: !!generator, backend, voiceLoaded: !!transcriber, voiceBackend: asrBackend, model: MODEL, voiceModel: ASR_MODEL }),
     unload: () => { generator = null; pipelinePromise = null; transcriber = null; asrPromise = null; backend = 'not-loaded'; asrBackend = 'not-loaded'; }
   });
