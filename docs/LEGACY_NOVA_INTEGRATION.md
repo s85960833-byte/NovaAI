@@ -1,76 +1,62 @@
-# NOVA — Legacy App Integration Requirement
+# NOVA — Single-URL Legacy App Integration
 
-**Owner direction recorded:** 2026-11-18  
-**Target:** Upgrade the existing NOVA application and keep its established production URL. Do not create a separate user-facing NOVA 2.0 destination.
+**Owner direction:** 18 November 2026  
+**Target:** Upgrade the original NOVA product in place. The established NOVA URL remains the only public user-facing destination; no second NOVA hostname is to be introduced.
 
-## Current verified integration state
+## Current branch architecture
 
-PR #103 builds a React/Vite application under `apps/web` and a separate API under `apps/api`, while retaining the original root NOVA Node server and its original handlers. The branch's root server serves the React app at `/`, the original NOVA interface at same-origin `/classic`, and routes legacy endpoints to their existing handlers.
+On `nova-2.0/rebuild`, the original Node server (`nova-server.txt`) remains the public entrypoint:
 
-The Darbar home now opens Learn, Build and Agents inside a same-origin iframe view within the React shell. Each shortcut passes the original `workspace` query parameter to `mode-workspace.js`, preserving the existing mode registry and saved per-mode history. The legacy response allows framing only by the same origin (`X-Frame-Options: SAMEORIGIN` and `frame-ancestors 'self'`); all other routes retain the stricter no-framing policy.
+- The React/Vite NOVA 2.0 shell is served at `/` from `apps/web/dist`.
+- The original NOVA application remains available at same-origin `/classic`; its existing JavaScript, PWA assets, browser storage, cookies and legacy API handlers are retained.
+- The new API runs as a localhost child process. Only `/api/health`, `/api/auth`, `/api/files`, `/api/sakha`, `/api/diwan` and `/api/wallet` are proxied to it. Existing endpoints such as chat completions, web search, image generation, transcription, live data and feeds remain on the original server.
+- Learn, Build and Agents shortcuts open the corresponding existing legacy workspace inside the same-origin shell. They reuse the existing mode registry and per-mode history; they are not placeholder-only cards.
+- The `/classic` route alone permits same-origin framing. Other routes keep their restrictive framing policy.
+- The staging blueprint builds the web bundle and starts the original server through the `@nova/api` workspace start command.
 
-This is an **in-app compatibility bridge**, not a completed native React rewrite of every legacy tool. Legacy capabilities remain in the original UI and original API until each one has a tested native replacement. The bridge is intended to keep the original product usable while the native parity work continues.
+This is a **compatibility bridge**, not a completed native React rewrite of every legacy feature. The legacy application remains available while native replacements are implemented and tested.
 
-## Required end state
+## Integration work completed in source
 
-1. The existing NOVA URL remains the only public user-facing URL. Do not ask users to move to a second NOVA URL.
-2. The new Darbar, Sakha, Diwan, wallet-safety preview, account/settings, PWA and performance work must live inside the existing NOVA product and navigation.
-3. Preserve and regression-test the existing NOVA capabilities before replacing its entrypoint:
-   - chat, saved chats/history and local settings/storage;
-   - voice input/output and live voice paths;
-   - web search and source/citation presentation;
-   - file/document handling and image generation;
-   - login/authentication and existing account/session behaviour;
-   - Nova Learn, Nova Build and Nova Agents groupings.
-4. Add the new areas without deleting or silently disabling existing features. Learning tools belong in Nova Learn, creation/build tools in Nova Build, and agent tools in Nova Agents. Darbar/Sakha/Diwan should be integrated as the agreed Indian Study & Work experience, not a disconnected demo.
-5. Keep existing browser storage keys and user-local history compatible. Any migration must be additive, versioned, reversible and tested against synthetic fixtures; never clear user data as part of upgrade.
-6. Keep API/provider secrets server-side. Preserve legacy API behaviour or provide tested adapters before switching the root server entrypoint.
-7. The existing root Render service must continue to use its existing URL and service identity. Staging must prove the exact new commit, health, mobile layout and API compatibility before any production release.
-8. The old NOVA page must not be left as an external link labelled “Open NOVA 1.0 (unchanged)” in the new product. The completed product must be one coherent application on the established URL.
+- [x] Existing root server retained as the public application entrypoint on the feature branch.
+- [x] New shell served at `/`; original application preserved at same-origin `/classic`.
+- [x] Learn, Build and Agents routed to the original in-app workspace groups.
+- [x] New API process isolated on localhost and selectively proxied.
+- [x] Same-origin framing exception scoped to `/classic`.
+- [x] Sakha now attempts the original live `/api/chat/completions` provider first, sends recent conversation context, and falls back to the clearly labelled mock preview when the legacy provider is unavailable.
+- [x] Proxy removes stale `Content-Encoding` when forwarding JSON that Express has already decompressed.
+- [x] Playwright coverage added for live Sakha conversation context and explicit mock fallback. These latest added tests still require exact-HEAD CI execution.
 
-## Integration work gates
+## Feature parity still required
 
-- [ ] Inventory the current root app's routes, API endpoints, browser storage keys, PWA assets and provider integrations.
-- [ ] Build a feature-by-feature parity map from the legacy app to the integrated React UI; no feature is marked complete based only on a placeholder card.
-- [ ] Implement Learn, Build and Agents as working in-app destinations and migrate their existing functionality.
-- [ ] Integrate Darbar/Sakha/Diwan and new safe preview modules into the same shell/navigation.
-- [ ] Add compatibility tests for existing API routes, chat/history persistence, voice, web search, files, images, auth and mobile UI.
-- [ ] Make the existing root server/start command serve the integrated app only after build output and compatibility tests are proven.
-- [ ] Verify the unchanged established Render URL on staging-equivalent deployment and record exact deployed SHA.
-- [ ] Keep PR #103 Draft, do not merge, and do not change production Render, production Supabase, `main`, production secrets or real user data without the separate release gate.
+The following are not considered complete merely because the legacy workspace is embedded:
 
-## Non-negotiable release boundary
+| Area | Current state | Required proof |
+|---|---|---|
+| Chat / Sakha | Live legacy-provider adapter added; mock fallback labelled | Exact-HEAD tests with live and provider-down paths |
+| Saved chats / history | Original app remains available on same origin | Verify create, reopen, rename/delete, refresh and storage compatibility |
+| Voice / Live Voice | Original feature remains available in Agents/legacy workspace | Browser permissions, STT/TTS, live-session and interruption tests |
+| Web search / citations | Original handlers retained | Search results, source links, citation accuracy and failure-state tests |
+| Files / documents | Original handlers retained; new file API is isolated | Upload, size/type limits, download, cleanup and synthetic privacy tests |
+| Image generation | Original image API retained | Provider success, timeout, poll, error and image rendering tests |
+| Login / sessions | Original login remains available; new Auth panel exists | Hosted Auth configuration, session refresh, logout and account recovery |
+| Account export / deletion | Source and isolated SQL tests exist | Hosted export/download and full object-storage erasure remain unverified |
+| Nova Learn / Build / Agents | Same-origin workspace shortcuts work in source | Test every existing mode and history path; native migration is separate |
+| Diwan / wallet / new API | New shell modules and mock/synthetic API exist | Validate each flow, security controls, accessibility and non-mock integrations |
+| Mobile / accessibility | Chromium viewport tests exist | Physical Android/Infinix, screen reader and touch/keyboard review |
 
-This integration requirement does not authorise Phase 7. PR #103 remains Draft and unmerged. Production remains untouched until every required gate is reviewed and the owner types exactly `APPROVE RELEASE`.
+## Required next actions before staging release
 
+1. Run all CI jobs on the exact current PR head, including the newly added Sakha tests.
+2. Resolve every formatting, type, lint, unit, Playwright, security, database, bundle and Lighthouse failure; do not treat a previous SHA's green run as current evidence.
+3. Verify that staging's deployed SHA exactly equals the approved feature-branch SHA and that `/api/health`, the new shell and `/classic` all work on that deployment.
+4. Exercise every legacy capability listed above against synthetic test fixtures; preserve all original browser storage keys and server API contracts.
+5. Complete hosted Auth/export/deletion checks only in an isolated staging project, never with production data.
+6. Test the target Android device physically. Chromium mobile emulation is not physical-device proof.
+7. Rehearse staging backup/restore and rollback with exact deploy identifiers and measured timing.
 
-## Implemented integration on `nova-2.0/rebuild`
+## Release boundary
 
-The branch now uses the original NOVA Node server as the public entrypoint in its staging blueprint:
-
-- The React/Vite app is served at `/` from `apps/web/dist`.
-- The original NOVA UI remains available at same-origin `/classic`; its static JavaScript, icons, PWA assets and original API handlers remain on the original server.
-- The new API runs as a localhost child process. Only `/api/health`, `/api/auth`, `/api/files`, `/api/sakha`, `/api/diwan` and `/api/wallet` are proxied to it. Existing NOVA endpoints such as chat completions, search, image generation, transcription, live data and feeds remain on the original server.
-- The React home exposes Learn, Build and Agents shortcuts; each opens the corresponding original mode group inside the same app shell at `/classic?workspace=...`.
-- The embedded legacy page is same-origin only; the route's CSP and X-Frame-Options are narrowly overridden for `/classic` only.
-- Playwright boots the unified original server plus isolated API and checks same-origin legacy UI/assets/API compatibility, the embedded group routes, framing headers and 390px mobile width.
-
-This is branch/staging integration, not production readiness. Exact-head CI, staging deployed SHA, physical Android, hosted Auth and hosted data lifecycle remain separate gates. Legacy feature parity is not complete until the remaining rows in `PARITY_MATRIX.md` are exercised.
-
-
-### Group shortcuts
-
-The new NOVA home now links Learn, Build and Agents to their corresponding existing legacy workspace groups using same-origin routes (`/classic?workspace=learn|build|agents`). The original mode-workspace module opens the requested group directly; this reuses the actual existing mode registry and saved per-mode history rather than displaying placeholder cards.
-
-
-### Compatibility with the existing Render command
-
-The staging service's existing start command is `npm run db:migrate:staging && npm run start --workspace @nova/api`. The `@nova/api` workspace's `start` script now launches the original root `nova-server.txt`, which serves the unified React shell and starts the API child process. A separate `start:api` script retains the standalone API-only entrypoint. This lets the current Render start command run the unified app without editing the service's external setting.
-
-
-### Current integration boundary (18 November 2026)
-
-- The new home no longer sends the user to a second hostname or a standalone legacy page; Learn, Build and Agents open in the embedded original workspace.
-- Original browser storage and the old server-side API handlers are intentionally not migrated or renamed. The iframe is same-origin so it shares the existing origin's storage/cookies and can call the original API paths.
-- The embedded bridge is not counted as native feature parity. Chat, history, voice, search, files, image generation, auth and each specialist mode still require the detailed parity tests in `PARITY_MATRIX.md`.
-- Physical Android verification and staging deployment SHA are still pending. No production Render, production Supabase, `main`, production secrets or real user data were changed.
+- PR #103 must remain Draft and unmerged until the owner authorizes release.
+- Do not modify `main`, the production Render service, production Supabase, production secrets, payment configuration or real user data during this work.
+- Production deployment to the established original URL is a separate Phase 7 action. It is not authorized until the owner types exactly `APPROVE RELEASE`.
