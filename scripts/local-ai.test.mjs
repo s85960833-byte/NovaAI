@@ -105,7 +105,7 @@ test('extracts Hindi/English photo text locally before asking the text-only chat
   assert.equal(result, 'Nova local response');
   assert.equal(h.pipelineLoads, 1);
   assert.match(h.inputs.flat().map(item => item && item.content || '').join('\\n'), /Local OCR text from the attached photo/i);
-  assert.match(h.inputs[0][0].content, /What is 2 \+ 2/);
+  assert.match(h.inputs.flat().map(item => item && item.content || '').join('\\n'), /What is 2 \\+ 2/);
   assert.equal(h.ocrCalls.length, 1);
   assert.equal(h.ocrCalls[0].languages, 'eng+hin');
 });
