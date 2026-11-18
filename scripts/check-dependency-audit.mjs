@@ -1,7 +1,8 @@
 import { spawnSync } from "node:child_process";
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-const allowedAdvisory = "https://github.com/advisories/GHSA-fc5q-39xc-vjpf";
+const allowedAdvisory =
+  "https://github.com/advisories/GHSA-fc5q-39xc-vjpf";
 
 function runNpm(args) {
   const result = spawnSync(npmCommand, args, {
@@ -49,7 +50,9 @@ for (const [, item] of high) {
   }
 }
 
-const unexpectedAdvisories = [...advisoryUrls].filter((url) => url !== allowedAdvisory);
+const unexpectedAdvisories = [...advisoryUrls].filter(
+  (url) => url !== allowedAdvisory,
+);
 if (unexpectedAdvisories.length > 0) {
   process.stderr.write(
     "Unexpected high/critical advisories: " + unexpectedAdvisories.join(", ") + "\n",
