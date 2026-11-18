@@ -3,9 +3,13 @@
 **Owner direction recorded:** 2026-11-18  
 **Target:** Upgrade the existing NOVA application and keep its established production URL. Do not create a separate user-facing NOVA 2.0 destination.
 
-## Current verified gap
+## Current verified integration state
 
-PR #103 currently builds a separate React/Vite application under `apps/web` and a separate API under `apps/api`. Its home screen still links out to the existing NOVA 1.0 URL as an unchanged legacy app. The repository-root `index.html` and `nova-server.txt` remain the original application entrypoint/backend. Therefore PR #103 is **not yet an integrated replacement** for the existing NOVA experience.
+PR #103 builds a React/Vite application under `apps/web` and a separate API under `apps/api`, while retaining the original root NOVA Node server and its original handlers. The branch's root server serves the React app at `/`, the original NOVA interface at same-origin `/classic`, and routes legacy endpoints to their existing handlers.
+
+The Darbar home now opens Learn, Build and Agents inside a same-origin iframe view within the React shell. Each shortcut passes the original `workspace` query parameter to `mode-workspace.js`, preserving the existing mode registry and saved per-mode history. The legacy response allows framing only by the same origin (`X-Frame-Options: SAMEORIGIN` and `frame-ancestors 'self'`); all other routes retain the stricter no-framing policy.
+
+This is an **in-app compatibility bridge**, not a completed native React rewrite of every legacy tool. Legacy capabilities remain in the original UI and original API until each one has a tested native replacement. The bridge is intended to keep the original product usable while the native parity work continues.
 
 ## Required end state
 
@@ -47,8 +51,9 @@ The branch now uses the original NOVA Node server as the public entrypoint in it
 - The React/Vite app is served at `/` from `apps/web/dist`.
 - The original NOVA UI remains available at same-origin `/classic`; its static JavaScript, icons, PWA assets and original API handlers remain on the original server.
 - The new API runs as a localhost child process. Only `/api/health`, `/api/auth`, `/api/files`, `/api/sakha`, `/api/diwan` and `/api/wallet` are proxied to it. Existing NOVA endpoints such as chat completions, search, image generation, transcription, live data and feeds remain on the original server.
-- The React home links to `/classic`, not to a second Render hostname.
-- Playwright now boots the unified original server plus the isolated API and checks same-origin legacy UI/assets/API compatibility.
+- The React home exposes Learn, Build and Agents shortcuts; each opens the corresponding original mode group inside the same app shell at `/classic?workspace=...`.
+- The embedded legacy page is same-origin only; the route's CSP and X-Frame-Options are narrowly overridden for `/classic` only.
+- Playwright boots the unified original server plus isolated API and checks same-origin legacy UI/assets/API compatibility, the embedded group routes, framing headers and 390px mobile width.
 
 This is branch/staging integration, not production readiness. Exact-head CI, staging deployed SHA, physical Android, hosted Auth and hosted data lifecycle remain separate gates. Legacy feature parity is not complete until the remaining rows in `PARITY_MATRIX.md` are exercised.
 
@@ -61,3 +66,11 @@ The new NOVA home now links Learn, Build and Agents to their corresponding exist
 ### Compatibility with the existing Render command
 
 The staging service's existing start command is `npm run db:migrate:staging && npm run start --workspace @nova/api`. The `@nova/api` workspace's `start` script now launches the original root `nova-server.txt`, which serves the unified React shell and starts the API child process. A separate `start:api` script retains the standalone API-only entrypoint. This lets the current Render start command run the unified app without editing the service's external setting.
+
+
+### Current integration boundary (18 November 2026)
+
+- The new home no longer sends the user to a second hostname or a standalone legacy page; Learn, Build and Agents open in the embedded original workspace.
+- Original browser storage and the old server-side API handlers are intentionally not migrated or renamed. The iframe is same-origin so it shares the existing origin's storage/cookies and can call the original API paths.
+- The embedded bridge is not counted as native feature parity. Chat, history, voice, search, files, image generation, auth and each specialist mode still require the detailed parity tests in `PARITY_MATRIX.md`.
+- Physical Android verification and staging deployment SHA are still pending. No production Render, production Supabase, `main`, production secrets or real user data were changed.
