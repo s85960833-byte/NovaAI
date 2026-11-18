@@ -499,7 +499,14 @@ app.use((q, r, next) => {
   return r.sendFile(compressedPath);
 });
 app.use(express.static(NOVA2_WEB_ROOT, { index: false, fallthrough: true }));
-app.get('/classic', (q, r) => r.set('Cache-Control', 'no-store, no-cache, must-revalidate').sendFile(path.join(__dirname, 'index.html')));
+app.get('/classic', (q, r) => {
+  // This same-origin legacy surface is embedded by the unified NOVA shell.
+  // Keep its normal security policy while permitting only same-origin framing.
+  r.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  r.set('X-Frame-Options', 'SAMEORIGIN');
+  r.set('Content-Security-Policy', "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'");
+  return r.sendFile(path.join(__dirname, 'index.html'));
+});
 app.get('/', (q, r) => {
   const nova2Index = path.join(NOVA2_WEB_ROOT, 'index.html');
   const target = fs.existsSync(nova2Index) ? nova2Index : path.join(__dirname, 'index.html');
