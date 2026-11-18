@@ -4,8 +4,7 @@ on:
     branches: ["main", "nova-2.0/rebuild"]
   workflow_dispatch:
 permissions:
-  contents: write
-  actions: write
+  contents: read
 concurrency:
   group: nova2-ci-${{ github.event.pull_request.head.sha || github.sha }}
   cancel-in-progress: false
@@ -32,8 +31,6 @@ jobs:
         if: ${{ always() && steps.install.outcome == 'success' }}
         run: set -o pipefail && npm run lint 2>&1 | tee docs/evidence/lint.log
       - name: Format check
-        id: format_check
-        continue-on-error: true
         if: ${{ always() && steps.install.outcome == 'success' }}
         run: set -o pipefail && npm run format:check 2>&1 | tee docs/evidence/format-check.log
       - name: Generate Prettier repair candidates
@@ -62,44 +59,6 @@ jobs:
           name: nova2-prettier-repair-candidates
           path: docs/evidence/prettier-candidates/
           if-no-files-found: error
-      - name: Repair formatting on the owner feature branch
-        id: format_repair
-        if: ${{ always() && steps.install.outcome == 'success' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'nova-2.0/rebuild' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          git fetch origin "${GITHUB_HEAD_REF}"
-          git checkout -B "${GITHUB_HEAD_REF}" FETCH_HEAD
-          files=(
-            apps/web/src/perf/PerfPage.tsx
-            apps/api/src/index.ts
-            scripts/check-dependency-audit.mjs
-            tests/nova2/shell.spec.ts
-            apps/web/src/ui/App.tsx
-            apps/web/src/ui/styles.css
-            apps/web/src/i18n/en.json
-            apps/web/src/i18n/hi.json
-          )
-          npx prettier --write "${files[@]}"
-          if git diff --quiet -- "${files[@]}"; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "${files[@]}"
-          git commit -m "style: format NOVA 2.0 source"
-          git push origin "HEAD:${GITHUB_HEAD_REF}"
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-      - name: Recheck formatting after repair
-        if: ${{ always() && steps.install.outcome == 'success' }}
-        run: set -o pipefail && npm run format:check 2>&1 | tee docs/evidence/format-check-final.log
-      - name: Dispatch verification for formatted branch head
-        if: ${{ steps.format_repair.outputs.changed == 'true' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run .github/workflows/ci.yml --ref "${GITHUB_HEAD_REF}"
       - name: Unit tests
         if: ${{ always() && steps.install.outcome == 'success' }}
         run: set -o pipefail && npm test 2>&1 | tee docs/evidence/unit-tests.log
