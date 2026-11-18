@@ -248,11 +248,8 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 <dialog id="dkbd"><div class="ptop"><b data-i="kbdT"></b><button id="kclose" type="button" aria-label="Close">✕</button></div><ul class="kl"><li><kbd>Ctrl / ⌘ + K</kbd><span data-i="kbd1"></span></li><li><kbd>Ctrl / ⌘ + Shift + O</kbd><span data-i="kbd2"></span></li><li><kbd>/</kbd><span data-i="kbd3"></span></li><li><kbd>Enter · Shift + Enter</kbd><span data-i="kbd4"></span></li><li><kbd>Esc</kbd><span data-i="kbd5"></span></li></ul></dialog>
 <dialog id="dcfg"><b data-i="setT"></b>
 <p style="font-size:14px;color:var(--mut);margin:6px 0" data-i="setP"></p>
-<label data-i="prov"></label><select id="pre"><option value="https://openrouter.ai/api/v1">OpenRouter</option><option value="https://api.groq.com/openai/v1">Groq</option><option value="https://generativelanguage.googleapis.com/v1beta/openai">Google Gemini</option><option value="">Custom (OpenAI-compatible)</option></select>
-<label data-i="base"></label><input id="base" autocomplete="off">
-<label data-i="model"></label><input id="model" autocomplete="off" data-p="modelph">
-<label data-i="key"></label><input id="key" type="password" autocomplete="off">
-<div class="row" style="margin-top:12px"><button id="csave" data-i="save"></button><button id="cclose" data-i="close"></button></div>
+<p style="font-size:13px;color:var(--mut);margin:8px 0">NOVA does not accept or store external AI-provider keys in this mode. Local model files are downloaded to this device on first use.</p>
+<div class="row" style="margin-top:12px"><button id="cclose" data-i="close"></button></div>
 <button id="share" style="width:100%;margin-top:10px" data-i="share"></button>
 <small style="color:var(--mut)" data-i="shareW"></small></dialog>
 <dialog id="dmem"><b data-i="memT"></b><textarea id="memt" rows="5" maxlength="1500" style="width:100%;border:1px solid var(--bd);border-radius:8px;padding:8px;margin-top:8px"></textarea>
