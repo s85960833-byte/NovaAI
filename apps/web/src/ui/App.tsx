@@ -154,9 +154,9 @@ export function App() {
               <h2>{t("home.legacyTitle")}</h2>
               <p>{t("home.legacyDesc")}</p>
               <div className="legacy-pills">
-                <span>Nova Learn</span>
-                <span>Nova Build</span>
-                <span>Nova Agents</span>
+                <a href="/classic?workspace=learn">{t("home.learnWorkspace")}</a>
+                <a href="/classic?workspace=build">{t("home.buildWorkspace")}</a>
+                <a href="/classic?workspace=agents">{t("home.agentsWorkspace")}</a>
               </div>
               <p>
                 <a href="/classic">{t("home.legacyOpen")}</a>

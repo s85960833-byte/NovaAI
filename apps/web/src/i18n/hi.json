@@ -19,7 +19,10 @@
     "sakhaDesc": "आपका रोज़मर्रा का हिंदी और English सहायक",
     "legacyTitle": "पुराने कार्यक्षेत्र",
     "legacyDesc": "आपके मौजूदा Learn, Build और दूसरे टूल यहाँ उपलब्ध रहेंगे।",
-    "legacyOpen": "पुराना NOVA कार्यक्षेत्र खोलें"
+    "legacyOpen": "पुराना NOVA कार्यक्षेत्र खोलें",
+    "learnWorkspace": "नोवा लर्न",
+    "buildWorkspace": "नोवा बिल्ड",
+    "agentsWorkspace": "नोवा एजेंट्स"
   },
   "common": {
     "language": "भाषा",

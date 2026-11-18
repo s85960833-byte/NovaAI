@@ -19,7 +19,10 @@
     "sakhaDesc": "Your everyday Hindi and English assistant",
     "legacyTitle": "Legacy workspaces",
     "legacyDesc": "Your existing Learn, Build and specialist tools stay available here.",
-    "legacyOpen": "Open Classic NOVA workspace"
+    "legacyOpen": "Open Classic NOVA workspace",
+    "learnWorkspace": "NOVA Learn",
+    "buildWorkspace": "NOVA Build",
+    "agentsWorkspace": "NOVA Agents"
   },
   "common": {
     "language": "Language",

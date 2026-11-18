@@ -230,12 +230,19 @@ select:focus-visible {
   gap: 8px;
   flex-wrap: wrap;
 }
-.legacy-pills span {
+.legacy-pills span,
+.legacy-pills a {
+  display: inline-block;
   border: 1px solid var(--border);
   border-radius: 30px;
   padding: 7px 12px;
   color: var(--gold);
   font-size: 12px;
+  text-decoration: none;
+}
+.legacy-pills a:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
 }
 .bottom-nav {
   position: fixed;

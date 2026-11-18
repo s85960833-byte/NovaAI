@@ -51,3 +51,8 @@ The branch now uses the original NOVA Node server as the public entrypoint in it
 - Playwright now boots the unified original server plus the isolated API and checks same-origin legacy UI/assets/API compatibility.
 
 This is branch/staging integration, not production readiness. Exact-head CI, staging deployed SHA, physical Android, hosted Auth and hosted data lifecycle remain separate gates. Legacy feature parity is not complete until the remaining rows in `PARITY_MATRIX.md` are exercised.
+
+
+### Group shortcuts
+
+The new NOVA home now links Learn, Build and Agents to their corresponding existing legacy workspace groups using same-origin routes (`/classic?workspace=learn|build|agents`). The original mode-workspace module opens the requested group directly; this reuses the actual existing mode registry and saved per-mode history rather than displaying placeholder cards.
