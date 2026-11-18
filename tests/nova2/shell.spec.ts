@@ -80,6 +80,20 @@ test("embedded legacy workspace is same-origin framed with mobile-width layout",
   expect(widths.frame).toBeGreaterThanOrEqual(370);
 });
 
+test("the new account panel opens the existing NOVA account dialog in the same origin", async ({
+  page,
+}) => {
+  await enterDarbar(page);
+  await page.locator(".bottom-nav button").last().click();
+  const frame = page.locator(".auth-legacy-frame");
+  await expect(frame).toHaveAttribute("src", "/classic?account=1");
+  const account = page.frameLocator(".auth-legacy-frame");
+  await expect(account.locator("#novaAccountDialog")).toBeVisible();
+  await expect(account.locator("#novaAccountEmailInput")).toBeVisible();
+  await expect(account.locator("#novaSignIn")).toBeVisible();
+  await expect(account.locator("#novaSignUp")).toBeVisible();
+});
+
 test("Learn, Build and Agents open inside the unified NOVA shell", async ({ page }) => {
   await enterDarbar(page);
   for (const [workspace, label, buttonName] of [
