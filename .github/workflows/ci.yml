@@ -40,10 +40,18 @@ jobs:
           mkdir -p docs/evidence/prettier-candidates/apps/web/src/perf
           mkdir -p docs/evidence/prettier-candidates/apps/api/src
           mkdir -p docs/evidence/prettier-candidates/scripts
+          mkdir -p docs/evidence/prettier-candidates/apps/web/src/ui
+          mkdir -p docs/evidence/prettier-candidates/apps/web/src/i18n
+          mkdir -p docs/evidence/prettier-candidates/tests/nova2
           cp apps/web/src/perf/PerfPage.tsx docs/evidence/prettier-candidates/apps/web/src/perf/PerfPage.tsx
           cp apps/api/src/index.ts docs/evidence/prettier-candidates/apps/api/src/index.ts
           cp scripts/check-dependency-audit.mjs docs/evidence/prettier-candidates/scripts/check-dependency-audit.mjs
-          npx prettier --write docs/evidence/prettier-candidates/apps/web/src/perf/PerfPage.tsx docs/evidence/prettier-candidates/apps/api/src/index.ts docs/evidence/prettier-candidates/scripts/check-dependency-audit.mjs
+          cp apps/web/src/ui/App.tsx docs/evidence/prettier-candidates/apps/web/src/ui/App.tsx
+          cp apps/web/src/ui/styles.css docs/evidence/prettier-candidates/apps/web/src/ui/styles.css
+          cp apps/web/src/i18n/en.json docs/evidence/prettier-candidates/apps/web/src/i18n/en.json
+          cp apps/web/src/i18n/hi.json docs/evidence/prettier-candidates/apps/web/src/i18n/hi.json
+          cp tests/nova2/shell.spec.ts docs/evidence/prettier-candidates/tests/nova2/shell.spec.ts
+          npx prettier --write docs/evidence/prettier-candidates/apps/web/src/perf/PerfPage.tsx docs/evidence/prettier-candidates/apps/api/src/index.ts docs/evidence/prettier-candidates/scripts/check-dependency-audit.mjs docs/evidence/prettier-candidates/apps/web/src/ui/App.tsx docs/evidence/prettier-candidates/apps/web/src/ui/styles.css docs/evidence/prettier-candidates/apps/web/src/i18n/en.json docs/evidence/prettier-candidates/apps/web/src/i18n/hi.json docs/evidence/prettier-candidates/tests/nova2/shell.spec.ts
       - name: Upload Prettier repair candidates
         if: always()
         uses: actions/upload-artifact@v6
