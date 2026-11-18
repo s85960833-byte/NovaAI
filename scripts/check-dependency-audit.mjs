@@ -1,8 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-const allowedAdvisory =
-  "https://github.com/advisories/GHSA-fc5q-39xc-vjpf";
+const allowedAdvisory = "https://github.com/advisories/GHSA-fc5q-39xc-vjpf";
 
 function runNpm(args) {
   const result = spawnSync(npmCommand, args, {
@@ -37,9 +36,7 @@ try {
 }
 
 const vulnerabilities = Object.entries(report.vulnerabilities ?? {});
-const high = vulnerabilities.filter(([, item]) =>
-  ["high", "critical"].includes(item.severity),
-);
+const high = vulnerabilities.filter(([, item]) => ["high", "critical"].includes(item.severity));
 const advisoryUrls = new Set();
 
 for (const [, item] of high) {
