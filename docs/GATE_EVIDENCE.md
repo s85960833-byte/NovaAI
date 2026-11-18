@@ -61,3 +61,14 @@ Phase 7 remains LOCKED until the owner types exactly `APPROVE RELEASE`.
 - Staging artifact: [nova2-staging-load-evidence.zip](https://github.com/s85960833-byte/NovaAI/actions/runs/44213045004/artifacts/14386354196). 24/24 read-only requests passed; p50 203.9 ms, p95 564.9 ms, max 619.6 ms; the public `/perf` route returned expected HTML. This check still hit the older Live staging SHA `5cf3ed56e92e239945ae476ca40537a8bedb1aab`, not the PR branch.
 - Lighthouse artifact: [nova2-lighthouse-evidence.zip](https://github.com/s85960833-byte/NovaAI/actions/runs/44213045004/artifacts/14387655746).
 - CI #587 is not a green release gate. The next PR head must rerun all checks after the corrections described in the current commit.
+
+
+## CI #588 — 18 November 2026 (previous PR head; not current-head proof)
+
+- PR head tested: `4ec4c28b70df07f088832c2ede00a260c5922f4d`; workflow [run #44217374639](https://github.com/s85960833-byte/NovaAI/actions/runs/44217374639); PR merge ref `39dadd0b400316c04f226358e0631f156f9f0868`.
+- Checks job: failed. Format failed on `apps/web/src/perf/PerfPage.tsx`, `apps/api/src/index.ts`, and `scripts/check-dependency-audit.mjs`; lint, typecheck, unit tests and build passed; audit failed on `@nova/web` because the Vite build/test dependency path includes the known picomatch advisory.
+- Playwright: 8 failed, 10 passed. Trace evidence shows runtime `ReferenceError: __VITE_PRELOAD__ is not defined` when lazy-loaded panels execute. The gzip regression test also used over-escaped `\\.js` / `\\.css` regex patterns.
+- Lighthouse completed and its step succeeded. Database job succeeded on the isolated CI database. Staging-smoke succeeded: `/api/health` reported `ok=true` and `ready=true`; 24/24 read-only requests passed; `/perf` was reachable; p95 769.9 ms.
+- Corrective branch commit `915e3f07296aa560537f2899fab0b7259f6c54d3` removes lazy dynamic imports from `App.tsx` and fixes the gzip test selectors. No exact-head CI result exists for this commit yet.
+- Staging deployment SHA is not verified against this head; last recorded Live SHA is `5cf3ed56e92e239945ae476ca40537a8bedb1aab`. Phase 7 remains LOCKED.
+
