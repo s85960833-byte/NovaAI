@@ -48,14 +48,27 @@ Only non-paid, adult-supervised buyer-interest conversations and synthetic-data 
 - [Terms of use draft](TERMS_OF_USE_DRAFT.md)
 - [Support and incident runbook](SUPPORT_AND_INCIDENT_RUNBOOK.md)
 
+## Keyless AI runtime
+
+NOVA is configured for **keyless AI mode**. Hosted LLM and hosted speech endpoints are disabled, and provider credentials (LLM, Groq, OpenRouter, Tavily, Brave, paid image, Pollinations-key and Horde-key settings) are ignored by the application.
+
+- Chat: Qwen3-0.6B ONNX in the browser through Transformers.js; WebGPU first, CPU/WASM fallback.
+- Voice transcription: Whisper Tiny ONNX in the browser; WebGPU first, CPU/WASM fallback.
+- Translation and image-prompt enhancement: use the same local chat model.
+- Live web search: anonymous DuckDuckGo HTML search with Wikipedia fallback; internet required and public sources may rate-limit or block requests.
+- Image generation: anonymous public Pollinations endpoint only; internet required, availability/rate limits are outside NOVA's control. This is keyless, not offline image generation.
+- PDF text extraction and saved chats: browser-local; scanned-PDF OCR and general image understanding are not yet complete.
+- First use downloads model/runtime files. After successful caching, local inference can work offline, but browser storage may be cleared or evicted and low-memory phones may fail to load larger models.
+
 ## Architecture
 
 - Frontend: `index.html` and modular browser JavaScript.
-- Backend: Express server in `nova-server.txt`.
+- Local inference: `nova-local-ai.js` in the browser; no hosted LLM API key is used.
+- Backend: Express server in `nova-server.txt`, used for app shell, keyless live search and anonymous image-job proxying.
 - Runtime: Node.js 22.
 - Start command: `node nova-server.txt`.
-- Supabase provides authentication and the optional per-user workspace-sync table, protected by row-level security.
-- Provider secrets must remain server-side; never commit keys or expose them in browser code.
+- Optional account authentication/cloud sync still depends on Supabase configuration and an internet connection; it is separate from AI-provider keys. Without that configuration, NOVA must be used in local-device mode.
+- Never commit provider secrets or expose credentials in browser code.
 
 
 ## Cloud-sync limitation to disclose
