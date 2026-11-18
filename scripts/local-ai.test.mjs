@@ -16,6 +16,7 @@ const source = fs.readFileSync(new URL('../nova-local-ai.js', import.meta.url), 
 function harness({ gpu = true, failGpu = false } = {}) {
   const calls = [];
   const inputs = [];
+  const generationOptions = [];
   const statuses = [];
   const ocrCalls = [];
   let pipelineLoads = 0;
@@ -32,8 +33,9 @@ function harness({ gpu = true, failGpu = false } = {}) {
               return { text: 'नमस्ते, यह ऑफलाइन आवाज़ परीक्षण है।' };
             };
           }
-          return async (messages, generationOptions) => {
+          return async (messages, callOptions) => {
             inputs.push(messages);
+            generationOptions.push(callOptions);
             return { 0: { generated_text: [...messages, { role: 'assistant', content: 'Nova local response' }] } };
           };
         }
@@ -55,7 +57,7 @@ function harness({ gpu = true, failGpu = false } = {}) {
     Float32Array
   };
   vm.runInNewContext(source, context, { filename: 'nova-local-ai.js' });
-  return { api: context.window.NovaLocalAI, calls, inputs, statuses, ocrCalls, get pipelineLoads() { return pipelineLoads; } };
+  return { api: context.window.NovaLocalAI, calls, inputs, generationOptions, statuses, ocrCalls, get pipelineLoads() { return pipelineLoads; } };
 }
 
 test('uses WebGPU Q4F16 when available and returns generated assistant text', async () => {
@@ -71,9 +73,9 @@ test('uses WebGPU Q4F16 when available and returns generated assistant text', as
   assert.match(h.inputs[0][0].content, /Respond in the user's language/);
   assert.equal(h.calls[0].options.device, 'webgpu');
   assert.equal(h.calls[0].options.dtype, 'q4f16');
-  assert.ok(h.calls[0].options.chat_template.includes('<|im_start|>'), 'Qwen3 generation must provide the model chat template explicitly');
-  assert.equal(h.calls[0].options.tokenizer_encode_kwargs.enable_thinking, false, 'Qwen3 must use concise non-thinking responses on device');
-  assert.equal(h.calls[0].options.do_sample, true, 'Qwen3 should not use greedy decoding by default');
+  assert.ok(h.generationOptions[0].chat_template.includes('<|im_start|>'), 'Qwen3 generation must provide the model chat template explicitly');
+  assert.equal(h.generationOptions[0].tokenizer_encode_kwargs.enable_thinking, false, 'Qwen3 must use concise non-thinking responses on device');
+  assert.equal(h.generationOptions[0].do_sample, true, 'Qwen3 should not use greedy decoding by default');
   assert.equal(h.api.getStatus().backend, 'webgpu');
 });
 
