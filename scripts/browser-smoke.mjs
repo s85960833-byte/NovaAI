@@ -142,14 +142,14 @@ try{
  assert.ok(searchPlaceholder.includes('Search saved chats'),'English interface must show an English search placeholder');
  console.log('PASS desktop workspace home, English-only cards, no global assistant shortcuts, no overflow');
 
- // A legacy key remains usable in this tab after migration, but must be scrubbed from durable storage.
+ // A legacy provider key must be removed from both active settings and durable storage.
  await desktop.evaluate(()=>{const state=JSON.parse(localStorage.getItem('nova')||'{}');state.cfg={...(state.cfg||{}),base:'https://api.example.test/v1',model:'test-model',key:'legacy-test-key'};localStorage.setItem('nova',JSON.stringify(state));});
  await desktop.reload({waitUntil:'domcontentloaded'});
   await enterNOVA(desktop);
  const migrated=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg?.key||'');
  assert.equal(migrated,'','legacy BYOK key must be removed from localStorage during migration');
  await desktop.evaluate(()=>document.querySelector('#cfg').onclick());
- assert.equal(await desktop.locator('#key').inputValue(),'legacy-test-key','legacy key should remain usable in the active tab after migration');
+ assert.equal(await desktop.locator('#key').inputValue(),'','legacy provider key must not remain available in active settings');
  await desktop.locator('#csave').click();
  const savedKey=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg?.key||'');
  assert.equal(savedKey,'','saving provider settings must not persist the API key');
@@ -158,7 +158,7 @@ try{
  await desktop.evaluate(()=>document.querySelector('#cfg').onclick());
  assert.equal(await desktop.locator('#key').inputValue(),'','BYOK key must not survive a page reload');
  await desktop.locator('#dcfg').evaluate(el=>el.close());
- console.log('PASS BYOK legacy-key migration, active-tab use and non-persistent key storage');
+ console.log('PASS BYOK legacy-key removal from active settings and durable storage');
 
  const learn=desktop.locator('#hi .nr-card[data-group="learn"]');
  await learn.click();
