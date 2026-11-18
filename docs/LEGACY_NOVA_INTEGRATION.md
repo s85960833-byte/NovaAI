@@ -12,6 +12,7 @@ On `nova-2.0/rebuild`, the original Node server (`nova-server.txt`) remains the 
 - The new API runs as a localhost child process. Only `/api/health`, `/api/auth`, `/api/files`, `/api/sakha`, `/api/diwan` and `/api/wallet` are proxied to it. Existing endpoints such as chat completions, web search, image generation, transcription, live data and feeds remain on the original server.
 - Learn, Build and Agents shortcuts open the corresponding existing legacy workspace inside the same-origin shell. They reuse the existing mode registry and per-mode history; they are not placeholder-only cards.
 - The `/classic` route alone permits same-origin framing. Other routes keep their restrictive framing policy.
+- The new shell's Account panel embeds `/classic?account=1`, which opens the original NOVA account dialog. It reuses the existing Supabase client and existing sign-in, sign-up, password-recovery, confirmation, sign-out and opt-in cloud-sync flows; sync remains off by default.
 - The staging blueprint builds the web bundle and starts the original server through the `@nova/api` workspace start command.
 
 This is a **compatibility bridge**, not a completed native React rewrite of every legacy feature. The legacy application remains available while native replacements are implemented and tested.
@@ -23,6 +24,7 @@ This is a **compatibility bridge**, not a completed native React rewrite of ever
 - [x] Learn, Build and Agents routed to the original in-app workspace groups.
 - [x] New API process isolated on localhost and selectively proxied.
 - [x] Same-origin framing exception scoped to `/classic`.
+- [x] Existing NOVA Supabase account flow surfaced inside the new shell; no separate account store or second auth project introduced.
 - [x] Sakha now attempts the original live `/api/chat/completions` provider first, sends recent conversation context, and falls back to the clearly labelled mock preview when the legacy provider is unavailable.
 - [x] Proxy removes stale `Content-Encoding` when forwarding JSON that Express has already decompressed.
 - [x] Playwright coverage added for live Sakha conversation context and explicit mock fallback. These latest added tests still require exact-HEAD CI execution.
@@ -51,7 +53,7 @@ The following are not considered complete merely because the legacy workspace is
 2. Resolve every formatting, type, lint, unit, Playwright, security, database, bundle and Lighthouse failure; do not treat a previous SHA's green run as current evidence.
 3. Verify that staging's deployed SHA exactly equals the approved feature-branch SHA and that `/api/health`, the new shell and `/classic` all work on that deployment.
 4. Exercise every legacy capability listed above against synthetic test fixtures; preserve all original browser storage keys and server API contracts.
-5. Complete hosted Auth/export/deletion checks only in an isolated staging project, never with production data.
+5. Verify the existing account project's session refresh, confirmation/recovery email delivery and sign-out using an owner-controlled synthetic test account. Do not create test users in a shared account project or inspect real user rows. Verify export/deletion and object-storage erasure separately.
 6. Test the target Android device physically. Chromium mobile emulation is not physical-device proof.
 7. Rehearse staging backup/restore and rollback with exact deploy identifiers and measured timing.
 
