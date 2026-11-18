@@ -3,7 +3,7 @@
 const REG=window.NovaModeRegistry;if(!REG)return;
 const STORE='nova_modes_v1',CACHE='nova_mode_cache_v1',API='/api';
 const $=s=>document.querySelector(s);
-let active=null,activeGroup=null,upload=null,scheme=null,recognition=null,offline=false,sending=false,returnFocus=null;
+let active=null,activeGroup=null,upload=null,scheme=null,recognition=null,voiceRecorder=null,voiceStream=null,voiceGeneration=0,voiceStopTimer=0,offline=false,sending=false,returnFocus=null;
 const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}};
 const write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const data=()=>read(STORE,{version:1,histories:{},lastMode:'general'});
@@ -61,7 +61,16 @@ function drawChat(){
  content.scrollTop=content.scrollHeight;input.placeholder=active==='document'?tr('Upload a bill, notice, or form, or type a question…','बिल, नोटिस या फॉर्म अपलोड करें, या सवाल लिखें…'):active==='photo'?tr('Choose a photo of the question or type it…','सवाल की फोटो चुनें या सवाल लिखें…'):tr('Type your question…','अपना सवाल लिखें…');
 }
 function openMode(id){stopSpeech();root.setAttribute('aria-hidden','false');root.classList.add('open');active=id;const d=data();d.lastMode=id;saveData(d);upload=null;$('#nmUploadName').textContent='';drawChat();input.focus({preventScroll:true})}
-function stopSpeech(){try{if(recognition)recognition.stop()}catch(e){}recognition=null;try{if(window.speechSynthesis)window.speechSynthesis.cancel()}catch(e){}}
+function stopSpeech(){
+ voiceGeneration++;
+ if(voiceStopTimer){clearTimeout(voiceStopTimer);voiceStopTimer=0}
+ const recorder=voiceRecorder;voiceRecorder=null;
+ if(recorder&&recorder.state!=='inactive'){try{recorder.stop()}catch(e){}}
+ const stream=voiceStream;voiceStream=null;
+ if(stream)try{stream.getTracks().forEach(track=>track.stop())}catch(e){}
+ try{if(recognition)recognition.stop()}catch(e){}recognition=null;
+ try{if(window.speechSynthesis)window.speechSynthesis.cancel()}catch(e){}
+}
 async function extractFile(f){
  if(f.size>8*1024*1024)throw Error(tr('Keep files under 8 MB.','फ़ाइल 8 MB से छोटी रखें।'));
  if(f.type.startsWith('image/')){if(f.size>(lowData()?1.5:4)*1024*1024)throw Error(lowData()?tr('In Low Data Mode, keep photos under 1.5 MB.','कम डेटा मोड में फोटो 1.5 MB से छोटी रखें।'):tr('Keep photos under 4 MB.','फोटो 4 MB से छोटी रखें।'));return {image:await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result));r.onerror=no;r.readAsDataURL(f)}),text:tr('Read and explain the content in this image in clear English.','इस फोटो में मौजूद सामग्री को सरल हिंदी में पढ़कर समझाएँ।')};}
@@ -129,7 +138,87 @@ async function send(){
  finally{sending=false;$('#nmSend').disabled=false;$('#nmMic').disabled=false;$('#nmFile').disabled=false;input.disabled=false;}
 }
 function speak(text){if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(text);u.lang=data().voiceLang||'en-IN';speechSynthesis.cancel();speechSynthesis.speak(u)}
-function voice(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('#nmStatus').textContent=tr('Speech recognition is not available in this browser. You can type your question instead.','इस ब्राउज़र में आवाज़ पहचान उपलब्ध नहीं है। आप सवाल टाइप कर सकते हैं।');return}stopSpeech();recognition=new SR();recognition.lang=data().voiceLang||'en-IN';recognition.interimResults=false;recognition.onresult=e=>{input.value=e.results[0][0].transcript;send()};recognition.onerror=()=>$('#nmStatus').textContent=tr('Microphone unavailable. Check browser permissions or type your question.','माइक उपलब्ध नहीं है। ब्राउज़र अनुमति जाँचें या सवाल टाइप करें।');recognition.start();$('#nmStatus').textContent=tr('Listening…','सुन रहा है…')}
+async function voice(){
+ if(voiceRecorder&&voiceRecorder.state==='recording'){
+  if(voiceStopTimer){clearTimeout(voiceStopTimer);voiceStopTimer=0}
+  $('#nmStatus').textContent=tr('Transcribing on this device…','इसी डिवाइस पर आवाज़ लिखी जा रही है…');
+  try{voiceRecorder.stop()}catch(e){$('#nmStatus').textContent=String(e.message||e)}
+  return;
+ }
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ const canUseLocal=!!(window.NovaLocalAI&&typeof window.NovaLocalAI.transcribe==='function'&&navigator.mediaDevices?.getUserMedia&&window.MediaRecorder);
+ if(!canUseLocal){
+  if(!SR){$('#nmStatus').textContent=tr('Local voice recording is not available in this browser. You can type your question instead.','इस ब्राउज़र में लोकल आवाज़ रिकॉर्डिंग उपलब्ध नहीं है। आप सवाल टाइप कर सकते हैं।');return}
+  stopSpeech();recognition=new SR();recognition.lang=data().voiceLang||'en-IN';recognition.interimResults=false;
+  recognition.onresult=e=>{input.value=e.results[0][0].transcript;send()};
+  recognition.onerror=()=>$('#nmStatus').textContent=tr('Microphone unavailable. Check browser permissions or type your question.','माइक उपलब्ध नहीं है। ब्राउज़र अनुमति जाँचें या सवाल टाइप करें।');
+  try{recognition.start();$('#nmStatus').textContent=tr('Listening…','सुन रहा है…')}catch(e){$('#nmStatus').textContent=String(e.message||e)}
+  return;
+ }
+ stopSpeech();
+ const generation=++voiceGeneration;
+ let stream=null,recorder=null,audioContext=null;
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  if(generation!==voiceGeneration){stream.getTracks().forEach(track=>track.stop());return}
+  const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'].find(type=>MediaRecorder.isTypeSupported?.(type))||'';
+  recorder=new MediaRecorder(stream,mime?{mimeType:mime}:{});
+  const chunks=[];
+  voiceStream=stream;voiceRecorder=recorder;
+  recorder.ondataavailable=event=>{if(event.data&&event.data.size)chunks.push(event.data)};
+  recorder.onerror=event=>{$('#nmStatus').textContent=tr('Microphone recording failed. You can type your question instead.','माइक रिकॉर्डिंग विफल रही। आप सवाल टाइप कर सकते हैं।')+(event.error?.message?' '+event.error.message:'')};
+  recorder.onstop=async()=>{
+   if(voiceStopTimer){clearTimeout(voiceStopTimer);voiceStopTimer=0}
+   try{
+    if(generation!==voiceGeneration)return;
+    const blob=new Blob(chunks,{type:recorder.mimeType||mime||'audio/webm'});
+    if(!blob.size)throw Error(tr('No audio was captured. Please try again.','आवाज़ रिकॉर्ड नहीं हुई। कृपया फिर कोशिश करें।'));
+    if(blob.size>8*1024*1024)throw Error(tr('Voice recording exceeded 8 MB. Please record a shorter message.','आवाज़ की रिकॉर्डिंग 8 MB से बड़ी है। छोटा संदेश रिकॉर्ड करें।'));
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtx)throw Error(tr('Local audio decoding is unavailable in this browser.','इस ब्राउज़र में लोकल ऑडियो डिकोडिंग उपलब्ध नहीं है।'));
+    audioContext=new AudioCtx();
+    const decoded=await audioContext.decodeAudioData(await blob.arrayBuffer());
+    if(generation!==voiceGeneration)return;
+    const source=decoded.getChannelData(0),sourceRate=decoded.sampleRate,targetRate=16000;
+    const targetLength=Math.floor(source.length*targetRate/sourceRate);
+    if(!targetLength)throw Error(tr('The recording was too short. Please try again.','रिकॉर्डिंग बहुत छोटी थी। कृपया फिर कोशिश करें।'));
+    const samples=new Float32Array(targetLength);
+    for(let i=0;i<targetLength;i++){
+     const position=i*sourceRate/targetRate,left=Math.floor(position),right=Math.min(source.length-1,left+1),fraction=position-left;
+     samples[i]=source[left]*(1-fraction)+source[right]*fraction;
+    }
+    const language=String(data().voiceLang||(isHi()?'hi-IN':'en-IN')).split('-')[0].toLowerCase();
+    const result=await window.NovaLocalAI.transcribe(samples,{language,signal:AbortSignal.timeout(600000),onStatus:message=>{if(generation===voiceGeneration)$('#nmStatus').textContent=String(message||tr('Transcribing locally…','इसी डिवाइस पर आवाज़ लिखी जा रही है…'))}});
+    if(generation!==voiceGeneration)return;
+    const transcript=String(result?.text||'').trim();
+    if(!transcript)throw Error(tr('No speech was recognized. Please try again or type your question.','आवाज़ समझ नहीं आई। फिर कोशिश करें या सवाल लिखें।'));
+    input.value=transcript;
+    $('#nmStatus').textContent=tr('Voice recognized locally. Preparing your answer…','आवाज़ इसी डिवाइस पर पहचानी गई। जवाब तैयार हो रहा है…');
+    await send();
+   }catch(error){if(generation===voiceGeneration)$('#nmStatus').textContent=String(error?.message||error)}
+   finally{
+    if(audioContext)try{await audioContext.close()}catch(e){}
+    if(stream)try{stream.getTracks().forEach(track=>track.stop())}catch(e){}
+    if(generation===voiceGeneration){voiceRecorder=null;voiceStream=null;syncStaticLabels()}
+   }
+  };
+  recorder.start();
+  $('#nmMic').textContent=tr('⏹ Stop recording','⏹ रिकॉर्डिंग रोकें');
+  $('#nmStatus').textContent=tr('Recording on this device… Tap Stop when you finish speaking.','इसी डिवाइस पर रिकॉर्डिंग हो रही है… बोलने के बाद रोकें दबाएँ।');
+  voiceStopTimer=setTimeout(()=>{
+   if(generation===voiceGeneration&&voiceRecorder===recorder&&recorder.state==='recording'){
+    $('#nmStatus').textContent=tr('20-second recording limit reached. Transcribing locally…','20 सेकंड की सीमा पूरी हुई। लोकल ट्रांसक्रिप्शन जारी है…');
+    try{recorder.stop()}catch(e){}
+   }
+  },20000);
+ }catch(error){
+  if(generation===voiceGeneration){
+   if(stream)try{stream.getTracks().forEach(track=>track.stop())}catch(e){}
+   voiceRecorder=null;voiceStream=null;
+   $('#nmStatus').textContent=tr('Microphone unavailable. Allow microphone access or type your question.','माइक उपलब्ध नहीं है। माइक की अनुमति दें या सवाल टाइप करें।')+' '+String(error?.message||error);
+  }
+ }
+}
 $('#nmClose').onclick=hide;$('#nmBack').onclick=()=>drawHome(activeGroup);$('#nmSend').onclick=send;$('#nmMic').onclick=voice;
 $('#nmFile').onclick=()=>$('#nmPick').click();$('#nmPick').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;try{upload={...await extractFile(f),name:f.name};$('#nmUploadName').textContent=tr('File ready: ','फ़ाइल तैयार: ')+f.name+tr(' (not stored on the server after submission)',' (भेजने के बाद सर्वर पर सेव नहीं होती)');}catch(err){$('#nmStatus').textContent=err.message}};
 input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
