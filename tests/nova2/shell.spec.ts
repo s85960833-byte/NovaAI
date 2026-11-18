@@ -153,6 +153,24 @@ test("Sakha uses the legacy live provider and includes recent local conversation
   ]);
 });
 
+test("Sakha clearly labels its mock fallback when the legacy live provider is unavailable", async ({
+  page,
+}) => {
+  await page.route("**/api/chat/completions", async (route) => {
+    await route.fulfill({
+      status: 502,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "Provider unavailable" }),
+    });
+  });
+  await enterDarbar(page);
+  await page.locator(".minister-card.sakha").click();
+  await page.locator(".composer textarea").fill("Preview fallback question");
+  await page.locator(".send-button").click();
+  await expect(page.locator(".chat-bubble.assistant").first()).toContainText(/mock preview/i);
+  await expect(page.locator(".chat-bubble.assistant").first().locator("small")).toContainText("MOCK");
+});
+
 test("mock wallet capture and refund are synthetic and idempotent", async ({ page }) => {
   await enterDarbar(page);
   await page.getByRole("button", { name: "वॉलेट" }).click();
