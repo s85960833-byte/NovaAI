@@ -676,7 +676,18 @@ function readAloud(txt){if(!window.speechSynthesis)return;lvGen++;lvQ=0;speechSy
 const LVT={hi:{hi:'हाँ, बोलिए। मैं सुन रहा हूँ।',err:'आवाज़ समझ नहीं आई। फिर से बोलिए।',mic:'माइक की अनुमति नहीं मिली। Chrome में ⋮ → Settings → Site settings → Microphone में इस साइट को Allow कीजिए।',net:'स्पीच सर्विस से जुड़ नहीं पाया। इंटरनेट जाँचिए।',nomic:'माइक नहीं मिला।'},en:{hi:'Go ahead, I am listening.',err:'I could not understand that. Please try again.',mic:'Microphone is blocked. In Chrome tap ⋮ → Settings → Site settings → Microphone and allow this site.',net:'Could not reach the speech service. Check your internet.',nomic:'No microphone found.'}};
 const lvT=k=>(LVT[ui()]||LVT.en)[k],lvHi=()=>vlang().toLowerCase().startsWith('hi')?LVT.hi.hi:LVT.en.hi;
 const lvLog=m=>{const e=$('ldiag');if(e)e.textContent=m||''};
-const canRec=()=>!!(SV&&SV.stt&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder);
+async function decodeLocalAudio(blob){
+const AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw new Error('This browser cannot decode recorded audio for offline recognition.');
+const ctx=new AC({sampleRate:16000});
+try{
+const audio=await ctx.decodeAudioData(await blob.arrayBuffer()),length=Math.max(1,Math.ceil(audio.duration*16000)),out=new Float32Array(length),channels=[];
+for(let c=0;c<audio.numberOfChannels;c++)channels.push(audio.getChannelData(c));
+const ratio=audio.sampleRate/16000;
+for(let i=0;i<length;i++){const p=i*ratio,a=Math.floor(p),b=Math.min(a+1,audio.length-1),f=p-a;let v=0;for(const ch of channels)v+=ch[a]*(1-f)+ch[b]*f;out[i]=v/Math.max(1,channels.length)}
+return out;
+}finally{try{await ctx.close()}catch(e){}}
+}
+const canRec=()=>!!(SV&&(SV.stt||SV.local)&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder);
 let lvMode='sr',lvFail=0,lvGT=0;
 function listen(){if(!LV||lvMute||lvRec)return;if(lvMode==='rec'||!SR){if(canRec()){lvMode='rec';listenRec()}else{$('lcap').textContent=lvT('net');lvSet('mute')}return}
 lvDoneFlag=false;lvPos=0;lvSet('listen');let heard='',err='';const t0=Date.now(),r=new SR();lvRec=r;r.lang=vlang();r.interimResults=true;r.continuous=false;
@@ -702,9 +713,16 @@ rec.onstop=async()=>{clearInterval(timer);stream.getTracks().forEach(x=>x.stop()
 if(lvRec===me)lvRec=null;else if(cancel)return;if(!LV||cancel)return;if(!voiced||!chunks.length){setTimeout(listen,150);return}
 lvSet('think');$('lcap').textContent='…';
 try{const blob=new Blob(chunks,{type:rec.mimeType||mime||'audio/webm'}),L=(LC[S.rl]||(hasDev()?'hi-IN':'')).split('-')[0];
+let h='';
+if(SV&&SV.local&&window.NovaLocalAI){
+const samples=await decodeLocalAudio(blob);
+const j=await window.NovaLocalAI.transcribe(samples,{language:L,onStatus:m=>{$('lcap').textContent=m}});
+h=String(j.text||'').trim();
+}else{
 const r=await fetch(API+'/transcribe'+(L?'?lang='+encodeURIComponent(L):''),{method:'POST',headers:{'Content-Type':blob.type||'application/octet-stream'},body:blob});
 const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
-const h=String(j.text||'').trim();if(!LV)return;if(h){lvFail=0;$('lcap').textContent=h;$('in').value=h;go()}else{$('lcap').textContent=lvT('err');setTimeout(listen,300)}}
+h=String(j.text||'').trim();
+}if(!LV)return;if(h){lvFail=0;$('lcap').textContent=h;$('in').value=h;go()}else{$('lcap').textContent=lvT('err');setTimeout(listen,300)}}
 catch(e){lvLog('stt: '+String((e&&e.message)||e).slice(0,90));$('lcap').textContent=lvT('err');if(LV)setTimeout(listen,2500)}};
 rec.start(250);
 timer=setInterval(()=>{if(!LV||lvMute||lvRec!==me){cancel=true;try{rec.stop()}catch(e){}return}
@@ -712,7 +730,7 @@ let lvl=0;if(an&&ac&&ac.state==='running'){an.getByteTimeDomainData(buf);for(con
 const now=Date.now();window.__lvl=Math.max(window.__lvl||0,lvl);if(lvl>12){voiced=true;lastV=now}
 if((voiced&&now-lastV>1300)||now-t0>20000||(!voiced&&now-t0>9000)){try{rec.stop()}catch(e){}}},100)}
 async function startLive(){if(!window.speechSynthesis||(!SR&&!canRec())){toast(t('lvNo'));return}
-LV=true;lvMute=false;lvInt=false;lvGen++;lvQ=0;lvFail=0;lvMode=SR?'sr':'rec';
+LV=true;lvMute=false;lvInt=false;lvGen++;lvQ=0;lvFail=0;lvMode=(SV&&SV.local)?'rec':(SR?'sr':'rec');
 try{speechSynthesis.cancel();speechSynthesis.getVoices()}catch(e){}
 $('live').hidden=false;$('llang').value=$('lang').value;fillVoices();$('lcap').textContent='';lvLog('');$('lmute').textContent='\uD83C\uDF99';lvSet('think');
 try{if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(x=>x.stop())}}
