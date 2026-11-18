@@ -1,6 +1,6 @@
 # NOVA 2.0 Build State
 
-**Updated:** 2026-11-18 10:58 UTC  
+**Updated:** 2026-11-18 11:10 UTC  
 **Branch:** \`nova-2.0/rebuild\`  
 **Verified source SHA for CI #513:** \`5976ef98927977ebd93ae1a47b0f83ce4ab89e6b\`  
 **Draft PR:** [#103](https://github.com/s85960833-byte/NovaAI/pull/103)  
@@ -8,15 +8,20 @@
 
 ## Current head and NEXT ACTION — 18 November 2026
 
-- PR #103 remains Open, Draft and unmerged. Current source HEAD: `b4f5a0ac0e3c25148b5b52556ac797497b2d8f4d`; base/main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`.
-- Latest exact-head CI #620: [run 44289745929](https://github.com/s85960833-byte/NovaAI/actions/runs/44289745929), triggered for the current head and still **IN PROGRESS** at this update. No result is claimed until every job completes.
-- New unified-shell work: Learn, Build and Agents are now buttons in the new Darbar home and open their original workspace groups inside the app via same-origin `/classic?workspace=...`. The original mode registry and per-mode history remain the underlying implementation.
-- Added a narrowly scoped same-origin frame policy to `/classic` only. That route sets `X-Frame-Options: SAMEORIGIN` and CSP `frame-ancestors 'self'`; other routes retain no-framing protection.
-- Added Playwright assertions for all three embedded group routes, legacy mode-group visibility, framing headers and 390×844 mobile width. These are pending CI #620 and are not yet verified.
-- The legacy UI remains an embedded compatibility bridge, not a completed native rewrite. Chat/history, search/citations, voice/live voice, files, image generation, authentication/account lifecycle and every specialist mode still need their own feature-level regression tests.
-- Staging deployed SHA is NOT VERIFIED. Physical Android/Infinix testing, hosted Auth, hosted export/deletion, hosted backup/restore and actual rollback are NOT VERIFIED.
-- **NEXT ACTION:** complete exact-head CI #620; fix every failure; inspect Playwright frame logs and confirm all three groups load; then verify the free staging deployment's exact SHA and health before any production-release request.
-- Production proof: `main` remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; no main, production Render or production Supabase writes were made. Phase 7 remains LOCKED until exact text `APPROVE RELEASE`.
+- PR #103 remains Open, Draft and unmerged. Exact tested source HEAD: `79129155ca4ea439ce20f50767aec78cae32ba54`; base/main remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`.
+- **Exact-head CI #625 PASS:** [run 44290595546](https://github.com/s85960833-byte/NovaAI/actions/runs/44290595546). All three jobs passed: checks, database and staging-smoke.
+- Checks job: Typecheck, Lint, Format, Unit (including 22 Playwright E2E), translation, scheme checks, secret scan, synthetic evals, dependency audit, build, bundle budget and Lighthouse all passed.
+- Playwright: 22/22 passed. Includes all three Learn/Build/Agents shortcuts inside the unified shell, legacy mode group visibility, same-origin frame headers, 390px mobile width, accessibility and reduced-motion. The old group-specific mode registry and histories remain in use.
+- Bundle: JS gzip 77,127 bytes; CSS gzip 4,859 bytes; configured JS budget 174,080 bytes.
+- Lighthouse (3 mobile emulation runs): Performance 99/100/100, Accessibility 100, Best Practices 100, SEO 91; LCP 1.3–1.6 s, TBT 10–80 ms, CLS 0.
+- Frame cadence: 6 Chromium-emulated scenarios, p50 16.7 ms / p95 16.7–16.8 ms, 0 dropped frames. This is 60 Hz browser emulation, not physical Android or 90/120 Hz certification.
+- Database job: clean isolated Supabase reset; RLS/schema and account-export isolation passed; synthetic deletion cascade/anonymisation passed; 5 wallet integration tests passed; PostgreSQL 17 backup/restore passed for 5 tables with matching row counts `3:3:5:6:2`.
+- Staging smoke: 24/24 read-only GETs passed, `/perf` reachable, p50 291.9 ms, p95 733.9 ms, max 804.3 ms, 0 failures. **Important:** this smoke reached the existing staging service but did not prove the deployed source SHA.
+- Render `nova-2-staging` service is configured for branch `nova-2.0/rebuild` with auto-deploy enabled, but its latest recorded Live deploy is still old SHA `5cf3ed56e92e239945ae476ca40537a8bedb1aab`, not the tested SHA above. No new staging deploy event is recorded yet. Staging exact-head deployment is therefore BLOCKED / NOT VERIFIED.
+- The React home exposes Learn, Build and Agents inside a same-origin `/classic?workspace=...` iframe bridge. This preserves the original mode registry, per-mode history, origin storage and old API handlers. It is **not** a native React rewrite; chat/history, voice/live voice, search/citations, files, image generation, auth/account lifecycle and each specialist mode still need feature-level parity tests.
+- Physical Android/Infinix review, hosted Supabase Auth, hosted export/deletion/object-storage erasure, hosted backup/restore and actual rollback are NOT VERIFIED.
+- **NEXT ACTION:** resolve why Render auto-deploy has not produced a deployment for the current branch HEAD; once the exact SHA is Live on free staging, re-check `/api/health`, embedded Learn/Build/Agents and read-only smoke against that exact deployment. Then continue remaining feature parity and physical-device checks.
+- Production proof: `main` remains `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; production Render latest Live SHA remains `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No main, production Render or production Supabase writes were made. Phase 7 remains LOCKED until exact text `APPROVE RELEASE`.
 
 ## Phase 1–6 implementation and automated evidence
 - NOVA 2.0 modular React/Vite app, Node API, shared contracts, PostgreSQL migrations, Darbar, Sakha, Diwan and synthetic mock wallet are present on the isolated rebuild branch.
@@ -72,3 +77,11 @@
 The current branch update makes the original NOVA workspace a first-class in-app destination rather than a standalone legacy link. The React shell selects Learn / Build / Agents, the iframe loads the corresponding original group on the same origin, and the old application keeps its existing scripts, browser storage, cookies and legacy API routes. The route-specific frame-header exception is restricted to `/classic`.
 
 The previous CI #513/#591/#593/#620 summaries above or below are tied to their recorded SHAs and must not be treated as proof for a different HEAD. Current exact-head evidence is only CI #620 once it completes.
+
+
+## Exact-head evidence — CI #625
+
+- Run: https://github.com/s85960833-byte/NovaAI/actions/runs/44290595546
+- Artifacts: database evidence `14421097349`, Playwright evidence `14421107270`, Lighthouse evidence `14421192203`, staging-load evidence `14421781625`.
+- Playwright confirms 22/22 tests including the embedded same-origin workspace bridge. Frame sampling is Chromium emulation only.
+- Staging-load evidence confirms 24/24 GET requests against `https://nova-2-staging.onrender.com`; the service's currently deployed SHA is older than this source HEAD, so this is availability/load evidence only, not current-commit deployment proof.
