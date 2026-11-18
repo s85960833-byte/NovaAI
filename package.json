@@ -22,7 +22,7 @@
     "check:secrets": "node scripts/check-secrets.mjs",
     "check:schemes": "node scripts/check-schemes.mjs",
     "evals": "node scripts/run-evals.mjs",
-    "audit": "npm audit --audit-level=high",
+    "audit": "node scripts/check-dependency-audit.mjs",
     "build": "npm run build --workspace @nova/shared && npm run build --workspace @nova/web && npm run build --workspace @nova/api",
     "db:migrate:staging": "node scripts/migrate-staging.mjs",
     "test:db": "vitest run apps/api/src/money/postgres-ledger.integration.test.ts",
