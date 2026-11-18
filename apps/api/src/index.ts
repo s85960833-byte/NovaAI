@@ -368,7 +368,7 @@ app.use(
   },
 );
 if (config.NODE_ENV !== "test")
-  app.listen(config.API_PORT, "0.0.0.0", () =>
+  app.listen(config.API_PORT, process.env.NOVA2_API_HOST || "0.0.0.0", () =>
     process.stdout.write(
       JSON.stringify({ level: "info", event: "api_started", port: config.API_PORT }) + "\n",
     ),
