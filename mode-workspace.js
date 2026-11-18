@@ -118,10 +118,9 @@ async function send(){
    }
    const ck=cacheKey(modeId,q+extra),cached=file?.image?null:cacheGet(ck);let answer=cached;
    if(!answer){
-     const cfg=await fetch(API+'/config',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!cfg.ok)throw Error(tr('The AI service is not configured yet.','AI सेवा अभी कॉन्फ़िगर नहीं है।'));
-     const config=await cfg.json(),r=await fetch(API+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:config.model,stream:false,max_tokens:lowData()?500:900,messages}),signal:AbortSignal.timeout(100000)});
-     const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(tr('The AI provider is unavailable.','AI सेवा अभी उपलब्ध नहीं है।'));
-     answer=String(j.choices?.[0]?.message?.content||'').trim();if(!answer)throw Error('The AI returned an empty response.');if(!file?.image)cacheSet(ck,answer);
+     if(!window.NovaLocalAI||typeof window.NovaLocalAI.generate!=='function')throw Error(tr('The on-device AI engine is not available. Reload NOVA and try again.','डिवाइस वाला AI इंजन उपलब्ध नहीं है। NOVA री-लोड करके फिर कोशिश करें।'));
+     answer=String(await window.NovaLocalAI.generate(messages,{max_new_tokens:lowData()?500:700,signal:AbortSignal.timeout(100000),onStatus:message=>{if(active===modeId)$('#nmStatus').textContent=String(message||'')}})).trim();
+     if(!answer)throw Error('The local AI returned an empty response.');if(!file?.image)cacheSet(ck,answer);
    }
    if(modeId==='document'&&/(RTI|right to information|complaint|application|draft)/i.test(q)&&!answer.includes('This is not legal advice.'))answer+='\n\n'+tr('This is not legal advice.','ये कानूनी सलाह नहीं है।');
    if(modeId==='schemes'&&!answer.includes('Please verify details on the official website'))answer+='\n\n'+tr('Please verify details on the official website.','पक्का करने के लिए आधिकारिक साइट देखें।');
