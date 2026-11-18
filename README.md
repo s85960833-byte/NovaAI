@@ -57,7 +57,7 @@ NOVA is configured for **keyless AI mode**. Hosted LLM and hosted speech endpoin
 - Translation and image-prompt enhancement: use the same local chat model.
 - Live web search: anonymous DuckDuckGo HTML search with Wikipedia fallback; internet required and public sources may rate-limit or block requests.
 - Image generation: anonymous public Pollinations endpoint only; internet required, availability/rate limits are outside NOVA's control. This is keyless, not offline image generation.
-- PDF text extraction and saved chats: browser-local; scanned-PDF OCR and general image understanding are not yet complete.
+- PDF text extraction, scanned-page OCR, photo OCR and saved chats: browser-local. OCR can misread handwriting or low-quality images; general object/scene understanding is not yet implemented.
 - First use downloads model/runtime files. After successful caching, local inference can work offline, but browser storage may be cleared or evicted and low-memory phones may fail to load larger models.
 
 ## Architecture
