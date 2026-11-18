@@ -57,11 +57,23 @@ test("Learn, Build and Agents shortcuts open their original NOVA workspaces", as
   }
 });
 
-test("Darbar links to the same-origin Classic NOVA workspace", async ({ page }) => {
+test("Learn, Build and Agents open inside the unified NOVA shell", async ({ page }) => {
   await enterDarbar(page);
-  const link = page.getByRole("link", { name: "पुराना NOVA कार्यक्षेत्र खोलें" });
-  await expect(link).toBeVisible();
-  await expect(link).toHaveAttribute("href", "/classic");
+  for (const [workspace, label, buttonName] of [
+    ["learn", /NOVA Learn|नोवा लर्न/, "नोवा लर्न"],
+    ["build", /NOVA Build|नोवा बिल्ड/, "नोवा बिल्ड"],
+    ["agents", /NOVA Agents|नोवा एजेंट्स/, "नोवा एजेंट्स"],
+  ] as const) {
+    await page.goto("/");
+    await enterDarbar(page);
+    await page.getByRole("button", { name: buttonName, exact: true }).click();
+    const frame = page.locator(".legacy-frame");
+    await expect(frame).toHaveAttribute("src", "/classic?workspace=" + workspace);
+    await expect(frame).toHaveJSProperty("contentWindow", expect.anything());
+    const legacy = page.frameLocator(".legacy-frame");
+    await expect(legacy.locator("#novaModes.open")).toBeVisible();
+    await expect(legacy.locator("#novaModes .nmgroup h3").first()).toContainText(label);
+  }
 });
 
 test("drawer opens above the page and routes to Diwan", async ({ page }) => {
