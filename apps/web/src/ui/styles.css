@@ -1418,3 +1418,17 @@ select:focus-visible {
     border-radius: 12px;
   }
 }
+
+.main-content:has(.legacy-workspace) {
+  width: 100%;
+  max-width: none;
+  padding: 10px 8px 16px;
+}
+.legacy-frame {
+  min-height: calc(100dvh - 220px);
+}
+@media (max-width: 420px) {
+  .legacy-frame {
+    min-height: calc(100dvh - 205px);
+  }
+}
