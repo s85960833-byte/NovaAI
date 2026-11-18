@@ -26,7 +26,7 @@ process.stdout.write("PRODUCTION_DEPENDENCY_AUDIT_PASS\n");
 
 // Keep a full-tree audit. The only permitted residual is the currently unpatched
 // development-toolchain picomatch advisory; new advisories remain build blockers.
-const full = runNpm(["audit", "--json"]);
+const full = runNpm(["audit", "--json", "--audit-level=high"]);
 let report;
 try {
   report = JSON.parse(full.stdout);
