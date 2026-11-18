@@ -79,6 +79,8 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: Verify no-provider-key browser-local AI mode
         run: node scripts/keyless-config-smoke.mjs
+      - name: Test browser-local AI WebGPU, WASM, caching and cancellation paths
+        run: node --test scripts/local-ai.test.mjs
       - name: Start local server with test-only credentials
         run: |
           LLM_KEY=test LLM_MODEL=test-model PORT=8787 node nova-server.txt > /tmp/novaai-test.log 2>&1 &
