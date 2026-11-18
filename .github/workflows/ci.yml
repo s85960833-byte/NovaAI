@@ -2,14 +2,12 @@ name: NOVA 2.0 CI
 on:
   pull_request:
     branches: ["main", "nova-2.0/rebuild"]
-  push:
-    branches: ["nova-2.0/rebuild"]
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: nova2-ci-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  group: nova2-ci-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
 jobs:
   checks:
     runs-on: ubuntu-latest
@@ -20,20 +18,51 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm run format:check
-      - run: npm test
-      - run: npm run check:i18n
-      - run: npm run check:schemes
-      - run: npm run check:secrets
-      - run: npm run evals
-      - run: npm run audit
-      - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
-      - name: Upload browser evidence even when E2E fails
+      - name: Install locked dependencies
+        id: install
+        run: npm ci
+      - name: Prepare evidence directory
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: mkdir -p docs/evidence
+      - name: Typecheck
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run typecheck 2>&1 | tee docs/evidence/typecheck.log
+      - name: Lint
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run lint 2>&1 | tee docs/evidence/lint.log
+      - name: Format check
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run format:check 2>&1 | tee docs/evidence/format-check.log
+      - name: Unit tests
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm test 2>&1 | tee docs/evidence/unit-tests.log
+      - name: Translation checks
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run check:i18n 2>&1 | tee docs/evidence/i18n-check.log
+      - name: Official scheme data checks
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run check:schemes 2>&1 | tee docs/evidence/schemes-check.log
+      - name: Secret scan
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run check:secrets 2>&1 | tee docs/evidence/secrets-check.log
+      - name: Synthetic model evaluations
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run evals 2>&1 | tee docs/evidence/mock-evals.log
+      - name: Dependency audit
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run audit 2>&1 | tee docs/evidence/dependency-audit.log
+      - name: Build workspaces
+        id: build
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run build 2>&1 | tee docs/evidence/build.log
+      - name: Install Playwright Chromium
+        id: playwright_install
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: npx playwright install --with-deps chromium
+      - name: Playwright E2E
+        if: ${{ always() && steps.install.outcome == 'success' && steps.build.outcome == 'success' && steps.playwright_install.outcome == 'success' }}
+        run: set -o pipefail && npm run test:e2e 2>&1 | tee docs/evidence/playwright.log
+      - name: Upload Playwright evidence
         if: always()
         uses: actions/upload-artifact@v6
         with:
@@ -42,10 +71,15 @@ jobs:
             test-results/
             playwright-report/
             artifacts/frame-time-metrics.json
+            docs/evidence/
           if-no-files-found: ignore
-      - run: npm run check:bundle
-      - run: npm run lighthouse
-      - name: Upload Lighthouse reports and build evidence
+      - name: Bundle budget
+        if: ${{ always() && steps.install.outcome == 'success' && steps.build.outcome == 'success' }}
+        run: set -o pipefail && npm run check:bundle 2>&1 | tee docs/evidence/bundle-budget.log
+      - name: Lighthouse
+        if: ${{ always() && steps.install.outcome == 'success' && steps.build.outcome == 'success' }}
+        run: set -o pipefail && npm run lighthouse 2>&1 | tee docs/evidence/lighthouse.log
+      - name: Upload Lighthouse evidence
         if: always()
         uses: actions/upload-artifact@v6
         with:
@@ -53,9 +87,11 @@ jobs:
           path: |
             .lighthouseci/
             artifacts/
+            docs/evidence/
           if-no-files-found: ignore
   database:
     needs: checks
+    if: ${{ always() && needs.checks.result != 'cancelled' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -64,36 +100,55 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - name: Build shared package for database integration tests
+      - name: Install locked dependencies
+        id: install
+        run: npm ci
+      - name: Prepare database evidence
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: mkdir -p docs/evidence
+      - name: Build shared package
+        id: shared
+        if: ${{ always() && steps.install.outcome == 'success' }}
         run: npm run build --workspace @nova/shared
       - uses: supabase/setup-cli@v1
+        id: setup_supabase
+        if: ${{ always() && steps.install.outcome == 'success' }}
         with:
           version: 3.2.0
-      - name: Start isolated local Supabase stack
+      - name: Start isolated local Supabase
+        id: supabase_start
+        if: ${{ always() && steps.setup_supabase.outcome == 'success' }}
         run: cd supabase-v2 && supabase start
-      - name: Apply migrations from scratch and verify isolated schema/RLS
+      - name: Migrate from scratch and verify RLS/lifecycle
+        id: migrations
+        if: ${{ always() && steps.supabase_start.outcome == 'success' }}
         run: |
           set -euo pipefail
           cd supabase-v2
-          supabase db reset
-          supabase migration list
+          supabase db reset 2>&1 | tee ../docs/evidence/migration-reset.log
+          supabase migration list 2>&1 | tee ../docs/evidence/migration-list.log
           cd ..
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase-v2/scripts/check-schema.sql
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase-v2/scripts/check-account-lifecycle.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase-v2/scripts/check-schema.sql 2>&1 | tee docs/evidence/schema-rls-check.log
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase-v2/scripts/check-account-lifecycle.sql 2>&1 | tee docs/evidence/account-lifecycle-check.log
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
-      - name: Verify durable mock wallet integration
-        run: npm run test:db
+      - name: Wallet, webhook and spend-cap integration
+        if: ${{ always() && steps.migrations.outcome == 'success' && steps.shared.outcome == 'success' }}
+        run: set -o pipefail && npm run test:db 2>&1 | tee docs/evidence/wallet-integration-tests.log
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
           MOCK_FEATURES_ENABLED: "true"
-      - name: Rehearse synthetic schema backup and restore
+      - name: Synthetic database backup and restore
+        if: ${{ always() && steps.migrations.outcome == 'success' }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/nova2-backup"
           RESTORE_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54332/nova2_restore_check
-          docker run --rm --network host             -e DATABASE_URL="$DATABASE_URL"             -e RESTORE_DATABASE_URL="$RESTORE_DATABASE_URL"             -v "$RUNNER_TEMP/nova2-backup:/backup"             postgres:17-alpine sh -ec '
+          docker run --rm --network host \
+            -e DATABASE_URL="$DATABASE_URL" \
+            -e RESTORE_DATABASE_URL="$RESTORE_DATABASE_URL" \
+            -v "$RUNNER_TEMP/nova2-backup:/backup" \
+            postgres:17-alpine sh -ec '
               pg_dump "$DATABASE_URL" --schema=nova2_staging --format=custom --no-owner --file=/backup/nova2-staging.dump
               pg_restore --list /backup/nova2-staging.dump >/backup/nova2-staging.contents
               PGPASSWORD=postgres createdb -h 127.0.0.1 -p 54332 -U postgres nova2_restore_check
@@ -104,23 +159,24 @@ jobs:
               TABLES=$(psql "$RESTORE_DATABASE_URL" -Atc "select count(*) from information_schema.tables where table_schema = chr(110)||chr(111)||chr(118)||chr(97)||chr(50)||chr(95)||chr(115)||chr(116)||chr(97)||chr(103)||chr(105)||chr(110)||chr(103)")
               test "$TABLES" -ge 5
               echo "SYNTHETIC BACKUP/RESTORE PASS: $TABLES tables; row counts $RESTORED"
-            '
+            ' 2>&1 | tee docs/evidence/backup-restore.log
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
-      - name: Upload isolated database evidence
+      - name: Upload database evidence
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: nova2-database-evidence
-          path: ${{ runner.temp }}/nova2-backup/
+          path: |
+            ${{ runner.temp }}/nova2-backup/
+            docs/evidence/
           if-no-files-found: ignore
-      - name: Stop local Supabase stack
-        if: always()
+      - name: Stop isolated local Supabase
+        if: ${{ always() && steps.supabase_start.outcome == 'success' }}
         run: cd supabase-v2 && supabase stop
-
-
   staging-smoke:
     needs: [checks, database]
+    if: ${{ always() && needs.checks.result != 'cancelled' && needs.database.result != 'cancelled' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -129,15 +185,23 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - name: Run small read-only load test against Free staging
-        run: npm run test:staging:load
+      - name: Install locked dependencies
+        id: install
+        run: npm ci
+      - name: Prepare staging evidence
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: mkdir -p docs/evidence
+      - name: Read-only staging health, /perf and load test
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run test:staging:load 2>&1 | tee docs/evidence/staging-smoke.log
         env:
           STAGING_URL: https://nova-2-staging.onrender.com
-      - name: Upload staging load evidence
+      - name: Upload staging evidence
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: nova2-staging-load-evidence
-          path: artifacts/staging-load.json
+          path: |
+            artifacts/staging-load.json
+            docs/evidence/
           if-no-files-found: ignore

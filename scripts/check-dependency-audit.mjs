@@ -55,7 +55,9 @@ const unexpectedAdvisories = [...advisoryUrls].filter(
 );
 if (unexpectedAdvisories.length > 0) {
   process.stderr.write(
-    "Unexpected high/critical advisories: " + unexpectedAdvisories.join(", ") + "\n",
+    "Unexpected high/critical advisories: " +
+      unexpectedAdvisories.join(", ") +
+      "\n",
   );
   throw new Error("UNEXPECTED_HIGH_OR_CRITICAL_DEV_ADVISORY");
 }

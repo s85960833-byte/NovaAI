@@ -37,6 +37,18 @@ if (!ready) throw new Error("STAGING_HEALTH_WARMUP_FAILED");
 
 const timings = [];
 const errors = [];
+let perfRouteReachable = false;
+try {
+  const response = await fetch(base + "/perf", { signal: AbortSignal.timeout(8000) });
+  const html = await response.text();
+  perfRouteReachable =
+    response.ok &&
+    response.headers.get("content-type")?.includes("text/html") === true &&
+    html.includes('id="root"');
+  if (!perfRouteReachable) errors.push("PERF_ROUTE_NOT_REACHABLE");
+} catch (error) {
+  errors.push("PERF_ROUTE_FAILED: " + String(error));
+}
 await Promise.all(
   Array.from({ length: 3 }, async (_, worker) => {
     for (let round = 0; round < 8; round++) {
@@ -59,13 +71,15 @@ const report = {
   target: base,
   profile: "3 concurrent workers × 8 GET; health/static home only; no writes or user data",
   requests: 24,
+  perfRouteChecks: 1,
+  perfRouteReachable,
   succeeded: timings.length,
   failed: errors.length,
   p50Ms: Number(p50Ms.toFixed(1)),
   p95Ms: Number(p95Ms.toFixed(1)),
   maxMs: Number(Math.max(...timings, 0).toFixed(1)),
   errors,
-  pass: errors.length === 0 && p95Ms < 3000,
+  pass: errors.length === 0 && perfRouteReachable && p95Ms < 3000,
   capturedAt: new Date().toISOString(),
 };
 

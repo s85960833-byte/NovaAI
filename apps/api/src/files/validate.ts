@@ -8,7 +8,15 @@ export const ALLOWED_UPLOAD_MIME = [
 ] as const;
 export type UploadCheck =
   | { ok: true }
-  | { ok: false; code: "FILE_TOO_LARGE" | "MIME_NOT_ALLOWED" | "CONTENT_MISMATCH" | "EMPTY_FILE" };
+  | {
+      ok: false;
+      code:
+        | "FILE_TOO_LARGE"
+        | "MIME_NOT_ALLOWED"
+        | "CONTENT_MISMATCH"
+        | "EMPTY_FILE"
+        | "PDF_ACTIVE_CONTENT";
+    };
 export function validateUpload(input: { mime: string; bytes: Uint8Array }): UploadCheck {
   const { mime, bytes } = input;
   if (!bytes.byteLength) return { ok: false, code: "EMPTY_FILE" };
@@ -16,8 +24,14 @@ export function validateUpload(input: { mime: string; bytes: Uint8Array }): Uplo
   if (!(ALLOWED_UPLOAD_MIME as readonly string[]).includes(mime))
     return { ok: false, code: "MIME_NOT_ALLOWED" };
   const starts = (v: number[]) => v.every((n, i) => bytes[i] === n);
-  if (mime === "application/pdf" && !starts([37, 80, 68, 70, 45]))
-    return { ok: false, code: "CONTENT_MISMATCH" };
+  if (mime === "application/pdf") {
+    if (!starts([37, 80, 68, 70, 45])) return { ok: false, code: "CONTENT_MISMATCH" };
+    // Block obvious active PDF actions; this byte scan is not a complete PDF sanitizer.
+    const pdfText = new TextDecoder("latin1").decode(bytes);
+    if (/\/(?:JavaScript|JS|OpenAction|AA|Launch|EmbeddedFile|RichMedia)\b/i.test(pdfText)) {
+      return { ok: false, code: "PDF_ACTIVE_CONTENT" };
+    }
+  }
   if (mime === "image/jpeg" && !starts([255, 216, 255]))
     return { ok: false, code: "CONTENT_MISMATCH" };
   if (mime === "image/png" && !starts([137, 80, 78, 71, 13, 10, 26, 10]))

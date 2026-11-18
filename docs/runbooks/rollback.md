@@ -1,32 +1,39 @@
-# Staging Rollback Runbook
+# NOVA 2.0 Rollback Runbook
 
-## Scope and guardrails
-This runbook targets only Render service \`nova-2-staging\` (\`srv-dbu3b63l550s739qet70\`). Never use it for Production service \`srv-dbidhpc9v7es73d6ia80\`, branch \`main\`, production Supabase or real user data.
+## Safety boundary
 
-## Last observed staging deploys
-- Last confirmed Live: \`dep-dbu78el6e07s73c17b80\`, SHA \`5cf3ed56e92e239945ae476ca40537a8bedb1aab\`.
-- Previous confirmed Live before that: \`dep-dbu760jrjlhs73af6190\`, SHA \`3098a4aa6d98105da930c513894089b949be10b2\`.
-- Source tested by CI #513: \`5976ef98927977ebd93ae1a47b0f83ce4ab89e6b\`; Render did not confirm this SHA Live during this verification.
+- Staging service: `nova-2-staging`, `srv-dbu3b63l550s739qet70`.
+- Staging URL: https://nova-2-staging.onrender.com
+- Production service: `NovaAI`, `srv-dbidhpc9v7es73d6ia80`, https://novaai-4auo.onrender.com
+- Never change `main`, production environment variables, production Supabase, production data or payment credentials during a staging rehearsal.
+- Never force-push. All rehearsal commits must be fast-forward commits on `nova-2.0/rebuild`.
 
-## Rehearsal procedure (manual Render Dashboard, staging only)
-Target: under 5 minutes from selecting a previous deployment until that deployment reports Live.
+## Staging rollback rehearsal — procedure
 
-1. Open Render Dashboard → \`nova-2-staging\` → Events / Deploys.
-2. Record current deploy ID, SHA and start time.
-3. Select the previous known-good staging deployment listed in Events / Deploys (at report time: \`dep-dbu760jrjlhs73af6190\`).
-4. Use Render's Rollback action if available. Start a stopwatch at the click.
-5. Wait for deployment state Live. Record elapsed time, resulting deploy ID and SHA.
-6. Open \`https://nova-2-staging.onrender.com/api/health\`; verify HTTP 200 and ready status.
-7. Run only synthetic smoke checks: Darbar home, Sakha mock, Diwan mock and mock wallet.
-8. Record timestamps, elapsed time, health proof and screenshot/recording in PR #103.
+**Status: NOT YET PERFORMED.** The Render connector can deploy only the service's configured branch; it cannot select a historical deploy ID or a commit SHA directly. The staging service auto-deploys commits from `nova-2.0/rebuild`, so use a revert commit and then a revert-of-revert.
 
-## Actual rehearsal result
+1. First require the ordinary PR CI and database job to be fully green on the exact branch head. Confirm the staging service is still attached to `nova-2.0/rebuild`.
+2. Record the current branch head SHA, current Render Live deployment ID/SHA, and UTC start time. Identify the previous known-good source tree from the last confirmed Live deployment.
+3. Create a new commit whose parent is the current branch head and whose file tree matches the previous known-good staging tree. Use commit message `revert: staging rollback rehearsal to previous known-good source`. Advance the branch with a normal fast-forward update; do not reset or force-push.
+4. Start the timer at the branch update. Wait until Render reports the revert commit Live. Record deploy ID, source SHA/tree, startedAt, finishedAt and elapsed minutes.
+5. Verify `https://nova-2-staging.onrender.com/api/health` returns HTTP 200 with `ok=true` and `ready=true`. Verify the homepage and `/perf` route; run only synthetic Sakha/Diwan/mock-wallet checks.
+6. Create a second normal commit whose parent is the rollback commit and whose tree matches the exact pre-rehearsal branch head. Message: `revert: restore NOVA 2.0 staging head after rollback rehearsal`.
+7. Wait for the second deployment to become Live. Verify the deployed source tree again matches the pre-rehearsal head; repeat health/homepage/`/perf` checks and record elapsed time.
+8. Save actual deploy IDs, SHAs, UTC timestamps, elapsed timings and health response in this runbook. The target is under five minutes; never invent a result.
 
-**NOT VERIFIED — no rollback was executed.** The Render connection available in this session can list services/deploys, read deploy status/logs and inspect configuration, but it does not expose rollback-to-specific-deploy or a service branch/commit selector. A manual Render Dashboard action is required; therefore no elapsed time, restored SHA or post-rollback health is fabricated.
+**Actual staging rehearsal result:** NOT VERIFIED. No rollback or revert-of-revert has yet been executed, so no elapsed time or restored SHA is claimed.
 
-CI #513's 24 read-only GET requests verified the staging health endpoint and homepage before any rollback. This is not a rollback rehearsal and does not satisfy the under-5-minute recovery target.
+## Production rollback — NOT VERIFIED; owner/operator only
 
-## Fallback
-If the Dashboard has no rollback action, select the previous known-good commit only through a safe staging-only redeploy mechanism. Do not change `main`, production service or production database. For DB changes, use a fresh isolated test database and forward-only migrations; never restore over production.
+The production Render service currently uses branch `main`; its last observed Live deployment was `dep-dbom7bbm8hqs73ec2gi0`, source SHA `c3cee61906b88ff111b3a645db55c9c2503cd8f7` (9 November 2026). Production health-check path is currently unset.
 
-Production rollback: NOT RUN and NOT AUTHORISED.
+When an authorised production operator is handling a real incident, the dashboard sequence is:
+
+1. Open Render Dashboard → workspace → **NovaAI** service: https://dashboard.render.com/web/srv-dbidhpc9v7es73d6ia80.
+2. Open **Events** / **Deploys** and identify the last known-good production deployment by deploy ID and commit SHA. Do not guess from the deployment order.
+3. Open that deployment's action menu and choose Render's **Rollback** action if it is offered; review the target service and SHA before confirming. If the dashboard presents only redeploy-by-commit, select the recorded known-good SHA instead.
+4. Wait until Render reports the selected deployment **Live**. Record the new deploy ID, SHA, start/end UTC timestamps and elapsed time.
+5. Verify the production homepage and the operator-approved production smoke checks; inspect Render request/application logs. Do not assume `/api/health` is configured: production health-check path is empty.
+6. If the dashboard does not expose the rollback action, stop and use Render's current dashboard-supported deployment procedure with an authorised operator. Do not experiment with production commits or environment changes.
+
+**Production rollback status: NOT VERIFIED and NOT PERFORMED.** It is listed as an owner-required release task in `docs/OWNER_TASKS.md`. No production action is authorised by this runbook.

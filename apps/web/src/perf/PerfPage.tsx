@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { FRAME_TIME_JITTER_TOLERANCE_MS } from "./frame-budget.js";
 
 type RefreshRate = 60 | 90 | 120;
 
@@ -38,7 +39,8 @@ function measureCadence(frames: number[]): Result {
     droppedFrames,
     droppedPercent,
     samples: frames.length,
-    pass: p95Ms <= budgetMs && droppedPercent <= 5,
+    pass:
+      p95Ms <= budgetMs + FRAME_TIME_JITTER_TOLERANCE_MS && droppedPercent <= 5,
   };
 }
 
@@ -158,7 +160,10 @@ export function PerfPage() {
               </div>
               <div>
                 <span>Budget threshold</span>
-                <strong>p95 ≤ {value.budgetMs.toFixed(2)} ms</strong>
+                <strong>
+                  p95 ≤{" "}
+                  {(value.budgetMs + FRAME_TIME_JITTER_TOLERANCE_MS).toFixed(2)} ms
+                </strong>
               </div>
             </div>
           </>
@@ -171,7 +176,9 @@ export function PerfPage() {
         <p className="perf-caveat">
           Refresh rate is an estimate inferred from requestAnimationFrame timing, not a direct
           hardware-panel reading. Browser throttling, power saver, background tabs and variable
-          refresh rate can affect it. This page does not certify 90/120 Hz hardware.
+          refresh rate can affect it. The p95 pass threshold includes a 0.50 ms browser-timer
+          tolerance; dropped frames remain a separate limit. This page does not certify 90/120 Hz
+          hardware.
         </p>
         <p className="perf-time">
           Started: {startedAt ? new Date(startedAt).toLocaleTimeString() : "—"}
