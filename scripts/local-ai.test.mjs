@@ -21,16 +21,15 @@ function harness({ gpu = true, failGpu = false } = {}) {
           pipelineLoads++;
           calls.push({ task, model, options });
           if (failGpu && options.device === 'webgpu') throw new Error('WebGPU unavailable');
+          if (task === 'automatic-speech-recognition') {
+            return async (samples, generationOptions) => {
+              inputs.push({ samples, generationOptions });
+              return { text: 'नमस्ते, यह ऑफलाइन आवाज़ परीक्षण है।' };
+            };
+          }
           return async (messages, generationOptions) => {
             inputs.push(messages);
-            return {
-            0: {
-              generated_text: [
-                ...messages,
-                { role: 'assistant', content: 'Nova local response' }
-              ]
-            }
-          };
+            return { 0: { generated_text: [...messages, { role: 'assistant', content: 'Nova local response' }] } };
           };
         }
       })
@@ -38,7 +37,8 @@ function harness({ gpu = true, failGpu = false } = {}) {
     navigator: {
       gpu: gpu ? { requestAdapter: async () => ({}) } : undefined,
       storage: { persist: async () => true }
-    }
+    },
+    Float32Array
   };
   vm.runInNewContext(source, context, { filename: 'nova-local-ai.js' });
   return { api: context.window.NovaLocalAI, calls, inputs, statuses, get pipelineLoads() { return pipelineLoads; } };
@@ -100,4 +100,25 @@ test('rejects an already-aborted request before loading the model', async () => 
     error => error && error.name === 'AbortError'
   );
   assert.equal(h.pipelineLoads, 0);
+});
+
+test('loads multilingual Whisper locally and transcribes decoded audio samples', async () => {
+  const h = harness();
+  const result = await h.api.transcribe(new Float32Array(16000), { language: 'hi' });
+  assert.equal(result.text, 'नमस्ते, यह ऑफलाइन आवाज़ परीक्षण है।');
+  assert.equal(result.backend, 'webgpu');
+  assert.equal(h.calls[0].task, 'automatic-speech-recognition');
+  assert.equal(h.calls[0].model, 'onnx-community/whisper-tiny');
+  assert.equal(h.calls[0].options.device, 'webgpu');
+  assert.equal(h.calls[0].options.dtype, 'q4f16');
+  assert.equal(h.inputs[0].samples.length, 16000);
+  assert.equal(h.inputs[0].generationOptions.language, 'hindi');
+});
+
+test('offline Whisper falls back to CPU/WASM when WebGPU is unavailable', async () => {
+  const h = harness({ gpu: false });
+  const result = await h.api.transcribe(new Float32Array(8000), { language: 'en' });
+  assert.equal(result.backend, 'wasm');
+  assert.equal(h.calls[0].task, 'automatic-speech-recognition');
+  assert.equal(h.calls[0].options.dtype, 'q4');
 });
