@@ -42,8 +42,10 @@ export function App() {
   useEffect(() => startFrameBudgetMonitor(), []);
   useEffect(() => {
     let cancelled = false;
-    const prewarmDiwan = () => {
-      if (!cancelled) void import("./DiwanPanel");
+    const prewarmPanels = () => {
+      if (cancelled) return;
+      void import("./DiwanPanel");
+      void import("../sakha/SakhaPanel");
     };
     const idleWindow = window as Window & {
       requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
@@ -52,9 +54,9 @@ export function App() {
     let idleHandle: number | undefined;
     let timeoutHandle: number | undefined;
     if (idleWindow.requestIdleCallback) {
-      idleHandle = idleWindow.requestIdleCallback(prewarmDiwan, { timeout: 1800 });
+      idleHandle = idleWindow.requestIdleCallback(prewarmPanels, { timeout: 2200 });
     } else {
-      timeoutHandle = window.setTimeout(prewarmDiwan, 1400);
+      timeoutHandle = window.setTimeout(prewarmPanels, 1800);
     }
     return () => {
       cancelled = true;
