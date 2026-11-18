@@ -1315,7 +1315,6 @@ select:focus-visible {
   }
 }
 
-
 /* Original NOVA workspaces are hosted in a same-origin frame so existing
    chat, storage, voice, search, files and specialist tools keep their APIs. */
 .legacy-card {
