@@ -13,7 +13,7 @@ export default defineConfig({
     ...devices["Desktop Chrome"],
   },
   webServer: {
-    command: "node nova-server.txt",
+    command: "npm run start --workspace @nova/api",
     url: "http://127.0.0.1:8787/api/health",
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
