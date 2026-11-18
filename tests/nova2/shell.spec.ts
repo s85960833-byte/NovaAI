@@ -27,6 +27,27 @@ test("Darbar fits narrow Android viewports without horizontal scrolling", async 
   }
 });
 
+test("the complete legacy NOVA workspace remains available on the same origin", async ({ request }) => {
+  const response = await request.get("/classic");
+  expect(response.ok()).toBeTruthy();
+  const html = await response.text();
+  expect(html).toContain('id="novaEntryGate"');
+  expect(html).toContain('src="/nova-app.js"');
+  for (const asset of ["/nova-app.js", "/nova-suite.js", "/mode-registry.js", "/nova-account.js"]) {
+    const assetResponse = await request.get(asset);
+    expect(assetResponse.ok()).toBeTruthy();
+  }
+  const legacyApi = await request.post("/api/chat/completions", { data: { messages: [] } });
+  expect(legacyApi.status()).toBe(400);
+});
+
+test("Darbar links to the same-origin Classic NOVA workspace", async ({ page }) => {
+  await enterDarbar(page);
+  const link = page.getByRole("link", { name: "Open Classic NOVA workspace" });
+  await expect(link).toBeVisible();
+  await expect(link).toHaveAttribute("href", "/classic");
+});
+
 test("drawer opens above the page and routes to Diwan", async ({ page }) => {
   await enterDarbar(page);
   await page.locator(".topbar .icon-button").click();
@@ -195,7 +216,7 @@ test("account and upload endpoints fail closed when hosted Auth is not configure
   expect(session.status()).toBe(503);
 
   const upload = await request.post("/api/files/upload", {
-    headers: { origin: "http://localhost:4173" },
+    headers: { origin: "http://127.0.0.1:8787" },
     multipart: { consent: "true" },
   });
   expect(upload.status()).toBe(401);

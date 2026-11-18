@@ -38,3 +38,16 @@ PR #103 currently builds a separate React/Vite application under `apps/web` and 
 ## Non-negotiable release boundary
 
 This integration requirement does not authorise Phase 7. PR #103 remains Draft and unmerged. Production remains untouched until every required gate is reviewed and the owner types exactly `APPROVE RELEASE`.
+
+
+## Implemented integration on `nova-2.0/rebuild`
+
+The branch now uses the original NOVA Node server as the public entrypoint in its staging blueprint:
+
+- The React/Vite app is served at `/` from `apps/web/dist`.
+- The original NOVA UI remains available at same-origin `/classic`; its static JavaScript, icons, PWA assets and original API handlers remain on the original server.
+- The new API runs as a localhost child process. Only `/api/health`, `/api/auth`, `/api/files`, `/api/sakha`, `/api/diwan` and `/api/wallet` are proxied to it. Existing NOVA endpoints such as chat completions, search, image generation, transcription, live data and feeds remain on the original server.
+- The React home links to `/classic`, not to a second Render hostname.
+- Playwright now boots the unified original server plus the isolated API and checks same-origin legacy UI/assets/API compatibility.
+
+This is branch/staging integration, not production readiness. Exact-head CI, staging deployed SHA, physical Android, hosted Auth and hosted data lifecycle remain separate gates. Legacy feature parity is not complete until the remaining rows in `PARITY_MATRIX.md` are exercised.

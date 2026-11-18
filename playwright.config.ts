@@ -13,7 +13,7 @@ export default defineConfig({
     ...devices["Desktop Chrome"],
   },
   webServer: {
-    command: "npm run start --workspace @nova/api",
+    command: "node nova-server.txt",
     url: "http://127.0.0.1:8787/api/health",
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
@@ -22,6 +22,8 @@ export default defineConfig({
       AI_PROVIDER: "mock",
       AI_KILL_SWITCH: "true",
       PORT: "8787",
+      NOVA2_API_PORT: "8788",
+      APP_BASE_URL: "http://127.0.0.1:8787",
     },
   },
 });

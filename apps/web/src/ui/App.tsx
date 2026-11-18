@@ -159,9 +159,7 @@ export function App() {
                 <span>Nova Agents</span>
               </div>
               <p>
-                <a href="https://novaai-4auo.onrender.com" target="_blank" rel="noreferrer">
-                  Open NOVA 1.0 (unchanged)
-                </a>
+                <a href="/classic">Open Classic NOVA workspace</a>
               </p>
             </section>
           </>

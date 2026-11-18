@@ -6,7 +6,7 @@ services:
     region: singapore
     branch: nova-2.0/rebuild
     buildCommand: npm ci --include=dev && npm run build
-    startCommand: npm run db:migrate:staging && npm run start --workspace @nova/api
+    startCommand: npm run db:migrate:staging && node nova-server.txt
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
@@ -20,6 +20,8 @@ services:
         value: "true"
       - key: MOCK_FEATURES_ENABLED
         value: "true"
+      - key: NOVA2_API_PORT
+        value: "8787"
       - key: DATABASE_URL
         fromDatabase:
           name: nova-2-test-db
