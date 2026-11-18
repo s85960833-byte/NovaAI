@@ -119,7 +119,7 @@ async function send(){
    const ck=cacheKey(modeId,q+extra),cached=file?.image?null:cacheGet(ck);let answer=cached;
    if(!answer){
      if(!window.NovaLocalAI||typeof window.NovaLocalAI.generate!=='function')throw Error(tr('The on-device AI engine is not available. Reload NOVA and try again.','डिवाइस वाला AI इंजन उपलब्ध नहीं है। NOVA री-लोड करके फिर कोशिश करें।'));
-     answer=String(await window.NovaLocalAI.generate(messages,{max_new_tokens:lowData()?500:700,signal:AbortSignal.timeout(100000),onStatus:message=>{if(active===modeId)$('#nmStatus').textContent=String(message||'')}})).trim();
+     answer=String(await window.NovaLocalAI.generate(messages,{max_new_tokens:lowData()?500:700,signal:AbortSignal.timeout(600000),onStatus:message=>{if(active===modeId)$('#nmStatus').textContent=String(message||'')}})).trim();
      if(!answer)throw Error('The local AI returned an empty response.');if(!file?.image)cacheSet(ck,answer);
    }
    if(modeId==='document'&&/(RTI|right to information|complaint|application|draft)/i.test(q)&&!answer.includes('This is not legal advice.'))answer+='\n\n'+tr('This is not legal advice.','ये कानूनी सलाह नहीं है।');
