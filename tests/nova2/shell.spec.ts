@@ -119,6 +119,7 @@ test("the new account panel reuses existing NOVA sign-in and sign-up without liv
   );
   await enterDarbar(page);
   await page.locator(".bottom-nav button").last().click();
+  await page.locator(".auth-open-button").click();
   const frame = page.locator(".auth-legacy-frame");
   await expect(frame).toHaveAttribute("src", "/classic?account=1");
   await frame.scrollIntoViewIfNeeded();
