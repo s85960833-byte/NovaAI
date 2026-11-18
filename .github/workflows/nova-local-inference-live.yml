@@ -13,7 +13,7 @@ on:
       - .github/workflows/nova-local-inference-live.yml
   workflow_dispatch:
 concurrency:
-  group: nova-real-local-inference-\${{ github.ref }}
+  group: nova-real-local-inference-keyless
   cancel-in-progress: true
 jobs:
   real-inference:
