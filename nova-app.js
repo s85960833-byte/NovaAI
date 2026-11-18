@@ -49,6 +49,8 @@ if(!['English','Hindi'].includes(S.rl))S.rl='English';S.uiLang=S.uiLang==='hi'?'
 try{localStorage.setItem('nova_t','1');localStorage.removeItem('nova_t')}catch(e){STORE=false}
 const persistable=()=>{const value=Object.assign({},S);if(value.cfg)value.cfg=Object.assign({},value.cfg,{key:''});return value};
 const save=()=>{if(STORE){try{localStorage.setItem('nova',JSON.stringify(persistable()))}catch(e){const cur=chat(),keep=cur?cur.m.slice(-2):[];S.chats.forEach(c=>c.m.forEach(m=>{if(!keep.includes(m))delete m.img}));try{localStorage.setItem('nova',JSON.stringify(persistable()))}catch(x){if(!window._sq){window._sq=1;try{toast(t('oops'))}catch(_){}}}}}try{window.dispatchEvent(new Event('nova:state-saved'))}catch(e){}};
+// Scrub any legacy provider key from durable storage immediately on startup.
+save();
 // Keyless-only mode never restores or persists a hosted AI provider key.
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const inl=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,(_,label,url)=>'<a href="'+url+'" target="_blank" rel="noopener noreferrer">'+label+'</a>');
