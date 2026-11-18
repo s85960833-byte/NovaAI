@@ -288,10 +288,7 @@ const gzipStatic = express.static(webRoot, {
   fallthrough: true,
   setHeaders: (res, filePath) => {
     const extension = extname(filePath.slice(0, -3));
-    res.setHeader(
-      "Content-Type",
-      extension === ".js" ? "application/javascript" : "text/css",
-    );
+    res.setHeader("Content-Type", extension === ".js" ? "application/javascript" : "text/css");
     res.setHeader("Content-Encoding", "gzip");
     res.vary("Accept-Encoding");
   },

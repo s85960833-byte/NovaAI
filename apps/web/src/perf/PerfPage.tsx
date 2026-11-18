@@ -160,8 +160,7 @@ export function PerfPage() {
               <div>
                 <span>Budget threshold</span>
                 <strong>
-                  p95 ≤{" "}
-                  {(value.budgetMs + FRAME_TIME_JITTER_TOLERANCE_MS).toFixed(2)} ms
+                  p95 ≤ {(value.budgetMs + FRAME_TIME_JITTER_TOLERANCE_MS).toFixed(2)} ms
                 </strong>
               </div>
             </div>

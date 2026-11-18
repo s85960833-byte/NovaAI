@@ -43,9 +43,7 @@ try {
 }
 
 const vulnerabilities = Object.entries(report.vulnerabilities ?? {});
-const high = vulnerabilities.filter(([, item]) =>
-  ["high", "critical"].includes(item.severity),
-);
+const high = vulnerabilities.filter(([, item]) => ["high", "critical"].includes(item.severity));
 const advisoryUrls = new Set();
 
 for (const [, item] of high) {
@@ -56,14 +54,10 @@ for (const [, item] of high) {
   }
 }
 
-const unexpectedAdvisories = [...advisoryUrls].filter(
-  (url) => url !== allowedAdvisory,
-);
+const unexpectedAdvisories = [...advisoryUrls].filter((url) => url !== allowedAdvisory);
 if (unexpectedAdvisories.length > 0) {
   process.stderr.write(
-    "Unexpected high/critical advisories: " +
-      unexpectedAdvisories.join(", ") +
-      "\n",
+    "Unexpected high/critical advisories: " + unexpectedAdvisories.join(", ") + "\n",
   );
   throw new Error("UNEXPECTED_HIGH_OR_CRITICAL_DEV_ADVISORY");
 }

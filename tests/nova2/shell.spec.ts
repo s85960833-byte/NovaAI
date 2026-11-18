@@ -51,17 +51,20 @@ test(
   },
 );
 
-test("Learn, Build and Agents shortcuts open their original NOVA workspaces", async ({ page }) => {
-  for (const [workspace, label] of [
-    ["learn", /NOVA Learn|नोवा लर्न/],
-    ["build", /NOVA Build|नोवा बिल्ड/],
-    ["agents", /NOVA Agents|नोवा एजेंट्स/],
-  ] as const) {
-    await page.goto("/classic?workspace=" + workspace);
-    await expect(page.locator("#novaModes.open")).toBeVisible();
-    await expect(page.locator("#novaModes .nmgroup h3").first()).toContainText(label);
-  }
-});
+test(
+  "Learn, Build and Agents shortcuts open their original NOVA workspaces",
+  async ({ page }) => {
+    for (const [workspace, label] of [
+      ["learn", /NOVA Learn|नोवा लर्न/],
+      ["build", /NOVA Build|नोवा बिल्ड/],
+      ["agents", /NOVA Agents|नोवा एजेंट्स/],
+    ] as const) {
+      await page.goto("/classic?workspace=" + workspace);
+      await expect(page.locator("#novaModes.open")).toBeVisible();
+      await expect(page.locator("#novaModes .nmgroup h3").first()).toContainText(label);
+    }
+  },
+);
 
 test("Darbar links to the same-origin Classic NOVA workspace", async ({ page }) => {
   await enterDarbar(page);
