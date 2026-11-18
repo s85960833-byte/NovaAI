@@ -44,6 +44,13 @@ jobs:
           cp apps/api/src/index.ts docs/evidence/prettier-candidates/apps/api/src/index.ts
           cp scripts/check-dependency-audit.mjs docs/evidence/prettier-candidates/scripts/check-dependency-audit.mjs
           npx prettier --write docs/evidence/prettier-candidates/apps/web/src/perf/PerfPage.tsx docs/evidence/prettier-candidates/apps/api/src/index.ts docs/evidence/prettier-candidates/scripts/check-dependency-audit.mjs
+      - name: Upload Prettier repair candidates
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nova2-prettier-repair-candidates
+          path: docs/evidence/prettier-candidates/
+          if-no-files-found: error
       - name: Unit tests
         if: ${{ always() && steps.install.outcome == 'success' }}
         run: set -o pipefail && npm test 2>&1 | tee docs/evidence/unit-tests.log
