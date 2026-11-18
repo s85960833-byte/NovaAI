@@ -112,3 +112,12 @@ The previous CI #513/#591/#593/#620 summaries above or below are tied to their r
 4. Complete isolated hosted Auth, account export/deletion and object-storage erasure proof; current SQL-only CI tests are not hosted proof.
 5. Perform physical Android/Infinix, accessibility, backup/restore and rollback rehearsals.
 6. Only after all gates are green can the production Render build/start configuration and the original public URL be considered for release. No production action is authorized before the exact owner phrase `APPROVE RELEASE`.
+
+## 2026-11-18 — existing NOVA account integration follow-up
+
+- The old `nova-account.js` already contains the existing Supabase sign-in, sign-up, confirmation resend, password recovery/update, sign-out and optional cloud-chat sync flow. The new React AuthPanel now embeds `/classic?account=1`, and the legacy account script opens its existing dialog for that route. This reuses the same account identity and keeps cloud sync opt-in/off by default.
+- A Playwright test now stubs the Supabase browser client with synthetic data and checks sign-in, sign-out and sign-up UI behavior. The test does not create a real user, send email or touch account rows.
+- Supabase project/table metadata was inspected read-only to understand the existing account wiring; no schema, auth setting, secret, user row or stored workspace was changed.
+- Sakha live-provider-first adapter, mock fallback labelling, proxy content-encoding fix and their Playwright tests are also now in the feature branch.
+- The current branch has moved past the last green CI SHA `16def28d3f8c3c4d48254304e1d818d26013311c` (CI #626). **No exact-HEAD CI result exists for the account iframe, Sakha adapter or newly added tests.** These changes must not be reported as CI-verified.
+- Render has not been redeployed for these changes. The last documented staging Live SHA remains `5cf3ed56e92e239945ae476ca40537a8bedb1aab`; it does not prove the current code. Production remains untouched.
