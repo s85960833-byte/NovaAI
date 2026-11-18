@@ -23,6 +23,12 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
+      - name: Capture exact Prettier-formatted profiler spec for repair
+        run: |
+          npx prettier --write tests/nova2/performance.spec.ts
+          printf 'PRETTIER_FILE_BEGIN:tests/nova2/performance.spec.ts\n'
+          base64 -w0 tests/nova2/performance.spec.ts
+          printf '\nPRETTIER_FILE_END:tests/nova2/performance.spec.ts\n'
       - run: npm run format:check
       - run: npm test
       - run: npm run check:i18n
