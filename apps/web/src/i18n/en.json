@@ -17,12 +17,15 @@
     "diwanDesc": "Understand papers and public services",
     "sakhaTitle": "Sakha",
     "sakhaDesc": "Your everyday Hindi and English assistant",
-    "legacyTitle": "Legacy workspaces",
-    "legacyDesc": "Your existing Learn, Build and specialist tools stay available here.",
-    "legacyOpen": "Open Classic NOVA workspace",
+    "legacyTitle": "All original NOVA workspaces",
+    "legacyDesc": "Open the original NOVA experience inside this app. Your existing tools remain available on the same site.",
+    "legacyOpen": "Open NOVA workspace",
     "learnWorkspace": "NOVA Learn",
     "buildWorkspace": "NOVA Build",
-    "agentsWorkspace": "NOVA Agents"
+    "agentsWorkspace": "NOVA Agents",
+    "legacyCapabilities": "Chat · Saved chats · Voice · Web search · Files · Image Studio · Learn · Build · Agents",
+    "legacyFeatures": "Original NOVA workspaces",
+    "legacyFrameTitle": "Original NOVA tools — Learn, Build, Agents and Assistant"
   },
   "common": {
     "language": "Language",
@@ -35,7 +38,8 @@
     "skip": "Skip intro",
     "loading": "Loading",
     "offline": "You are offline. Saved content remains available.",
-    "pendingReview": "Pending owner review"
+    "pendingReview": "Pending owner review",
+    "back": "Back to NOVA"
   },
   "wallet": {
     "title": "Wallet",
