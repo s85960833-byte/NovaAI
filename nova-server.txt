@@ -83,7 +83,7 @@ function pruneImageJobs() {
   }
 }
 async function generateFreeImage(prompt, body) {
-  // Image generation is keyless only. No paid image provider, POLLI_KEY, or Horde key is read.
+  // Image generation uses an anonymous public endpoint and never reads a provider credential.
   const freeOnly = body.freeOnly === true;
   if (E.IMAGE_OFF) throw new Error('Image generation is disabled');
   const w = Math.min(1024, Number(body.width) || 768), h = Math.min(1024, Number(body.height) || 768);
