@@ -1434,3 +1434,13 @@ select:focus-visible {
     min-height: calc(100dvh - 205px);
   }
 }
+
+.auth-legacy-frame {
+  display: block;
+  width: 100%;
+  height: min(760px, 80vh);
+  min-height: 560px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+}
