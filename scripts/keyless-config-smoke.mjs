@@ -32,7 +32,7 @@ try {
   const config = await configResponse.json();
   assert.equal(config.local, true, 'keyless config must select browser-local inference');
   assert.equal(config.model, 'nova-local-browser');
-  assert.equal(config.stt, false, 'do not advertise hosted transcription without a key');
+  assert.equal(config.stt, true, 'keyless mode includes local browser Whisper transcription');
   const engineResponse = await request('/nova-local-ai.js');
   assert.equal(engineResponse.status, 200, 'local inference engine asset must be served');
   const engine = await engineResponse.text();
