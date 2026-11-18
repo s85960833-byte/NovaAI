@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Nova — Keyless Search Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#151d31;--line:#293550;--fg:#f2f5fb;--muted:#a9b6cc;--gold:#e8c58e;--blue:#9bc8ff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(900px 500px at 85% -10%,#27345b 0,transparent 65%),var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px 16px 48px}
+main{width:min(820px,100%);margin:0 auto}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px}.brand{font-weight:800;letter-spacing:.08em;color:var(--gold)}a{color:var(--blue)}.back{font-size:14px}
+h1{font-size:clamp(28px,6vw,42px);line-height:1.12;margin:18px 0 10px}.lead{color:var(--muted);max-width:680px;margin:0 0 22px}
+.panel{background:rgba(21,29,49,.92);border:1px solid var(--line);border-radius:20px;padding:18px;margin:16px 0;box-shadow:0 18px 55px #0003}
+label{display:block;font-size:14px;color:var(--muted);margin-bottom:8px}textarea,select,button{font:inherit;border-radius:12px}textarea{width:100%;min-height:96px;resize:vertical;background:#0d1527;color:var(--fg);border:1px solid var(--line);padding:13px;outline:none}textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}select{background:#0d1527;color:var(--fg);border:1px solid var(--line);padding:10px 12px}button{border:0;padding:11px 18px;background:var(--gold);color:#20190f;font-weight:750;cursor:pointer}button.secondary{background:#263650;color:var(--fg);border:1px solid var(--line)}button:disabled{opacity:.55;cursor:wait}
+.status{color:var(--muted);font-size:14px;min-height:22px;margin-top:12px}.notice{border-left:3px solid var(--gold);padding:10px 12px;background:#242333;color:#d9d6cf;border-radius:8px;font-size:13px}
+.result{padding:15px 0;border-bottom:1px solid var(--line)}.result:last-child{border:0}.result h3{font-size:17px;margin:0 0 5px;line-height:1.35}.meta{font-size:12px;color:var(--muted);margin-bottom:7px}.snippet{font-size:14px;color:#d1d9e8;margin:0 0 8px}.empty{color:var(--muted);text-align:center;padding:18px}.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:3px 9px;font-size:12px;color:var(--muted);margin:0 5px 6px 0}
+footer{color:var(--muted);font-size:12px;margin-top:22px}
+@media(max-width:520px){body{padding:16px 12px 36px}.panel{padding:14px}.controls>*{flex:1}.top{align-items:flex-start}}
+</style>
+<script defer src="/keyless-lab.js"></script>
+</head>
+<body>
+<main>
+<div class="top"><div class="brand">NOVA / EXPERIMENT</div><a class="back" href="/">← Back to Nova</a></div>
+<h1>Keyless Search Lab</h1>
+<p class="lead">A small, isolated test of live search without AI-provider keys. It uses public search feeds and Wikipedia, then shows the source links directly.</p>
+<section class="panel">
+<form id="searchForm">
+<label for="query">What do you want to search?</label>
+<textarea id="query" maxlength="400" placeholder="Example: latest space science discoveries" required></textarea>
+<div class="controls">
+<select id="language" aria-label="Search language"><option value="en">English</option><option value="hi">हिन्दी</option></select>
+<button id="searchButton" type="submit">Search live sources</button>
+<button class="secondary" id="clearButton" type="button">Clear</button>
+</div>
+<div id="status" class="status" role="status" aria-live="polite">Ready. Search starts only when you tap the button.</div>
+</form>
+</section>
+<section class="panel">
+<div class="notice"><strong>Honest limits:</strong> no AI model runs here. This test uses only public Wikipedia and Google News RSS sources, without LLM, Brave or Tavily keys. It does not read every website or guarantee complete search coverage.</div>
+<div id="summary" class="status">No search performed yet.</div>
+<div id="results"><div class="empty">Your source links will appear here.</div></div>
+</section>
+<footer>Experimental feature · Search requests are sent to Nova's existing server and public source providers. Do not enter passwords, private details or sensitive information.</footer>
+</main>
+</body>
+</html>
