@@ -163,10 +163,32 @@ if(paintQ){clearTimeout(paintQ);paintQ=0}if(S.ar&&!LV&&!a.e&&a.c&&window.speechS
 function go(){if(busy){ctl&&ctl.abort();return}const v=$('in').value.trim();if(!v&&!pimg)return;if(IM&&v){makeImg(v);return}if(!chat())newChat();const c=chat();stick=true;popN=2;try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}c.m.push({r:'user',c:v,img:pimg||undefined});pimg=null;
 if(c.title==='New chat')c.title=(v||'🖼 Image').slice(0,40);$('in').value='';S.draft='';$('in').style.height='auto';ask(c)}
 function regen(){const c=chat();if(!c||busy)return;while(c.m.length&&c.m[c.m.length-1].r!=='user')c.m.pop();popN=1;ask(c)}
-async function pdfText(f){if(!window.pdfjsLib){window.pdfjsLib=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.mjs')}
+async function pdfText(f){
+if(!window.pdfjsLib){window.pdfjsLib=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.mjs')}
 window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.worker.mjs';
-const p=await window.pdfjsLib.getDocument({data:await f.arrayBuffer(),isEvalSupported:false}).promise;let o='';for(let i=1;i<=p.numPages&&o.length<60000;i++){const c=await(await p.getPage(i)).getTextContent();o+='\n[Page '+i+']\n'+c.items.map(x=>x.str).join(' ')}
-if(o.replace(/\[Page \d+\]|\s/g,'').length<20)throw new Error('scan');return o.slice(0,60000)}
+const p=await window.pdfjsLib.getDocument({data:await f.arrayBuffer(),isEvalSupported:false}).promise;
+let o='',ocrPages=0;
+for(let i=1;i<=p.numPages&&o.length<60000;i++){
+const page=await p.getPage(i),content=await page.getTextContent(),pageText=content.items.map(x=>x.str).join(' ').trim();
+o+='\\n[Page '+i+']\\n'+pageText;
+if(pageText.replace(/\\s/g,'').length<20&&ocrPages<15&&window.NovaLocalAI?.ocrImage){
+const viewport=page.getViewport({scale:1.35}),canvas=document.createElement('canvas');
+canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+const context=canvas.getContext('2d');
+if(context){
+await page.render({canvas,canvasContext:context,viewport}).promise;
+try{
+const extracted=await window.NovaLocalAI.ocrImage(canvas.toDataURL('image/png'));
+if(extracted)o+='\\n[Page '+i+' — local OCR]\\n'+extracted;
+}catch(error){console.warn('Local PDF OCR page failed',i,String(error?.message||error).slice(0,100))}
+finally{canvas.width=0;canvas.height=0}
+}
+ocrPages++;
+}
+}
+if(o.replace(/\\[Page \\d+[^\\]]*\\]|\\s/g,'').length<20)throw new Error('scan');
+return o.slice(0,60000)
+}
 $('file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{
 if(f.type.startsWith('image/')){await takeImage(f,false);return}
 if(/\.pdf$/i.test(f.name)){if(f.size>1e7)return toast(t('max10'));doc={n:f.name,t:await pdfText(f)}}
