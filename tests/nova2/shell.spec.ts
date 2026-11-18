@@ -224,7 +224,9 @@ test("Sakha clearly labels its mock fallback when the legacy live provider is un
   await page.locator(".composer textarea").fill("Preview fallback question");
   await page.locator(".send-button").click();
   await expect(page.locator(".chat-bubble.assistant").first()).toContainText(/mock preview/i);
-  await expect(page.locator(".chat-bubble.assistant").first().locator("small")).toContainText("MOCK");
+  await expect(page.locator(".chat-bubble.assistant").first().locator("small")).toContainText(
+    "MOCK",
+  );
 });
 
 test("mock wallet capture and refund are synthetic and idempotent", async ({ page }) => {
@@ -362,7 +364,7 @@ test("synthetic wallet enforces owner isolation and blocks foreign order simulat
   expect((await after.json()).balance).toBe(0);
 });
 
-test("account and upload endpoints fail closed when hosted Auth is not configured", async ({
+test("server-side auth and upload APIs fail closed when server auth is not configured", async ({
   request,
 }) => {
   const session = await request.get("/api/auth/session");
