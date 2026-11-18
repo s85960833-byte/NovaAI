@@ -225,13 +225,19 @@ try{
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
  console.log('PASS Business Intelligence and Company Cloud launch only from Agents; nested dialogs restore focus');
 
- // Exercise a complete Agents chat round trip against deterministic local API responses.
+ // Exercise Agents modes and Agents Studio against a deterministic browser-local model stub.
  const modeChatRequests=[];
- await desktop.route('**/api/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({model:'browser-test-model',image:true})}));
- await desktop.route('**/api/chat/completions',async route=>{
-  const payload=route.request().postDataJSON();
+ let hostedChatRequests=0;
+ desktop.on('request',request=>{if(request.url().includes('/api/chat/completions'))hostedChatRequests++});
+ await desktop.exposeFunction('__novaLocalGenerateForTest',async payload=>{
   modeChatRequests.push(payload);
-  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({choices:[{message:{role:'assistant',content:'NOVA_CHAT_FLOW_OK_'+modeChatRequests.length}}]})});
+  return 'NOVA_CHAT_FLOW_OK_'+modeChatRequests.length;
+ });
+ await desktop.evaluate(()=>{
+  window.__novaRealLocalAI=window.NovaLocalAI;
+  Object.defineProperty(window,'NovaLocalAI',{configurable:true,writable:true,value:{
+   generate:(messages,options={})=>window.__novaLocalGenerateForTest({messages,max_new_tokens:options.max_new_tokens})
+  }});
  });
  const imageRequests=[];
  const testImage='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/Yf8AAAAASUVORK5CYII=';
@@ -246,12 +252,14 @@ try{
  await desktop.locator('#nmInput').fill('Please verify the NOVA chat round trip.');
  await desktop.locator('#nmSend').click();
  await desktop.waitForFunction(()=>[...document.querySelectorAll('#nmContent .nmchat .nmbubble.assistant')].some(el=>el.textContent.includes('NOVA_CHAT_FLOW_OK')));
- assert.equal(modeChatRequests.length,1,'Agents chat must make exactly one backend request');
+ assert.equal(modeChatRequests.length,1,'Agents chat must make exactly one local-model request');
  assert.ok(modeChatRequests[0].messages.some(m=>String(m.content).includes('Please verify the NOVA chat round trip.')),'Agents chat request must include the submitted user message');
+ assert.ok(modeChatRequests[0].max_new_tokens>0,'Agents chat must pass a bounded local token limit');
+ assert.equal(hostedChatRequests,0,'Agents chat must not call the disabled hosted chat endpoint');
  const persistedModeHistory=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova_modes_v1')||'{}').histories?.general||[]);
  assert.ok(persistedModeHistory.some(m=>m.role==='user'&&m.text==='Please verify the NOVA chat round trip.'),'Agents chat must persist the user message in its own mode history');
  assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK_1'),'Agents chat must persist the assistant reply in its own mode history');
- console.log('PASS Agents chat round trip, backend request, assistant response and per-mode history persistence');
+ console.log('PASS Agents chat round trip through local AI, assistant response and per-mode history persistence');
 
  // Simulate the browser speech-recognition API to test the voice-to-chat bridge without claiming hardware microphone access.
  await desktop.locator('#nmBack').click();
@@ -273,7 +281,26 @@ try{
  const voiceHistory=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova_modes_v1')||'{}').histories?.voice||[]);
  assert.ok(voiceHistory.some(m=>m.role==='user'&&m.text==='Voice transcript smoke test'),'voice transcript must enter the Voice mode history');
  assert.ok(voiceHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK_2'),'voice reply must persist in the Voice mode history');
- console.log('PASS mocked voice recognition, Hindi language selection, transcription-to-chat bridge and Voice history persistence');
+ console.log('PASS mocked voice recognition, Hindi language selection, transcription-to-local-chat bridge and Voice history persistence');
+
+ // Agents Studio must also use the browser-local model rather than the disabled hosted endpoint.
+ await desktop.locator('#nmBack').click();
+ await desktop.locator('#nmContent [data-quick="openAgentsSuite"]').click();
+ await desktop.locator('#novaSuite.show').waitFor();
+ await desktop.locator('#nsNav [data-id="business"]').click();
+ await desktop.locator('#bizIdea').fill('A local-first study planner for students');
+ await desktop.locator('#bizRun').click();
+ await desktop.waitForFunction(()=>document.querySelector('#bizOut')?.textContent.includes('NOVA_CHAT_FLOW_OK_3'));
+ assert.equal(modeChatRequests.length,3,'Agents Studio should make one local model request after the two mode-chat requests');
+ assert.ok(String(modeChatRequests[2].messages?.[0]?.content||'').includes('business blueprint'),'Agents Studio must send its blueprint task to the local model');
+ assert.equal(hostedChatRequests,0,'Agents Studio must not call the disabled hosted chat endpoint');
+ await desktop.locator('#nsClose').click();
+ console.log('PASS Agents Studio business blueprint uses browser-local AI without hosted chat API');
+
+ await desktop.evaluate(()=>{
+  Object.defineProperty(window,'NovaLocalAI',{configurable:true,writable:true,value:window.__novaRealLocalAI});
+  delete window.__novaRealLocalAI;
+ });
  await desktop.locator('#nmClose').click();
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
 
