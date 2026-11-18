@@ -136,7 +136,7 @@ if (!appScript.includes("document.body.classList.add('nova-dashboard-home')") ||
 if (!reference.includes("const root=$('#hi');") || !reference.includes("const host=$('#log');") || reference.includes('#novaSHome')) throw new Error('Reference dashboard must mount into #hi and observe #log for future home renders');
 
 
-for (const file of ['scripts/runtime-smoke.mjs','scripts/browser-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs','scripts/company-cloud-browser.mjs','scripts/supabase-edge-smoke.mjs','scripts/smoke-free-image.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
+for (const file of ['scripts/runtime-smoke.mjs','scripts/browser-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs','scripts/company-cloud-browser.mjs','scripts/supabase-edge-smoke.mjs','scripts/smoke-free-image.mjs','scripts/real-local-inference-smoke.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
 
 if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
 if (!html.includes('id="uiLang"') || !html.includes('id="uiLangTop"') || !html.includes('<option value="en">English</option>') || !html.includes('<option value="hi">हिंदी</option>') || !appScript.includes("uiLang:'en'") || !appScript.includes("const ui=()=>S.uiLang==='hi'?'hi':'en'") || !appScript.includes("$('uiLangTop').onchange") || !appScript.includes("const L=['English','हिन्दी|Hindi'];") || !appScript.includes("window.dispatchEvent(new CustomEvent('nova:ui-language-changed'")) throw new Error('Global English/Hindi interface language switch is missing');
