@@ -110,6 +110,8 @@ function makeSpeechSamples() {
 let browser;
 try {
   console.log('[NOVA] Starting real, no-provider-key inference smoke test against ' + BASE);
+  await waitForKeylessServer();
+  console.log('[PASS] Server config confirms browser-local AI and disabled hosted providers.');
 
   // Exercise public live search before loading the large local inference models.
   const search = await jsonRequest(BASE + '/api/search', {
