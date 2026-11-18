@@ -77,9 +77,25 @@ async function extractFile(f){
  if(/\.pdf$/i.test(f.name)||f.type==='application/pdf'){
    if(!window.pdfjsLib||window.pdfjsLib.version!=='6.5.438'){ $('#nmStatus').textContent=tr('Loading PDF reader…','PDF रीडर लोड हो रहा है…');try{window.pdfjsLib=await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.mjs');}catch{throw Error(tr('PDF reader is unavailable','PDF रीडर उपलब्ध नहीं है'));}}
    window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.worker.mjs';
-   const pdf=await window.pdfjsLib.getDocument({data:await f.arrayBuffer(),isEvalSupported:false}).promise;let out='';
-   for(let p=1;p<=Math.min(pdf.numPages,lowData()?8:20);p++){const page=await pdf.getPage(p),tc=await page.getTextContent();out+=tc.items.map(x=>x.str).join(' ')+'\n';}
-   if(!out.trim())throw Error(tr('No selectable text was found in the PDF. Upload a clear image of the page instead.','PDF में पढ़ने योग्य टेक्स्ट नहीं मिला। कृपया पेज की साफ़ फोटो अपलोड करें।'));return {text:out.slice(0,lowData()?8000:18000)};
+   const pdf=await window.pdfjsLib.getDocument({data:await f.arrayBuffer(),isEvalSupported:false}).promise;let out='',ocrPages=0;
+   for(let p=1;p<=Math.min(pdf.numPages,lowData()?8:20);p++){
+    const page=await pdf.getPage(p),tc=await page.getTextContent(),pageText=tc.items.map(x=>x.str).join(' ').trim();
+    out+='\\n[Page '+p+']\\n'+pageText;
+    if(pageText.replace(/\\s/g,'').length<20&&ocrPages<(lowData()?3:12)&&window.NovaLocalAI?.ocrImage){
+     const viewport=page.getViewport({scale:1.25}),canvas=document.createElement('canvas');
+     canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+     const context=canvas.getContext('2d');
+     if(context){
+      await page.render({canvas,canvasContext:context,viewport}).promise;
+      try{const extracted=await window.NovaLocalAI.ocrImage(canvas.toDataURL('image/png'));if(extracted)out+='\\n[Page '+p+' — local OCR]\\n'+extracted}
+      catch(error){console.warn('Local mode PDF OCR failed on page '+p,String(error?.message||error).slice(0,120))}
+      finally{canvas.width=0;canvas.height=0}
+     }
+     ocrPages++;
+    }
+   }
+   if(!out.replace(/\\[Page \\d+[^\\]]*\\]/g,'').trim())throw Error(tr('No selectable or OCR-readable text was found in the PDF. Upload a clearer scan or a page image.','PDF में पढ़ने योग्य टेक्स्ट या OCR सामग्री नहीं मिली। कृपया साफ़ स्कैन या पेज की फोटो अपलोड करें।'));
+   return {text:out.slice(0,lowData()?8000:18000)};
  }
  if(/text\/|\.txt$|\.md$|\.csv$/i.test(f.type+' '+f.name))return {text:(await f.text()).slice(0,lowData()?8000:18000)};
  throw Error(tr('This file type is not supported. Use PDF, TXT, MD, CSV, or an image.','यह फ़ाइल टाइप सपोर्ट नहीं है। PDF, TXT, MD, CSV या फोटो इस्तेमाल करें।'));
