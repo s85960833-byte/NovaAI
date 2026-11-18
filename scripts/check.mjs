@@ -38,6 +38,8 @@ for (const pattern of ['.env', '.env.*', '*.pem', '*.key', '*.p12', '*.pfx', 'se
   if (!gitignore.split(/\r?\n/).includes(pattern)) throw new Error('Local secrets and generated files must be ignored: ' + pattern);
 }
 const verificationWorkflow = readFileSync('.github/workflows/novaai-verification.yml', 'utf8');
+const accountBrowserWorkflow = readFileSync('.github/workflows/nova-account-browser-verification.yml', 'utf8');
+if (!verificationWorkflow.includes('runs-on: ubuntu-24.04') || !accountBrowserWorkflow.includes('runs-on: ubuntu-24.04')) throw new Error('Browser and verification workflows must pin a Playwright-supported Ubuntu 24.04 runner');
 if (!/^permissions:\n  contents: read$/m.test(verificationWorkflow)) throw new Error('Verification workflow must use least-privilege read-only repository permissions');
 const supabaseDeno = JSON.parse(readFileSync('supabase/functions/nova-bi-api/deno.json', 'utf8'));
 if (supabaseDeno.imports?.['@supabase/server'] !== 'npm:@supabase/server@1.9.2') throw new Error('Supabase server SDK must be pinned to a reviewed stable version');
