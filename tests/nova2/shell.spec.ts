@@ -121,6 +121,7 @@ test("the new account panel reuses existing NOVA sign-in and sign-up without liv
   await page.locator(".bottom-nav button").last().click();
   const frame = page.locator(".auth-legacy-frame");
   await expect(frame).toHaveAttribute("src", "/classic?account=1");
+  await frame.scrollIntoViewIfNeeded();
   const account = page.frameLocator(".auth-legacy-frame");
   await expect(account.locator("#novaAccountDialog")).toBeVisible();
   await account.locator("#novaAccountEmailInput").fill("synthetic@example.invalid");
