@@ -167,7 +167,7 @@ process.stdout.write('PASS NOVA video-first entry gate markup, interaction, asse
 
 const localAiHtml=readFileSync('local-ai-lab.html','utf8');
 const localAiClient=readFileSync('local-ai-lab.js','utf8');
-syntaxCheck('local-ai-lab.js',localAiClient);
+syntaxCheck('local-ai-lab.mjs',localAiClient);
 if(!server.includes("app.get('/local-ai-lab'")||!server.includes("app.get('/local-ai-lab.js'")) throw new Error('Local AI Lab routes are missing');
 if(!localAiHtml.includes('Local AI Lab')||!localAiHtml.includes('570 MB')||!localAiHtml.includes('not equal to ChatGPT')||!localAiHtml.includes('not connected to the live Nova chat')) throw new Error('Local AI Lab must disclose model size, quality and isolation');
 if(!localAiClient.includes("onnx-community/Qwen3-0.6B-ONNX")||!localAiClient.includes("device:'webgpu'")||!localAiClient.includes("dtype:'q4f16'")||!localAiClient.includes('/api/keyless-search')) throw new Error('Local AI must run a local browser model and optionally ground answers with keyless search');
