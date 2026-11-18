@@ -22,7 +22,7 @@ function percentile(values: number[], p: number) {
 function measureCadence(frames: number[]): Result {
   const median = percentile(frames, 50);
   const refreshRate: RefreshRate = median <= 9.5 ? 120 : median <= 13.8 ? 90 : 60;
-  const budgetMs = Number((1000 / refreshRate).toFixed(1));
+  const budgetMs = ({ 60: 16.7, 90: 11.1, 120: 8.3 } as const)[refreshRate];
   const droppedFrames = frames.reduce((total, frame) => {
     return total + (frame > budgetMs * 1.5 ? Math.max(1, Math.round(frame / budgetMs) - 1) : 0);
   }, 0);
