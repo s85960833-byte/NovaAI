@@ -165,6 +165,8 @@ if (!html.includes('id="novaEntryGate"') || html.includes('id="novaEntryVideo"')
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
 process.stdout.write('PASS NOVA video-first entry gate markup, interaction, asset integrity, and streaming route\n');
 
+const runtimeSmoke = readFileSync('scripts/runtime-smoke.mjs', 'utf8');
+if (!runtimeSmoke.includes("'/keyless-lab'") || !runtimeSmoke.includes("'/keyless-lab.js'") || !runtimeSmoke.includes("'/api/keyless-search'")) throw new Error('Keyless Search Lab runtime smoke coverage is missing');
 const keylessHtml = readFileSync('keyless-lab.html', 'utf8');
 const keylessClient = readFileSync('keyless-lab.js', 'utf8');
 syntaxCheck('keyless-lab.js', keylessClient);
