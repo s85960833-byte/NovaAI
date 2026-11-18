@@ -29,6 +29,7 @@ test('CSP permits the pinned PDF.js module and only its required worker CDN', ()
   const scriptPolicy = html.match(/script-src[^;]*/)?.[0] || '';
   const workerPolicy = html.match(/worker-src[^;]*/)?.[0] || '';
   assert.match(scriptPolicy, /https:\/\/cdn\.jsdelivr\.net/);
+  assert.match(scriptPolicy, /blob:/, 'script CSP must allow ONNX Runtime blob module imports');
   assert.match(workerPolicy, /https:\/\/cdn\.jsdelivr\.net/);
   assert.doesNotMatch(workerPolicy, /cdnjs\.cloudflare\.com/, 'worker policy must not trust an unused CDN');
 });
