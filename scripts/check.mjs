@@ -58,6 +58,8 @@ if (!server.includes('Content-Security-Policy') || !server.includes('frame-ances
 const requiredCspFragments = ['http-equiv="Content-Security-Policy"', "default-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'self'"];
 const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(match => !/\bsrc\s*=/.test(match[1]));
 const localAiClient = readFileSync('nova-local-ai.js', 'utf8');
+const keylessConfigSmoke = readFileSync('scripts/keyless-config-smoke.mjs', 'utf8');
+syntaxCheck('keyless-config-smoke.mjs', keylessConfigSmoke);
 if (!server.includes("app.get('/nova-local-ai.js'") || !html.includes('src="/nova-local-ai.js"') || !localAiClient.includes("Qwen3-0.6B-Instruct-ONNX") || !localAiClient.includes("device: 'webgpu'") || !localAiClient.includes("dtype: 'q4'")) throw new Error('Keyless local inference engine or asset route is incomplete');
 const appScript = readFileSync('nova-app.js', 'utf8');
 syntaxCheck('nova-local-ai.js', localAiClient);
