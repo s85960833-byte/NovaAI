@@ -1,5 +1,16 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowUpRight, BookOpen, FileText, Globe2, Home, Menu, MessageCircle, Wallet, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  BookOpen,
+  FileText,
+  Globe2,
+  Home,
+  Menu,
+  MessageCircle,
+  Wallet,
+  X,
+} from "lucide-react";
 import { translate, type Locale } from "../i18n";
 import { AuthPanel } from "./AuthPanel";
 import { DiwanPanel } from "./DiwanPanel";
@@ -158,13 +169,28 @@ export function App() {
                 <p>{t("home.legacyDesc")}</p>
               </div>
               <div className="legacy-pills" aria-label={t("home.legacyFeatures")}>
-                <button onClick={() => { setLegacyWorkspace("learn"); setView("legacy"); }}>
+                <button
+                  onClick={() => {
+                    setLegacyWorkspace("learn");
+                    setView("legacy");
+                  }}
+                >
                   {t("home.learnWorkspace")}
                 </button>
-                <button onClick={() => { setLegacyWorkspace("build"); setView("legacy"); }}>
+                <button
+                  onClick={() => {
+                    setLegacyWorkspace("build");
+                    setView("legacy");
+                  }}
+                >
                   {t("home.buildWorkspace")}
                 </button>
-                <button onClick={() => { setLegacyWorkspace("agents"); setView("legacy"); }}>
+                <button
+                  onClick={() => {
+                    setLegacyWorkspace("agents");
+                    setView("legacy");
+                  }}
+                >
                   {t("home.agentsWorkspace")}
                 </button>
               </div>
@@ -254,7 +280,11 @@ export function App() {
       </main>
       <nav className="bottom-nav" aria-label="Primary">
         {labels.map(({ id, icon: Icon, key }) => (
-          <button key={id} className={view === id || (view === "legacy" && id === "home") ? "active" : ""} onClick={() => setView(id)}>
+          <button
+            key={id}
+            className={view === id || (view === "legacy" && id === "home") ? "active" : ""}
+            onClick={() => setView(id)}
+          >
             <Icon size={19} />
             <span>{t(key)}</span>
           </button>
