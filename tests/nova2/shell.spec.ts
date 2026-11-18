@@ -124,6 +124,35 @@ test("Sakha API identifies mock replies and does not store server-side", async (
   expect(body.reply).toContain("mock preview");
 });
 
+test("Sakha uses the legacy live provider and includes recent local conversation context", async ({
+  page,
+}) => {
+  const requests: Array<{ messages: Array<{ role: string; content: string }> }> = [];
+  await page.route("**/api/chat/completions", async (route) => {
+    requests.push(route.request().postDataJSON() as (typeof requests)[number]);
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ choices: [{ message: { content: "Live NOVA response" } }] }),
+    });
+  });
+  await enterDarbar(page);
+  await page.locator(".minister-card.sakha").click();
+  const composer = page.locator(".composer textarea");
+  await composer.fill("First context question");
+  await page.locator(".send-button").click();
+  await expect(page.locator(".chat-bubble.assistant").first()).toContainText("Live NOVA response");
+  await composer.fill("Follow-up question");
+  await page.locator(".send-button").click();
+  await expect(page.locator(".chat-bubble.assistant").nth(1)).toContainText("Live NOVA response");
+  expect(requests).toHaveLength(2);
+  expect(requests[1].messages.map((message) => message.content)).toEqual([
+    "First context question",
+    "Live NOVA response",
+    "Follow-up question",
+  ]);
+});
+
 test("mock wallet capture and refund are synthetic and idempotent", async ({ page }) => {
   await enterDarbar(page);
   await page.getByRole("button", { name: "वॉलेट" }).click();
