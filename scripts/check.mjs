@@ -165,6 +165,16 @@ if (!html.includes('id="novaEntryGate"') || html.includes('id="novaEntryVideo"')
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
 process.stdout.write('PASS NOVA video-first entry gate markup, interaction, asset integrity, and streaming route\n');
 
+const localAiHtml=readFileSync('local-ai-lab.html','utf8');
+const localAiClient=readFileSync('local-ai-lab.js','utf8');
+syntaxCheck('local-ai-lab.js',localAiClient);
+if(!server.includes("app.get('/local-ai-lab'")||!server.includes("app.get('/local-ai-lab.js'")) throw new Error('Local AI Lab routes are missing');
+if(!localAiHtml.includes('Local AI Lab')||!localAiHtml.includes('570 MB')||!localAiHtml.includes('not equal to ChatGPT')||!localAiHtml.includes('not connected to the live Nova chat')) throw new Error('Local AI Lab must disclose model size, quality and isolation');
+if(!localAiClient.includes("onnx-community/Qwen3-0.6B-ONNX")||!localAiClient.includes("device:'webgpu'")||!localAiClient.includes("dtype:'q4f16'")||!localAiClient.includes('/api/keyless-search')) throw new Error('Local AI must run a local browser model and optionally ground answers with keyless search');
+if(/OPENAI_API_KEY|GROQ_API_KEY|OPENROUTER_API_KEY|ANTHROPIC_API_KEY|puter\\.ai/.test(localAiClient)) throw new Error('Local AI Lab must not call a hosted AI provider or require an API key');
+if(!localAiClient.includes("navigator.gpu.requestAdapter()")||!localAiClient.includes("progress_callback")||!localAiClient.includes("noopener noreferrer")) throw new Error('Local AI capability, download progress or safe source-link handling is missing');
+process.stdout.write('PASS isolated browser-local AI lab structure, model selection, and no-provider-key checks\\n');
+
 const runtimeSmoke = readFileSync('scripts/runtime-smoke.mjs', 'utf8');
 if (!runtimeSmoke.includes("'/keyless-lab'") || !runtimeSmoke.includes("'/keyless-lab.js'") || !runtimeSmoke.includes("'/api/keyless-search'")) throw new Error('Keyless Search Lab runtime smoke coverage is missing');
 const keylessHtml = readFileSync('keyless-lab.html', 'utf8');
