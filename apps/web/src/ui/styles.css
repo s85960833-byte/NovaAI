@@ -1327,6 +1327,16 @@ select:focus-visible {
 .legacy-card .eyebrow {
   margin-bottom: 7px;
 }
+.legacy-pills button {
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: var(--raised);
+  color: var(--gold-light);
+  font-size: 12px;
+  font-weight: 700;
+}
 .legacy-card h2 {
   margin: 0 0 6px;
 }
