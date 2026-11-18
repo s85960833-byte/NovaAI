@@ -85,3 +85,30 @@ The previous CI #513/#591/#593/#620 summaries above or below are tied to their r
 - Artifacts: database evidence `14421097349`, Playwright evidence `14421107270`, Lighthouse evidence `14421192203`, staging-load evidence `14421781625`.
 - Playwright confirms 22/22 tests including the embedded same-origin workspace bridge. Frame sampling is Chromium emulation only.
 - Staging-load evidence confirms 24/24 GET requests against `https://nova-2-staging.onrender.com`; the service's currently deployed SHA is older than this source HEAD, so this is availability/load evidence only, not current-commit deployment proof.
+
+## 2026-11-18 — legacy NOVA integration follow-up (supersedes older exact-head notes)
+
+### Source changes after the last green CI run
+
+- Current PR branch has moved beyond the last green CI SHA `16def28d3f8c3c4d48254304e1d818d26013311c`.
+- Sakha now attempts the existing NOVA live endpoint `/api/chat/completions` first, sending up to the 12 most recent local conversation messages with `stream:false`. It falls back to the isolated `/api/sakha/chat` preview only when the legacy provider does not return a usable response; the resulting mock answer is labelled `MOCK`, while a live answer is labelled `LIVE AI`.
+- The original server proxy now removes stale `Content-Encoding` after Express has parsed/inflated JSON, preventing a compressed-request header from being forwarded with a newly serialized plain JSON body.
+- Playwright tests were added for live Sakha responses, conversation-context continuity and clearly labelled mock fallback.
+- `docs/LEGACY_NOVA_INTEGRATION.md` was rewritten to distinguish the same-origin compatibility bridge from native feature parity; `docs/DECISIONS.md` records the provider and proxy decisions.
+
+### Exact verification boundary
+
+- Latest fully green CI run: #626, `https://github.com/s85960833-byte/NovaAI/actions/runs/44292042385`, on SHA `16def28d3f8c3c4d48254304e1d818d26013311c`. Checks, database and staging-smoke jobs all succeeded.
+- **That CI run predates the Sakha adapter, the proxy header fix and the two new Sakha UI tests.** It is historical evidence only and does not verify the current PR head.
+- Current source changes have no exact-HEAD CI result yet. Format, typecheck, lint, unit, Playwright, audit, database and staging-smoke must all be rerun on the latest PR head before the branch is treated as verified.
+- The latest documented Render staging Live SHA is still `5cf3ed56e92e239945ae476ca40537a8bedb1aab`; it is not proof of the current branch. No staging deploy is being triggered while source and exact-HEAD checks are still pending.
+- The root production Render service, production Supabase, `main`, production secrets and real user data remain unchanged. PR #103 remains Draft and unmerged; Phase 7 remains locked.
+
+### Remaining work for the requested single-URL upgrade
+
+1. Obtain a green exact-HEAD CI run including the newly added Sakha tests.
+2. Verify staging deploy SHA equals that exact tested SHA, then smoke-test `/`, `/classic`, `/api/health` and all compatibility paths.
+3. Exercise every original capability (chat/history, voice/live voice, search/citations, files, images, login/session, Learn/Build/Agents) with synthetic fixtures. The iframe bridge preserves access but is not proof of native feature parity.
+4. Complete isolated hosted Auth, account export/deletion and object-storage erasure proof; current SQL-only CI tests are not hosted proof.
+5. Perform physical Android/Infinix, accessibility, backup/restore and rollback rehearsals.
+6. Only after all gates are green can the production Render build/start configuration and the original public URL be considered for release. No production action is authorized before the exact owner phrase `APPROVE RELEASE`.
