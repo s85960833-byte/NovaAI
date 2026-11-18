@@ -1,4 +1,4 @@
-import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.0.0';
+import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2';
 const MODEL='onnx-community/Qwen3-0.6B-ONNX';
 const $=id=>document.getElementById(id);
 const capability=$('capability'), modelStatus=$('modelStatus'), loadButton=$('load'), unloadButton=$('unload'), progress=$('progress'), sendButton=$('send'), chat=$('chat');
