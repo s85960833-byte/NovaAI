@@ -156,6 +156,19 @@ test("Learn, Build and Agents open inside the unified NOVA shell", async ({ page
   }
 });
 
+test("full original NOVA home opens inside the unified shell", async ({ page, request }) => {
+  await enterDarbar(page);
+  await page.getByRole("button", { name: "NOVA कार्यक्षेत्र खोलें", exact: true }).click();
+  const frame = page.locator(".legacy-frame");
+  await expect(frame).toHaveAttribute("src", "/classic");
+  const response = await request.get("/classic");
+  expect(response.ok()).toBeTruthy();
+  const html = await response.text();
+  expect(html).toContain('id="novaEntryGate"');
+  expect(html).toContain('src="/nova-app.js"');
+  await expect(page.frameLocator(".legacy-frame").locator("#novaModes")).toBeAttached();
+});
+
 test("drawer opens above the page and routes to Diwan", async ({ page }) => {
   await enterDarbar(page);
   await page.locator(".topbar .icon-button").click();
