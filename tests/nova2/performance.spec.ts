@@ -78,9 +78,7 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
     const refreshEstimateHz = p50Raw <= 9.5 ? 120 : p50Raw <= 13.8 ? 90 : 60;
     const budgetMs = ({ 60: 16.7, 90: 11.1, 120: 8.3 } as const)[refreshEstimateHz];
     const droppedFrames = intervals.reduce(
-      (total, ms) =>
-        total +
-        (ms > budgetMs * 1.5 ? Math.max(1, Math.round(ms / budgetMs) - 1) : 0),
+      (total, ms) => total + (ms > budgetMs * 1.5 ? Math.max(1, Math.round(ms / budgetMs) - 1) : 0),
       0,
     );
     const droppedPercent = Number(((droppedFrames / intervals.length) * 100).toFixed(1));
@@ -135,9 +133,9 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
   });
   await page.locator(".bottom-nav button").nth(2).click();
   for (let index = 0; index < 6; index += 1) {
-    await page.locator(".composer textarea").fill(
-      "Explain one simple science fact, example " + String(index + 1) + ".",
-    );
+    await page
+      .locator(".composer textarea")
+      .fill("Explain one simple science fact, example " + String(index + 1) + ".");
     await page.locator(".send-button").click();
     await expect(page.locator(".chat-thread .chat-bubble")).toHaveCount((index + 1) * 2);
   }
@@ -185,12 +183,10 @@ test("public /perf page measures cadence and displays a one-screen result", asyn
   await expect(page.getByText(/p50 frame/)).toBeVisible();
   await expect(page.getByText(/p95 frame/)).toBeVisible();
   await expect(page.getByText(/Dropped frames/)).toBeVisible();
-  await expect(page.locator(".perf-caveat")).toContainText(
-    "does not certify 90/120 Hz hardware",
+  await expect(page.locator(".perf-caveat")).toContainText("does not certify 90/120 Hz hardware");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
   );
-  expect(
-    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
-  ).toBe(true);
 });
 
 test("reduced-motion devices skip the entry animation", async ({ page }) => {
