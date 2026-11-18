@@ -50,6 +50,8 @@ if (!/security definer\s+set search_path = public, pg_temp/.test(rateLimitMigrat
 const forwardHardening = readFileSync('supabase/migrations/20261106195900_nova_bi_rate_limit_search_path_hardening.sql', 'utf8');
 if (!/alter function public\.nova_bi_consume_rate_limit\([\s\S]*?set search_path = ''/i.test(forwardHardening)) throw new Error('Forward migration must harden the already-applied rate-limit function');
 if (!/revoke all[\s\S]*?from public, anon, authenticated/i.test(forwardHardening)) throw new Error('Forward migration must keep rate-limit RPC private to service_role');
+const imageProvider = readFileSync('nova-image-horde.js', 'utf8');
+syntaxCheck('nova-image-horde.js', imageProvider);
 const rlsIntegration = readFileSync('scripts/supabase-rls-integration.sql', 'utf8');
 if (!rlsIntegration.includes('Every public SECURITY DEFINER function must pin an empty search_path')) throw new Error('Database integration test must guard SECURITY DEFINER search_path');
 if (!server.includes("providers: { keyless: true, hostedAi: false }") || !server.includes("Hosted AI providers are disabled") || !server.includes("Hosted transcription is disabled") || !imageProvider.includes("provider: 'community-free'") || server.includes("pollinations.ai") || !server.includes("async function webSearch") || !server.includes("Keyless live search: DuckDuckGo HTML results and Wikipedia reference search only.")) throw new Error('NOVA must stay in keyless-only AI, voice, search and image mode');
@@ -58,8 +60,6 @@ if (!server.includes('Content-Security-Policy') || !server.includes('frame-ances
 const requiredCspFragments = ['http-equiv="Content-Security-Policy"', "default-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'self'"];
 const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(match => !/\bsrc\s*=/.test(match[1]));
 const localAiClient = readFileSync('nova-local-ai.js', 'utf8');
-const imageProvider = readFileSync('nova-image-horde.js', 'utf8');
-syntaxCheck('nova-image-horde.js', imageProvider);
 const keylessConfigSmoke = readFileSync('scripts/keyless-config-smoke.mjs', 'utf8');
 syntaxCheck('keyless-config-smoke.mjs', keylessConfigSmoke);
 if (!server.includes("app.get('/nova-local-ai.js'") || !html.includes('src="/nova-local-ai.js"') || !localAiClient.includes("Qwen3-0.6B-Instruct-ONNX") || !localAiClient.includes("onnx-community/whisper-tiny") || !localAiClient.includes("tesseract.js@6.0.1") || !localAiClient.includes("createWorker('eng+hin'") || !localAiClient.includes("device: 'webgpu'") || !localAiClient.includes("dtype: 'q4'")) throw new Error('Keyless local chat, voice, OCR engine or asset route is incomplete');
