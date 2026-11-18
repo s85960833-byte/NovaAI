@@ -56,7 +56,7 @@ const rlsIntegration = readFileSync('scripts/supabase-rls-integration.sql', 'utf
 if (!rlsIntegration.includes('Every public SECURITY DEFINER function must pin an empty search_path')) throw new Error('Database integration test must guard SECURITY DEFINER search_path');
 if (!server.includes("providers: { keyless: true, hostedAi: false }") || !server.includes("Hosted AI providers are disabled") || !server.includes("Hosted transcription is disabled") || !imageProvider.includes("provider: 'community-free'") || server.includes("pollinations.ai") || !server.includes("async function webSearch") || !server.includes("Keyless live search: DuckDuckGo HTML results and Wikipedia reference search only.")) throw new Error('NOVA must stay in keyless-only AI, voice, search and image mode');
 if (!server.includes('app.disable(\'x-powered-by\')') || !server.includes('nova-business-core.js') || !server.includes('nova-business-cloud.js') || !server.includes("'/nova-reference.js','/nova-business-core.js'")) throw new Error('BI server routes or offline dashboard cache are missing');
-if (!server.includes('Content-Security-Policy') || !server.includes("script-src 'self' blob:") || !server.includes('frame-ancestors \'none\'') || !server.includes('camera=(self), microphone=(self), geolocation=()')) throw new Error('Combined browser security policy is incomplete');
+if (!server.includes('Content-Security-Policy') || !server.includes("script-src 'self' blob: 'wasm-unsafe-eval'") || !server.includes('frame-ancestors \'none\'') || !server.includes('camera=(self), microphone=(self), geolocation=()')) throw new Error('Combined browser security policy is incomplete');
 const requiredCspFragments = ['http-equiv="Content-Security-Policy"', "default-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'self'"];
 const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(match => !/\bsrc\s*=/.test(match[1]));
 const localAiClient = readFileSync('nova-local-ai.js', 'utf8');
@@ -70,7 +70,7 @@ const configScript = readFileSync('nova-config.js', 'utf8');
 if (inlineScripts.length) throw new Error('Executable script blocks must be externalized; inline event-handler attributes are tracked separately');
 const inlineEventAttributes = [...html.matchAll(/\son[a-z]+\s*=/gi)];
 if (inlineEventAttributes.length) throw new Error('Inline HTML event-handler attributes are not permitted by the script CSP');
-if (!html.includes("script-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net") || html.includes("script-src 'self' 'unsafe-inline'")) throw new Error('Script CSP must not allow inline script execution');
+if (!html.includes("script-src 'self' blob: 'wasm-unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net") || html.includes("script-src 'self' 'unsafe-inline'")) throw new Error('Script CSP must not allow inline script execution');
 if (!server.includes("app.get('/nova-config.js'") || !server.includes("app.get('/nova-app.js'")) throw new Error('Externalized NOVA scripts are not served by the backend');
 syntaxCheck('NOVA app external script', appScript);
 syntaxCheck('NOVA config external script', configScript);
