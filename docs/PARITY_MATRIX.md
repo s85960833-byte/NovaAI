@@ -154,3 +154,16 @@ Status meanings: **Works** = code/test assertion exists, not universal proof; **
 ## Evidence limitations
 
 This matrix records source inspection, not fresh production or physical-device testing. Android behaviour, email delivery, full deletion/export, concurrent sync and backup restore remain NOT VERIFIED.
+
+
+## Unified-shell bridge status — 2026-11-18
+
+The new Darbar home now exposes three real shortcuts that load the existing Learn, Build and Agents groups inside a same-origin `/classic?workspace=...` iframe. The existing `mode-workspace.js` handles the group query and the original mode registry/history remain in place. The `/classic` route alone returns `X-Frame-Options: SAMEORIGIN` and a CSP with `frame-ancestors 'self'`; all other routes retain `DENY` / `frame-ancestors 'none'`.
+
+Automated Playwright coverage added for:
+- selecting each Learn / Build / Agents group from the new Darbar home;
+- checking the iframe URL and visible original group header;
+- checking same-origin framing response headers;
+- checking the embedded viewport at 390 × 844 CSS pixels with no horizontal overflow.
+
+**Interpretation:** this is compatibility availability, not native migration or end-to-end feature parity. The original chat/history, voice, search/citations, file/image, login/account and specialist-mode workflows remain individually unverified until their specific parity tests pass. Do not mark them complete because the old page is embedded.
