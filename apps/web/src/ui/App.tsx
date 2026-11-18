@@ -15,6 +15,7 @@ type InstallPromptEvent = Event & {
 export function App() {
   const [locale, setLocale] = useState<Locale>("hi");
   const [view, setView] = useState<View>("home");
+  const [legacyWorkspace, setLegacyWorkspace] = useState<"learn" | "build" | "agents">("learn");
   const [drawer, setDrawer] = useState(false);
   const [theme, setTheme] = useState<"midnight" | "ivory">("midnight");
   const [motion, setMotion] = useState<"full" | "reduced" | "off">("full");
@@ -157,9 +158,15 @@ export function App() {
                 <p>{t("home.legacyDesc")}</p>
               </div>
               <div className="legacy-pills" aria-label={t("home.legacyFeatures")}>
-                <span>{t("home.learnWorkspace")}</span>
-                <span>{t("home.buildWorkspace")}</span>
-                <span>{t("home.agentsWorkspace")}</span>
+                <button onClick={() => { setLegacyWorkspace("learn"); setView("legacy"); }}>
+                  {t("home.learnWorkspace")}
+                </button>
+                <button onClick={() => { setLegacyWorkspace("build"); setView("legacy"); }}>
+                  {t("home.buildWorkspace")}
+                </button>
+                <button onClick={() => { setLegacyWorkspace("agents"); setView("legacy"); }}>
+                  {t("home.agentsWorkspace")}
+                </button>
               </div>
               <p className="legacy-capabilities">{t("home.legacyCapabilities")}</p>
               <button className="legacy-open" onClick={() => setView("legacy")}>
@@ -197,7 +204,7 @@ export function App() {
             </div>
             <iframe
               className="legacy-frame"
-              src="/classic"
+              src={`/classic?workspace=${legacyWorkspace}`}
               title={t("home.legacyFrameTitle")}
               allow="microphone; camera; clipboard-read; clipboard-write"
               allowFullScreen
