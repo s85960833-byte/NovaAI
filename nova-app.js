@@ -42,7 +42,7 @@ const shrink=f=>new Promise((ok,no)=>{const u=URL.createObjectURL(f),im=new Imag
 const L=['English','हिन्दी|Hindi'];
 const LC={Hindi:'hi-IN',English:'en-IN',Spanish:'es-ES',French:'fr-FR',German:'de-DE',Arabic:'ar-SA',Chinese:'zh-CN',Japanese:'ja-JP',Korean:'ko-KR',Bengali:'bn-IN',Tamil:'ta-IN',Telugu:'te-IN',Marathi:'mr-IN',Gujarati:'gu-IN',Urdu:'ur-PK',Portuguese:'pt-BR',Russian:'ru-RU',Turkish:'tr-TR',Indonesian:'id-ID',Punjabi:'pa-IN',Kannada:'kn-IN',Malayalam:'ml-IN'};
 /*BUILTIN*/const BUILT_IN=null;/*END*/
-let S={chats:[],cur:null,rl:'English',uiLang:'en',mem:'',cfg:{base:CFG.base||'https://openrouter.ai/api/v1',model:CFG.model||'',key:''}},ctl=null,busy=false,doc=null;
+let S={chats:[],cur:null,rl:'English',uiLang:'en',mem:'',cfg:{base:'',model:'',key:''}},ctl=null,busy=false,doc=null;
 try{S=Object.assign(S,JSON.parse(localStorage.getItem('nova')||'{}'))}catch(e){}
 S.cfg={base:'',model:'',key:''}; // Saved provider settings are intentionally discarded in keyless-only NOVA.
 if(!['English','Hindi'].includes(S.rl))S.rl='English';S.uiLang=S.uiLang==='hi'?'hi':'en';S.deletedChatIds=Array.isArray(S.deletedChatIds)?S.deletedChatIds.map(String).slice(-2000):[];
@@ -800,7 +800,7 @@ $('setb').onclick=()=>{try{buildPers()}catch(e){}$('dset').showModal()};$('sclos
 $('autoread').checked=!!S.ar;$('autoread').onchange=e=>{S.ar=e.target.checked;save()};
 const applyFS=()=>{document.body.style.fontSize=(S.fs||16)+'px'};applyFS();
 $('finc').onclick=()=>{S.fs=Math.min(22,(S.fs||16)+1);applyFS();save()};$('fdec').onclick=()=>{S.fs=Math.max(13,(S.fs||16)-1);applyFS();save()};
-$('wipe').onclick=async()=>{if(!await askYN(t('wipeQ')))return;const th=S.theme;try{localStorage.removeItem('nova')}catch(e){}S={chats:[],cur:null,rl:'Auto',mem:'',ci:'',mode:'default',cfg:{base:CFG.base||'https://openrouter.ai/api/v1',model:CFG.model||'',key:''},theme:th};$('lang').value='Auto';$('autoread').checked=false;applyFS();doc=null;pimg=null;IM=null;$('in').value='';$('dset').close();applyUI();render();toast(t('wiped'))};
+$('wipe').onclick=async()=>{if(!await askYN(t('wipeQ')))return;const th=S.theme;try{localStorage.removeItem('nova')}catch(e){}S={chats:[],cur:null,rl:'Auto',mem:'',ci:'',mode:'default',cfg:{base:'',model:'',key:''},theme:th};$('lang').value='Auto';$('autoread').checked=false;applyFS();doc=null;pimg=null;IM=null;$('in').value='';$('dset').close();applyUI();render();toast(t('wiped'))};
 $('xcopy').onclick=async()=>{const c=chat();if(c)toast(await copyText(chatMd(c))?t('copied'):t('copyFail'))};
 $('xexp').onclick=()=>{const c=chat();if(c)saveText((c.title||'chat').replace(/[^\w\u0900-\u097F]+/g,'_').slice(0,40)+'.md',chatMd(c),'text/markdown')};
 $('tobot').onclick=()=>{stick=true;const m=$('msgs');m.scrollTo({top:m.scrollHeight,behavior:'smooth'});$('tobot').hidden=true};
