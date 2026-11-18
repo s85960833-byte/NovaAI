@@ -210,7 +210,7 @@ const cl=document.documentElement.cloneNode(true);
 ['#log','#list','#docbar'].forEach(s=>{cl.querySelector(s).innerHTML=''});
 cl.querySelector('#docbar').setAttribute('hidden','');
 let h='<!DOCTYPE html>\\n'+cl.outerHTML;
-h=h.replace(/<script src="https:\\/\\/cdnjs[^>]*><\\/script>/g,'');
+// External optional scripts remain optional in this standalone keyless copy.
 const exportedConfig={api:CFG.api,brand:CFG.brand};
 h=h.replace('window.NOVA_CONFIG=window.NOVA_CONFIG||{api:"/api",brand:"Nova AI"};','window.NOVA_CONFIG='+JSON.stringify(exportedConfig).replace(/</g,'\\u003c')+';');
 const link=document.createElement('a');link.href=URL.createObjectURL(new Blob([h],{type:'text/html'}));link.download='nova-ai-keyless.html';document.body.append(link);link.click();link.remove()
