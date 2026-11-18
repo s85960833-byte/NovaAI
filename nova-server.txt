@@ -203,6 +203,43 @@ app.post('/api/chat/completions', async (q, r) => {
   } catch (e) { if (!r.headersSent) r.status(502).json({ error: 'Provider unreachable' }); else r.end(); }
 });
 
+// Explicit keyless search: public Google News RSS + Wikipedia only. Never calls paid/keyed providers.
+const keylessSearchHits = new Map();
+app.post('/api/keyless-search', async (q, r) => {
+  const body = q.body || {}, query = String(body.q || '').trim().slice(0, 400);
+  if (query.length < 2) return r.status(400).json({ ok: false, error: 'Enter at least 2 characters.' });
+  const lang = body.lang === 'hi' || /[\u0900-\u097F]/.test(query) ? 'hi' : 'en';
+  const now = Date.now(), hits = rateWindow(keylessSearchHits, q.ip, now, 6e4);
+  if (!hits) return r.status(503).json({ ok: false, error: 'Search capacity is busy. Try again shortly.' });
+  if (hits.length >= 12) return r.status(429).json({ ok: false, error: 'Search limit reached. Wait a minute and try again.' });
+  hits.push(now); keylessSearchHits.set(q.ip, hits);
+  const checks = await Promise.allSettled([
+    wikiSearch(query, lang, 5),
+    gnews(query, { lang, n: 6 })
+  ]);
+  const providers = [], items = [];
+  checks.forEach((result, index) => {
+    if (result.status === 'fulfilled' && Array.isArray(result.value)) {
+      if (result.value.length) providers.push(index === 0 ? 'Wikipedia' : 'Google News RSS');
+      result.value.forEach(item => items.push(item));
+    }
+  });
+  const safeItems = dedupe(items.filter(item => {
+    try { return item && item.title && item.url && new URL(item.url).protocol === 'https:'; } catch (e) { return false; }
+  }));
+  const results = rank(safeItems, query).slice(0, 10).map(item => ({
+    title: String(item.title || '').slice(0, 240),
+    url: item.url,
+    publisher: String(item.publisher || '').slice(0, 100),
+    date: item.date || '',
+    snippet: String(item.snippet || '').slice(0, 700),
+    quality: item.quality || 'other'
+  }));
+  if (!results.length) return r.status(502).json({ ok: false, error: 'Keyless sources are temporarily unavailable. Try again later.' });
+  r.json({ ok: true, mode: 'keyless', query, lang, retrievedAt: new Date().toISOString(), providers, results,
+    limitation: 'Keyless mode searches public Wikipedia and Google News RSS sources. It does not search or read every website and does not generate AI answers.' });
+});
+
 app.post('/api/search', async (q, r) => {
   const query = String((q.body && q.body.q) || '').trim().slice(0, 400);
   if (!query) return r.status(400).json({ error: 'Search query is required' });
@@ -412,6 +449,10 @@ app.get('/nova-business-core.js', (q, r) => r.set('Cache-Control', 'no-cache').t
 app.get('/nova-business.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business.js')));
 app.get('/nova-business-cloud.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business-cloud.js')));
 app.get('/nova-account.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-account.js')));
+app.get('/local-ai-lab', (q, r) => r.set('Cache-Control', 'no-store').sendFile(path.join(__dirname, 'local-ai-lab.html')));
+app.get('/local-ai-lab.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'local-ai-lab.js')));
+app.get('/keyless-lab', (q, r) => r.set('Cache-Control', 'no-store').sendFile(path.join(__dirname, 'keyless-lab.html')));
+app.get('/keyless-lab.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'keyless-lab.js')));
 app.get('/', (q, r) => r.set('Cache-Control', 'no-store, no-cache, must-revalidate').sendFile(path.join(__dirname, 'index.html')));
 // ===================== LIVE INTELLIGENCE (keyless connectors + optional keys) =====================
 // Every connector returns normalized sources: { title, url, publisher, date, kind, connector, snippet, eventDate? }

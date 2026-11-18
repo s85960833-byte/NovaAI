@@ -164,3 +164,24 @@ if (!html.includes('id="novaEntryGate"') || html.includes('id="novaEntryVideo"')
 
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
 process.stdout.write('PASS NOVA video-first entry gate markup, interaction, asset integrity, and streaming route\n');
+
+const localAiHtml=readFileSync('local-ai-lab.html','utf8');
+const localAiClient=readFileSync('local-ai-lab.js','utf8');
+syntaxCheck('local-ai-lab.mjs',localAiClient);
+if(!server.includes("app.get('/local-ai-lab'")||!server.includes("app.get('/local-ai-lab.js'")) throw new Error('Local AI Lab routes are missing');
+if(!localAiHtml.includes('Local AI Lab')||!localAiHtml.includes('570 MB')||!localAiHtml.includes('not equal to ChatGPT')||!localAiHtml.includes('not connected to the live Nova chat')) throw new Error('Local AI Lab must disclose model size, quality and isolation');
+if(!localAiClient.includes("onnx-community/Qwen3-0.6B-ONNX")||!localAiClient.includes("device:'webgpu'")||!localAiClient.includes("dtype:'q4f16'")||!localAiClient.includes('/api/keyless-search')) throw new Error('Local AI must run a local browser model and optionally ground answers with keyless search');
+if(/OPENAI_API_KEY|GROQ_API_KEY|OPENROUTER_API_KEY|ANTHROPIC_API_KEY|puter\\.ai/.test(localAiClient)) throw new Error('Local AI Lab must not call a hosted AI provider or require an API key');
+if(!localAiClient.includes("navigator.gpu.requestAdapter()")||!localAiClient.includes("progress_callback")||!localAiClient.includes("noopener noreferrer")) throw new Error('Local AI capability, download progress or safe source-link handling is missing');
+process.stdout.write('PASS isolated browser-local AI lab structure, model selection, and no-provider-key checks\\n');
+
+const runtimeSmoke = readFileSync('scripts/runtime-smoke.mjs', 'utf8');
+if (!runtimeSmoke.includes("'/keyless-lab'") || !runtimeSmoke.includes("'/keyless-lab.js'") || !runtimeSmoke.includes("'/api/keyless-search'")) throw new Error('Keyless Search Lab runtime smoke coverage is missing');
+const keylessHtml = readFileSync('keyless-lab.html', 'utf8');
+const keylessClient = readFileSync('keyless-lab.js', 'utf8');
+syntaxCheck('keyless-lab.js', keylessClient);
+if (!server.includes("app.post('/api/keyless-search'") || !server.includes("app.get('/keyless-lab'") || !server.includes("app.get('/keyless-lab.js'")) throw new Error('Keyless Search Lab routes are missing');
+const keylessRouteSource = server.slice(server.indexOf("app.post('/api/keyless-search'"), server.indexOf("app.post('/api/search'"));
+if (!keylessRouteSource.includes('wikiSearch(query, lang, 5)') || !keylessRouteSource.includes('gnews(query, { lang, n: 6 })') || /LLM_KEY|GROQ_API_KEY|OPENROUTER_API_KEY|BRAVE_KEY|TAVILY_KEY/.test(keylessRouteSource)) throw new Error('Keyless search must use only public keyless connectors');
+if (!keylessHtml.includes('Keyless Search Lab') || !keylessHtml.includes('does not generate AI answers') || !keylessHtml.includes('/keyless-lab.js')) throw new Error('Keyless Search Lab must disclose its limits and load its client');
+if (!keylessClient.includes('/api/keyless-search') || !keylessClient.includes('noopener') || !keylessClient.includes('textContent')) throw new Error('Keyless search client must call the dedicated route and render safe source links');
