@@ -63,7 +63,7 @@ syntaxCheck('keyless-config-smoke.mjs', keylessConfigSmoke);
 if (!server.includes("app.get('/nova-local-ai.js'") || !html.includes('src="/nova-local-ai.js"') || !localAiClient.includes("Qwen3-0.6B-Instruct-ONNX") || !localAiClient.includes("device: 'webgpu'") || !localAiClient.includes("dtype: 'q4'")) throw new Error('Keyless local inference engine or asset route is incomplete');
 const appScript = readFileSync('nova-app.js', 'utf8');
 syntaxCheck('nova-local-ai.js', localAiClient);
-if (!appScript.includes('SV&&SV.local') || !appScript.includes('window.NovaLocalAI.generate')) throw new Error('Main Nova chat is not connected to browser-local inference');
+if (!appScript.includes("SV={model:'nova-local-browser',local:true") || !appScript.includes('S.cfg={base:\'\',model:\'\',key:\'\'}') || !appScript.includes('SV&&SV.local') || !appScript.includes('window.NovaLocalAI.generate') || !appScript.includes('Hosted AI connectors are intentionally not initialized')) throw new Error('NOVA client must force local-only inference and discard hosted provider settings');
 const configScript = readFileSync('nova-config.js', 'utf8');
 if (inlineScripts.length) throw new Error('Executable script blocks must be externalized; inline event-handler attributes are tracked separately');
 const inlineEventAttributes = [...html.matchAll(/\son[a-z]+\s*=/gi)];
