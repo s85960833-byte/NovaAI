@@ -67,6 +67,8 @@ test('uses WebGPU Q4F16 when available and returns generated assistant text', as
   assert.equal(answer, 'Nova local response');
   assert.equal(h.calls.length, 1);
   assert.equal(h.calls[0].task, 'text-generation');
+  assert.match(h.inputs[0][0].content, /Your developer is Thakur Shreyansh Singh ji/);
+  assert.match(h.inputs[0][0].content, /Respond in the user's language/);
   assert.equal(h.calls[0].options.device, 'webgpu');
   assert.equal(h.calls[0].options.dtype, 'q4f16');
   assert.equal(h.api.getStatus().backend, 'webgpu');
