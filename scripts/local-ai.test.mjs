@@ -5,12 +5,12 @@ import vm from 'node:vm';
 
 const source = fs.readFileSync(new URL('../nova-local-ai.js', import.meta.url), 'utf8')
   .replace(
-    "await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2')",
-    'await window.__NOVA_TEST_IMPORT__()'
+    "import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2')",
+    'window.__NOVA_TEST_IMPORT__()'
   )
   .replace(
-    "await import('https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/+esm')",
-    'await window.__NOVA_TEST_OCR_IMPORT__()'
+    "import('https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/+esm')",
+    'window.__NOVA_TEST_OCR_IMPORT__()'
   );
 
 function harness({ gpu = true, failGpu = false } = {}) {
