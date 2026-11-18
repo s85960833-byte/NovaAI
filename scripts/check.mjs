@@ -56,8 +56,10 @@ if (!server.includes('Content-Security-Policy') || !server.includes('frame-ances
 const requiredCspFragments = ['http-equiv="Content-Security-Policy"', "default-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'self'"];
 const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(match => !/\bsrc\s*=/.test(match[1]));
 const localAiClient = readFileSync('nova-local-ai.js', 'utf8');
-if (!server.includes("app.get('/nova-local-ai.js'") || !html.includes('src="/nova-local-ai.js"') || !localAiClient.includes("Qwen3-0.6B-Instruct-ONNX") || !localAiClient.includes("device: 'webgpu'") || !localAiClient.includes("dtype: 'q4'") || !appScript.includes('SV&&SV.local') || !appScript.includes('window.NovaLocalAI.generate')) throw new Error('Keyless main-chat local inference integration is incomplete');
+if (!server.includes("app.get('/nova-local-ai.js'") || !html.includes('src="/nova-local-ai.js"') || !localAiClient.includes("Qwen3-0.6B-Instruct-ONNX") || !localAiClient.includes("device: 'webgpu'") || !localAiClient.includes("dtype: 'q4'")) throw new Error('Keyless local inference engine or asset route is incomplete');
 const appScript = readFileSync('nova-app.js', 'utf8');
+syntaxCheck('nova-local-ai.js', localAiClient);
+if (!appScript.includes('SV&&SV.local') || !appScript.includes('window.NovaLocalAI.generate')) throw new Error('Main Nova chat is not connected to browser-local inference');
 const configScript = readFileSync('nova-config.js', 'utf8');
 if (inlineScripts.length) throw new Error('Executable script blocks must be externalized; inline event-handler attributes are tracked separately');
 const inlineEventAttributes = [...html.matchAll(/\son[a-z]+\s*=/gi)];
