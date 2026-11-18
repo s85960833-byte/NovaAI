@@ -47,9 +47,7 @@ export function AuthPanel({ locale }: Props) {
             loading="eager"
             referrerPolicy="same-origin"
             onLoad={(event) => {
-              event.currentTarget.contentDocument
-                ?.getElementById("novaAccountOpen")
-                ?.click();
+              event.currentTarget.contentDocument?.getElementById("novaAccountOpen")?.click();
             }}
           />
         </div>
