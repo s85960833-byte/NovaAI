@@ -25,6 +25,25 @@ async function jsonRequest(url, options = {}) {
   return { response, body };
 }
 
+async function waitForKeylessServer() {
+  const deadline = Date.now() + 60000;
+  let lastError = '';
+  while (Date.now() < deadline) {
+    try {
+      const result = await jsonRequest(BASE + '/api/config');
+      assert.equal(result.response.status, 200, 'keyless /api/config must respond with HTTP 200');
+      assert.equal(result.body.local, true, 'server must advertise browser-local AI');
+      assert.equal(result.body.providers && result.body.providers.hostedAi, false, 'server must keep hosted AI providers disabled');
+      assert.equal(result.body.providers && result.body.providers.keyless, true, 'server must advertise keyless mode');
+      return;
+    } catch (error) {
+      lastError = String(error && error.message || error);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+  throw new Error('NOVA test server did not become ready: ' + lastError);
+}
+
 function makeSpeechSamples() {
   const wavPath = path.join(os.tmpdir(), 'nova-local-whisper-smoke.wav');
   const tts = spawnSync('espeak-ng', [
