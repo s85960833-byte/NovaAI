@@ -287,8 +287,13 @@ try{
  await desktop.locator('#imopt').waitFor({state:'visible'});
  await desktop.locator('#imopt button[aria-pressed="true"]').click();
  await desktop.locator('#in').fill('A small blue geometric star on a dark background');
+ let imageConsentPrompt='';
+ desktop.once('dialog',async dialog=>{imageConsentPrompt=dialog.message();await dialog.accept()});
  await desktop.locator('#send').click();
  await desktop.locator('#log img.thumb[src^="data:image/png;base64,"]').waitFor({state:'visible',timeout:12000});
+ assert.match(imageConsentPrompt,/AI Horde anonymous volunteer workers/i,'image studio must disclose that it uses anonymous community workers');
+ assert.match(imageConsentPrompt,/LAION/i,'image studio must disclose anonymous request sharing with LAION');
+ assert.match(imageConsentPrompt,/private or personal information/i,'image studio must warn users not to submit private information');
  assert.equal(imageRequests.length,1,'Build Image Studio must submit one image-generation job');
  assert.ok(imageRequests[0].prompt.includes('blue geometric star'),"image-generation request must include the user's prompt");
  console.log('PASS NOVA Build Image Studio launch, async image job polling and rendered image result');
