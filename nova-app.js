@@ -196,7 +196,7 @@ $('msave').onclick=()=>{S.mem=$('memt').value.trim().slice(0,1500);S.ci=$('cit')
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 if(SR){const mic=$('mic');mic.hidden=false;let rec=null;const off=()=>{rec=null;mic.textContent='🎤'};
 mic.onclick=()=>{if(rec){rec.stop();return}rec=new SR();rec.lang=vlang();rec.interimResults=true;rec.onresult=e=>{$('in').value=[...e.results].map(r=>r[0].transcript).join('')};rec.onend=off;rec.onerror=off;mic.textContent='⏹';try{rec.start()}catch(x){off()}}}
-if(BUILT_IN)$('cfg').style.display='none';
+$('cfg').style.display='none';
 function edit(m){const c=chat();if(!c||busy)return;const i=c.m.indexOf(m);if(i<0)return;$('in').value=m.c;pimg=m.img||null;c.m.length=i;save();render();$('in').focus();$('in').oninput({target:$('in')})}
 $('q').oninput=renderList;$('msgs').addEventListener('scroll',()=>{const m=$('msgs');stick=m.scrollHeight-m.scrollTop-m.clientHeight<90;$('tobot').hidden=stick||!(chat()&&chat().m.length)},{passive:true});
 $('log').onclick=e=>{if(e.target.classList.contains('thumb')){$('zoom').firstChild.src=e.target.src;$('zoom').hidden=false;return}const b=e.target.closest('.cp');if(b){copyText(b.nextElementSibling.textContent).then(ok=>{b.textContent=ok?'✓':'✕'})}};
