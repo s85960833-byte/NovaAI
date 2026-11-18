@@ -1,12 +1,10 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, FileText, Globe2, Home, Menu, MessageCircle, Wallet, X } from "lucide-react";
 import { translate, type Locale } from "../i18n";
-const AuthPanel = lazy(async () => ({ default: (await import("./AuthPanel")).AuthPanel }));
-const DiwanPanel = lazy(async () => ({ default: (await import("./DiwanPanel")).DiwanPanel }));
-const WalletPanel = lazy(async () => ({ default: (await import("./WalletPanel")).WalletPanel }));
-const SakhaPanel = lazy(async () => ({
-  default: (await import("../sakha/SakhaPanel")).SakhaPanel,
-}));
+import { AuthPanel } from "./AuthPanel";
+import { DiwanPanel } from "./DiwanPanel";
+import { WalletPanel } from "./WalletPanel";
+import { SakhaPanel } from "../sakha/SakhaPanel";
 import { startFrameBudgetMonitor } from "../perf/frame-budget";
 import { PerfPage } from "../perf/PerfPage";
 type View = "home" | "diwan" | "sakha" | "wallet" | "me";
@@ -40,30 +38,6 @@ export function App() {
     document.documentElement.dataset.motion = motion;
   }, [locale, theme, motion]);
   useEffect(() => startFrameBudgetMonitor(), []);
-  useEffect(() => {
-    let cancelled = false;
-    const prewarmPanels = () => {
-      if (cancelled) return;
-      void import("./DiwanPanel");
-      void import("../sakha/SakhaPanel");
-    };
-    const idleWindow = window as Window & {
-      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
-      cancelIdleCallback?: (handle: number) => void;
-    };
-    let idleHandle: number | undefined;
-    let timeoutHandle: number | undefined;
-    if (idleWindow.requestIdleCallback) {
-      idleHandle = idleWindow.requestIdleCallback(prewarmPanels, { timeout: 2200 });
-    } else {
-      timeoutHandle = window.setTimeout(prewarmPanels, 1800);
-    }
-    return () => {
-      cancelled = true;
-      if (idleHandle !== undefined) idleWindow.cancelIdleCallback?.(idleHandle);
-      if (timeoutHandle !== undefined) window.clearTimeout(timeoutHandle);
-    };
-  }, []);
   useEffect(() => {
     const onOnline = () => setOnline(true);
     const onOffline = () => setOnline(false);

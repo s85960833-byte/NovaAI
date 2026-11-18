@@ -208,8 +208,8 @@ test("serves pre-compressed JavaScript and CSS to gzip-capable browsers", async 
   });
   expect(htmlResponse.ok()).toBeTruthy();
   const html = await htmlResponse.text();
-  const scriptPath = html.match(/src="([^"]+\\.js)"/)?.[1];
-  const stylePath = html.match(/href="([^"]+\\.css)"/)?.[1];
+  const scriptPath = html.match(/src="([^"]+\.js)"/)?.[1];
+  const stylePath = html.match(/href="([^"]+\.css)"/)?.[1];
 
   expect(scriptPath).toBeTruthy();
   expect(stylePath).toBeTruthy();
