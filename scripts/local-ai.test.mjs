@@ -7,12 +7,17 @@ const source = fs.readFileSync(new URL('../nova-local-ai.js', import.meta.url), 
   .replace(
     "await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2')",
     'await window.__NOVA_TEST_IMPORT__()'
+  )
+  .replace(
+    "await import('https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/+esm')",
+    'await window.__NOVA_TEST_OCR_IMPORT__()'
   );
 
 function harness({ gpu = true, failGpu = false } = {}) {
   const calls = [];
   const inputs = [];
   const statuses = [];
+  const ocrCalls = [];
   let pipelineLoads = 0;
   const context = {
     window: {
@@ -32,6 +37,15 @@ function harness({ gpu = true, failGpu = false } = {}) {
             return { 0: { generated_text: [...messages, { role: 'assistant', content: 'Nova local response' }] } };
           };
         }
+      }),
+      __NOVA_TEST_OCR_IMPORT__: async () => ({
+        createWorker: async (languages, oem, options) => ({
+          recognize: async image => {
+            ocrCalls.push({ languages, oem, image });
+            if (options && options.logger) options.logger({ status: 'recognizing text', progress: 1 });
+            return { data: { text: 'The photographed question says: What is 2 + 2?' } };
+          }
+        })
       })
     },
     navigator: {
@@ -41,7 +55,7 @@ function harness({ gpu = true, failGpu = false } = {}) {
     Float32Array
   };
   vm.runInNewContext(source, context, { filename: 'nova-local-ai.js' });
-  return { api: context.window.NovaLocalAI, calls, inputs, statuses, get pipelineLoads() { return pipelineLoads; } };
+  return { api: context.window.NovaLocalAI, calls, inputs, statuses, ocrCalls, get pipelineLoads() { return pipelineLoads; } };
 }
 
 test('uses WebGPU Q4F16 when available and returns generated assistant text', async () => {
@@ -76,7 +90,7 @@ test('uses CPU/WASM directly when WebGPU is unavailable', async () => {
   assert.equal(h.api.getStatus().backend, 'wasm');
 });
 
-test('converts image messages to an honest text-only limitation notice', async () => {
+test('extracts Hindi/English photo text locally before asking the text-only chat model', async () => {
   const h = harness();
   await h.api.generate([{
     role: 'user',
@@ -88,7 +102,10 @@ test('converts image messages to an honest text-only limitation notice', async (
   const result = await h.api.generate([{ role: 'user', content: 'Follow up' }]);
   assert.equal(result, 'Nova local response');
   assert.equal(h.pipelineLoads, 1);
-  assert.match(h.inputs[0][0].content, /cannot inspect image pixels/i);
+  assert.match(h.inputs[0][0].content, /Local OCR text from the attached photo/i);
+  assert.match(h.inputs[0][0].content, /What is 2 \\+ 2/);
+  assert.equal(h.ocrCalls.length, 1);
+  assert.equal(h.ocrCalls[0].languages, 'eng+hin');
 });
 
 test('rejects an already-aborted request before loading the model', async () => {
