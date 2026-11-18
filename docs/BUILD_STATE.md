@@ -1,10 +1,22 @@
 # NOVA 2.0 Build State
 
-**Updated:** 2026-11-17 16:24 UTC  
+**Updated:** 2026-11-18 04:08 UTC  
 **Branch:** \`nova-2.0/rebuild\`  
 **Verified source SHA for CI #513:** \`5976ef98927977ebd93ae1a47b0f83ce4ab89e6b\`  
 **Draft PR:** [#103](https://github.com/s85960833-byte/NovaAI/pull/103)  
 **Staging:** https://nova-2-staging.onrender.com
+
+## Current head and NEXT ACTION — 18 November 2026
+
+- PR #103 remains Open, Draft and unmerged. Current branch head is `915e3f07296aa560537f2899fab0b7259f6c54d3`; this source has no completed exact-head CI run yet.
+- Latest completed run is [CI #588](https://github.com/s85960833-byte/NovaAI/actions/runs/44217374639), which tested the previous PR head `4ec4c28b70df07f088832c2ede00a260c5922f4d) through PR merge ref `39dadd0b400316c04f226358e0631f156f9f0868`.
+- CI #588 checks job failed: Prettier failed on `PerfPage.tsx`, `apps/api/src/index.ts`, and `scripts/check-dependency-audit.mjs`; lint, typecheck, unit and build passed; dependency audit failed on the web workspace's Vite/picomatch toolchain advisory; Playwright had 8 failures and 10 passes; Lighthouse completed successfully.
+- Playwright traces identified `ReferenceError: __VITE_PRELOAD__ is not defined` when lazy panels were imported. Branch-only commit `915e3f0` replaces those dynamic imports with static imports and corrects the gzip test's escaped asset selectors. This correction is NOT VERIFIED until a new exact-head run completes.
+- CI #588 database job passed its isolated synthetic migration/RLS, wallet and backup/restore tests. Staging-smoke passed: `/api/health` returned `ok=true, ready=true`; 24/24 read-only requests succeeded; `/perf` HTML was reachable; p95 769.9 ms. These results do not prove the staging deployment SHA matches the current PR head.
+- Last recorded staging Live SHA remains `5cf3ed56e92e239945ae476ca40537a8bedb1aab`; current Render deployment SHA is NOT VERIFIED. No Render workspace was selected in this inspection.
+- The picomatch advisory `GHSA-fc5q-39xc-vjpf` has no published patched version in the advisory data; it is reached through Vite build/test dependencies in `@nova/web`. Keep it explicitly visible as a development-toolchain risk; do not suppress other high/critical findings.
+- **NEXT ACTION:** obtain a full CI run for the current branch head; fix the three Prettier failures and make the web-workspace audit distinguish its known build-only picomatch advisory from production dependencies; then rerun Playwright and Lighthouse. Verify current staging SHA and `/api/health` via read-only staging access.
+- Production proof: `main` last observed at base SHA `bdbeb20881f9b6cef51ff5a9d8a3b80131079a50`; production Render last observed at `c3cee61906b88ff111b3a645db55c9c2503cd8f7`. No main, production Render or Supabase writes were made. Phase 7 remains LOCKED until exact text `APPROVE RELEASE`.
 
 ## Phase 1–6 implementation and automated evidence
 - NOVA 2.0 modular React/Vite app, Node API, shared contracts, PostgreSQL migrations, Darbar, Sakha, Diwan and synthetic mock wallet are present on the isolated rebuild branch.
