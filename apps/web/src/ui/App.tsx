@@ -159,7 +159,7 @@ export function App() {
                 <span>Nova Agents</span>
               </div>
               <p>
-                <a href="/classic">Open Classic NOVA workspace</a>
+                <a href="/classic">{t("home.legacyOpen")}</a>
               </p>
             </section>
           </>
