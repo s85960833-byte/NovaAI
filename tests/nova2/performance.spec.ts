@@ -124,6 +124,14 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
   );
   await diwanScrollMeasurement;
 
+  // This scenario measures UI cadence, not the live provider's network latency.
+  await page.route("**/api/chat/completions", async (route) => {
+    await route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "Provider unavailable" }),
+    });
+  });
   await page.route("**/api/sakha/chat", async (route) => {
     await route.fulfill({
       status: 200,
