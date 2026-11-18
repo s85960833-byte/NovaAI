@@ -144,3 +144,32 @@ These were previously described as a mixture of confirmed dependencies, incomple
 - Test PDF text and scanned PDF separately.
 - Never mark a feature "offline" if it still downloads a model or calls a public endpoint.
 - No paid services or API credits may be enabled as part of this work.
+
+
+## Additional research finding: correct local model/runtime path
+
+Official documentation confirms Transformers.js can run browser models locally through ONNX Runtime, with WASM/CPU as its default backend and WebGPU as an optional accelerated backend. Therefore the PR #104 lab's WebGPU-only gate is an avoidable implementation limitation, not a platform-wide requirement.
+
+Important correction to PR #104 model choice:
+- The exact model `onnx-community/Qwen3-0.6B-ONNX` is listed as derived from Qwen3-0.6B-Base, not an Instruct-tuned checkpoint. It is not the preferred assistant-chat model.
+- An ONNX Instruct variant exists: `onnx-community/Qwen3-0.6B-Instruct-ONNX`. Its model card identifies it as converted from `minpeter/Qwen3-0.6B-Instruct`; inspect individual quantized artifact sizes and license before selecting it.
+- Do not simply swap model IDs and assume compatibility/performance. Run prompt-following, Hindi/English, JSON/tool-call, long-context, CPU/WASM, WebGPU and memory tests on target devices first.
+- The existing 570 MB estimate corresponds to the q4f16 artifact in the non-Instruct ONNX repository. Do not apply that size estimate to the Instruct repository without checking its actual selected files.
+
+Alternative architecture options:
+1. **PWA/web path:** bundle a pinned Transformers.js runtime; use WASM CPU fallback and WebGPU when available; cache model/runtime assets with explicit storage quota/persistence checks. First download still requires internet unless assets are preinstalled.
+2. **Android-native path:** package an Android shell/native module and evaluate LiteRT-LM or MLC LLM for on-device inference. This requires a native APK build and physical-device validation; it is not a drop-in change to the current website.
+3. **Voice path:** evaluate sherpa-onnx for offline ASR/TTS on Android. Google's ML Kit GenAI speech recognition documents Hindi support in beta/selected device modes, but it has device eligibility constraints and should not be treated as universal.
+4. **Documents:** bundle PDF.js and its worker with the app. OCR can be added locally, but Hindi OCR model data and phone performance need separate tests.
+
+Official references reviewed:
+- Transformers.js local browser inference and task coverage: https://huggingface.co/docs/transformers.js/en/index
+- Transformers.js WebGPU support limitations: https://github.com/huggingface/transformers.js/blob/main/packages/transformers/docs/source/guides/webgpu.md
+- Qwen3 0.6B ONNX base model card: https://huggingface.co/onnx-community/Qwen3-0.6B-ONNX
+- Qwen3 0.6B Instruct ONNX model card: https://huggingface.co/onnx-community/Qwen3-0.6B-Instruct-ONNX
+- sherpa-onnx offline ASR documentation: https://k2-fsa.github.io/sherpa/onnx/
+- Android ML Kit speech recognition Hindi/device constraints: https://developers.google.com/ml-kit/genai/speech-recognition/android
+- PDF.js self-hosting/download guidance: https://mozilla.github.io/pdf.js/getting_started/
+- Browser storage persistence and eviction: https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria
+
+These sources establish feasible implementation routes, not that Nova has passed runtime/device tests. The PR #104 local model experiment remains unproven on the user's actual handset and is not integrated into main chat.
