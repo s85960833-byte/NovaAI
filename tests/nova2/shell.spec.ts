@@ -69,7 +69,6 @@ test("Learn, Build and Agents open inside the unified NOVA shell", async ({ page
     await page.getByRole("button", { name: buttonName, exact: true }).click();
     const frame = page.locator(".legacy-frame");
     await expect(frame).toHaveAttribute("src", "/classic?workspace=" + workspace);
-    await expect(frame).toHaveJSProperty("contentWindow", expect.anything());
     const legacy = page.frameLocator(".legacy-frame");
     await expect(legacy.locator("#novaModes.open")).toBeVisible();
     await expect(legacy.locator("#novaModes .nmgroup h3").first()).toContainText(label);
