@@ -71,7 +71,7 @@ test('uses WebGPU Q4F16 when available and returns generated assistant text', as
   assert.match(h.inputs[0][0].content, /Respond in the user's language/);
   assert.equal(h.calls[0].options.device, 'webgpu');
   assert.equal(h.calls[0].options.dtype, 'q4f16');
-  assert.match(h.calls[0].options.chat_template, /<\\|im_start\\|>/, 'Qwen3 generation must provide the model chat template explicitly');
+  assert.ok(h.calls[0].options.chat_template.includes('<|im_start|>'), 'Qwen3 generation must provide the model chat template explicitly');
   assert.equal(h.calls[0].options.tokenizer_encode_kwargs.enable_thinking, false, 'Qwen3 must use concise non-thinking responses on device');
   assert.equal(h.calls[0].options.do_sample, true, 'Qwen3 should not use greedy decoding by default');
   assert.equal(h.api.getStatus().backend, 'webgpu');
