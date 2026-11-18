@@ -29,10 +29,10 @@ msgs.push({role:'assistant',content:m.content||'',tool_calls:m.tool_calls});
 for(const tc of m.tool_calls){let a={},o;try{a=JSON.parse(tc.function.arguments||'{}');o=await runTool(tc.function.name,a)}catch(e){o='Error: '+e.message}res.push(tc.function.name+'('+JSON.stringify(a)+') = '+(/^Error/.test(o)?'(tool unavailable for this step: compute it carefully yourself and say it is unchecked)':o));msgs.push({role:'tool',tool_call_id:tc.id,content:String(o)})}}
 return res.length?'\n\nVerified results from the exact calculator (use exactly these values in your answer and show the steps):\n'+res.join('\n'):''}
 const mathify=h=>{if(!window.katex)return h;const f=(t,d)=>{try{return katex.renderToString(t.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&'),{output:'mathml',displayMode:d,throwOnError:false})}catch(e){return t}};return h.split(/(<pre>[\s\S]*?<\/pre>)/).map(x=>x.startsWith('<pre>')?x:x.replace(/\\\[([\s\S]+?)\\\]/g,(m,t)=>f(t,true)).replace(/\\\(([\s\S]+?)\\\)/g,(m,t)=>f(t,false))).join('')};
-async function llm(p){if(SMP)return (await SMP(p,{cache:false})).text;
-const cf=SV?{base:API,key:'-',model:SV.model}:((S.cfg.key?S.cfg:BUILT_IN)||S.cfg);if(!cf.key||!cf.model||!cf.base)return '';
-const r=await fetch(cf.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+cf.key},body:JSON.stringify({model:cf.model,stream:true,messages:[{role:'user',content:p}]})});if(!r.ok)return '';
-const rd=r.body.getReader(),dec=new TextDecoder();let buf='',o='';for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();for(const l of ls){if(!l.startsWith('data:'))continue;const x=l.slice(5).trim();if(x==='[DONE]')continue;try{o+=JSON.parse(x).choices[0].delta.content||''}catch(e){}}}return o}
+async function llm(p){
+if(!SV||!SV.local||!window.NovaLocalAI)return '';
+return window.NovaLocalAI.generate([{role:'user',content:String(p||'')}],{max_new_tokens:320});
+}
 async function trUI(){const l=S.rl;if(!l||l==='Auto'||l==='English'||l==='Hindi'||(S.tr&&S.tr[l]&&S.tr[l].arT)||!(SMP||SV||S.cfg.key||BUILT_IN))return;
 $('in').placeholder='…';try{const o=await llm('Translate the string values of this JSON into '+l+'. Keep the keys, the emoji and symbols (＋ ⬇ ⬆ ⚙ 🧠 🔒 🌐), the name Nova AI and all HTML tags and the placeholder {s} unchanged. Reply with ONLY the JSON.\n'+JSON.stringify(T.en));
 const j=JSON.parse(o.slice(o.indexOf('{'),o.lastIndexOf('}')+1));if(j.chips&&j.privacy&&j.hello){S.tr=S.tr||{};S.tr[l]=Object.assign({},T.en,j);save()}}catch(e){}
@@ -620,11 +620,17 @@ const imopt=mkEl('div','imopt');imopt.id='imopt';imopt.hidden=true;
 function paintOpt(){imopt.textContent='';Object.keys(DIM).forEach(k=>{const b=mkEl('button',IMS.ar===k?'on':'',k);b.type='button';b.onclick=()=>{IMS.ar=k;S.imar=k;save();paintOpt()};imopt.append(b)});const e=mkEl('button',IMS.enh?'on':'',tI('enh'));e.type='button';e.setAttribute('aria-pressed',IMS.enh);e.onclick=()=>{IMS.enh=!IMS.enh;S.imenh=IMS.enh;save();paintOpt()};imopt.append(e)}
 paintOpt();$('imbar').after(imopt);
 try{S.chats.forEach(c=>c.m.forEach(m=>{if(m.gen){delete m.gen;m.e=1;m.c=tI('fail')}}))}catch(e){}
-async function enhance(v,sig){const cf=SV?{base:API,key:'-',model:SV.model}:(S.cfg&&S.cfg.key?S.cfg:BUILT_IN);if(SMP||!cf||!cf.key||!cf.model||!cf.base)return v;
-const c=new AbortController(),tm=setTimeout(()=>c.abort(),15000),f=()=>c.abort();sig.addEventListener('abort',f);
-try{const r=await fetch(cf.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:c.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+cf.key},body:JSON.stringify({model:cf.model,stream:false,max_tokens:250,temperature:.7,messages:[{role:'system',content:"You write prompts for a text-to-image model. Translate the user's request into English if needed, then expand it into ONE vivid prompt (subject, setting, style, lighting, composition, colours) of at most 70 words. Keep the user's intent and any text that must appear in the picture exactly. Output only the prompt."},{role:'user',content:v}]})});
-if(!r.ok)return v;const j=await r.json(),o=(((j.choices||[])[0]||{}).message||{}).content;return typeof o==='string'&&o.trim().length>3&&o.length<900?o.trim().replace(/^["']|["']$/g,''):v}
-catch(e){if(sig.aborted)throw e;return v}finally{clearTimeout(tm);sig.removeEventListener('abort',f)}}
+async function enhance(v,sig){
+if(!SV||!SV.local||!window.NovaLocalAI)return v;
+if(sig&&sig.aborted)throw{name:'AbortError'};
+try{
+const out=await window.NovaLocalAI.generate([
+{role:'system',content:"You write prompts for a text-to-image model. Translate the user's request into English if needed, then expand it into ONE vivid prompt (subject, setting, style, lighting, composition, colours) of at most 70 words. Keep the user's intent and any text that must appear in the picture exactly. Output only the prompt."},
+{role:'user',content:String(v||'')}
+],{signal:sig,max_new_tokens:120});
+return typeof out==='string'&&out.trim().length>3&&out.length<900?out.trim().replace(/^["']|["']$/g,''):v;
+}catch(e){if(sig&&sig.aborted)throw e;return v}
+}
 async function getImg(u,sig){const r=await fetch(u,{signal:sig});if(!r.ok)throw{status:r.status};const b=await r.blob();if(!/^image\//.test(b.type)||b.size<2000)throw{status:502};return b}
 async function toData(b){const u=URL.createObjectURL(b);try{const im=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=u});const k=Math.min(1,1024/Math.max(im.naturalWidth,im.naturalHeight)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));c.getContext('2d').drawImage(im,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.86)}finally{URL.revokeObjectURL(u)}}
 async function pollin(p,ar,seed,sig){const d=DIM[ar]||DIM['1:1'];let last={status:502};
@@ -653,7 +659,7 @@ $('imbar').onclick=()=>setIM(null);
 setTimeout(()=>{loadJS('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js').then(()=>{try{render()}catch(e){}}).catch(()=>{})},1200);
 fetch(API+'/config').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.model){SV=j;$('cfg').style.display='none';if(j.live||j.web){$('web').hidden=false;paintLive();loadWN()}first=true;syncFeatures();render();trUI()}}).catch(()=>{});
 $('web').onclick=()=>{const o=['auto','on','off'],n=o[(o.indexOf(S.live||'auto')+1)%3];S.live=n;save();paintLive();toast(LS(n==='on'?'liveOn':n==='off'?'liveOff':'liveAuto'))};
-try{if(window.claude&&claude.use)claude.use('sample').then(s=>{if(s){SMP=s;$('cfg').style.display='none';first=true;syncFeatures();render();trUI()}}).catch(()=>{})}catch(e){}
+// Hosted AI connectors are intentionally not initialized: NOVA runs browser-local models only.
 
 const SEN=/[.!?।؟]+["')\]]*\s|[。！？]|\n+/g;
 const clean=s=>s.replace(/```[\s\S]*?```/g,' ').replace(/https?:\/\/\S+/g,' ').replace(/\[(\d+)\]/g,' ').replace(/[`*#_>|~]/g,' ').replace(/\p{Extended_Pictographic}/gu,' ').replace(/\s+/g,' ').trim();
