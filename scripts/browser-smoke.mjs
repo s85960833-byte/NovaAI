@@ -82,7 +82,8 @@ try{
  assert.equal(syncAsset.loaded,true,'cloud-sync merge helper must execute before app initialization');
  console.log('PASS cloud-sync merge helper route, MIME type and browser global');
  const csp=await desktop.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content');
- assert.ok(csp.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net"),'script CSP must allow only reviewed self/CDN script sources');
+ assert.ok(csp.includes("script-src 'self' blob: 'wasm-unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net"),'script CSP must allow only reviewed self/CDN script sources plus WASM compilation');
+ assert.doesNotMatch(csp,/script-src[^;]*'unsafe-eval'(?!-wasm)/,'script CSP must not allow general JavaScript eval');
  assert.doesNotMatch(csp,/script-src[^;]*'unsafe-inline'/,'script CSP must not permit inline execution');
  assert.match(csp,/worker-src[^;]*https:\/\/cdn\.jsdelivr\.net/,'worker CSP must allow the pinned PDF.js worker origin');
  await desktop.locator('#setb').click();
