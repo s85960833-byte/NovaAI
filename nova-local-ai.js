@@ -3,7 +3,7 @@
   'use strict';
   const MODEL = 'onnx-community/Qwen3-0.6B-Instruct-ONNX';
   const ASR_MODEL = 'onnx-community/whisper-tiny';
-  let transformersPromise = null, pipelinePromise = null, asrPromise = null;
+  let transformersPromise = null, pipelinePromise = null, asrPromise = null, ocrLibraryPromise = null, ocrWorkerPromise = null;
   let generator = null, transcriber = null;
   let backend = 'not-loaded', asrBackend = 'not-loaded';
   const status = (cb, message) => { try { cb && cb(message); } catch (_) {} };
@@ -80,13 +80,56 @@
     });
     return asrPromise;
   }
+  async function loadOcr(onStatus) {
+    if (ocrWorkerPromise) return ocrWorkerPromise;
+    ocrWorkerPromise = (async () => {
+      status(onStatus, 'Preparing local photo text reader (English + Hindi)… first use downloads OCR files.');
+      const { createWorker } = await (ocrLibraryPromise ||= import('https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/+esm'));
+      return createWorker('eng+hin', 1, {
+        logger: message => {
+          if (message && message.status) status(onStatus, 'Photo OCR: ' + message.status + (Number.isFinite(message.progress) ? ' ' + Math.round(message.progress * 100) + '%' : ''));
+        }
+      });
+    })().catch(error => { ocrWorkerPromise = null; throw error; });
+    return ocrWorkerPromise;
+  }
+  async function enrichImages(messages, options = {}) {
+    const signal = options.signal;
+    const out = (Array.isArray(messages) ? messages : []).map(message => ({
+      ...message,
+      content: Array.isArray(message && message.content) ? message.content.map(part => ({ ...part })) : message.content
+    }));
+    for (const message of out) {
+      if (!Array.isArray(message.content)) continue;
+      const imageParts = message.content.filter(part => part && part.type === 'image_url');
+      for (const part of imageParts) {
+        cancelled(signal);
+        const url = part.image_url && part.image_url.url;
+        if (typeof url !== 'string' || !url.startsWith('data:image/')) continue;
+        try {
+          const worker = await loadOcr(options.onStatus);
+          cancelled(signal);
+          const result = await worker.recognize(url);
+          cancelled(signal);
+          const extracted = String(result && result.data && result.data.text || '').trim();
+          if (extracted) message.content.push({ type: 'text', text: '[Local OCR text from the attached photo; recognition may contain mistakes. Use this text as evidence, not as a full visual description.]\\n' + extracted.slice(0, 12000) });
+          else message.content.push({ type: 'text', text: '[Local OCR did not detect readable text in this photo. This local model cannot identify objects or interpret image pixels.]' });
+        } catch (error) {
+          if (error && error.name === 'AbortError') throw error;
+          message.content.push({ type: 'text', text: '[Local OCR could not read this photo. Please type the visible text.]' });
+        }
+      }
+    }
+    return out;
+  }
   function normalizeMessages(messages) {
     return (Array.isArray(messages) ? messages : []).map(message => {
       let content = message && message.content;
       if (Array.isArray(content)) {
         const textParts = content.filter(part => part && part.type === 'text').map(part => String(part.text || ''));
         const hasImage = content.some(part => part && part.type === 'image_url');
-        if (hasImage) textParts.push('[A photo was attached. This local text-only model cannot inspect image pixels yet. Please type the question text.]');
+        const hasOcr = textParts.some(text => text.startsWith('[Local OCR text from the attached photo'));
+        if (hasImage && !hasOcr) textParts.push('[A photo was attached. Local Nova can extract readable text with OCR but cannot identify objects or fully interpret image pixels yet.]');
         content = textParts.join('\n');
       }
       return { role: message.role === 'assistant' ? 'assistant' : message.role === 'system' ? 'system' : 'user', content: String(content || '') };
@@ -97,7 +140,9 @@
     cancelled(signal);
     const model = await load(options.onStatus);
     cancelled(signal);
-    const output = await model(normalizeMessages(messages), {
+    const preparedMessages = await enrichImages(messages, options);
+    cancelled(signal);
+    const output = await model(normalizeMessages(preparedMessages), {
       max_new_tokens: Math.max(64, Math.min(700, Number(options.max_new_tokens) || 420)),
       do_sample: false
     });
