@@ -82,22 +82,60 @@ export function SakhaPanel({ locale }: Props) {
     setBusy(true);
     setNotice("");
     try {
-      const response = await fetch("/api/sakha/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ content, language: locale }),
-      });
-      if (!response.ok) throw new Error("MOCK_API_UNAVAILABLE");
-      const data = (await response.json()) as { reply: string; mode: string; stored: boolean };
+      const conversation = [...base, userMessage]
+        .slice(-12)
+        .map(({ role, content: messageContent }) => ({ role, content: messageContent }));
+      let assistantReply = "";
+      let replyMode: "live" | "mock" = "mock";
+      try {
+        const liveResponse = await fetch("/api/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            messages: conversation,
+            stream: false,
+            temperature: 0.2,
+            max_tokens: 1200,
+          }),
+        });
+        if (liveResponse.ok) {
+          const liveData = (await liveResponse.json()) as {
+            choices?: Array<{ message?: { content?: unknown } }>;
+          };
+          const candidate = liveData.choices?.[0]?.message?.content;
+          if (typeof candidate === "string" && candidate.trim()) {
+            assistantReply = candidate.trim();
+            replyMode = "live";
+          }
+        }
+      } catch {
+        // The legacy NOVA provider may be offline; use the clearly labelled mock preview below.
+      }
+      if (!assistantReply) {
+        const previewResponse = await fetch("/api/sakha/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ content, language: locale }),
+        });
+        if (!previewResponse.ok) throw new Error("SAKHA_UNAVAILABLE");
+        const previewData = (await previewResponse.json()) as {
+          reply: string;
+          mode: string;
+          stored: boolean;
+        };
+        assistantReply = previewData.reply;
+        replyMode = previewData.mode === "mock" ? "mock" : "live";
+      }
       addMessage(chat.id, {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: data.reply,
+        content: assistantReply,
         createdAt: new Date().toISOString(),
-        mode: data.mode === "mock" ? "mock" : "live",
+        mode: replyMode,
       });
-      setNotice(data.mode === "mock" ? t("chat.mock") : t("chat.live"));
+      setNotice(replyMode === "mock" ? t("chat.mock") : t("chat.live"));
     } catch {
       addMessage(chat.id, {
         id: crypto.randomUUID(),
@@ -271,7 +309,7 @@ export function SakhaPanel({ locale }: Props) {
           {busy ? t("common.loading") : <Send size={18} />}
         </button>
       </form>
-      <p className="chat-footnote">{t("chat.mock")}</p>
+      <p className="chat-footnote">{t("chat.localOnly")}</p>
     </section>
   );
 }
