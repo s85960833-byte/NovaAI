@@ -167,3 +167,13 @@ Automated Playwright coverage added for:
 - checking the embedded viewport at 390 × 844 CSS pixels with no horizontal overflow.
 
 **Interpretation:** this is compatibility availability, not native migration or end-to-end feature parity. The original chat/history, voice, search/citations, file/image, login/account and specialist-mode workflows remain individually unverified until their specific parity tests pass. Do not mark them complete because the old page is embedded.
+
+## Full same-origin NOVA bridge — CI #652 (18 November 2026)
+
+The new shell now has two distinct ways to reach the existing product:
+- “Open NOVA workspace” loads the complete original NOVA home at `/classic`.
+- NOVA Learn, NOVA Build and NOVA Agents load the corresponding existing group at `/classic?workspace=...`.
+
+The Account panel opens the original account dialog inside a same-origin iframe and uses the existing account code. CI #652 passed 27/27 Playwright tests including the above surfaces and synthetic account flow. The legacy storage keys and API handlers remain on the original server/origin.
+
+**Do not interpret this bridge as feature parity.** Native migration and end-to-end compatibility still require the feature-specific checks in this matrix for saved-chat round trips, voice/live voice, web-search citations, files, image generation, all 13 specialist modes and hosted account lifecycle. Physical Android/Infinix testing remains NOT VERIFIED.

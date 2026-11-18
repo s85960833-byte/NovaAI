@@ -11,8 +11,9 @@ On `nova-2.0/rebuild`, the original Node server (`nova-server.txt`) remains the 
 - The original NOVA application remains available at same-origin `/classic`; its existing JavaScript, PWA assets, browser storage, cookies and legacy API handlers are retained.
 - The new API runs as a localhost child process. Only `/api/health`, `/api/auth`, `/api/files`, `/api/sakha`, `/api/diwan` and `/api/wallet` are proxied to it. Existing endpoints such as chat completions, web search, image generation, transcription, live data and feeds remain on the original server.
 - Learn, Build and Agents shortcuts open the corresponding existing legacy workspace inside the same-origin shell. They reuse the existing mode registry and per-mode history; they are not placeholder-only cards.
+- The separate “Open NOVA workspace” action opens the full original home at same-origin /classic with no group filter, so legacy chat, saved history, voice, web search, files, image studio and other original controls remain reachable from the same app shell.
 - The `/classic` route alone permits same-origin framing. Other routes keep their restrictive framing policy.
-- The new shell's Account panel embeds `/classic?account=1`, which opens the original NOVA account dialog. It reuses the existing Supabase client and existing sign-in, sign-up, password-recovery, confirmation, sign-out and opt-in cloud-sync flows; sync remains off by default.
+- The new shell's Account panel embeds `/classic?account=1`; on iframe load it activates the original `novaAccountOpen` control, opening the original NOVA account dialog directly. It reuses the existing Supabase client and existing sign-in, sign-up, password-recovery, confirmation, sign-out and opt-in cloud-sync flows; sync remains off by default.
 - The staging blueprint builds the web bundle and starts the original server through the `@nova/api` workspace start command.
 
 This is a **compatibility bridge**, not a completed native React rewrite of every legacy feature. The legacy application remains available while native replacements are implemented and tested.
@@ -21,10 +22,11 @@ This is a **compatibility bridge**, not a completed native React rewrite of ever
 
 - [x] Existing root server retained as the public application entrypoint on the feature branch.
 - [x] New shell served at `/`; original application preserved at same-origin `/classic`.
+- [x] Full original NOVA home routed inside the new shell at same-origin `/classic`.
 - [x] Learn, Build and Agents routed to the original in-app workspace groups.
 - [x] New API process isolated on localhost and selectively proxied.
 - [x] Same-origin framing exception scoped to `/classic`.
-- [x] Existing NOVA Supabase account flow surfaced inside the new shell; no separate account store or second auth project introduced.
+- [x] Existing NOVA Supabase account flow surfaced inside the new shell; the original account dialog is opened automatically in the same-origin iframe; no separate account store or second auth project introduced.
 - [x] Sakha now attempts the original live `/api/chat/completions` provider first, sends recent conversation context, and falls back to the clearly labelled mock preview when the legacy provider is unavailable.
 - [x] Proxy removes stale `Content-Encoding` when forwarding JSON that Express has already decompressed.
 - [x] Playwright coverage added for live Sakha conversation context and explicit mock fallback. These latest added tests still require exact-HEAD CI execution.
@@ -62,3 +64,15 @@ The following are not considered complete merely because the legacy workspace is
 - PR #103 must remain Draft and unmerged until the owner authorizes release.
 - Do not modify `main`, the production Render service, production Supabase, production secrets, payment configuration or real user data during this work.
 - Production deployment to the established original URL is a separate Phase 7 action. It is not authorized until the owner types exactly `APPROVE RELEASE`.
+
+## Exact-head automated verification — CI #652
+
+- Tested feature-branch SHA: `049009d1c72a3035d0f331b669682e864bba0102`.
+- 27/27 Playwright tests passed, including the full original home, all three group shortcuts, the original account dialog and synthetic sign-in/sign-up, same-origin framing, 390px layout and accessibility.
+- Isolated Database job passed RLS/account lifecycle, 5 wallet integration tests and PostgreSQL 17 backup/restore with 5 tables and row counts `3:3:5:6:2`.
+- Lighthouse passed its configured assertions across three emulated mobile runs. Bundle sizes: JS gzip 76,832 bytes; CSS gzip 5,032 bytes.
+- Read-only staging smoke passed 24/24 requests (p95 549.7 ms; /perf reachable), but Render's latest Live deployment is still older SHA `5cf3ed56e92e239945ae476ca40537a8bedb1aab`. This is **not** current-commit deployment evidence.
+
+## Existing production Render build prerequisite
+
+The existing production service is still connected to main, keeps the established NOVA URL and currently has build command `npm install` and start command `node nova-server.txt`. The revised root server can serve the React/Vite shell and launch the new API only when their build artifacts exist. A release therefore needs a controlled production build-command update (install dependencies including build tooling, then run `npm run build`) while retaining the same service identity, URL and start command. This is documented for Phase 7 only; no production setting has been changed. The only authorisation for Phase 7 remains the exact phrase `APPROVE RELEASE`.
