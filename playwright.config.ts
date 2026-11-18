@@ -23,6 +23,7 @@ export default defineConfig({
       AI_KILL_SWITCH: "true",
       PORT: "8787",
       NOVA2_API_PORT: "8788",
+      NOVA2_API_HOST: "127.0.0.1",
       APP_BASE_URL: "http://127.0.0.1:8787",
     },
   },
