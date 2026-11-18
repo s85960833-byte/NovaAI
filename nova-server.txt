@@ -481,6 +481,22 @@ app.get('/nova-business-core.js', (q, r) => r.set('Cache-Control', 'no-cache').t
 app.get('/nova-business.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business.js')));
 app.get('/nova-business-cloud.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-business-cloud.js')));
 app.get('/nova-account.js', (q, r) => r.set('Cache-Control', 'no-cache').type('application/javascript').sendFile(path.join(__dirname, 'nova-account.js')));
+app.use((q, r, next) => {
+  const encoding = q.header('accept-encoding') || '';
+  const acceptsGzip = encoding.split(',').some(part => {
+    const [name, ...parameters] = part.trim().toLowerCase().split(';');
+    const quality = parameters.find(parameter => parameter.trim().startsWith('q='));
+    return name === 'gzip' && (!quality || Number(quality.trim().slice(2)) > 0);
+  });
+  if (q.method !== 'GET' || q.headers.range || !acceptsGzip || !/\.(?:js|css)$/.test(q.path)) return next();
+  const relativePath = q.path.replace(/^\/+/, '');
+  const compressedPath = path.resolve(NOVA2_WEB_ROOT, relativePath + '.gz');
+  if (!compressedPath.startsWith(NOVA2_WEB_ROOT + path.sep) || !fs.existsSync(compressedPath)) return next();
+  r.setHeader('Content-Type', q.path.endsWith('.js') ? 'application/javascript' : 'text/css');
+  r.setHeader('Content-Encoding', 'gzip');
+  r.vary('Accept-Encoding');
+  return r.sendFile(compressedPath);
+});
 app.use(express.static(NOVA2_WEB_ROOT, { index: false, fallthrough: true }));
 app.get('/classic', (q, r) => r.set('Cache-Control', 'no-store, no-cache, must-revalidate').sendFile(path.join(__dirname, 'index.html')));
 app.get('/', (q, r) => {
