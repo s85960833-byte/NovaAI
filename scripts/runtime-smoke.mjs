@@ -21,12 +21,13 @@ await expect('Business Intelligence workspace','/nova-business.js',{},(r,b)=>r.o
 await expect('Business Intelligence cloud/auth client','/nova-business-cloud.js',{},(r,b)=>r.ok&&b.includes('createClient')&&b.includes('nova-bi-api'));
 await expect('mode registry asset','/mode-registry.js',{},(r,b)=>r.ok&&b.includes('NovaModeRegistry'));
 await expect('mode workspace asset','/mode-workspace.js',{},(r,b)=>r.ok&&b.includes('NovaModeWorkspace'));
-const config=JSON.parse(await expect('server config','/api/config',{},(r,b)=>r.ok&&JSON.parse(b).model==='test-model'));
+const config=JSON.parse(await expect('keyless browser-local server config','/api/config',{},(r,b)=>r.ok&&JSON.parse(b).model==='nova-local-browser'&&JSON.parse(b).local===true&&JSON.parse(b).providers?.hostedAi===false));
+if(config.stt!==true||config.providers?.keyless!==true) throw new Error('keyless local voice/provider flags are missing');
 await expect('PWA manifest','/manifest.webmanifest',{},(r,b)=>r.ok&&JSON.parse(b).name.toLowerCase().includes('nova'));
 await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.length>100&&b.includes('nova-config.js')&&b.includes('nova-app.js')&&b.includes('nova-reference.js')&&b.includes('nova-business-core.js')&&b.includes('nova-business-cloud.js'));
 await expect('PWA icon 192','/icons/icon-192.png',{},r=>r.ok);
 await expect('PWA icon 512','/icons/icon-512.png',{},r=>r.ok);
-await expect('chat validation','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
+await expect('hosted chat endpoint disabled in keyless mode','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===410);
 await expect('malformed JSON API body returns JSON 400','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{'},(r,b)=>r.status===400&&JSON.parse(b).error==='Request body must be valid JSON');
 const oversizedJson='{"q":"'+'x'.repeat(6*1024*1024)+'"}';
 await expect('oversized JSON API body returns JSON 413','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:oversizedJson},(r,b)=>r.status===413&&JSON.parse(b).error==='Request body is too large');
@@ -34,7 +35,7 @@ await expect('search validation','/api/search',{method:'POST',headers:{'content-
 await expect('image validation','/api/image',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
 await expect('image job status validation','/api/image/status/not-a-real-job',{},r=>r.status===404);
 await expect('provider fan-out self-test is disabled by default','/api/live/selftest',{},r=>r.status===404);
-await expect('transcription validation','/api/transcribe',{method:'POST',headers:{'content-type':'audio/webm'},body:new Uint8Array()},r=>r.status===400);
+await expect('hosted transcription endpoint disabled in keyless mode','/api/transcribe',{method:'POST',headers:{'content-type':'audio/webm'},body:new Uint8Array()},r=>r.status===410);
 await expect('previous home UI without new four-workspace redesign','/',{},(r,b)=>r.ok&&b.includes('nova-home')&&b.includes('nova-workspaces')&&!b.includes('CHAT & STUDY')&&!b.includes('VOICE CHAT'));
 // Verify throttling runs before JSON parsing: request 61 must be rejected
 // even when its body is malformed, rather than spending parser work first.
