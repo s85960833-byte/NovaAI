@@ -46,7 +46,8 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.73.0",
     "vitest": "4.1.12",
-    "vite": "7.3.8"
+    "vite": "7.3.8",
+    "@vitejs/plugin-react": "5.1.1"
   },
   "overrides": {
     "vite": "7.3.8",

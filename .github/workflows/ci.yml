@@ -33,6 +33,17 @@ jobs:
       - name: Format check
         if: ${{ always() && steps.install.outcome == 'success' }}
         run: set -o pipefail && npm run format:check 2>&1 | tee docs/evidence/format-check.log
+      - name: Generate Prettier repair candidates
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          mkdir -p docs/evidence/prettier-candidates/apps/web/src/perf
+          mkdir -p docs/evidence/prettier-candidates/apps/api/src
+          mkdir -p docs/evidence/prettier-candidates/scripts
+          cp apps/web/src/perf/PerfPage.tsx docs/evidence/prettier-candidates/apps/web/src/perf/PerfPage.tsx
+          cp apps/api/src/index.ts docs/evidence/prettier-candidates/apps/api/src/index.ts
+          cp scripts/check-dependency-audit.mjs docs/evidence/prettier-candidates/scripts/check-dependency-audit.mjs
+          npx prettier --write docs/evidence/prettier-candidates/apps/web/src/perf/PerfPage.tsx docs/evidence/prettier-candidates/apps/api/src/index.ts docs/evidence/prettier-candidates/scripts/check-dependency-audit.mjs
       - name: Unit tests
         if: ${{ always() && steps.install.outcome == 'success' }}
         run: set -o pipefail && npm test 2>&1 | tee docs/evidence/unit-tests.log
