@@ -56,3 +56,8 @@ This is branch/staging integration, not production readiness. Exact-head CI, sta
 ### Group shortcuts
 
 The new NOVA home now links Learn, Build and Agents to their corresponding existing legacy workspace groups using same-origin routes (`/classic?workspace=learn|build|agents`). The original mode-workspace module opens the requested group directly; this reuses the actual existing mode registry and saved per-mode history rather than displaying placeholder cards.
+
+
+### Compatibility with the existing Render command
+
+The staging service's existing start command is `npm run db:migrate:staging && npm run start --workspace @nova/api`. The `@nova/api` workspace's `start` script now launches the original root `nova-server.txt`, which serves the unified React shell and starts the API child process. A separate `start:api` script retains the standalone API-only entrypoint. This lets the current Render start command run the unified app without editing the service's external setting.

@@ -6,11 +6,12 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
+    "start": "node ../../nova-server.txt",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run src",
     "test:money": "vitest run src/money",
-    "test:diwan": "vitest run src/diwan"
+    "test:diwan": "vitest run src/diwan",
+    "start:api": "node dist/index.js"
   },
   "dependencies": {
     "@nova/shared": "2.0.0",
