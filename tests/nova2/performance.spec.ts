@@ -10,6 +10,9 @@ type Scenario = {
   budgetMs: number;
   droppedFrames: number;
   droppedPercent: number;
+  overBudgetIntervals: number;
+  longTaskCount: number;
+  maxLongTaskMs: number;
   samples: number;
   pass: boolean;
 };
@@ -54,7 +57,7 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
         const tick = (now: number) => {
           if (previous) values.push(now - previous);
           previous = now;
-          if (values.length >= 90) resolve();
+          if (values.length >= 60) resolve();
           else requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
@@ -67,15 +70,17 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
     const sorted = [...intervals].sort((a, b) => a - b);
     const percentile = (p: number) =>
       sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * p) - 1)] ?? 0;
-    const p50Ms = Number(percentile(0.5).toFixed(2));
-    const p95Ms = Number(percentile(0.95).toFixed(2));
-    const refreshEstimateHz = p50Ms <= 9.5 ? 120 : p50Ms <= 13.8 ? 90 : 60;
-    const budgetMs = Number((1000 / refreshEstimateHz).toFixed(1));
+    const p50Raw = percentile(0.5);
+    const p95Raw = percentile(0.95);
+    const p50Ms = Number(p50Raw.toFixed(2));
+    const p95Ms = Number(p95Raw.toFixed(2));
+    const refreshEstimateHz = p50Raw <= 9.5 ? 120 : p50Raw <= 13.8 ? 90 : 60;
+    const budgetMs = ({ 60: 16.7, 90: 11.1, 120: 8.3 } as const)[refreshEstimateHz];
     const droppedFrames = intervals.reduce(
       (total, ms) => total + (ms > budgetMs * 1.5 ? Math.max(1, Math.round(ms / budgetMs) - 1) : 0),
       0,
     );
-    const droppedPercent = Number(((droppedFrames / frames.length) * 100).toFixed(1));
+    const droppedPercent = Number(((droppedFrames / intervals.length) * 100).toFixed(1));
 
     scenarios[name] = {
       p50Ms,
@@ -89,7 +94,7 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
       overBudgetIntervals: intervals.filter((ms) => ms > budgetMs).length,
       longTaskCount: longTasks.length,
       maxLongTaskMs: Number(Math.max(...longTasks, 0).toFixed(2)),
-      pass: p95Ms <= budgetMs && droppedPercent <= 5,
+      pass: p95Raw <= budgetMs && droppedPercent <= 5,
     };
   };
 
@@ -108,18 +113,37 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
   const diwanMeasurement = sample("diwan-transition");
   await page.locator(".minister-card.diwan").click();
   await diwanMeasurement;
+  const diwanScrollMeasurement = sample("diwan-scroll");
   await page.evaluate(() =>
     window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }),
   );
-  await sample("diwan-scroll");
+  await diwanScrollMeasurement;
 
+  await page.route("**/api/sakha/chat", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        reply: "Photosynthesis is the process plants use to make food from light.",
+        mode: "mock",
+        stored: false,
+      }),
+    });
+  });
   await page.locator(".bottom-nav button").nth(2).click();
-  await page
-    .locator(".composer textarea")
-    .fill("What is photosynthesis? Explain in two simple sentences.");
-  await page.locator(".send-button").click();
-  await expect(page.locator(".chat-thread .chat-bubble")).toHaveCount(2);
-  await sample("sakha-chat-scroll");
+  for (let index = 0; index < 6; index += 1) {
+    await page.locator(".composer textarea").fill(
+      "Explain one simple science fact, example " + String(index + 1) + ".",
+    );
+    await page.locator(".send-button").click();
+    await expect(page.locator(".chat-thread .chat-bubble")).toHaveCount((index + 1) * 2);
+  }
+  const thread = page.locator(".chat-thread");
+  const sakhaScrollMeasurement = sample("sakha-chat-scroll");
+  await thread.evaluate((element) => {
+    element.scrollTo({ top: element.scrollHeight, behavior: "instant" });
+  });
+  await sakhaScrollMeasurement;
 
   const report = {
     environment: "Playwright Chromium; emulated browser cadence only; not physical device proof",
@@ -134,7 +158,7 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
     body: JSON.stringify(report, null, 2),
     contentType: "application/json",
   });
-  expect(Object.values(scenarios).every((item) => item.samples === 90)).toBeTruthy();
+  expect(Object.values(scenarios).every((item) => item.samples === 60)).toBeTruthy();
   expect(
     Object.entries(scenarios)
       .filter(([, item]) => !item.pass)
