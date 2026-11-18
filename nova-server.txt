@@ -9,6 +9,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const E = process.env;
+const { generateFreeImage } = require('./nova-image-horde');
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1); // Render sits behind one trusted proxy; use the real client IP for rate limits
@@ -81,30 +82,6 @@ function pruneImageJobs() {
     const oldest = [...imageJobs.values()].sort((a, b) => a.createdAt - b.createdAt);
     for (const job of oldest.slice(0, imageJobs.size - 80)) imageJobs.delete(job.id);
   }
-}
-async function generateFreeImage(prompt, body) {
-  // Image generation uses an anonymous public endpoint and never reads a provider credential.
-  const freeOnly = body.freeOnly === true;
-  if (E.IMAGE_OFF) throw new Error('Image generation is disabled');
-  const w = Math.min(1024, Number(body.width) || 768), h = Math.min(1024, Number(body.height) || 768);
-  const seed = Number(body.seed) || Math.floor(Math.random() * 1e9);
-  const qs = 'width=' + w + '&height=' + h + '&seed=' + seed + '&nologo=true&safe=true&enhance=false';
-  const tries = freeOnly ? [] : [['https://image.pollinations.ai/prompt/', 'flux'], ['https://image.pollinations.ai/prompt/', 'turbo']];
-  for (const [host, model] of tries) {
-    try {
-      const u = await fetch(host + encodeURIComponent(prompt) + '?' + qs + '&model=' + model, {
-        signal: AbortSignal.timeout(30000)
-      });
-      const type = String(u.headers.get('content-type') || '').split(';')[0];
-      if (u.ok && /^image\//.test(type)) {
-        const buf = Buffer.from(await u.arrayBuffer());
-        if (buf.length > 1000 && buf.length <= 8 * 1024 * 1024) {
-          return { image: 'data:' + type + ';base64,' + buf.toString('base64'), provider: 'anonymous-pollinations' };
-        }
-      }
-    } catch (e) { /* try the next anonymous public endpoint */ }
-  }
-  throw new Error('Anonymous image generation is unavailable right now; retry later.');
 }
 app.post('/api/image', (q, r) => {
   const body = q.body || {}, prompt = String(body.prompt || '').trim().slice(0, 1000);
