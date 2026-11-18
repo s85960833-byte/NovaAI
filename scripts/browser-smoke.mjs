@@ -236,7 +236,8 @@ try{
  await desktop.evaluate(()=>{
   window.__novaRealLocalAI=window.NovaLocalAI;
   Object.defineProperty(window,'NovaLocalAI',{configurable:true,writable:true,value:{
-   generate:(messages,options={})=>window.__novaLocalGenerateForTest({messages,max_new_tokens:options.max_new_tokens})
+   generate:(messages,options={})=>window.__novaLocalGenerateForTest({messages,max_new_tokens:options.max_new_tokens}),
+   transcribe:async(samples,options={})=>{window.__novaVoiceLang=options.language;window.__novaWhisperSampleCount=samples.length;return{text:'Voice transcript smoke test',backend:'wasm'}}
   }});
  });
  const imageRequests=[];
@@ -261,27 +262,39 @@ try{
  assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK_1'),'Agents chat must persist the assistant reply in its own mode history');
  console.log('PASS Agents chat round trip through local AI, assistant response and per-mode history persistence');
 
- // Simulate the browser speech-recognition API to test the voice-to-chat bridge without claiming hardware microphone access.
+ // Simulate MediaRecorder and local audio decoding so the voice-to-local-Whisper bridge is deterministic without microphone hardware.
  await desktop.locator('#nmBack').click();
  await desktop.locator('#nmContent [data-mode="voice"]').click();
  await desktop.locator('#nmVoiceLang').waitFor();
  await desktop.locator('#nmVoiceLang').selectOption('hi-IN');
  await desktop.evaluate(()=>{
   window.__novaVoiceLang='';
-  window.SpeechRecognition=class{
-   constructor(){this.lang='';}
-   start(){window.__novaVoiceLang=this.lang;setTimeout(()=>this.onresult?.({results:[[{transcript:'Voice transcript smoke test'}]]}),0);}
-   stop(){}
+  window.__novaWhisperSampleCount=0;
+  window.__novaRecorderState='idle';
+  Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>({getTracks:()=>[{stop(){}}]})}});
+  class FakeMediaRecorder{
+   static isTypeSupported(){return true}
+   constructor(stream,options={}){this.stream=stream;this.mimeType=options.mimeType||'audio/webm';this.state='inactive'}
+   start(){this.state='recording';window.__novaRecorderState='recording'}
+   stop(){this.state='inactive';this.ondataavailable?.({data:new Blob([new Uint8Array([1,2,3])],{type:this.mimeType})});window.__novaRecorderState='stopped';this.onstop?.()}
+  }
+  window.MediaRecorder=FakeMediaRecorder;
+  window.AudioContext=class{
+   async decodeAudioData(){return{sampleRate:16000,getChannelData:()=>{const samples=new Float32Array(16000);samples.fill(.01);return samples}}}
+   async close(){}
   };
  });
  await desktop.locator('#nmMic').click();
+ await desktop.waitForFunction(()=>window.__novaRecorderState==='recording');
+ await desktop.locator('#nmMic').click();
  await desktop.waitForFunction(()=>[...document.querySelectorAll('#nmContent .nmchat .nmbubble.assistant')].some(el=>el.textContent.includes('NOVA_CHAT_FLOW_OK_2')));
- assert.equal(await desktop.evaluate(()=>window.__novaVoiceLang),'hi-IN','voice recognition must use the selected Hindi (India) language');
- assert.equal(modeChatRequests.length,2,'voice transcription must submit exactly one additional chat request');
+ assert.equal(await desktop.evaluate(()=>window.__novaVoiceLang),'hi','local Whisper must receive the selected Hindi language code');
+ assert.equal(await desktop.evaluate(()=>window.__novaWhisperSampleCount),16000,'voice audio must be decoded and resampled to 16 kHz');
+ assert.equal(modeChatRequests.length,2,'local voice transcription must submit exactly one additional local model request');
  const voiceHistory=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova_modes_v1')||'{}').histories?.voice||[]);
  assert.ok(voiceHistory.some(m=>m.role==='user'&&m.text==='Voice transcript smoke test'),'voice transcript must enter the Voice mode history');
  assert.ok(voiceHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK_2'),'voice reply must persist in the Voice mode history');
- console.log('PASS mocked voice recognition, Hindi language selection, transcription-to-local-chat bridge and Voice history persistence');
+ console.log('PASS local MediaRecorder-to-Whisper voice bridge, Hindi selection, 16 kHz resampling and Voice history persistence');
 
  // Agents Studio must also use the browser-local model rather than the disabled hosted endpoint.
  await desktop.locator('#nmBack').click();
