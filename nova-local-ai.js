@@ -112,7 +112,7 @@
           const result = await worker.recognize(url);
           cancelled(signal);
           const extracted = String(result && result.data && result.data.text || '').trim();
-          if (extracted) message.content.push({ type: 'text', text: '[Local OCR text from the attached photo; recognition may contain mistakes. Use this text as evidence, not as a full visual description.]\\n' + extracted.slice(0, 12000) });
+          if (extracted) message.content.push({ type: 'text', text: '[Local OCR text from the attached photo; recognition may contain mistakes. Use this text as evidence, not as a full visual description.]\n' + extracted.slice(0, 12000) });
           else message.content.push({ type: 'text', text: '[Local OCR did not detect readable text in this photo. This local model cannot identify objects or interpret image pixels.]' });
         } catch (error) {
           if (error && error.name === 'AbortError') throw error;
