@@ -18,7 +18,8 @@
     "sakhaTitle": "सखा",
     "sakhaDesc": "आपका रोज़मर्रा का हिंदी और English सहायक",
     "legacyTitle": "पुराने कार्यक्षेत्र",
-    "legacyDesc": "आपके मौजूदा Learn, Build और दूसरे टूल यहाँ उपलब्ध रहेंगे।"
+    "legacyDesc": "आपके मौजूदा Learn, Build और दूसरे टूल यहाँ उपलब्ध रहेंगे।",
+    "legacyOpen": "पुराना NOVA कार्यक्षेत्र खोलें"
   },
   "common": {
     "language": "भाषा",
