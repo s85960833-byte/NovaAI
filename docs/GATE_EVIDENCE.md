@@ -2,7 +2,7 @@
 
 **Evidence policy:** a gate is PASS only for the scope directly tested on the exact referenced commit. Historical CI results are not current-head proof. Local/CI success does not imply hosted Auth, physical-device or production verification. Production and NOVA 1.0 remain read-only.
 
-## Current HEAD status before the corrective commit
+## Historical CI #586 baseline (before the c25b827 correction)
 
 - Branch: `nova-2.0/rebuild`
 - HEAD: `478c286c488898430a7adad4e06687b190e36c17`
@@ -48,3 +48,16 @@
 7. Qualified privacy/legal review, owner UI/copy/pricing/scheme decisions, and exact release phrase.
 
 Phase 7 remains LOCKED until the owner types exactly `APPROVE RELEASE`.
+
+
+## CI #587 — corrective baseline evidence
+
+- PR branch head: `c25b8273113653122c5d3cd6af34b6f09099c7fe`; GitHub PR merge ref tested: `3f07938d361342e14a7b903ce7ac65a61fae4cfd`.
+- Workflow run: [CI #587](https://github.com/s85960833-byte/NovaAI/actions/runs/44213045004).
+- Passed: npm ci, TypeScript, ESLint, unit tests, i18n (137 keys), scheme validation, secret scan, 150 synthetic evals, build, bundle budget (79,527 JS gzip bytes; 4,555 CSS gzip bytes), isolated database job and staging-smoke job.
+- Failed: Prettier on four changed files; the root-level production audit command included Vite's dev toolchain; Playwright 1.56.1 cannot install Chromium on the Ubuntu 26.04 runner image; Lighthouse performance score 0.76 and LCP 5.873–6.127 seconds.
+- Lighthouse root cause: Express served raw JS/CSS. The main JS asset transferred 209,394 bytes and took 5.18 seconds under the configured mobile throttling. LCP element render delay was 5,469 ms; TTFB was 404 ms. Main-thread work was 0.4 s and TBT 10 ms, so the principal issue was uncompressed asset delivery rather than long JavaScript tasks.
+- Database artifact: [nova2-database-evidence.zip](https://github.com/s85960833-byte/NovaAI/actions/runs/44213045004/artifacts/14386803759). Clean migration/reset, RLS/schema and synthetic account lifecycle checks passed; 5/5 PostgreSQL wallet/webhook integration tests passed; backup/restore restored 5 tables and matched row counts `3:3:5:6:2`.
+- Staging artifact: [nova2-staging-load-evidence.zip](https://github.com/s85960833-byte/NovaAI/actions/runs/44213045004/artifacts/14386354196). 24/24 read-only requests passed; p50 203.9 ms, p95 564.9 ms, max 619.6 ms; the public `/perf` route returned expected HTML. This check still hit the older Live staging SHA `5cf3ed56e92e239945ae476ca40537a8bedb1aab`, not the PR branch.
+- Lighthouse artifact: [nova2-lighthouse-evidence.zip](https://github.com/s85960833-byte/NovaAI/actions/runs/44213045004/artifacts/14387655746).
+- CI #587 is not a green release gate. The next PR head must rerun all checks after the corrections described in the current commit.

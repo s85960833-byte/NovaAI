@@ -3,7 +3,8 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import { randomUUID } from "node:crypto";
-import { dirname, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { dirname, extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   chatMessageSchema,
@@ -282,6 +283,52 @@ app.post("/api/wallet/mock/spend", async (req, res) => {
   }
 });
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../web/dist");
+const gzipStatic = express.static(webRoot, {
+  index: false,
+  fallthrough: true,
+  setHeaders: (res, filePath) => {
+    const extension = extname(filePath.slice(0, -3));
+    res.setHeader(
+      "Content-Type",
+      extension === ".js" ? "application/javascript" : "text/css",
+    );
+    res.setHeader("Content-Encoding", "gzip");
+    res.vary("Accept-Encoding");
+  },
+});
+app.use((req, res, next) => {
+  const encoding = req.header("accept-encoding") ?? "";
+  const acceptsGzip = encoding.split(",").some((part) => {
+    const [name, ...parameters] = part.trim().toLowerCase().split(";");
+    const quality = parameters.find((parameter) => parameter.trim().startsWith("q="));
+    return name === "gzip" && (!quality || Number(quality.trim().slice(2)) > 0);
+  });
+  if (
+    req.method !== "GET" ||
+    req.header("range") ||
+    !acceptsGzip ||
+    !/\.(?:js|css)$/.test(req.path)
+  ) {
+    return next();
+  }
+
+  const relativePath = req.path.replace(/^\/+/, "");
+  const compressedPath = resolve(webRoot, relativePath + ".gz");
+  if (!compressedPath.startsWith(webRoot + sep) || !existsSync(compressedPath)) {
+    return next();
+  }
+
+  const originalUrl = req.url;
+  const queryIndex = originalUrl.indexOf("?");
+  const pathname = queryIndex < 0 ? originalUrl : originalUrl.slice(0, queryIndex);
+  const query = queryIndex < 0 ? "" : originalUrl.slice(queryIndex);
+  req.url = pathname + ".gz" + query;
+  return gzipStatic(req, res, (error) => {
+    req.url = originalUrl;
+    if (error) return next(error);
+    return next();
+  });
+});
 app.use(express.static(webRoot, { index: false, fallthrough: true }));
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api/")) return next();

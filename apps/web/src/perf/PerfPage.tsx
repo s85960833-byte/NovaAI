@@ -39,8 +39,7 @@ function measureCadence(frames: number[]): Result {
     droppedFrames,
     droppedPercent,
     samples: frames.length,
-    pass:
-      p95Ms <= budgetMs + FRAME_TIME_JITTER_TOLERANCE_MS && droppedPercent <= 5,
+    pass: p95Ms <= budgetMs + FRAME_TIME_JITTER_TOLERANCE_MS && droppedPercent <= 5,
   };
 }
 
@@ -176,7 +175,7 @@ export function PerfPage() {
         <p className="perf-caveat">
           Refresh rate is an estimate inferred from requestAnimationFrame timing, not a direct
           hardware-panel reading. Browser throttling, power saver, background tabs and variable
-          refresh rate can affect it. The p95 pass threshold includes a 0.50 ms browser-timer
+          refresh rate can affect it. The p95 pass threshold includes a 0.15 ms browser-timer
           tolerance; dropped frames remain a separate limit. This page does not certify 90/120 Hz
           hardware.
         </p>

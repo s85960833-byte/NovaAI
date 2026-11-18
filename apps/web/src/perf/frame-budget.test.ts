@@ -1,10 +1,5 @@
 import { it, expect } from "vitest";
-import {
-  evaluateFrame,
-  percentile,
-  FRAME_BUDGET_MS,
-  estimateRefreshRate,
-} from "./frame-budget.js";
+import { evaluateFrame, percentile, FRAME_BUDGET_MS, estimateRefreshRate } from "./frame-budget.js";
 it("uses native refresh-rate frame budgets", () => {
   expect(FRAME_BUDGET_MS[120]).toBe(8.3);
   expect(FRAME_BUDGET_MS[90]).toBe(11.1);
@@ -24,5 +19,5 @@ it("calculates p95 from frame samples", () => {
 
 it("allows only small browser RAF timer jitter around the nominal frame budget", () => {
   expect(evaluateFrame(16.8, 60).withinBudget).toBe(true);
-  expect(evaluateFrame(17.3, 60).withinBudget).toBe(false);
+  expect(evaluateFrame(16.86, 60).withinBudget).toBe(false);
 });

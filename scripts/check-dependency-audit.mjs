@@ -1,8 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-const allowedAdvisory =
-  "https://github.com/advisories/GHSA-fc5q-39xc-vjpf";
+const allowedAdvisory = "https://github.com/advisories/GHSA-fc5q-39xc-vjpf";
 
 function runNpm(args) {
   const result = spawnSync(npmCommand, args, {
@@ -15,14 +14,21 @@ function runNpm(args) {
   return result;
 }
 
-// Production dependencies must always be fully clear of high/critical advisories.
-const production = runNpm(["audit", "--omit=dev", "--audit-level=high"]);
-if (production.status !== 0) {
-  process.stderr.write(production.stdout || "");
-  process.stderr.write(production.stderr || "");
-  throw new Error("PRODUCTION_DEPENDENCY_AUDIT_FAILED");
+// Audit the production dependency graph of every runtime workspace separately.
+for (const workspace of ["@nova/api", "@nova/web", "@nova/shared"]) {
+  const production = runNpm([
+    "audit",
+    "--workspace=" + workspace,
+    "--omit=dev",
+    "--audit-level=high",
+  ]);
+  if (production.status !== 0) {
+    process.stderr.write(production.stdout || "");
+    process.stderr.write(production.stderr || "");
+    throw new Error("PRODUCTION_DEPENDENCY_AUDIT_FAILED: " + workspace);
+  }
+  process.stdout.write("PRODUCTION_DEPENDENCY_AUDIT_PASS: " + workspace + "\n");
 }
-process.stdout.write("PRODUCTION_DEPENDENCY_AUDIT_PASS\n");
 
 // Keep a full-tree audit. The only permitted residual is the currently unpatched
 // development-toolchain picomatch advisory; new advisories remain build blockers.

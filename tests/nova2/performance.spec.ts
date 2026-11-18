@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 // Keep aligned with apps/web/src/perf/frame-budget.ts: browser RAF jitter tolerance.
-const FRAME_TIME_JITTER_TOLERANCE_MS = 0.5;
+const FRAME_TIME_JITTER_TOLERANCE_MS = 0.15;
 
 test.use({ trace: "off", screenshot: "off", video: "off" });
 
@@ -99,8 +99,7 @@ test("profiles entry animation, drawer, Diwan and Sakha interaction frame cadenc
       overBudgetIntervals: intervals.filter((ms) => ms > budgetMs).length,
       longTaskCount: longTasks.length,
       maxLongTaskMs: Number(Math.max(...longTasks, 0).toFixed(2)),
-      pass:
-        p95Raw <= budgetMs + FRAME_TIME_JITTER_TOLERANCE_MS && droppedPercent <= 5,
+      pass: p95Raw <= budgetMs + FRAME_TIME_JITTER_TOLERANCE_MS && droppedPercent <= 5,
     };
   };
 

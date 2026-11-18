@@ -201,3 +201,28 @@ test("account and upload endpoints fail closed when hosted Auth is not configure
   expect(upload.status()).toBe(401);
   expect((await upload.json()).error.code).toBe("SESSION_REQUIRED");
 });
+
+test("serves pre-compressed JavaScript and CSS to gzip-capable browsers", async ({ request }) => {
+  const htmlResponse = await request.get("/", {
+    headers: { "accept-encoding": "gzip" },
+  });
+  expect(htmlResponse.ok()).toBeTruthy();
+  const html = await htmlResponse.text();
+  const scriptPath = html.match(/src="([^"]+\\.js)"/)?.[1];
+  const stylePath = html.match(/href="([^"]+\\.css)"/)?.[1];
+
+  expect(scriptPath).toBeTruthy();
+  expect(stylePath).toBeTruthy();
+
+  const [scriptResponse, styleResponse] = await Promise.all([
+    request.get(scriptPath!, { headers: { "accept-encoding": "gzip" } }),
+    request.get(stylePath!, { headers: { "accept-encoding": "gzip" } }),
+  ]);
+
+  expect(scriptResponse.status()).toBe(200);
+  expect(styleResponse.status()).toBe(200);
+  expect(scriptResponse.headers()["content-encoding"]).toBe("gzip");
+  expect(styleResponse.headers()["content-encoding"]).toBe("gzip");
+  expect(scriptResponse.headers()["content-type"]).toContain("javascript");
+  expect(styleResponse.headers()["content-type"]).toContain("text/css");
+});

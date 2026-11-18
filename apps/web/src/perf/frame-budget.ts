@@ -1,5 +1,5 @@
 export const FRAME_BUDGET_MS = { 120: 8.3, 90: 11.1, 60: 16.7 } as const;
-export const FRAME_TIME_JITTER_TOLERANCE_MS = 0.5;
+export const FRAME_TIME_JITTER_TOLERANCE_MS = 0.15;
 export const MAIN_THREAD_FRAME_BUDGET_MS = 4;
 export const LONG_TASK_BUDGET_MS = 8;
 export type RefreshRate = 120 | 90 | 60;
