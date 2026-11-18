@@ -79,6 +79,8 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: Verify no-provider-key browser-local AI mode
         run: node scripts/keyless-config-smoke.mjs
+      - name: Test anonymous keyless image provider contract
+        run: node --test scripts/image-provider.test.cjs
       - name: Test browser-local AI WebGPU, WASM, caching and cancellation paths
         run: node --test scripts/local-ai.test.mjs
       - name: Start local server with test-only credentials
