@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { gzipSync } from "node:zlib";
 
 async function enterDarbar(page: import("@playwright/test").Page) {
   await page.goto("/");
@@ -178,6 +179,21 @@ test("Sakha API identifies mock replies and does not store server-side", async (
   expect(body.mode).toBe("mock");
   expect(body.stored).toBe(false);
   expect(body.reply).toContain("mock preview");
+});
+
+test("JSON proxy forwards compressed requests after Express inflates them", async ({ request }) => {
+  const compressed = gzipSync(
+    Buffer.from(JSON.stringify({ content: "Compressed hello", language: "en" })),
+  );
+  const response = await request.post("/api/sakha/chat", {
+    headers: {
+      "content-type": "application/json",
+      "content-encoding": "gzip",
+    },
+    data: compressed,
+  });
+  expect(response.ok()).toBeTruthy();
+  expect((await response.json()).mode).toBe("mock");
 });
 
 test("Sakha uses the legacy live provider and includes recent local conversation context", async ({
