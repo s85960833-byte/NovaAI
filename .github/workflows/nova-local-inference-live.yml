@@ -1,0 +1,49 @@
+name: NOVA real keyless inference and live-service verification
+permissions:
+  contents: read
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - nova-local-ai.js
+      - nova-image-horde.js
+      - nova-server.txt
+      - index.html
+      - scripts/real-local-inference-smoke.mjs
+      - .github/workflows/nova-local-inference-live.yml
+  workflow_dispatch:
+concurrency:
+  group: nova-real-local-inference-\${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  real-inference:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 42
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install NOVA runtime dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install offline speech fixture synthesizer
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y espeak-ng
+          espeak-ng --version
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start NOVA with no provider API keys
+        run: |
+          env -u LLM_KEY -u LLM_MODEL -u GROQ_API_KEY -u OPENROUTER_API_KEY -u TAVILY_KEY -u BRAVE_KEY -u IMAGE_KEY -u HORDE_API_KEY -u POLLI_KEY PORT=8787 node nova-server.txt > /tmp/nova-real-inference.log 2>&1 &
+          echo $! > /tmp/nova-real-inference.pid
+      - name: Download and run real local Qwen, Tesseract and Whisper models; verify live search and anonymous image generation
+        timeout-minutes: 38
+        env:
+          NOVAAI_URL: http://127.0.0.1:8787
+        run: node scripts/real-local-inference-smoke.mjs
+      - name: Show server diagnostics on failure
+        if: failure()
+        run: |
+          echo '--- NOVA real inference test server log ---'
+          if test -f /tmp/nova-real-inference.log; then tail -n 250 /tmp/nova-real-inference.log; fi
