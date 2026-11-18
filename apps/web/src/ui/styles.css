@@ -1314,3 +1314,97 @@ select:focus-visible {
     margin-top: 7px;
   }
 }
+
+
+/* Original NOVA workspaces are hosted in a same-origin frame so existing
+   chat, storage, voice, search, files and specialist tools keep their APIs. */
+.legacy-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+.legacy-card .eyebrow {
+  margin-bottom: 7px;
+}
+.legacy-card h2 {
+  margin: 0 0 6px;
+}
+.legacy-card > div > p:last-child {
+  margin-bottom: 0;
+}
+.legacy-capabilities {
+  max-width: 64ch;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.legacy-open,
+.legacy-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 48px;
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #d4af37, #a47b2b);
+  color: #171321;
+  font-weight: 800;
+}
+.legacy-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  min-height: calc(100dvh - 174px);
+}
+.legacy-workspace-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.legacy-workspace-head h1 {
+  margin: 0;
+  font: 600 21px Georgia, "Noto Serif Devanagari", serif;
+  color: var(--gold-light);
+}
+.legacy-workspace-head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.legacy-back {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 8px 12px;
+  background: var(--surface);
+  color: var(--gold-light);
+}
+.legacy-frame {
+  display: block;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 72dvh;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #080d1a;
+}
+@media (max-width: 420px) {
+  .legacy-workspace-head {
+    align-items: flex-start;
+  }
+  .legacy-workspace-head h1 {
+    font-size: 18px;
+  }
+  .legacy-back {
+    font-size: 12px;
+  }
+  .legacy-frame {
+    min-height: 75dvh;
+    border-radius: 12px;
+  }
+}
