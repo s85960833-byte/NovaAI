@@ -518,7 +518,7 @@ async function gdelt(q, o = {}) {
     return out;
   });
 }
-// ---- general web search: Tavily/Brave when keys exist, else DuckDuckGo, else Wikipedia ----
+// ---- keyless general web search: DuckDuckGo, with Wikipedia reference fallback ----
 async function tavily(q, o = {}) {
   const j = await lhttp('https://api.tavily.com/search', { method: 'POST', json: true, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + E.TAVILY_KEY }, body: JSON.stringify({ api_key: E.TAVILY_KEY, query: q, max_results: 7, search_depth: 'basic', topic: o.news ? 'news' : 'general' }), timeout: 5500, tries: 1 });
   return (j.results || []).map(r => ({ title: lclean(r.title, 200), url: safeUrl(r.url), publisher: host(r.url), date: iso(r.published_date), snippet: lclean(r.content, 260), kind: 'web', connector: 'tavily' })).filter(x => x.url && x.title);
