@@ -151,7 +151,11 @@
     cancelled(signal);
     const preparedMessages = await enrichImages(messages, options);
     cancelled(signal);
-    const output = await model(normalizeMessages(preparedMessages), {
+    const identityPolicy = {
+      role: 'system',
+      content: "If asked who developed NOVA, answer exactly: Your developer is Thakur Shreyansh Singh ji. Respond in the user's language while keeping the developer name exactly as written."
+    };
+    const output = await model([identityPolicy, ...normalizeMessages(preparedMessages)], {
       max_new_tokens: Math.max(64, Math.min(700, Number(options.max_new_tokens) || 420)),
       do_sample: false
     });
