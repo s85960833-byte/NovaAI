@@ -7,15 +7,22 @@ const child = spawn(process.execPath, ['nova-server.txt'], {
   env: {
     ...process.env,
     PORT: String(port),
-    LLM_KEY: '',
-    LLM_MODEL: '',
-    GROQ_API_KEY: '',
-    OPENROUTER_API_KEY: ''
+    // Deliberately provide fake provider credentials: keyless mode must ignore all of them.
+    LLM_KEY: 'disabled-test-key',
+    LLM_MODEL: 'disabled-test-model',
+    GROQ_API_KEY: 'disabled-test-groq-key',
+    OPENROUTER_API_KEY: 'disabled-test-openrouter-key',
+    TAVILY_KEY: 'disabled-test-tavily-key',
+    BRAVE_KEY: 'disabled-test-brave-key',
+    IMAGE_KEY: 'disabled-test-image-key',
+    POLLI_KEY: 'disabled-test-pollinations-key',
+    HORDE_API_KEY: 'disabled-test-horde-key',
+    IMAGE_OFF: ''
   },
   stdio: 'ignore'
 });
-async function request(path) {
-  return fetch(base + path, { signal: AbortSignal.timeout(2500), cache: 'no-store' });
+async function request(path, init = {}) {
+  return fetch(base + path, { ...init, signal: AbortSignal.timeout(2500), cache: 'no-store' });
 }
 try {
   let ready = false;
@@ -33,10 +40,23 @@ try {
   assert.equal(config.local, true, 'keyless config must select browser-local inference');
   assert.equal(config.model, 'nova-local-browser');
   assert.equal(config.stt, true, 'keyless mode includes local browser Whisper transcription');
+  assert.equal(config.providers.hostedAi, false, 'hosted AI providers must be disabled even when fake keys are present');
+  assert.equal(config.providers.keyless, true);
+  assert.equal(config.image, true, 'keyless image generation remains enabled');
+  const hostedChat = await request('/api/chat/completions', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: [{ role: 'user', content: 'must not reach a provider' }] })
+  });
+  assert.equal(hostedChat.status, 410, 'hosted chat endpoint must reject requests in keyless-only mode');
+  const hostedVoice = await request('/api/transcribe', {
+    method: 'POST', headers: { 'Content-Type': 'audio/webm' }, body: Buffer.from('audio')
+  });
+  assert.equal(hostedVoice.status, 410, 'hosted transcription endpoint must reject requests in keyless-only mode');
   const engineResponse = await request('/nova-local-ai.js');
   assert.equal(engineResponse.status, 200, 'local inference engine asset must be served');
   const engine = await engineResponse.text();
   assert.ok(engine.includes('Qwen3-0.6B-Instruct-ONNX'));
+  assert.ok(engine.includes('onnx-community/whisper-tiny'));
   assert.ok(engine.includes('NovaLocalAI'));
   const homeResponse = await request('/');
   assert.equal(homeResponse.status, 200);
@@ -47,7 +67,7 @@ try {
   assert.ok(sw.includes("'/nova-local-ai.js'"), 'offline shell must precache the local AI entry point');
   assert.ok(sw.includes("u.origin==='https://cdn.jsdelivr.net'"), 'service worker must cache the pinned Transformers.js runtime');
   assert.ok(sw.includes("r.type==='cors'"), 'cross-origin runtime responses must be cacheable');
-  console.log('PASS no-key server selects browser-local AI and serves its offline runtime shell');
+  console.log('PASS keyless-only server ignores provider keys, disables hosted chat/transcription, and serves local AI assets');
 } finally {
   child.kill('SIGTERM');
 }
