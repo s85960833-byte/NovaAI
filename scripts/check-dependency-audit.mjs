@@ -15,14 +15,7 @@ function runNpm(args) {
 }
 
 // Production dependencies must always be fully clear of high/critical advisories.
-const production = runNpm([
-  "audit",
-  "--omit=dev",
-  "--workspace=@nova/api",
-  "--workspace=@nova/shared",
-  "--workspace=@nova/web",
-  "--audit-level=high",
-]);
+const production = runNpm(["audit", "--omit=dev", "--audit-level=high"]);
 if (production.status !== 0) {
   process.stderr.write(production.stdout || "");
   process.stderr.write(production.stderr || "");
@@ -43,7 +36,9 @@ try {
 }
 
 const vulnerabilities = Object.entries(report.vulnerabilities ?? {});
-const high = vulnerabilities.filter(([, item]) => ["high", "critical"].includes(item.severity));
+const high = vulnerabilities.filter(([, item]) =>
+  ["high", "critical"].includes(item.severity),
+);
 const advisoryUrls = new Set();
 
 for (const [, item] of high) {
