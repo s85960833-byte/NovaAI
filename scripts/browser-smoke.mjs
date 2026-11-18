@@ -142,23 +142,23 @@ try{
  assert.ok(searchPlaceholder.includes('Search saved chats'),'English interface must show an English search placeholder');
  console.log('PASS desktop workspace home, English-only cards, no global assistant shortcuts, no overflow');
 
- // A legacy provider key must be removed from both active settings and durable storage.
+ // A legacy provider key is removed from durable storage and the old provider form is absent.
  await desktop.evaluate(()=>{const state=JSON.parse(localStorage.getItem('nova')||'{}');state.cfg={...(state.cfg||{}),base:'https://api.example.test/v1',model:'test-model',key:'legacy-test-key'};localStorage.setItem('nova',JSON.stringify(state));});
  await desktop.reload({waitUntil:'domcontentloaded'});
-  await enterNOVA(desktop);
- const migrated=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg?.key||'');
- assert.equal(migrated,'','legacy BYOK key must be removed from localStorage during migration');
+ await enterNOVA(desktop);
+ const migrated=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg||{});
+ assert.deepEqual(migrated,{base:'',model:'',key:''},'legacy BYOK settings must be scrubbed from localStorage during migration');
  await desktop.evaluate(()=>document.querySelector('#cfg').onclick());
- assert.equal(await desktop.locator('#key').inputValue(),'','legacy provider key must not remain available in active settings');
- await desktop.locator('#csave').click();
- const savedKey=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg?.key||'');
- assert.equal(savedKey,'','saving provider settings must not persist the API key');
+ await desktop.locator('#dcfg').waitFor({state:'visible'});
+ assert.equal(await desktop.locator('#key').count(),0,'hosted API key input must not be present in keyless settings');
+ assert.equal(await desktop.locator('#pre').count(),0,'hosted provider selector must not be present in keyless settings');
+ assert.equal(await desktop.locator('#base').count(),0,'hosted base URL field must not be present in keyless settings');
+ assert.equal(await desktop.locator('#model').count(),0,'hosted model field must not be present in keyless settings');
+ await desktop.locator('#cclose').click();
  await desktop.reload({waitUntil:'domcontentloaded'});
-  await enterNOVA(desktop);
- await desktop.evaluate(()=>document.querySelector('#cfg').onclick());
- assert.equal(await desktop.locator('#key').inputValue(),'','BYOK key must not survive a page reload');
- await desktop.locator('#dcfg').evaluate(el=>el.close());
- console.log('PASS BYOK legacy-key removal from active settings and durable storage');
+ await enterNOVA(desktop);
+ assert.deepEqual(await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg||{}),{base:'',model:'',key:''},'legacy provider settings must remain cleared after reload');
+ console.log('PASS BYOK legacy-key migration and removal of hosted-provider setup controls');
 
  const learn=desktop.locator('#hi .nr-card[data-group="learn"]');
  await learn.click();
