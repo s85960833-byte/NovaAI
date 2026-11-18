@@ -12,8 +12,8 @@
   "scripts": {
     "prepare": "simple-git-hooks",
     "typecheck": "npm run build --workspace @nova/shared && npm run typecheck --workspaces --if-present",
-    "lint": "eslint apps packages scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/check-bundle-budget.mjs scripts/staging-load.mjs",
-    "format:check": "prettier --check apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/run-real-provider-evals.mjs scripts/check-bundle-budget.mjs scripts/staging-load.mjs tests/nova2 vitest.config.ts playwright.config.ts",
+    "lint": "eslint apps packages scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/check-bundle-budget.mjs scripts/staging-load.mjs scripts/check-dependency-audit.mjs",
+    "format:check": "prettier --check apps/web apps/api packages/shared config scripts/check-i18n.mjs scripts/check-secrets.mjs scripts/check-schemes.mjs scripts/run-evals.mjs scripts/run-real-provider-evals.mjs scripts/check-bundle-budget.mjs scripts/staging-load.mjs tests/nova2 vitest.config.ts playwright.config.ts scripts/check-dependency-audit.mjs",
     "test": "vitest run --coverage",
     "test:e2e": "playwright test",
     "lighthouse": "lhci autorun --config=lighthouserc.json",
