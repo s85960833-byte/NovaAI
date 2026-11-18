@@ -80,18 +80,60 @@ test("embedded legacy workspace is same-origin framed with mobile-width layout",
   expect(widths.frame).toBeGreaterThanOrEqual(370);
 });
 
-test("the new account panel opens the existing NOVA account dialog in the same origin", async ({
+test("the new account panel reuses existing NOVA sign-in and sign-up without live user data", async ({
   page,
 }) => {
+  await page.route(
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js",
+    async (route) =>
+      route.fulfill({
+        contentType: "application/javascript",
+        body: `
+          window.supabase = {
+            createClient: () => {
+              let listener;
+              return {
+                auth: {
+                  onAuthStateChange(callback) { listener = callback; },
+                  async getSession() { return { data: { session: null }, error: null }; },
+                  async signInWithPassword({ email }) {
+                    const session = { user: { id: "synthetic-user", email } };
+                    listener?.("SIGNED_IN", session);
+                    return { data: { user: session.user, session }, error: null };
+                  },
+                  async signUp({ email }) {
+                    return { data: { session: null, user: { id: "synthetic-signup", email } }, error: null };
+                  },
+                  async resetPasswordForEmail() { return { error: null }; },
+                  async resend() { return { error: null }; },
+                  async updateUser() { return { error: null }; },
+                  async signOut() { listener?.("SIGNED_OUT", null); return { error: null }; }
+                },
+                from() { return { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: null, error: null }) }; }
+              };
+            }
+          };
+        `,
+      }),
+  );
   await enterDarbar(page);
   await page.locator(".bottom-nav button").last().click();
   const frame = page.locator(".auth-legacy-frame");
   await expect(frame).toHaveAttribute("src", "/classic?account=1");
   const account = page.frameLocator(".auth-legacy-frame");
   await expect(account.locator("#novaAccountDialog")).toBeVisible();
-  await expect(account.locator("#novaAccountEmailInput")).toBeVisible();
-  await expect(account.locator("#novaSignIn")).toBeVisible();
-  await expect(account.locator("#novaSignUp")).toBeVisible();
+  await account.locator("#novaAccountEmailInput").fill("synthetic@example.invalid");
+  await account.locator("#novaAccountPasswordInput").fill("SyntheticPass123!");
+  await account.locator("#novaSignIn").click();
+  await expect(account.locator("#novaSignedIn")).toBeVisible();
+  await expect(account.locator("#novaAccountEmail")).toHaveText("synthetic@example.invalid");
+  await expect(account.locator("#novaCloudSync")).not.toBeChecked();
+  await account.locator("#novaSignOut").click();
+  await expect(account.locator("#novaSignedOut")).toBeVisible();
+  await account.locator("#novaAccountEmailInput").fill("synthetic-signup@example.invalid");
+  await account.locator("#novaAccountPasswordInput").fill("SyntheticPass123!");
+  await account.locator("#novaSignUp").click();
+  await expect(account.locator("#novaAccountStatus")).toContainText("Check your email");
 });
 
 test("Learn, Build and Agents open inside the unified NOVA shell", async ({ page }) => {
