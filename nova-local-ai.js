@@ -3,6 +3,10 @@
   'use strict';
   const MODEL = 'onnx-community/Qwen3-0.6B-Instruct-ONNX';
   const ASR_MODEL = 'onnx-community/whisper-tiny';
+  // This ONNX model stores its chat template in chat_template.jinja rather than
+  // tokenizer_config.json. Supply the model-compatible ChatML template directly.
+  const QWEN_CHAT_TEMPLATE = "{% for message in messages %}{{ '<|im_start|>' + message['role'] + '\\n' + message['content'] + '<|im_end|>\\n' }}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\\n' }}{% if enable_thinking is defined and enable_thinking is false %}{{ '<think>\\n\\n</think>\\n\\n' }}{% else %}{{ '<think>\\n' }}{% endif %}{% endif %}";
+
   let transformersPromise = null, pipelinePromise = null, asrPromise = null, ocrLibraryPromise = null, ocrWorkerPromise = null;
   let generator = null, transcriber = null;
   let backend = 'not-loaded', asrBackend = 'not-loaded';
@@ -157,7 +161,11 @@
     };
     const output = await model([identityPolicy, ...normalizeMessages(preparedMessages)], {
       max_new_tokens: Math.max(64, Math.min(700, Number(options.max_new_tokens) || 420)),
-      do_sample: false
+      chat_template: QWEN_CHAT_TEMPLATE,
+      tokenizer_encode_kwargs: { enable_thinking: false },
+      do_sample: true,
+      temperature: 0.7,
+      top_p: 0.8
     });
     cancelled(signal);
     const generated = output && output[0] && output[0].generated_text;
