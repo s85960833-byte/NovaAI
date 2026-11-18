@@ -18,7 +18,8 @@
     "sakhaTitle": "Sakha",
     "sakhaDesc": "Your everyday Hindi and English assistant",
     "legacyTitle": "Legacy workspaces",
-    "legacyDesc": "Your existing Learn, Build and specialist tools stay available here."
+    "legacyDesc": "Your existing Learn, Build and specialist tools stay available here.",
+    "legacyOpen": "Open Classic NOVA workspace"
   },
   "common": {
     "language": "Language",
