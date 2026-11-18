@@ -11,6 +11,7 @@ const source = fs.readFileSync(new URL('../nova-local-ai.js', import.meta.url), 
 
 function harness({ gpu = true, failGpu = false } = {}) {
   const calls = [];
+  const inputs = [];
   const statuses = [];
   let pipelineLoads = 0;
   const context = {
@@ -20,14 +21,17 @@ function harness({ gpu = true, failGpu = false } = {}) {
           pipelineLoads++;
           calls.push({ task, model, options });
           if (failGpu && options.device === 'webgpu') throw new Error('WebGPU unavailable');
-          return async (messages, generationOptions) => ({
+          return async (messages, generationOptions) => {
+            inputs.push(messages);
+            return {
             0: {
               generated_text: [
                 ...messages,
                 { role: 'assistant', content: 'Nova local response' }
               ]
             }
-          });
+          };
+          };
         }
       })
     },
@@ -37,7 +41,7 @@ function harness({ gpu = true, failGpu = false } = {}) {
     }
   };
   vm.runInNewContext(source, context, { filename: 'nova-local-ai.js' });
-  return { api: context.window.NovaLocalAI, calls, statuses, get pipelineLoads() { return pipelineLoads; } };
+  return { api: context.window.NovaLocalAI, calls, inputs, statuses, get pipelineLoads() { return pipelineLoads; } };
 }
 
 test('uses WebGPU Q4F16 when available and returns generated assistant text', async () => {
@@ -84,6 +88,7 @@ test('converts image messages to an honest text-only limitation notice', async (
   const result = await h.api.generate([{ role: 'user', content: 'Follow up' }]);
   assert.equal(result, 'Nova local response');
   assert.equal(h.pipelineLoads, 1);
+  assert.match(h.inputs[0][0].content, /cannot inspect image pixels/i);
 });
 
 test('rejects an already-aborted request before loading the model', async () => {
