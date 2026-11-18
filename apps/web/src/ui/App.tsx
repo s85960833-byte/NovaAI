@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, FileText, Globe2, Home, Menu, MessageCircle, Wallet, X } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BookOpen, FileText, Globe2, Home, Menu, MessageCircle, Wallet, X } from "lucide-react";
 import { translate, type Locale } from "../i18n";
 import { AuthPanel } from "./AuthPanel";
 import { DiwanPanel } from "./DiwanPanel";
@@ -7,7 +7,7 @@ import { WalletPanel } from "./WalletPanel";
 import { SakhaPanel } from "../sakha/SakhaPanel";
 import { startFrameBudgetMonitor } from "../perf/frame-budget";
 import { PerfPage } from "../perf/PerfPage";
-type View = "home" | "diwan" | "sakha" | "wallet" | "me";
+type View = "home" | "diwan" | "sakha" | "wallet" | "me" | "legacy";
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
@@ -151,16 +151,22 @@ export function App() {
               </button>
             </section>
             <section className="legacy-card">
-              <h2>{t("home.legacyTitle")}</h2>
-              <p>{t("home.legacyDesc")}</p>
-              <div className="legacy-pills">
-                <a href="/classic?workspace=learn">{t("home.learnWorkspace")}</a>
-                <a href="/classic?workspace=build">{t("home.buildWorkspace")}</a>
-                <a href="/classic?workspace=agents">{t("home.agentsWorkspace")}</a>
+              <div>
+                <p className="eyebrow">NOVA · ORIGINAL TOOLKIT</p>
+                <h2>{t("home.legacyTitle")}</h2>
+                <p>{t("home.legacyDesc")}</p>
               </div>
-              <p>
-                <a href="/classic">{t("home.legacyOpen")}</a>
-              </p>
+              <div className="legacy-pills" aria-label={t("home.legacyFeatures")}>
+                <span>{t("home.learnWorkspace")}</span>
+                <span>{t("home.buildWorkspace")}</span>
+                <span>{t("home.agentsWorkspace")}</span>
+              </div>
+              <p className="legacy-capabilities">{t("home.legacyCapabilities")}</p>
+              <button className="legacy-open" onClick={() => setView("legacy")}>
+                <BookOpen size={18} />
+                {t("home.legacyOpen")}
+                <ArrowUpRight size={17} />
+              </button>
             </section>
           </>
         )}
@@ -176,6 +182,28 @@ export function App() {
             {view === "sakha" && <SakhaPanel locale={locale} />}
             {view === "wallet" && <WalletPanel locale={locale} />}
           </Suspense>
+        )}
+        {view === "legacy" && (
+          <section className="legacy-workspace" aria-label={t("home.legacyTitle")}>
+            <div className="legacy-workspace-head">
+              <div>
+                <h1>{t("home.legacyTitle")}</h1>
+                <p>{t("home.legacyFrameTitle")}</p>
+              </div>
+              <button className="legacy-back" onClick={() => setView("home")}>
+                <ArrowLeft size={16} />
+                {t("common.back")}
+              </button>
+            </div>
+            <iframe
+              className="legacy-frame"
+              src="/classic"
+              title={t("home.legacyFrameTitle")}
+              allow="microphone; camera; clipboard-read; clipboard-write"
+              allowFullScreen
+              referrerPolicy="same-origin"
+            />
+          </section>
         )}
         {view === "me" && (
           <section className="workspace">
@@ -219,7 +247,7 @@ export function App() {
       </main>
       <nav className="bottom-nav" aria-label="Primary">
         {labels.map(({ id, icon: Icon, key }) => (
-          <button key={id} className={view === id ? "active" : ""} onClick={() => setView(id)}>
+          <button key={id} className={view === id || (view === "legacy" && id === "home") ? "active" : ""} onClick={() => setView(id)}>
             <Icon size={19} />
             <span>{t(key)}</span>
           </button>
@@ -262,7 +290,14 @@ export function App() {
             >
               {t("nav.sakha")}
             </button>
-            <p>Legacy shelf · Learn / Build / Agents</p>
+            <button
+              onClick={() => {
+                setView("legacy");
+                setDrawer(false);
+              }}
+            >
+              {t("home.legacyOpen")}
+            </button>
           </aside>
         </div>
       )}
