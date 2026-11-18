@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Nova — Local AI Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#151d31;--line:#293550;--fg:#f2f5fb;--muted:#a9b6cc;--gold:#e8c58e;--blue:#9bc8ff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(900px 500px at 85% -10%,#27345b 0,transparent 65%),var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;padding:22px 14px 44px}
+main{width:min(820px,100%);margin:0 auto}.top{display:flex;justify-content:space-between;gap:12px;margin-bottom:22px}.brand{font-weight:800;letter-spacing:.08em;color:var(--gold)}a{color:var(--blue)}h1{font-size:clamp(28px,6vw,42px);line-height:1.12;margin:18px 0 10px}.lead{color:var(--muted);margin:0 0 20px}
+.panel{background:rgba(21,29,49,.94);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0}
+button,textarea{font:inherit;border-radius:12px}button{border:0;padding:11px 16px;background:var(--gold);color:#20190f;font-weight:750;cursor:pointer}button.secondary{background:#263650;color:var(--fg);border:1px solid var(--line)}button:disabled{opacity:.5;cursor:wait}
+textarea{width:100%;min-height:84px;resize:vertical;background:#0d1527;color:var(--fg);border:1px solid var(--line);padding:12px}button:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}.status{font-size:14px;color:var(--muted);min-height:24px;margin-top:10px}.notice{font-size:13px;color:#ddd5c8;background:#282638;border-left:3px solid var(--gold);padding:10px 12px;border-radius:8px}
+label{font-size:14px;color:var(--muted)}.check{display:flex;gap:8px;align-items:center;margin-top:12px}.check input{width:18px;height:18px}
+#chat{display:flex;flex-direction:column;gap:12px}.msg{padding:12px 14px;border:1px solid var(--line);border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}.user{background:#1c2a43}.assistant{background:#101a2c}.meta{font-size:12px;color:var(--muted);margin-bottom:5px}.source{display:block;font-size:13px;margin:5px 0}
+progress{width:100%;height:12px;accent-color:var(--gold)}footer{font-size:12px;color:var(--muted);margin-top:20px}
+@media(max-width:520px){body{padding:14px 11px 32px}.panel{padding:13px}.row>*{flex:1}.top{align-items:flex-start}}
+</style>
+<script type="module" src="/local-ai-lab.js"></script>
+</head>
+<body><main>
+<div class="top"><div class="brand">NOVA / EXPERIMENT</div><a href="/">← Back to Nova</a></div>
+<h1>Local AI Lab</h1>
+<p class="lead">An isolated experiment: a small open model generates answers on this device. No LLM API key or AI inference server is used.</p>
+<section class="panel">
+<div class="notice"><strong>Before loading:</strong> the model download is about 570 MB (one-time, subject to browser cache). It needs a compatible WebGPU device and enough free memory. This small model is not equal to ChatGPT and may make mistakes. Nothing downloads until you press the load button.</div>
+<div id="capability" class="status">Checking browser capability…</div>
+<div class="row"><button id="load" type="button">Load local AI model (~570 MB)</button><button id="unload" class="secondary" type="button" disabled>Unload model</button></div>
+<progress id="progress" max="1" value="0" hidden></progress>
+<div id="modelStatus" class="status" role="status" aria-live="polite">Model not loaded.</div>
+</section>
+<section class="panel">
+<div id="chat"><div class="msg assistant">Local AI replies will appear here after the model is loaded.</div></div>
+<form id="ask">
+<label for="prompt">Ask Nova</label><textarea id="prompt" maxlength="1600" placeholder="Ask a question in Hindi or English…" required></textarea>
+<label class="check"><input id="webSearch" type="checkbox" checked> Search public sources first (no search API key)</label>
+<div class="row"><button id="send" type="submit" disabled>Ask local AI</button><button id="clear" type="button" class="secondary">Clear chat</button></div>
+<div id="answerStatus" class="status" role="status" aria-live="polite">Load the model before asking.</div>
+</form>
+</section>
+<footer>Local inference runs in your browser after the model is downloaded. If you enable public search, your search query is sent to Nova's server and public Wikipedia/Google News sources. Do not enter passwords or sensitive personal information. Experimental only; not connected to the live Nova chat.</footer>
+</main></body></html>
