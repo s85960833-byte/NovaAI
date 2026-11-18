@@ -247,7 +247,7 @@ async function generateFreeImage(prompt, body) {
         signal: AbortSignal.timeout(30000)
       });
       const type = String(u.headers.get('content-type') || '').split(';')[0];
-      if (u.ok && /^image\\//.test(type)) {
+      if (u.ok && /^image\//.test(type)) {
         const buf = Buffer.from(await u.arrayBuffer());
         if (buf.length > 1000 && buf.length <= 8 * 1024 * 1024) {
           return { image: 'data:' + type + ';base64,' + buf.toString('base64'), provider: 'anonymous-pollinations' };
