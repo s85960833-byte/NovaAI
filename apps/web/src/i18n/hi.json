@@ -17,12 +17,15 @@
     "diwanDesc": "कागज़ात और सरकारी सेवाएँ समझें",
     "sakhaTitle": "सखा",
     "sakhaDesc": "आपका रोज़मर्रा का हिंदी और English सहायक",
-    "legacyTitle": "पुराने कार्यक्षेत्र",
-    "legacyDesc": "आपके मौजूदा Learn, Build और दूसरे टूल यहाँ उपलब्ध रहेंगे।",
-    "legacyOpen": "पुराना NOVA कार्यक्षेत्र खोलें",
+    "legacyTitle": "NOVA के सभी पुराने कार्यक्षेत्र",
+    "legacyDesc": "पुराना NOVA अनुभव इसी ऐप के अंदर खोलें। आपके मौजूदा टूल इसी वेबसाइट पर उपलब्ध रहेंगे।",
+    "legacyOpen": "NOVA कार्यक्षेत्र खोलें",
     "learnWorkspace": "नोवा लर्न",
     "buildWorkspace": "नोवा बिल्ड",
-    "agentsWorkspace": "नोवा एजेंट्स"
+    "agentsWorkspace": "नोवा एजेंट्स",
+    "legacyCapabilities": "चैट · सेव चैट · वॉइस · वेब सर्च · फ़ाइलें · इमेज स्टूडियो · लर्न · बिल्ड · एजेंट्स",
+    "legacyFeatures": "NOVA के मूल कार्यक्षेत्र",
+    "legacyFrameTitle": "NOVA के मूल टूल — Learn, Build, Agents और Assistant"
   },
   "common": {
     "language": "भाषा",
@@ -35,7 +38,8 @@
     "skip": "इंट्रो छोड़ें",
     "loading": "लोड हो रहा है",
     "offline": "आप ऑफ़लाइन हैं। सेव की गई सामग्री उपलब्ध रहेगी।",
-    "pendingReview": "मालिक की समीक्षा बाकी"
+    "pendingReview": "मालिक की समीक्षा बाकी",
+    "back": "NOVA पर वापस जाएँ"
   },
   "wallet": {
     "title": "वॉलेट",
