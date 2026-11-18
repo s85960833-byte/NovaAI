@@ -177,7 +177,7 @@ try{
  assert.ok(learnText.includes('Photo Questions'),'Learn should contain photo questions');
  assert.ok(!learnText.includes('History Archive'),'History Archive must not be in Learn');
  assert.ok(!learnText.includes('Live Voice'),'voice must not be in Learn');
- if(await desktop.locator('#nmClose').isVisible()) await desktop.locator('#nmClose').click();
+ // Closing Agents Studio also closes its parent mode overlay; wait for that transition instead of clicking a hidden parent control.
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
  assert.equal(await desktop.evaluate(()=>document.activeElement.dataset.group),'learn','closing with Escape should restore focus to the launch card');
  console.log('PASS keyboard open/close, dialog semantics, focus entry/restoration and Learn isolation');
