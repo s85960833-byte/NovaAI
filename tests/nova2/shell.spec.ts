@@ -27,44 +27,35 @@ test("Darbar fits narrow Android viewports without horizontal scrolling", async 
   }
 });
 
-test(
-  "the complete legacy NOVA workspace remains available on the same origin",
-  async ({ request }) => {
-    const response = await request.get("/classic");
-    expect(response.ok()).toBeTruthy();
-    const html = await response.text();
-    expect(html).toContain('id="novaEntryGate"');
-    expect(html).toContain('src="/nova-app.js"');
-    for (const asset of [
-      "/nova-app.js",
-      "/nova-suite.js",
-      "/mode-registry.js",
-      "/nova-account.js",
-    ]) {
-      const assetResponse = await request.get(asset);
-      expect(assetResponse.ok()).toBeTruthy();
-    }
-    const legacyApi = await request.post("/api/chat/completions", {
-      data: { messages: [] },
-    });
-    expect(legacyApi.status()).toBe(400);
-  },
-);
+test("the complete legacy NOVA workspace remains available on the same origin", async ({
+  request,
+}) => {
+  const response = await request.get("/classic");
+  expect(response.ok()).toBeTruthy();
+  const html = await response.text();
+  expect(html).toContain('id="novaEntryGate"');
+  expect(html).toContain('src="/nova-app.js"');
+  for (const asset of ["/nova-app.js", "/nova-suite.js", "/mode-registry.js", "/nova-account.js"]) {
+    const assetResponse = await request.get(asset);
+    expect(assetResponse.ok()).toBeTruthy();
+  }
+  const legacyApi = await request.post("/api/chat/completions", {
+    data: { messages: [] },
+  });
+  expect(legacyApi.status()).toBe(400);
+});
 
-test(
-  "Learn, Build and Agents shortcuts open their original NOVA workspaces",
-  async ({ page }) => {
-    for (const [workspace, label] of [
-      ["learn", /NOVA Learn|नोवा लर्न/],
-      ["build", /NOVA Build|नोवा बिल्ड/],
-      ["agents", /NOVA Agents|नोवा एजेंट्स/],
-    ] as const) {
-      await page.goto("/classic?workspace=" + workspace);
-      await expect(page.locator("#novaModes.open")).toBeVisible();
-      await expect(page.locator("#novaModes .nmgroup h3").first()).toContainText(label);
-    }
-  },
-);
+test("Learn, Build and Agents shortcuts open their original NOVA workspaces", async ({ page }) => {
+  for (const [workspace, label] of [
+    ["learn", /NOVA Learn|नोवा लर्न/],
+    ["build", /NOVA Build|नोवा बिल्ड/],
+    ["agents", /NOVA Agents|नोवा एजेंट्स/],
+  ] as const) {
+    await page.goto("/classic?workspace=" + workspace);
+    await expect(page.locator("#novaModes.open")).toBeVisible();
+    await expect(page.locator("#novaModes .nmgroup h3").first()).toContainText(label);
+  }
+});
 
 test("Darbar links to the same-origin Classic NOVA workspace", async ({ page }) => {
   await enterDarbar(page);
