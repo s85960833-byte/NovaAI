@@ -57,7 +57,6 @@ test("Learn, Build and Agents shortcuts open their original NOVA workspaces", as
   }
 });
 
-
 test("embedded legacy workspace is same-origin framed with mobile-width layout", async ({
   page,
   request,
