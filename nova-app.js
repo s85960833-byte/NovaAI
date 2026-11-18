@@ -203,9 +203,7 @@ $('in').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.prevent
 let dT=0;$('in').oninput=e=>{e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';clearTimeout(dT);dT=setTimeout(()=>{S.draft=$('in').value;save()},500)};
 $('theme').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='light'?'dark':'light';S.theme=r.dataset.theme;save()};
 document.documentElement.dataset.theme=S.theme||(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark');
-$('cfg').onclick=()=>{$('base').value=S.cfg.base;$('model').value=S.cfg.model;$('key').value=S.cfg.key;$('dcfg').showModal()};
-$('pre').onchange=e=>{if(e.target.value)$('base').value=e.target.value};
-$('csave').onclick=()=>{S.cfg={base:$('base').value.trim(),model:$('model').value.trim(),key:$('key').value.trim()};save();$('dcfg').close()};
+$('cfg').onclick=()=>$('dcfg').showModal();
 $('cclose').onclick=()=>$('dcfg').close();
 $('share').onclick=async()=>{
 const cl=document.documentElement.cloneNode(true);
