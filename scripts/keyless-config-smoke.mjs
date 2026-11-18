@@ -41,7 +41,13 @@ try {
   const homeResponse = await request('/');
   assert.equal(homeResponse.status, 200);
   assert.ok((await homeResponse.text()).includes('src="/nova-local-ai.js"'));
-  console.log('PASS no-key server selects browser-local AI and serves the main chat engine');
+  const swResponse = await request('/sw.js');
+  assert.equal(swResponse.status, 200, 'service worker must be served');
+  const sw = await swResponse.text();
+  assert.ok(sw.includes("'/nova-local-ai.js'"), 'offline shell must precache the local AI entry point');
+  assert.ok(sw.includes("u.origin==='https://cdn.jsdelivr.net'"), 'service worker must cache the pinned Transformers.js runtime');
+  assert.ok(sw.includes("r.type==='cors'"), 'cross-origin runtime responses must be cacheable');
+  console.log('PASS no-key server selects browser-local AI and serves its offline runtime shell');
 } finally {
   child.kill('SIGTERM');
 }
