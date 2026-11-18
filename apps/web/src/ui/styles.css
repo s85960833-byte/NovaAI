@@ -1379,7 +1379,10 @@ select:focus-visible {
 }
 .legacy-workspace-head h1 {
   margin: 0;
-  font: 600 21px Georgia, "Noto Serif Devanagari", serif;
+  font:
+    600 21px Georgia,
+    "Noto Serif Devanagari",
+    serif;
   color: var(--gold-light);
 }
 .legacy-workspace-head p {
