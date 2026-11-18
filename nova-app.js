@@ -5,7 +5,7 @@ hi:{new:'＋ नई चैट',search:'चैट खोजें…',mem:'🧠 �
 const ui=()=>S.uiLang==='hi'?'hi':'en';
 const t=k=>{const chosen=T[ui()]?.[k],fallback=T[ui()==='hi'?'en':'hi']?.[k];return chosen??fallback??k};
 function applyUI(){document.documentElement.lang=ui();document.documentElement.dir='ltr';document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));document.querySelectorAll('[data-p]').forEach(e=>e.placeholder=t(e.dataset.p));$('in').placeholder=t('ph');if($('uiLangTop')){$('uiLangTop').value=ui();$('uiLangTop').setAttribute('aria-label',ui()==='hi'?'इंटरफ़ेस भाषा':'Interface language')}if($('uiLang'))$('uiLang').value=ui();const languageLabel=document.querySelector('.ui-language-label');if(languageLabel)languageLabel.textContent=ui()==='hi'?'भाषा':'Language';fillMode();syncAcc();document.querySelector('.note').textContent=t('note');$('privt').innerHTML=String(t('privacy')).replace(/<(?!\/?(p|ul|li|b)\b)[^>]*>/gi,'').replace(/<(p|ul|li|b)\b[^>]*>/gi,'<$1>');window.dispatchEvent(new CustomEvent('nova:ui-language-changed',{detail:{language:ui()}}));window.NovaBusiness?.refreshLanguage?.();}
-let pimg=null,SV=null,SMP=null,WEB=false,IM=null,LV=false,stick=true,paintQ=0,STORE=true,popN=0,dashEnter=true,first=false,camStream=null,camFace='environment',pickGot=false;
+let pimg=null,SV={model:'nova-local-browser',local:true,image:true,stt:true,live:true,web:true,providers:{keyless:true,hostedAi:false}},SMP=null,WEB=false,IM=null,LV=false,stick=true,paintQ=0,STORE=true,popN=0,dashEnter=true,first=false,camStream=null,camFace='environment',pickGot=false;
 /* ---- Exact maths (math.js + nerdamer) and formulas (KaTeX), loaded only when needed ---- */
 const _ld={};function loadJS(u){return _ld[u]||(_ld[u]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;const f=e=>{delete _ld[u];no(e)};setTimeout(()=>f(new Error('timeout')),8000);s.onload=ok;s.onerror=()=>f(new Error('load '+u));document.head.appendChild(s)}))}
 let _M=null,_N=null;
@@ -44,6 +44,7 @@ const LC={Hindi:'hi-IN',English:'en-IN',Spanish:'es-ES',French:'fr-FR',German:'d
 /*BUILTIN*/const BUILT_IN=null;/*END*/
 let S={chats:[],cur:null,rl:'English',uiLang:'en',mem:'',cfg:{base:CFG.base||'https://openrouter.ai/api/v1',model:CFG.model||'',key:''}},ctl=null,busy=false,doc=null;
 try{S=Object.assign(S,JSON.parse(localStorage.getItem('nova')||'{}'))}catch(e){}
+S.cfg={base:'',model:'',key:''}; // Saved provider settings are intentionally discarded in keyless-only NOVA.
 if(!['English','Hindi'].includes(S.rl))S.rl='English';S.uiLang=S.uiLang==='hi'?'hi':'en';S.deletedChatIds=Array.isArray(S.deletedChatIds)?S.deletedChatIds.map(String).slice(-2000):[];
 try{localStorage.setItem('nova_t','1');localStorage.removeItem('nova_t')}catch(e){STORE=false}
 const persistable=()=>{const value=Object.assign({},S);if(value.cfg)value.cfg=Object.assign({},value.cfg,{key:''});return value};
