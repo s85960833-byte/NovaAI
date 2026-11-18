@@ -43,7 +43,7 @@ test("the complete legacy NOVA workspace remains available on the same origin", 
 
 test("Darbar links to the same-origin Classic NOVA workspace", async ({ page }) => {
   await enterDarbar(page);
-  const link = page.getByRole("link", { name: "Open Classic NOVA workspace" });
+  const link = page.getByRole("link", { name: "पुराना NOVA कार्यक्षेत्र खोलें" });
   await expect(link).toBeVisible();
   await expect(link).toHaveAttribute("href", "/classic");
 });
