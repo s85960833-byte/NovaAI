@@ -25,6 +25,9 @@ await expect('PWA manifest','/manifest.webmanifest',{},(r,b)=>r.ok&&JSON.parse(b
 await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.length>100&&b.includes('nova-config.js')&&b.includes('nova-app.js')&&b.includes('nova-reference.js')&&b.includes('nova-business-core.js')&&b.includes('nova-business-cloud.js'));
 await expect('PWA icon 192','/icons/icon-192.png',{},r=>r.ok);
 await expect('PWA icon 512','/icons/icon-512.png',{},r=>r.ok);
+await expect('keyless lab page','/keyless-lab',{},(r,b)=>r.ok&&b.includes('Keyless Search Lab'));
+await expect('keyless lab client','/keyless-lab.js',{},(r,b)=>r.ok&&b.includes('/api/keyless-search'));
+await expect('keyless search rejects empty input without calling providers','/api/keyless-search',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:''})},(r,b)=>r.status===400&&JSON.parse(b).error==='Enter at least 2 characters.');
 await expect('chat validation','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
 await expect('malformed JSON API body returns JSON 400','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{'},(r,b)=>r.status===400&&JSON.parse(b).error==='Request body must be valid JSON');
 const oversizedJson='{"q":"'+'x'.repeat(6*1024*1024)+'"}';
