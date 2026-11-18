@@ -63,6 +63,7 @@ for(const token of ['nova_modes_v1','nova_mode_cache_v1','SpeechRecognition','sp
 assert.ok(workspace.includes('navigator.onLine'),'offline-aware saved chat mode missing');
 assert.ok(workspace.includes('const modeId=active')&&workspace.includes('cacheKey(modeId,q+extra)')&&workspace.includes('if(active===modeId){drawChat();'),'mode replies must stay attached to the mode that started the request, even if navigation changes');
 assert.ok(workspace.includes('window.NovaLocalAI.generate(messages')&&!workspace.includes("API+'/chat/completions'"),'all Learn and Agents modes must use browser-local inference, not the disabled hosted chat route');
+assert.ok(workspace.includes('window.NovaLocalAI.transcribe')&&workspace.includes('new MediaRecorder')&&workspace.includes('decodeAudioData')&&workspace.includes('targetRate=16000'),'mode voice must record, decode and transcribe locally with Whisper');
 assert.ok(workspace.includes('AbortSignal.timeout(600000)'),'mode AI timeout must allow first local model download and inference');
 assert.ok(workspace.includes('speechSynthesis.cancel()')&&workspace.includes('function drawHome(groupFilter){\n stopSpeech();'),'leaving voice mode or closing the workspace must stop recognition and spoken audio');
 assert.ok(workspace.includes('sending=false')&&workspace.includes('if(!active||sending)return')&&workspace.includes('finally{sending=false;'),'duplicate mode submissions must be blocked and controls restored after every request');
