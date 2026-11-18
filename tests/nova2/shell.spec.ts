@@ -57,6 +57,30 @@ test("Learn, Build and Agents shortcuts open their original NOVA workspaces", as
   }
 });
 
+
+test("embedded legacy workspace is same-origin framed with mobile-width layout", async ({
+  page,
+  request,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await enterDarbar(page);
+  await page.getByRole("button", { name: "नोवा लर्न", exact: true }).click();
+  const frame = page.locator(".legacy-frame");
+  await expect(frame).toHaveAttribute("src", "/classic?workspace=learn");
+  const classicResponse = await request.get("/classic?workspace=learn");
+  expect(classicResponse.headers()["x-frame-options"]).toBe("SAMEORIGIN");
+  expect(classicResponse.headers()["content-security-policy"]).toContain("frame-ancestors 'self'");
+  const legacy = page.frameLocator(".legacy-frame");
+  await expect(legacy.locator("#novaModes.open")).toBeVisible();
+  const widths = await page.evaluate(() => ({
+    inner: window.innerWidth,
+    scroll: document.documentElement.scrollWidth,
+    frame: document.querySelector(".legacy-frame")?.getBoundingClientRect().width ?? 0,
+  }));
+  expect(widths.scroll).toBeLessThanOrEqual(widths.inner);
+  expect(widths.frame).toBeGreaterThanOrEqual(370);
+});
+
 test("Learn, Build and Agents open inside the unified NOVA shell", async ({ page }) => {
   await enterDarbar(page);
   for (const [workspace, label, buttonName] of [
