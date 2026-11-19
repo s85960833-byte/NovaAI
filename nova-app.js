@@ -18,6 +18,19 @@ if(op==='solve')r=N.solve(e,v);else r=N((op==='integrate'?'integrate(':op==='dif
 throw new Error('unknown tool')}
 const MTOOLS=[{type:'function',function:{name:'calculate',description:'Exactly evaluate a numeric expression (math.js syntax: + - * / ^ ( ) sqrt() sin() log() etc). Use for EVERY arithmetic step. Percent: X% of Y = Y*X/100.',parameters:{type:'object',properties:{expression:{type:'string'}},required:['expression']}}},{type:'function',function:{name:'symbolic',description:'Symbolic algebra and calculus: integrate, diff, solve (equation or expression = 0), factor, expand, simplify.',parameters:{type:'object',properties:{operation:{type:'string',enum:['integrate','diff','solve','factor','expand','simplify']},expression:{type:'string'},variable:{type:'string'}},required:['operation','expression']}}}];
 const MATHY=/(\d\s*[-+*\/^×÷]\s*\d)|%|percent|प्रतिशत|sqrt|root|मूल|वर्ग|घन|गुणा|जोड़|घटा|integra|derivativ|differenti|इंटीग्रल|अवकल|समीकरण|equation|solve|calculat|compute|कितना|कितने|how much|simplif|factor|हिसाब|ब्याज|interest|औसत|average|\b(sin|cos|tan|log|ln)\b|सौ|हज़ार|हजार|लाख|करोड़/i;
+async function localMathPhase(hist){
+const tx=m=>typeof m.content==='string'?m.content:(m.content||[]).map(p=>p.text||'').join(' ');
+const last=hist.filter(m=>m.role==='user').slice(-1)[0];if(!last)return '';
+let q=tx(last).replace(/[०-९]/g,d=>String('०१२३४५६७८९'.indexOf(d))).replace(/,/g,'').trim();
+let expr='',m;
+// Percentage forms: "25% of 400", "400 का 25%", "400 ka 25 percent".
+m=q.match(/(\\d+(?:\\.\\d+)?)\\s*(?:%|percent|प्रतिशत)\\s*(?:of|का|की|के)?\\s*(\\d+(?:\\.\\d+)?)/i);
+if(m)expr='('+m[2]+'*'+m[1]+'/100)';
+if(!expr){m=q.match(/(\\d+(?:\\.\\d+)?)\\s*(?:का|की|के|ka|ki|ke)\\s*(\\d+(?:\\.\\d+)?)\\s*(?:%|percent|प्रतिशत)/i);if(m)expr='('+m[1]+'*'+m[2]+'/100)'}
+if(!expr){m=q.match(/(?:^|[^\\w.])((?:\\d+(?:\\.\\d+)?|\\.)[\\d\\s()+\\-*/^×÷.]*[+\\-*/^×÷][\\d\\s()+\\-*/^×÷.]*)(?:$|[^\\w.])/);if(m)expr=m[1].trim()}
+if(!expr||!/^[\\d\\s()+\\-*/^.]+$/.test(expr))return '';
+try{const M=await getMath();if(!M)return '';const result=M.format(M.evaluate(expr),{precision:20});return '\\n\\nVerified result from NOVA local calculator (no AI/API call):\\n'+expr+' = '+result+'\\nShow the working clearly and use this exact result.'}catch(e){return ''}
+}
 async function mathPhase(hist,signal,mdl){
 const tx=m=>typeof m.content==='string'?m.content:(m.content||[]).map(p=>p.text||'').join(' ');
 const last=hist.filter(m=>m.role==='user').slice(-1)[0];if(!last||!MATHY.test(tx(last)))return '';
@@ -157,7 +170,7 @@ const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
 for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
 for(const l of ls){if(!l.startsWith('data:'))continue;const d=l.slice(5).trim();if(d==='[DONE]')continue;try{a.c+=JSON.parse(d).choices[0].delta.content||''}catch(x){}}
 schedPaint(el,a);if(LV)lvFeed(a.c)}};
-let sysM=sys;if(SV&&SV.model){try{sysM=sys+await mathPhase(hist,ctl.signal,cf.model)}catch(x){}}
+let sysM=sys;try{const localMath=await localMathPhase(hist);if(localMath)sysM+=localMath;else if(SV&&SV.model)sysM+=await mathPhase(hist,ctl.signal,cf.model)}catch(x){}
 try{await run(sysM)}catch(e){if(e&&e.status===400&&sys!==sysLite&&/context|token|too long|maximum|exceed|length/i.test(e.body||'')){toast(t('eLite'));a.c='';await run(sysLite)}else throw e}
 if(a.c&&wsrc)a.c+=wsrc;if(!a.c){a.e=1;a.c=t('eEmpty')}}}
 catch(e){if(!(ctl.signal.aborted)){a.e=1;a.c=errText(e)+(e&&e.body?' Provider said: '+e.body:'')}else if(!a.c){c.m.pop()}}
