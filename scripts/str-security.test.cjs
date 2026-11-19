@@ -144,3 +144,14 @@ test('STR local spec never invents supplied prices, phone numbers or addresses',
   assert.ok(spec.placeholders.includes('Contact phone number'));
   assert.ok(spec.placeholders.includes('Business or service address'));
 });
+
+test('STR spec values retain bilingual page and section copy for the chosen content language', () => {
+  const spec = generateLocalSpec({ prompt: 'मेरी दुकान की वेबसाइट बनाओ।', uiLang: 'en', contentLang: 'hi' });
+  assert.equal(spec.ui_lang_at_creation, 'en');
+  assert.equal(spec.content_lang, 'hi');
+  assert.ok(spec.pages[0].title.hi && spec.pages[0].title.en);
+  for (const section of spec.pages[0].sections) {
+    assert.ok(section.content.heading.hi && section.content.heading.en);
+    assert.ok(section.content.body.hi && section.content.body.en);
+  }
+});
