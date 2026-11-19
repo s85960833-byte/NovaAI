@@ -13,7 +13,7 @@ stageSpec:'01 · Spec',stageSpecDesc:'Understand the idea and list assumptions.'
 stageBuild:'02 · Build',stageBuildDesc:'Generate the site in small, resumable sections.',
 stageCheck:'03 · Quality',stageCheckDesc:'Check safety, mobile layout and completeness.',
 footer:'STR is in setup. Build generation will be enabled after the secure pipeline is ready.',
-tagline:'Short prompt. Complete app.',owner:'Owner mode',empty:'Write a short description first.',
+tagline:'Short prompt. Complete app.',skipIntro:'Skip intro',owner:'Owner mode',empty:'Write a short description first.',
 saved:'Draft saved on this device.',saveError:'This browser could not save the draft. Please try again.',
 cleared:'Draft cleared.',welcome:'You can choose Hindi or English. You can change this any time.'
 },
@@ -26,7 +26,7 @@ stageSpec:'01 · योजना',stageSpecDesc:'विचार समझें
 stageBuild:'02 · निर्माण',stageBuildDesc:'वेबसाइट को छोटे, दोबारा शुरू हो सकने वाले हिस्सों में बनाएँ।',
 stageCheck:'03 · गुणवत्ता',stageCheckDesc:'सुरक्षा, मोबाइल layout और सभी जरूरी हिस्सों की जाँच करें।',
 footer:'STR अभी तैयार हो रहा है। सुरक्षित build pipeline तैयार होने के बाद generation चालू होगी।',
-tagline:'छोटा सा प्रॉम्प्ट, पूरा ऐप।',owner:'मालिक मोड',empty:'पहले छोटा-सा विवरण लिखें।',
+tagline:'छोटा सा प्रॉम्प्ट, पूरा ऐप।',skipIntro:'इंट्रो छोड़ें',owner:'मालिक मोड',empty:'पहले छोटा-सा विवरण लिखें।',
 saved:'ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।',saveError:'इस browser में ड्राफ्ट सुरक्षित नहीं हो पाया। दोबारा कोशिश करें।',
 cleared:'ड्राफ्ट साफ़ कर दिया गया।',welcome:'आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं।'
 }
@@ -97,7 +97,7 @@ function playIntro(){
  if(seen||window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  const intro=$('strIntro');intro.hidden=false;
  const finish=()=>{if(intro.classList.contains('str-done'))return;intro.classList.add('str-done');setTimeout(()=>{intro.hidden=true;intro.classList.remove('str-done');},220);try{sessionStorage.setItem('str_intro_seen','1');}catch(e){}};
- intro.addEventListener('click',finish,{once:true});
+ const skip=$('strSkipIntro');skip.disabled=true;setTimeout(()=>{skip.disabled=false;},300);skip.addEventListener('click',finish,{once:true});
  setTimeout(finish,2400);
 }
 function open(){
