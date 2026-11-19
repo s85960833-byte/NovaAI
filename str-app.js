@@ -158,6 +158,7 @@ function renderSpec(payload){
    const headingInput=document.createElement('input');headingInput.type='text';headingInput.maxLength=160;headingInput.value=section.content.heading[key]||'';headingInput.setAttribute('data-str-field','heading');headingInput.setAttribute('aria-label',(lang==='hi'?'सेक्शन शीर्षक':'Section heading')+' '+section.id+' '+languageName);
    headingInput.addEventListener('change',()=>commitCopy(section.content.heading,key,headingInput,160,key!=='hinglish'));
    headingLabel.appendChild(headingInput);
+   const sectionConvert=document.createElement('button');sectionConvert.type='button';sectionConvert.disabled=true;sectionConvert.className='str-convert-disabled';sectionConvert.textContent=lang==='hi'?'भाषा बदलें':'Convert';sectionConvert.title=dict[lang].conversionBlocked;row.appendChild(sectionConvert);
    const bodyLabel=editLabel(row,(lang==='hi'?'विवरण':'Description')+' · '+languageName);
    const bodyInput=document.createElement('textarea');bodyInput.rows=3;bodyInput.maxLength=600;bodyInput.value=section.content.body[key]||'';bodyInput.setAttribute('data-str-field','body');bodyInput.setAttribute('aria-label',(lang==='hi'?'विवरण':'Description')+' '+section.id+' '+languageName);
    bodyInput.addEventListener('change',()=>commitCopy(section.content.body,key,bodyInput,600,key!=='hinglish'));
