@@ -15,7 +15,7 @@ stageCheck:'03 · Quality',stageCheckDesc:'Check safety, mobile layout and compl
 footer:'STR is in setup. Build generation will be enabled after the secure pipeline is ready.',
 tagline:'Short prompt. Complete app.',skipIntro:'Skip intro',owner:'Owner mode',empty:'Write a short description first.',
 saved:'Draft saved on this device.',saveError:'This browser could not save the draft. Please try again.',
-cleared:'Draft cleared.',welcome:'You can choose Hindi or English. You can change this any time.',savePlan:'Save plan edits',specSaved:'Plan changes saved on this device.',conversionBlocked:'Content conversion needs a verified provider and is not available yet.',voiceUnavailable:'On-device speech recognition is not available in this build. Please type your idea.'
+cleared:'Draft cleared.',welcome:'You can choose Hindi or English. You can change this any time.',savePlan:'Save plan edits',specSaved:'Plan changes saved on this device.',conversionBlocked:'Content conversion needs a verified provider and is not available yet.',voiceUnavailable:'On-device speech recognition is not available in this build. Please type your idea.',approveSpec:'Approve this plan',reapproveSpec:'Approve revised plan',approvedLabel:'Approved on this device',notApproved:'Not approved yet.',needsApproval:'Changes made · approval needed.',diffTitle:'Changes from the starter plan',specApproved:'Plan approved and saved on this device.',approvalUnavailable:'Secure approval verification is unavailable in this browser.'
 },
 hi:{
 back:'Nova',replyLabel:'उत्तर भाषा',contentLabel:'वेबसाइट की भाषा',createSpec:'शुरुआती योजना बनाएँ',specEyebrow:'स्थानीय शुरुआती योजना',specTitle:'अपनी शुरुआती योजना जाँचें',localBadge:'स्थानीय नियम · AI नहीं',sectionsTitle:'पेज के हिस्से',assumedTitle:'जाँचने वाली मान्यताएँ',placeholderTitle:'अभी जरूरी जानकारी',buildBlocked:'पूरा AI वेबसाइट निर्माण और ZIP export अभी चालू नहीं हैं। यह केवल समीक्षा के लिए शुरुआती रूपरेखा है।',analyzing:'स्थानीय शुरुआती योजना बनाई जा रही है…',specReady:'शुरुआती योजना तैयार है। इस्तेमाल से पहले हर मान्यता जाँचें।',specError:'योजना नहीं बन पाई। विवरण जाँचकर दोबारा कोशिश करें।',unsafeError:'इस अनुरोध से योजना नहीं बनाई जा सकती।',localNote:'आपका prompt और शुरुआती योजना Nova के अंदर रहते हैं। इस preview में कोई AI provider इस्तेमाल नहीं होता।',headline:'एक स्पष्ट विचार। पूरा build।',
@@ -28,10 +28,10 @@ stageCheck:'03 · गुणवत्ता',stageCheckDesc:'सुरक्ष�
 footer:'STR अभी तैयार हो रहा है। सुरक्षित build pipeline तैयार होने के बाद generation चालू होगी।',
 tagline:'छोटा सा प्रॉम्प्ट, पूरा ऐप।',skipIntro:'इंट्रो छोड़ें',owner:'मालिक मोड',empty:'पहले छोटा-सा विवरण लिखें।',
 saved:'ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।',saveError:'इस browser में ड्राफ्ट सुरक्षित नहीं हो पाया। दोबारा कोशिश करें।',
-cleared:'ड्राफ्ट साफ़ कर दिया गया।',welcome:'आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं।',savePlan:'योजना में बदलाव सुरक्षित करें',specSaved:'योजना में किए गए बदलाव इसी डिवाइस पर सुरक्षित हो गए।',conversionBlocked:'Content बदलने के लिए verified provider चाहिए; यह सुविधा अभी उपलब्ध नहीं है।',voiceUnavailable:'इस build में डिवाइस पर चलने वाली voice typing उपलब्ध नहीं है। कृपया अपना विचार टाइप करें।'
+cleared:'ड्राफ्ट साफ़ कर दिया गया।',welcome:'आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं।',savePlan:'योजना में बदलाव सुरक्षित करें',specSaved:'योजना में किए गए बदलाव इसी डिवाइस पर सुरक्षित हो गए।',conversionBlocked:'Content बदलने के लिए verified provider चाहिए; यह सुविधा अभी उपलब्ध नहीं है।',voiceUnavailable:'इस build में डिवाइस पर चलने वाली voice typing उपलब्ध नहीं है। कृपया अपना विचार टाइप करें।',approveSpec:'इस योजना को मंज़ूरी दें',reapproveSpec:'बदली योजना को फिर मंज़ूरी दें',approvedLabel:'इस डिवाइस पर मंज़ूर',notApproved:'अभी मंज़ूरी नहीं दी गई।',needsApproval:'बदलाव किए गए हैं · फिर मंज़ूरी ज़रूरी है।',diffTitle:'शुरुआती योजना से बदलाव',specApproved:'योजना मंज़ूर होकर इसी डिवाइस पर सुरक्षित हो गई।',approvalUnavailable:'इस browser में सुरक्षित approval verification उपलब्ध नहीं है।'
 }
 };
-let lang='en', replyLang='en', replyLangExplicit=false, contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false, currentSpec=null, currentFieldValues={};
+let lang='en', replyLang='en', replyLangExplicit=false, contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false, currentSpec=null, originalSpec=null, currentApproval=null, currentFieldValues={}, originalFieldValues={};
 function readInitialLanguage(){
  try{const v=localStorage.getItem('str_ui_lang');if(v==='hi'||v==='en')return v;}catch(e){}
  try{const n=JSON.parse(localStorage.getItem('nova')||'{}');return n.uiLang==='hi'?'hi':'en';}catch(e){return 'en';}
@@ -107,13 +107,94 @@ function clientId(){
   return id;
  }catch(e){return 'str'+Date.now().toString(36)+Math.random().toString(36).slice(2,18);}
 }
-async function persistSpecEdits(){
+async function persistSpecEdits(options={}){
  try{
   const previous=await getLatestDraft(),now=Date.now(),prompt=$('strPrompt').value.trim();
-  if(!prompt||!currentSpec)return;
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:currentSpec,fieldValues:{...currentFieldValues},status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1});
-  status(dict[lang].specSaved);
- }catch(e){status(dict[lang].saveError);}
+  if(!prompt||!currentSpec)return false;
+  await putDraft({
+   id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),
+   prompt,spec:currentSpec,originalSpec:originalSpec||currentSpec,
+   fieldValues:{...currentFieldValues},originalFieldValues:{...originalFieldValues},
+   approval:currentApproval,status:'spec_ready',
+   createdAt:previous&&previous.createdAt||now,updatedAt:now,
+   uiLang:lang,contentLang,replyLang,specVersion:1
+  });
+  renderApprovalPanel();
+  if(!options.quiet)status(dict[lang].specSaved);
+  return true;
+ }catch(e){if(!options.quiet)status(dict[lang].saveError);return false;}
+}
+function flattenEditableSpec(spec,fieldValues){
+ const out={};
+ if(!spec)return out;
+ out['Project name']=spec.name||'';
+ (spec.pages||[]).forEach(page=>{
+  Object.entries(page.title||{}).forEach(([locale,value])=>{out['Page '+page.id+' title · '+locale]=value;});
+  (page.sections||[]).forEach(section=>{
+   Object.entries(section.content&&section.content.heading||{}).forEach(([locale,value])=>{out['Section '+section.id+' heading · '+locale]=value;});
+   Object.entries(section.content&&section.content.body||{}).forEach(([locale,value])=>{out['Section '+section.id+' description · '+locale]=value;});
+  });
+ });
+ (spec.assumed||[]).forEach(item=>{out['Assumption · '+item.field]=item.value;});
+ Object.entries(fieldValues||{}).forEach(([key,value])=>{out['Missing detail · '+key]=value;});
+ return out;
+}
+function buildSpecDiff(){
+ const before=flattenEditableSpec(originalSpec||currentSpec,originalFieldValues);
+ const after=flattenEditableSpec(currentSpec,currentFieldValues);
+ return [...new Set([...Object.keys(before),...Object.keys(after)])].sort()
+  .filter(key=>String(before[key]??'')!==String(after[key]??''))
+  .map(key=>({key,before:String(before[key]??''),after:String(after[key]??'')}));
+}
+function renderApprovalPanel(){
+ const list=$('strSpecDiffList'),panel=$('strSpecDiff'),state=$('strApprovalState'),button=$('strApproveSpec');
+ if(!list||!panel||!state||!button)return;
+ const changes=buildSpecDiff();
+ list.replaceChildren();
+ changes.forEach(change=>{
+  const item=document.createElement('li');
+  item.textContent=change.key+': '+(change.before||'—')+' → '+(change.after||'—');
+  list.appendChild(item);
+ });
+ panel.hidden=!changes.length;
+ state.textContent=currentApproval?dict[lang].approvedLabel:changes.length?dict[lang].needsApproval:dict[lang].notApproved;
+ button.disabled=!currentSpec;
+ button.textContent=currentApproval?dict[lang].reapproveSpec:dict[lang].approveSpec;
+}
+function markSpecChanged(){
+ if(currentApproval)currentApproval=null;
+ renderApprovalPanel();
+}
+function canonicalize(value){
+ if(Array.isArray(value))return value.map(canonicalize);
+ if(value&&typeof value==='object'){
+  const out={};Object.keys(value).sort().forEach(key=>{out[key]=canonicalize(value[key]);});return out;
+ }
+ return value;
+}
+async function computeSpecFingerprint(){
+ if(!currentSpec||!window.crypto||!crypto.subtle)throw new Error('Secure hash unavailable');
+ const payload=canonicalize({spec:currentSpec,fieldValues:currentFieldValues});
+ const bytes=new TextEncoder().encode(JSON.stringify(payload));
+ const digest=await crypto.subtle.digest('SHA-256',bytes);
+ return Array.from(new Uint8Array(digest),value=>value.toString(16).padStart(2,'0')).join('');
+}
+async function approveSpec(){
+ const button=$('strApproveSpec');
+ if(!currentSpec)return;
+ button.disabled=true;
+ try{
+  const saved=await persistSpecEdits({quiet:true});
+  if(!saved)throw new Error('Could not save the spec before approval');
+  const hash=await computeSpecFingerprint();
+  currentApproval={algorithm:'SHA-256',hash,approvedAt:Date.now(),version:1};
+  const approvedSaved=await persistSpecEdits({quiet:true});
+  if(!approvedSaved){currentApproval=null;throw new Error('Could not save approval record');}
+  renderApprovalPanel();
+  status(dict[lang].specApproved);
+ }catch(e){
+  currentApproval=null;renderApprovalPanel();status(dict[lang].approvalUnavailable);
+ }finally{button.disabled=false;}
 }
 function copyKey(){return contentLang==='hinglish'?'hinglish':contentLang;}
 function editLabel(parent,text){
@@ -137,7 +218,7 @@ function renderSpec(payload){
  const nameLabel=document.createElement('label');nameLabel.className='str-spec-name-label';
  appendText(nameLabel,'span',lang==='hi'?'प्रोजेक्ट का नाम':'Project name');
  const nameInput=document.createElement('input');nameInput.id='strSpecName';nameInput.type='text';nameInput.maxLength=100;nameInput.value=currentSpec.name;nameInput.setAttribute('aria-label',lang==='hi'?'प्रोजेक्ट का नाम':'Project name');
- nameInput.addEventListener('change',async()=>{const value=nameInput.value.trim().slice(0,100);if(!value){nameInput.value=currentSpec.name;return;}currentSpec.name=value;currentSpec.seo.title.hi=value;currentSpec.seo.title.en=value;await persistSpecEdits();});
+ nameInput.addEventListener('change',async()=>{const value=nameInput.value.trim().slice(0,100);if(!value){nameInput.value=currentSpec.name;return;}currentSpec.name=value;currentSpec.seo.title.hi=value;currentSpec.seo.title.en=value;markSpecChanged();await persistSpecEdits();});
  nameLabel.appendChild(nameInput);meta.appendChild(nameLabel);
  const key=copyKey(), languageName=key==='hi'?'हिंदी':key==='hinglish'?'Hinglish':'English';
  const sections=$('strSpecSections');sections.replaceChildren();
@@ -149,19 +230,19 @@ function renderSpec(payload){
   card.appendChild(summary);
   const titleLabel=editLabel(card,(lang==='hi'?'पेज शीर्षक':'Page title')+' · '+languageName);
   const titleInput=document.createElement('input');titleInput.type='text';titleInput.maxLength=120;titleInput.value=page.title&&page.title[key]||'';titleInput.setAttribute('data-str-field','page-title');titleInput.setAttribute('aria-label',(lang==='hi'?'पेज शीर्षक':'Page title')+' '+page.id+' '+languageName);
-  titleInput.addEventListener('change',()=>{if(commitCopy(page.title,key,titleInput,120,key!=='hinglish'))summary.textContent=page.title[key]||page.title.en||page.title.hi;});
+  titleInput.addEventListener('change',()=>{if(commitCopy(page.title,key,titleInput,120,key!=='hinglish')){summary.textContent=page.title[key]||page.title.en||page.title.hi;markSpecChanged();}});
   titleLabel.appendChild(titleInput);
   const convert=document.createElement('button');convert.type='button';convert.disabled=true;convert.className='str-convert-disabled';convert.textContent=lang==='hi'?'भाषा बदलें':'Convert';convert.title=dict[lang].conversionBlocked;card.appendChild(convert);
   page.sections.forEach(section=>{
    const row=document.createElement('article');row.className='str-spec-section';row.setAttribute('data-str-section-id',section.id);
    const headingLabel=editLabel(row,(lang==='hi'?'सेक्शन शीर्षक':'Section heading')+' · '+languageName);
    const headingInput=document.createElement('input');headingInput.type='text';headingInput.maxLength=160;headingInput.value=section.content.heading[key]||'';headingInput.setAttribute('data-str-field','heading');headingInput.setAttribute('aria-label',(lang==='hi'?'सेक्शन शीर्षक':'Section heading')+' '+section.id+' '+languageName);
-   headingInput.addEventListener('change',()=>commitCopy(section.content.heading,key,headingInput,160,key!=='hinglish'));
+   headingInput.addEventListener('change',()=>{if(commitCopy(section.content.heading,key,headingInput,160,key!=='hinglish'))markSpecChanged();});
    headingLabel.appendChild(headingInput);
    const sectionConvert=document.createElement('button');sectionConvert.type='button';sectionConvert.disabled=true;sectionConvert.className='str-convert-disabled';sectionConvert.textContent=lang==='hi'?'भाषा बदलें':'Convert';sectionConvert.title=dict[lang].conversionBlocked;row.appendChild(sectionConvert);
    const bodyLabel=editLabel(row,(lang==='hi'?'विवरण':'Description')+' · '+languageName);
    const bodyInput=document.createElement('textarea');bodyInput.rows=3;bodyInput.maxLength=600;bodyInput.value=section.content.body[key]||'';bodyInput.setAttribute('data-str-field','body');bodyInput.setAttribute('aria-label',(lang==='hi'?'विवरण':'Description')+' '+section.id+' '+languageName);
-   bodyInput.addEventListener('change',()=>commitCopy(section.content.body,key,bodyInput,600,key!=='hinglish'));
+   bodyInput.addEventListener('change',()=>{if(commitCopy(section.content.body,key,bodyInput,600,key!=='hinglish'))markSpecChanged();});
    bodyLabel.appendChild(bodyInput);
    const display=document.createElement('p');display.className='str-copy-preview';display.textContent=section.content.heading[key]||section.content.heading.en||section.content.heading.hi;
    row.appendChild(display);
@@ -174,7 +255,7 @@ function renderSpec(payload){
   const row=document.createElement('li');row.className='str-assumption-row';
   appendText(row,'span',item.field,'str-assumption-field');
   const input=document.createElement('input');input.type='text';input.maxLength=200;input.value=item.value;input.setAttribute('aria-label',(lang==='hi'?'मान्यता संपादित करें: ':'Edit assumption: ')+item.field);
-  input.addEventListener('change',async()=>{item.value=input.value.trim().slice(0,200);await persistSpecEdits();});
+  input.addEventListener('change',async()=>{item.value=input.value.trim().slice(0,200);markSpecChanged();await persistSpecEdits();});
   row.appendChild(input);
   appendText(row,'small',item.why&&item.why[lang]||'','str-assumption-why');
   assumed.appendChild(row);
@@ -184,9 +265,10 @@ function renderSpec(payload){
   const row=document.createElement('li');row.className='str-placeholder-row';
   appendText(row,'label',item,'str-placeholder-label');
   const input=document.createElement('input');input.type='text';input.maxLength=300;input.placeholder=lang==='hi'?'यह जानकारी यहाँ भरें':'Enter this detail here';input.value=currentFieldValues[item]||'';input.setAttribute('aria-label',item);
-  input.addEventListener('change',async()=>{const value=input.value.trim().slice(0,300);if(value)currentFieldValues[item]=value;else delete currentFieldValues[item];await persistSpecEdits();});
+  input.addEventListener('change',async()=>{const value=input.value.trim().slice(0,300);if(value)currentFieldValues[item]=value;else delete currentFieldValues[item];markSpecChanged();await persistSpecEdits();});
   row.appendChild(input);placeholders.appendChild(row);
  });
+ renderApprovalPanel();
 }
 async function createSpec(){
  const prompt=$('strPrompt').value.trim();
@@ -206,10 +288,10 @@ async function createSpec(){
    return;
   }
   if(!data.spec||data.aiGenerated!==false||data.mode!=='local_rules_no_provider')throw new Error('Unexpected local spec response');
-  currentFieldValues={};
+  currentFieldValues={};originalFieldValues={};originalSpec=JSON.parse(JSON.stringify(data.spec));currentApproval=null;
   renderSpec(data);
   const previous=await getLatestDraft(),now=Date.now();
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:currentSpec,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,fieldValues:{...currentFieldValues}});
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:currentSpec,originalSpec:originalSpec||currentSpec,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,fieldValues:{...currentFieldValues},originalFieldValues:{...originalFieldValues},approval:currentApproval});
   status(dict[lang].specReady);
  }catch(e){status(dict[lang].specError);}
  finally{button.disabled=false;button.textContent=dict[lang].createSpec;}
@@ -221,7 +303,7 @@ async function saveDraft(){
  try{
   const previous=await getLatestDraft();
   const now=Date.now();
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,status:currentSpec?'spec_ready':'draft',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,spec:currentSpec||undefined,fieldValues:{...currentFieldValues}});
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,status:currentSpec?'spec_ready':'draft',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,spec:currentSpec||undefined,originalSpec:originalSpec||undefined,fieldValues:{...currentFieldValues},originalFieldValues:{...originalFieldValues},approval:currentApproval});
   status(dict[lang].saved);
  }catch(e){status(dict[lang].saveError);}
 }
@@ -231,9 +313,12 @@ async function restoreDraft(){
   if(d&&d.prompt){
    $('strPrompt').value=d.prompt;
    currentFieldValues=d.fieldValues&&typeof d.fieldValues==='object'&&!Array.isArray(d.fieldValues)?{...d.fieldValues}:{};
+   originalFieldValues=d.originalFieldValues&&typeof d.originalFieldValues==='object'&&!Array.isArray(d.originalFieldValues)?{...d.originalFieldValues}:{};
+   originalSpec=d.originalSpec&&d.originalSpec.v===1?d.originalSpec:(d.spec&&d.spec.v===1?JSON.parse(JSON.stringify(d.spec)):null);
+   currentApproval=d.approval&&d.approval.algorithm==='SHA-256'&&/^[a-f0-9]{64}$/.test(d.approval.hash||'')&&Number.isFinite(d.approval.approvedAt)?d.approval:null;
    if(d.contentLang==='hi'||d.contentLang==='en'||d.contentLang==='hinglish'){contentLang=d.contentLang;contentLangTouched=true;$('strContentLang').value=contentLang;}
    if(d.replyLang==='hi'||d.replyLang==='en'){replyLang=d.replyLang;$('strReplyLang').value=replyLang;}
-   if(d.spec&&d.spec.v===1){try{renderSpec({spec:d.spec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});}catch(e){currentSpec=null;}}
+   if(d.spec&&d.spec.v===1){try{currentSpec=d.spec;if(currentApproval){try{if(await computeSpecFingerprint()!==currentApproval.hash)currentApproval=null;}catch(e){currentApproval=null;}}renderSpec({spec:d.spec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});}catch(e){currentSpec=null;currentApproval=null;}}
   }
  }catch(e){}
 }
@@ -264,9 +349,10 @@ $('strPrompt').addEventListener('input',event=>{if(contentLangTouched)return;con
 $('strLangEn').addEventListener('click',()=>setLanguage('en',true));
 $('strSaveDraft').addEventListener('click',saveDraft);
 $('strSavePlan').addEventListener('click',persistSpecEdits);
+$('strApproveSpec').addEventListener('click',approveSpec);
 $('strCreateSpec').addEventListener('click',createSpec);
 $('strClearDraft').addEventListener('click',async()=>{
- $('strPrompt').value='';currentSpec=null;$('strSpecPanel').hidden=true;
+ $('strPrompt').value='';currentSpec=null;originalSpec=null;currentApproval=null;currentFieldValues={};originalFieldValues={};$('strSpecPanel').hidden=true;
  try{await clearDrafts();status(dict[lang].cleared);}catch(e){status(dict[lang].saveError);}
 });
 window.addEventListener('nova:state-saved',()=>{
