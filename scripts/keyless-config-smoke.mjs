@@ -42,7 +42,11 @@ try {
   assert.equal(config.stt, true, 'keyless mode includes local browser Whisper transcription');
   assert.equal(config.providers.hostedAi, false, 'hosted AI providers must be disabled even when fake keys are present');
   assert.equal(config.providers.keyless, true);
-  assert.equal(config.image, true, 'keyless image generation remains enabled');
+  assert.equal(config.image, false, 'image generation must stay disabled until a local model exists');
+  assert.equal(config.imageMode, 'disabled-until-local-engine');
+  const image = await request('/api/image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: 'a safe flower' }) });
+  assert.equal(image.status, 503, 'no API-key-backed image provider may be called in strict keyless mode');
+  assert.match((await image.json()).error, /strict keyless mode/i);
   const hostedChat = await request('/api/chat/completions', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages: [{ role: 'user', content: 'must not reach a provider' }] })
@@ -67,7 +71,7 @@ try {
   assert.ok(sw.includes("'/nova-local-ai.js'"), 'offline shell must precache the local AI entry point');
   assert.ok(sw.includes("u.origin==='https://cdn.jsdelivr.net'"), 'service worker must cache the pinned Transformers.js runtime');
   assert.ok(sw.includes("r.type==='cors'"), 'cross-origin runtime responses must be cacheable');
-  console.log('PASS keyless-only server ignores provider keys, disables hosted chat/transcription, and serves local AI assets');
+  console.log('PASS keyless-only server ignores AI provider keys, disables hosted chat/transcription/image APIs, and serves local AI assets');
 } finally {
   child.kill('SIGTERM');
 }
