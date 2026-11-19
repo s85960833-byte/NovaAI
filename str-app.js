@@ -115,11 +115,11 @@ function renderSpec(payload){
  [currentSpec.name,currentSpec.kind,contentName,currentSpec.pages.length+' page(s)'].forEach(v=>appendText(meta,'span',v,'str-spec-chip'));
  const sections=$('strSpecSections');sections.replaceChildren();
  currentSpec.pages.forEach(page=>{
-  appendText(sections,'h3',(page.title&&page.title[contentLang])||page.title.en||'Page');
+  appendText(sections,'h3',(page.title&&(page.title[contentLang]||page.title.en))||'Page');
   page.sections.forEach(section=>{
    const card=document.createElement('article');card.className='str-spec-section';
-   appendText(card,'b',(section.content.heading&&section.content.heading[contentLang])||section.id);
-   appendText(card,'p',(section.content.body&&section.content.body[contentLang])||'');
+   appendText(card,'b',(section.content.heading&&(section.content.heading[contentLang]||section.content.heading.en))||section.id);
+   appendText(card,'p',(section.content.body&&(section.content.body[contentLang]||section.content.body.en))||'');
    sections.appendChild(card);
   });
  });
