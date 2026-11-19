@@ -40,15 +40,15 @@ Base: main
 - STR only prepares guides and packages; the customer performs account creation, payment, identity checks, uploads, testing and submission.
 
 ## Decisions applied provisionally
-- Business model: Model 1 — owner-only free.
+- Business model: Model 1 — owner-only free (owner authorized all project defaults on 2026-11-19).
 - Customer builds: disabled.
-- Retention: 7 days as the prompt default; owner confirmation is still pending.
+- Retention: 7 days (owner authorized the v3 default on 2026-11-19).
 - No provider API keys added or read.
 - No customer data may be routed to any provider at this stage.
 
 ## Blockers / open items
 1. Render environment variable names are not exposed by the service-details endpoint; owner can provide names only if needed later. No values are requested.
-2. Owner retention default (7 days) is provisional.
+2. Retention is set to 7 days by owner authorization; revisit only if owner changes the policy.
 3. Groq/Cerebras account-specific quotas need owner dashboard verification before exact capacity scheduling can be enabled.
 4. A paid provider has not been selected; this is not required for Model 1.
 5. No real-provider call or customer-data flow is enabled.
