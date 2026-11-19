@@ -5,7 +5,7 @@ if(!root||window.NovaSTR)return;
 const $=id=>document.getElementById(id);
 const dict={
 en:{
-back:'Nova',headline:'A clear idea. A complete build.',
+back:'Nova',replyLabel:'Reply language',contentLabel:'Website content',headline:'A clear idea. A complete build.',
 subhead:'Describe the app or website you want. STR will turn your idea into a structured plan, a preview and a downloadable package.',
 promptLabel:'What would you like to build?',promptPlaceholder:'Describe your shop website…',
 saveDraft:'Save draft',clear:'Clear',localNote:'Your draft is saved only on this device. It is not sent to an AI provider in this phase.',
@@ -31,19 +31,24 @@ saved:'ड्राफ्ट इसी डिवाइस पर सुरक्
 cleared:'ड्राफ्ट साफ़ कर दिया गया।',welcome:'आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं।'
 }
 };
-let lang='en', dbPromise=null, introShown=false;
+let lang='en', replyLang='en', contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false;
 function readInitialLanguage(){
  try{const v=localStorage.getItem('str_ui_lang');if(v==='hi'||v==='en')return v;}catch(e){}
  try{const n=JSON.parse(localStorage.getItem('nova')||'{}');return n.uiLang==='hi'?'hi':'en';}catch(e){return 'en';}
 }
 function setLanguage(next,persist){
+ const previous=lang;
  lang=next==='hi'?'hi':'en';
+ if(!localStorage.getItem('str_reply_lang')||replyLang===previous)replyLang=lang;
+ const reply=$('strReplyLang'),content=$('strContentLang');
+ if(reply)reply.value=replyLang;
+ if(content)content.value=contentLang;
  root.querySelectorAll('[data-str]').forEach(el=>{const k=el.getAttribute('data-str');if(dict[lang][k]!=null)el.textContent=dict[lang][k];});
  root.querySelectorAll('[data-str-placeholder]').forEach(el=>{const k=el.getAttribute('data-str-placeholder');if(dict[lang][k])el.placeholder=dict[lang][k];});
  $('strLangHi').setAttribute('aria-pressed',String(lang==='hi'));
  $('strLangEn').setAttribute('aria-pressed',String(lang==='en'));
  $('strQuota').textContent=dict[lang].owner;
- if(persist){try{localStorage.setItem('str_ui_lang',lang);}catch(e){}}
+ if(persist){try{localStorage.setItem('str_ui_lang',lang);if(!localStorage.getItem('str_reply_lang'))localStorage.setItem('str_reply_lang',replyLang);}catch(e){}}
 }
 function openDb(){
  if(dbPromise)return dbPromise;
@@ -109,6 +114,7 @@ function playIntro(){
  const skip=$('strSkipIntro');skip.disabled=true;setTimeout(()=>{skip.disabled=false;},300);skip.addEventListener('click',finish,{once:true});
  setTimeout(finish,2400);
 }
+function inferContentLanguage(value){return /[\\u0900-\\u097f]/.test(value)?'hi':'en';}
 function open(){
  const side=document.getElementById('side');if(side)side.classList.remove('open');
  root.hidden=false;document.body.classList.add('str-open');status('');
@@ -120,6 +126,9 @@ function close(){
 }
 $('strBack').addEventListener('click',close);
 $('strLangHi').addEventListener('click',()=>setLanguage('hi',true));
+$('strReplyLang').addEventListener('change',event=>{replyLang=event.target.value==='hi'?'hi':'en';try{localStorage.setItem('str_reply_lang',replyLang);}catch(e){}});
+$('strContentLang').addEventListener('change',event=>{contentLang=event.target.value==='hinglish'?'hinglish':event.target.value==='hi'?'hi':'en';contentLangTouched=true;try{localStorage.setItem('str_content_lang',contentLang);}catch(e){}});
+$('strPrompt').addEventListener('input',event=>{if(contentLangTouched)return;contentLang=inferContentLanguage(event.target.value);$('strContentLang').value=contentLang;});
 $('strLangEn').addEventListener('click',()=>setLanguage('en',true));
 $('strSaveDraft').addEventListener('click',saveDraft);
 $('strClearDraft').addEventListener('click',async()=>{
@@ -131,6 +140,14 @@ window.addEventListener('nova:state-saved',()=>{
  try{const n=JSON.parse(localStorage.getItem('nova')||'{}');if(!localStorage.getItem('str_ui_lang'))setLanguage(n.uiLang==='hi'?'hi':'en',false);}catch(e){}
 });
 setLanguage(readInitialLanguage(),false);
+try{
+ const savedReply=localStorage.getItem('str_reply_lang');
+ const savedContent=localStorage.getItem('str_content_lang');
+ replyLang=savedReply==='hi'?'hi':savedReply==='en'?'en':lang;
+ contentLang=savedContent==='hinglish'?'hinglish':savedContent==='hi'?'hi':savedContent==='en'?'en':'en';
+ contentLangTouched=!!savedContent;
+ $('strReplyLang').value=replyLang;$('strContentLang').value=contentLang;
+}catch(e){replyLang=lang;}
 restoreDraft();
 window.NovaSTR=Object.freeze({open,close,getLanguage:()=>lang});
 })();
