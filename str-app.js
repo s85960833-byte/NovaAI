@@ -153,7 +153,7 @@ async function createSpec(){
   if(!data.spec||data.aiGenerated!==false||data.mode!=='local_rules_no_provider')throw new Error('Unexpected local spec response');
   renderSpec(data);
   const previous=await getLatestDraft(),now=Date.now();
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:data.spec,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1});
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:data.spec,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,spec:currentSpec||undefined});
   status(dict[lang].specReady);
  }catch(e){status(dict[lang].specError);}
  finally{button.disabled=false;button.textContent=dict[lang].createSpec;}
@@ -165,7 +165,7 @@ async function saveDraft(){
  try{
   const previous=await getLatestDraft();
   const now=Date.now();
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,status:'draft',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1});
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,status:'draft',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,spec:currentSpec||undefined});
   status(dict[lang].saved);
  }catch(e){status(dict[lang].saveError);}
 }
@@ -189,7 +189,7 @@ function playIntro(){
  const skip=$('strSkipIntro');skip.disabled=true;setTimeout(()=>{skip.disabled=false;},300);skip.addEventListener('click',finish,{once:true});
  setTimeout(finish,2400);
 }
-function inferContentLanguage(value){return /[\\u0900-\\u097f]/.test(value)?'hi':'en';}
+function inferContentLanguage(value){return /[\u0900-\u097f]/.test(value)?'hi':'en';}
 function open(){
  const side=document.getElementById('side');if(side)side.classList.remove('open');
  root.hidden=false;document.body.classList.add('str-open');status('');
