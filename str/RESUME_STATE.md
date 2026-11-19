@@ -4,7 +4,7 @@ Product: STR inside the existing Nova AI app (same link)
 Prompt version: final-3.0
 Build version: 0.3
 Phase: 1 — Nova-safe shell
-Step: 2.2 — Enforce provider data tiers and quota eligibility
+Step: 3.1 — Complete spec validation and unsafe-request gate
 Done:
 - 0.1 — Exact Nova source files reviewed from the main branch and candidate branch
 - 0.2 — Official provider, Render and Google Play source checks recorded; customer routing remains disabled
@@ -14,6 +14,7 @@ Done:
 - 1.2 — Separate UI, reply and website-content language controls added; reply defaults to UI language; typed language does not automatically change reply language
 - 2.1 — Stateless `/api/str/` routes added with exact payload schemas, same-origin checks, bounded per-client/IP rate windows and fail-closed 503 responses until a provider is verified
 - 2.2 — Provider eligibility router added; customer data requires verified paid_no_training tier and known model/RPM/TPM/RPD/TPD; unknown quotas block
+- 3.1 — Compact v1 spec validator added; bilingual unsafe-request classifier blocks credential harvesting before provider routing
 Files:
 - index.html — STR navigation, screen markup and isolated styles
 - nova-server.txt — Same-origin STR module route and versioned PWA cache entry
@@ -21,7 +22,9 @@ Files:
 - str/server.js — Stateless STR API health/limits and fixed-payload spec/section/fix/convert routes; generation disabled until provider verification
 - str/security.js — Same-origin, exact-schema, client-ID and bounded rate-window helpers
 - str/provider-router.js — Provider eligibility enforcement for owner test data vs customer data; unknown limits fail closed
-- scripts/str-security.test.cjs — Unit tests for origin, payload, rate windows and provider data-tier routing
+- str/safety.js — Bilingual unsafe-request classifier for credentials, impersonation, malware/spam, gambling and other prohibited requests
+- str/spec-schema.js — Compact v1 spec schema validator for fields, enums, unique IDs, bilingual copy and unsafe flags
+- scripts/str-security.test.cjs — Unit tests for origin, payload, rate windows, provider data-tier routing, unsafe prompts and spec validation
 - str/provider-config.json — Provider tiers, null quotas fail-closed, Model 1 owner-only default
 - str/PHASE0-VERIFICATION.md — Official provider, Render and Play verification; owner decisions
 - str/DECISIONS.md — Owner-authorized decisions and implementation boundaries
@@ -42,6 +45,6 @@ Open issues:
 - Verify latest PR checks; complete browser assertions for language controls
 - Exact Groq/Cerebras account quotas remain unknown; limits remain null and routing must fail closed
 - Render environment variable names are not exposed by the service metadata; no values requested
-- STR provider-backed spec/section/fix/convert generation remains disabled; provider data-routing enforcement, browser quality gates, ZIP and bilingual guides remain
+- STR provider-backed spec/section/fix/convert generation remains disabled; AI-generated spec creation, browser quality gates, ZIP and bilingual guides remain
 - Real-device Android/iPhone tests not performed
-Next: 2.2 — Complete provider-router unit tests and CI, then Phase 3.1 spec endpoint
+Next: 3.1 — Complete spec/safety CI tests; keep model generation blocked until a verified provider is configured
