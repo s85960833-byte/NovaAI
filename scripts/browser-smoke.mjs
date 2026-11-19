@@ -328,6 +328,17 @@ try{
  assert.ok((await desktop.locator('#strSpecSections').innerText()).includes('Products and services'),'starter plan should show a structured shop section');
  assert.ok((await desktop.locator('#strAssumed').innerText()).length>0,'starter plan must list assumptions for review');
  assert.ok((await desktop.locator('#strPlaceholders').innerText()).length>0,'starter plan must list missing details');
+ assert.equal(await desktop.locator('#strSpecName').inputValue(),'Untitled Project','vague prompt should use a disclosed temporary name');
+ await desktop.locator('#strSpecName').fill('Test Shop Plan');
+ await desktop.locator('#strSpecName').press('Tab');
+ await desktop.locator('#strAssumed input').first().fill('Owner confirmed name');
+ await desktop.locator('#strAssumed input').first().press('Tab');
+ await desktop.locator('#strPlaceholders input').first().fill('Sample contact detail');
+ await desktop.locator('#strPlaceholders input').first().press('Tab');
+ await desktop.waitForFunction(()=>document.querySelector('#strStatus')?.textContent.includes('योजना में किए गए बदलाव'));
+ assert.equal(await desktop.locator('#strSpecSections .str-spec-page').count(),1,'spec sheet must render pages as expandable strata cards');
+ assert.ok(await desktop.locator('#strSpecSections button:disabled').count()>=2,'conversion controls must be visible but disabled until a verified provider exists');
+
  await desktop.locator('#strSaveDraft').click();
  await desktop.waitForFunction(()=>document.querySelector('#strStatus')?.textContent.includes('ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।'));
  const strSaved=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})});
@@ -336,7 +347,9 @@ try{
  assert.equal(strSaved[0].replyLang,'en','draft must persist reply language independently');
  assert.equal(strSaved[0].contentLang,'hinglish','draft must persist the explicit website content language');
  assert.equal(strSaved[0].spec.content_lang,'hinglish','draft must preserve the local spec and its content language');
- assert.equal(strSaved[0].spec.name,'Untitled Project','vague local prompts must not invent a business name');
+ assert.equal(strSaved[0].spec.name,'Test Shop Plan','edited project name must persist in the spec');
+ assert.equal(strSaved[0].spec.assumed[0].value,'Owner confirmed name','edited assumptions must persist in IndexedDB');
+ assert.equal(strSaved[0].fieldValues['Contact phone number'],'Sample contact detail','filled placeholders must persist separately from the compact spec');
  assert.equal(await desktop.evaluate(()=>localStorage.getItem('nova')),novaStorageBefore,'STR must not modify Nova chat storage');
  await desktop.locator('#strBack').click();
  await desktop.waitForFunction(()=>document.querySelector('#strApp').hidden);
