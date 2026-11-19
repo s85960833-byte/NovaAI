@@ -49,6 +49,7 @@ function setLanguage(next,persist){
  $('strLangEn').setAttribute('aria-pressed',String(lang==='en'));
  $('strQuota').textContent=dict[lang].owner;
  if(persist){try{localStorage.setItem('str_ui_lang',lang);if(!localStorage.getItem('str_reply_lang'))localStorage.setItem('str_reply_lang',replyLang);}catch(e){}}
+ if(currentSpec&&!$('strSpecPanel').hidden)renderSpec({spec:currentSpec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});
 }
 function openDb(){
  if(dbPromise)return dbPromise;
@@ -110,9 +111,21 @@ async function persistSpecEdits(){
  try{
   const previous=await getLatestDraft(),now=Date.now(),prompt=$('strPrompt').value.trim();
   if(!prompt||!currentSpec)return;
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:currentSpec,fieldValues:currentFieldValues,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1});
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:currentSpec,fieldValues:{...currentFieldValues},status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1});
   status(dict[lang].specSaved);
  }catch(e){status(dict[lang].saveError);}
+}
+function copyKey(){return contentLang==='hinglish'?'hinglish':contentLang;}
+function editLabel(parent,text){
+ const label=document.createElement('label');label.className='str-spec-copy-editor';
+ appendText(label,'span',text);
+ parent.appendChild(label);return label;
+}
+function commitCopy(copy,key,input,maxLength,required){
+ const value=input.value.trim().slice(0,maxLength);
+ if(!value&&required){input.value=copy[key]||'';return false;}
+ if(value)copy[key]=value;else delete copy[key];
+ return true;
 }
 function renderSpec(payload){
  currentSpec=payload.spec;
@@ -126,20 +139,31 @@ function renderSpec(payload){
  const nameInput=document.createElement('input');nameInput.id='strSpecName';nameInput.type='text';nameInput.maxLength=100;nameInput.value=currentSpec.name;nameInput.setAttribute('aria-label',lang==='hi'?'प्रोजेक्ट का नाम':'Project name');
  nameInput.addEventListener('change',async()=>{const value=nameInput.value.trim().slice(0,100);if(!value){nameInput.value=currentSpec.name;return;}currentSpec.name=value;currentSpec.seo.title.hi=value;currentSpec.seo.title.en=value;await persistSpecEdits();});
  nameLabel.appendChild(nameInput);meta.appendChild(nameLabel);
+ const key=copyKey(), languageName=key==='hi'?'हिंदी':key==='hinglish'?'Hinglish':'English';
  const sections=$('strSpecSections');sections.replaceChildren();
  currentSpec.pages.forEach(page=>{
   const card=document.createElement('details');card.className='str-spec-page';card.open=true;
+  card.setAttribute('data-str-page-id',page.id);
   const summary=document.createElement('summary');
-  summary.textContent=(page.title&&(page.title[contentLang]||page.title.en))||'Page';
+  summary.textContent=(page.title&&(page.title[key]||page.title.en||page.title.hi))||'Page';
   card.appendChild(summary);
+  const titleLabel=editLabel(card,(lang==='hi'?'पेज शीर्षक':'Page title')+' · '+languageName);
+  const titleInput=document.createElement('input');titleInput.type='text';titleInput.maxLength=120;titleInput.value=page.title&&page.title[key]||'';titleInput.setAttribute('data-str-field','page-title');titleInput.setAttribute('aria-label',(lang==='hi'?'पेज शीर्षक':'Page title')+' '+page.id+' '+languageName);
+  titleInput.addEventListener('change',()=>{if(commitCopy(page.title,key,titleInput,120,key!=='hinglish'))summary.textContent=page.title[key]||page.title.en||page.title.hi;});
+  titleLabel.appendChild(titleInput);
   const convert=document.createElement('button');convert.type='button';convert.disabled=true;convert.className='str-convert-disabled';convert.textContent=lang==='hi'?'भाषा बदलें':'Convert';convert.title=dict[lang].conversionBlocked;card.appendChild(convert);
   page.sections.forEach(section=>{
-   const row=document.createElement('article');row.className='str-spec-section';
-   const header=document.createElement('div');header.className='str-section-heading';
-   appendText(header,'b',(section.content.heading&&(section.content.heading[contentLang]||section.content.heading.en))||section.id);
-   const sectionConvert=document.createElement('button');sectionConvert.type='button';sectionConvert.disabled=true;sectionConvert.textContent=lang==='hi'?'बदलें':'Convert';sectionConvert.title=dict[lang].conversionBlocked;header.appendChild(sectionConvert);
-   row.appendChild(header);
-   appendText(row,'p',(section.content.body&&(section.content.body[contentLang]||section.content.body.en))||'');
+   const row=document.createElement('article');row.className='str-spec-section';row.setAttribute('data-str-section-id',section.id);
+   const headingLabel=editLabel(row,(lang==='hi'?'सेक्शन शीर्षक':'Section heading')+' · '+languageName);
+   const headingInput=document.createElement('input');headingInput.type='text';headingInput.maxLength=160;headingInput.value=section.content.heading[key]||'';headingInput.setAttribute('data-str-field','heading');headingInput.setAttribute('aria-label',(lang==='hi'?'सेक्शन शीर्षक':'Section heading')+' '+section.id+' '+languageName);
+   headingInput.addEventListener('change',()=>commitCopy(section.content.heading,key,headingInput,160,key!=='hinglish'));
+   headingLabel.appendChild(headingInput);
+   const bodyLabel=editLabel(row,(lang==='hi'?'विवरण':'Description')+' · '+languageName);
+   const bodyInput=document.createElement('textarea');bodyInput.rows=3;bodyInput.maxLength=600;bodyInput.value=section.content.body[key]||'';bodyInput.setAttribute('data-str-field','body');bodyInput.setAttribute('aria-label',(lang==='hi'?'विवरण':'Description')+' '+section.id+' '+languageName);
+   bodyInput.addEventListener('change',()=>commitCopy(section.content.body,key,bodyInput,600,key!=='hinglish'));
+   bodyLabel.appendChild(bodyInput);
+   const display=document.createElement('p');display.className='str-copy-preview';display.textContent=section.content.heading[key]||section.content.heading.en||section.content.heading.hi;
+   row.appendChild(display);
    card.appendChild(row);
   });
   sections.appendChild(card);
@@ -181,9 +205,10 @@ async function createSpec(){
    return;
   }
   if(!data.spec||data.aiGenerated!==false||data.mode!=='local_rules_no_provider')throw new Error('Unexpected local spec response');
+  currentFieldValues={};
   renderSpec(data);
   const previous=await getLatestDraft(),now=Date.now();
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:data.spec,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,spec:currentSpec||undefined,fieldValues:currentFieldValues});
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:currentSpec,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,fieldValues:{...currentFieldValues}});
   status(dict[lang].specReady);
  }catch(e){status(dict[lang].specError);}
  finally{button.disabled=false;button.textContent=dict[lang].createSpec;}
@@ -195,7 +220,7 @@ async function saveDraft(){
  try{
   const previous=await getLatestDraft();
   const now=Date.now();
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,status:'draft',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,spec:currentSpec||undefined});
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,status:currentSpec?'spec_ready':'draft',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,spec:currentSpec||undefined,fieldValues:{...currentFieldValues}});
   status(dict[lang].saved);
  }catch(e){status(dict[lang].saveError);}
 }
@@ -204,9 +229,10 @@ async function restoreDraft(){
   const d=await getLatestDraft();
   if(d&&d.prompt){
    $('strPrompt').value=d.prompt;
-   if(d.spec&&d.spec.v===1){try{renderSpec({spec:d.spec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});}catch(e){currentSpec=null;}}
+   currentFieldValues=d.fieldValues&&typeof d.fieldValues==='object'&&!Array.isArray(d.fieldValues)?{...d.fieldValues}:{};
    if(d.contentLang==='hi'||d.contentLang==='en'||d.contentLang==='hinglish'){contentLang=d.contentLang;contentLangTouched=true;$('strContentLang').value=contentLang;}
    if(d.replyLang==='hi'||d.replyLang==='en'){replyLang=d.replyLang;$('strReplyLang').value=replyLang;}
+   if(d.spec&&d.spec.v===1){try{renderSpec({spec:d.spec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});}catch(e){currentSpec=null;}}
   }
  }catch(e){}
 }
@@ -232,10 +258,11 @@ function close(){
 $('strBack').addEventListener('click',close);
 $('strLangHi').addEventListener('click',()=>setLanguage('hi',true));
 $('strReplyLang').addEventListener('change',event=>{replyLang=event.target.value==='hi'?'hi':'en';replyLangExplicit=true;try{localStorage.setItem('str_reply_lang',replyLang);}catch(e){}});
-$('strContentLang').addEventListener('change',event=>{contentLang=event.target.value==='hinglish'?'hinglish':event.target.value==='hi'?'hi':'en';contentLangTouched=true;try{localStorage.setItem('str_content_lang',contentLang);}catch(e){}});
+$('strContentLang').addEventListener('change',event=>{contentLang=event.target.value==='hinglish'?'hinglish':event.target.value==='hi'?'hi':'en';contentLangTouched=true;try{localStorage.setItem('str_content_lang',contentLang);}catch(e){}if(currentSpec)renderSpec({spec:currentSpec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});});
 $('strPrompt').addEventListener('input',event=>{if(contentLangTouched)return;contentLang=inferContentLanguage(event.target.value);$('strContentLang').value=contentLang;});
 $('strLangEn').addEventListener('click',()=>setLanguage('en',true));
 $('strSaveDraft').addEventListener('click',saveDraft);
+$('strSavePlan').addEventListener('click',persistSpecEdits);
 $('strCreateSpec').addEventListener('click',createSpec);
 $('strClearDraft').addEventListener('click',async()=>{
  $('strPrompt').value='';currentSpec=null;$('strSpecPanel').hidden=true;
