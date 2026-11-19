@@ -15,7 +15,7 @@ stageCheck:'03 · Quality',stageCheckDesc:'Check safety, mobile layout and compl
 footer:'STR is in setup. Build generation will be enabled after the secure pipeline is ready.',
 tagline:'Short prompt. Complete app.',skipIntro:'Skip intro',owner:'Owner mode',empty:'Write a short description first.',
 saved:'Draft saved on this device.',saveError:'This browser could not save the draft. Please try again.',
-cleared:'Draft cleared.',welcome:'You can choose Hindi or English. You can change this any time.',savePlan:'Save plan edits',specSaved:'Plan changes saved on this device.',conversionBlocked:'Content conversion needs a verified provider and is not available yet.',voiceUnavailable:'On-device speech recognition is not available in this build. Please type your idea.',approveSpec:'Approve this plan',reapproveSpec:'Approve revised plan',approvedLabel:'Approved on this device',notApproved:'Not approved yet.',needsApproval:'Changes made · approval needed.',diffTitle:'Changes from the starter plan',specApproved:'Plan approved and saved on this device.',approvalUnavailable:'Secure approval verification is unavailable in this browser.'
+cleared:'Draft cleared.',welcome:'You can choose Hindi or English. You can change this any time.',savePlan:'Save plan edits',specSaved:'Plan changes saved on this device.',conversionBlocked:'Content conversion needs a verified provider and is not available yet.',voiceUnavailable:'On-device speech recognition is not available in this build. Please type your idea.',approveSpec:'Approve this plan',reapproveSpec:'Approve revised plan',approvedLabel:'Approved on this device',notApproved:'Not approved yet.',needsApproval:'Changes made · approval needed.',diffTitle:'Changes from the starter plan',specApproved:'Plan approved and saved on this device.',approvalUnavailable:'Secure approval verification is unavailable in this browser.',buildLocal:'Build local preview',pauseBuild:'Pause local preview',resumeBuild:'Resume local preview',rebuildPreview:'Rebuild local preview',buildNeedsApproval:'Approve the spec before building.',buildReady:'Ready to build a local preview. No AI provider will be used.',buildStarting:'Starting local preview…',buildProgress:'Rendering preview chunk {done} of {total}…',buildPaused:'Build paused. You can resume it on this device.',buildDone:'Local preview ready. No AI provider was used.',buildError:'Local preview could not be completed.',previewTitle:'Local website preview'
 },
 hi:{
 back:'Nova',replyLabel:'उत्तर भाषा',contentLabel:'वेबसाइट की भाषा',createSpec:'शुरुआती योजना बनाएँ',specEyebrow:'स्थानीय शुरुआती योजना',specTitle:'अपनी शुरुआती योजना जाँचें',localBadge:'स्थानीय नियम · AI नहीं',sectionsTitle:'पेज के हिस्से',assumedTitle:'जाँचने वाली मान्यताएँ',placeholderTitle:'अभी जरूरी जानकारी',buildBlocked:'पूरा AI वेबसाइट निर्माण और ZIP export अभी चालू नहीं हैं। यह केवल समीक्षा के लिए शुरुआती रूपरेखा है।',analyzing:'स्थानीय शुरुआती योजना बनाई जा रही है…',specReady:'शुरुआती योजना तैयार है। इस्तेमाल से पहले हर मान्यता जाँचें।',specError:'योजना नहीं बन पाई। विवरण जाँचकर दोबारा कोशिश करें।',unsafeError:'इस अनुरोध से योजना नहीं बनाई जा सकती।',localNote:'आपका prompt और शुरुआती योजना Nova के अंदर रहते हैं। इस preview में कोई AI provider इस्तेमाल नहीं होता।',headline:'एक स्पष्ट विचार। पूरा build।',
@@ -28,10 +28,10 @@ stageCheck:'03 · गुणवत्ता',stageCheckDesc:'सुरक्ष�
 footer:'STR अभी तैयार हो रहा है। सुरक्षित build pipeline तैयार होने के बाद generation चालू होगी।',
 tagline:'छोटा सा प्रॉम्प्ट, पूरा ऐप।',skipIntro:'इंट्रो छोड़ें',owner:'मालिक मोड',empty:'पहले छोटा-सा विवरण लिखें।',
 saved:'ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।',saveError:'इस browser में ड्राफ्ट सुरक्षित नहीं हो पाया। दोबारा कोशिश करें।',
-cleared:'ड्राफ्ट साफ़ कर दिया गया।',welcome:'आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं।',savePlan:'योजना में बदलाव सुरक्षित करें',specSaved:'योजना में किए गए बदलाव इसी डिवाइस पर सुरक्षित हो गए।',conversionBlocked:'Content बदलने के लिए verified provider चाहिए; यह सुविधा अभी उपलब्ध नहीं है।',voiceUnavailable:'इस build में डिवाइस पर चलने वाली voice typing उपलब्ध नहीं है। कृपया अपना विचार टाइप करें।',approveSpec:'इस योजना को मंज़ूरी दें',reapproveSpec:'बदली योजना को फिर मंज़ूरी दें',approvedLabel:'इस डिवाइस पर मंज़ूर',notApproved:'अभी मंज़ूरी नहीं दी गई।',needsApproval:'बदलाव किए गए हैं · फिर मंज़ूरी ज़रूरी है।',diffTitle:'शुरुआती योजना से बदलाव',specApproved:'योजना मंज़ूर होकर इसी डिवाइस पर सुरक्षित हो गई।',approvalUnavailable:'इस browser में सुरक्षित approval verification उपलब्ध नहीं है।'
+cleared:'ड्राफ्ट साफ़ कर दिया गया।',welcome:'आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं।',savePlan:'योजना में बदलाव सुरक्षित करें',specSaved:'योजना में किए गए बदलाव इसी डिवाइस पर सुरक्षित हो गए।',conversionBlocked:'Content बदलने के लिए verified provider चाहिए; यह सुविधा अभी उपलब्ध नहीं है।',voiceUnavailable:'इस build में डिवाइस पर चलने वाली voice typing उपलब्ध नहीं है। कृपया अपना विचार टाइप करें।',approveSpec:'इस योजना को मंज़ूरी दें',reapproveSpec:'बदली योजना को फिर मंज़ूरी दें',approvedLabel:'इस डिवाइस पर मंज़ूर',notApproved:'अभी मंज़ूरी नहीं दी गई।',needsApproval:'बदलाव किए गए हैं · फिर मंज़ूरी ज़रूरी है।',diffTitle:'शुरुआती योजना से बदलाव',specApproved:'योजना मंज़ूर होकर इसी डिवाइस पर सुरक्षित हो गई।',approvalUnavailable:'इस browser में सुरक्षित approval verification उपलब्ध नहीं है।',buildLocal:'स्थानीय preview बनाएँ',pauseBuild:'preview रोकें',resumeBuild:'preview फिर शुरू करें',rebuildPreview:'preview दोबारा बनाएँ',buildNeedsApproval:'बनाने से पहले spec को मंज़ूरी दें।',buildReady:'स्थानीय preview तैयार है। कोई AI provider इस्तेमाल नहीं होगा।',buildStarting:'स्थानीय preview शुरू हो रहा है…',buildProgress:'preview का chunk {done} / {total} बनाया जा रहा है…',buildPaused:'निर्माण रुका है। इसी डिवाइस पर फिर शुरू कर सकते हैं।',buildDone:'स्थानीय preview तैयार है। कोई AI provider इस्तेमाल नहीं हुआ।',buildError:'स्थानीय preview पूरा नहीं हो पाया।',previewTitle:'वेबसाइट का स्थानीय preview'
 }
 };
-let lang='en', replyLang='en', replyLangExplicit=false, contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false, currentSpec=null, originalSpec=null, currentApproval=null, currentFieldValues={}, originalFieldValues={};
+let lang='en', replyLang='en', replyLangExplicit=false, contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false, currentSpec=null, originalSpec=null, currentApproval=null, currentFieldValues={}, originalFieldValues={}, currentBuild=null, buildRunning=false, buildPauseRequested=false;
 function readInitialLanguage(){
  try{const v=localStorage.getItem('str_ui_lang');if(v==='hi'||v==='en')return v;}catch(e){}
  try{const n=JSON.parse(localStorage.getItem('nova')||'{}');return n.uiLang==='hi'?'hi':'en';}catch(e){return 'en';}
@@ -115,7 +115,7 @@ async function persistSpecEdits(options={}){
    id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),
    prompt,spec:currentSpec,originalSpec:originalSpec||currentSpec,
    fieldValues:{...currentFieldValues},originalFieldValues:{...originalFieldValues},
-   approval:currentApproval,status:'spec_ready',
+   approval:currentApproval,build:currentBuild||null,status:'spec_ready',
    createdAt:previous&&previous.createdAt||now,updatedAt:now,
    uiLang:lang,contentLang,replyLang,specVersion:1
   });
@@ -160,10 +160,13 @@ function renderApprovalPanel(){
  state.textContent=currentApproval?dict[lang].approvedLabel:changes.length?dict[lang].needsApproval:dict[lang].notApproved;
  button.disabled=!currentSpec;
  button.textContent=currentApproval?dict[lang].reapproveSpec:dict[lang].approveSpec;
+ renderBuildPanel();
 }
 function markSpecChanged(){
  if(currentApproval)currentApproval=null;
+ currentBuild=null;
  renderApprovalPanel();
+ renderBuildPanel();
 }
 function canonicalize(value){
  if(Array.isArray(value))return value.map(canonicalize);
@@ -196,6 +199,119 @@ async function approveSpec(){
   currentApproval=null;renderApprovalPanel();status(dict[lang].approvalUnavailable);
  }finally{button.disabled=false;}
 }
+function escapePreviewText(value){
+ return String(value==null?'':value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function localizedCopy(value,locale){
+ if(!value||typeof value!=='object')return '';
+ if(locale==='hinglish')return value.hinglish||value.en||value.hi||'';
+ return value[locale]||value.en||value.hi||'';
+}
+function buildLocalChunks(spec,locale){
+ const titleFallback=spec.name||'Website preview';
+ const primary=/^#[0-9a-f]{6}$/i.test(spec.colors&&spec.colors.primary||'')?spec.colors.primary:'#1E1B4B';
+ const accent=/^#[0-9a-f]{6}$/i.test(spec.colors&&spec.colors.accent||'')?spec.colors.accent:'#F59E0B';
+ const lang=locale==='hi'?'hi':'en';
+ const chunks=[];
+ chunks.push('<!doctype html><html lang="'+lang+'"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'none\'; connect-src \'none\'; img-src data:; font-src \'none\'; style-src \'unsafe-inline\'; form-action \'none\'; base-uri \'none\'; object-src \'none\'"><title>'+escapePreviewText(titleFallback)+'</title><style>:root{color-scheme:light;--primary:'+primary+';--accent:'+accent+'}*{box-sizing:border-box}body{margin:0;background:#f8fafc;color:#0f172a;font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}main{width:min(100% - 32px,920px);margin:0 auto;padding:28px 0 64px}.hero{padding:40px 28px;border-radius:20px;background:var(--primary);color:#fff}.eyebrow{color:#fde68a;font-size:12px;letter-spacing:.12em;text-transform:uppercase}.hero h1{font-size:clamp(30px,6vw,48px);line-height:1.1;margin:12px 0}.hero p{max-width:65ch}.section{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;margin-top:18px;box-shadow:0 8px 24px rgba(15,23,42,.05)}.section h2{margin:0 0 8px;color:var(--primary)}.section p{white-space:pre-wrap}.section li{margin:6px 0}.contact-list{padding-left:20px}.accent{display:inline-block;margin-top:10px;padding:8px 14px;border-radius:999px;background:var(--accent);color:#1e1b4b;font-weight:700}.preview-footer{padding:24px;text-align:center;color:#64748b;font-size:12px}@media(max-width:560px){main{width:min(100% - 20px,920px)}.hero,.section{padding:22px}}</style></head><body><main>');
+ (spec.pages||[]).forEach(page=>{
+  const pageTitle=localizedCopy(page.title,locale)||titleFallback;
+  const description=localizedCopy(spec.seo&&spec.seo.desc,locale);
+  chunks.push('<article><header class="hero"><div class="eyebrow">'+escapePreviewText(spec.kind||'Website')+'</div><h1>'+escapePreviewText(pageTitle)+'</h1>'+(description?'<p>'+escapePreviewText(description)+'</p>':'')+'<span class="accent">Welcome</span></header>');
+  (page.sections||[]).forEach(section=>{
+   const heading=localizedCopy(section.content&&section.content.heading,locale)||'Details';
+   const body=localizedCopy(section.content&&section.content.body,locale);
+   let extra='';
+   if(section.type==='features'&&Array.isArray(spec.features)&&spec.features.length){
+    extra='<ul>'+spec.features.slice(0,20).map(item=>'<li>'+escapePreviewText(item)+'</li>').join('')+'</ul>';
+   }
+   if(section.type==='contact'&&spec.contact){
+    const entries=Object.entries(spec.contact).filter(([,value])=>typeof value==='string'&&value.trim());
+    if(entries.length)extra+='<ul class="contact-list">'+entries.map(([key,value])=>'<li><strong>'+escapePreviewText(key)+':</strong> '+escapePreviewText(value)+'</li>').join('')+'</ul>';
+   }
+   const safeId=/^[A-Za-z0-9_-]{1,80}$/.test(section.id||'')?section.id:'section';
+   chunks.push('<section class="section" id="'+safeId+'"><h2>'+escapePreviewText(heading)+'</h2>'+(body?'<p>'+escapePreviewText(body)+'</p>':'')+extra+'</section>');
+  });
+  chunks.push('</article>');
+ });
+ chunks.push('</main><footer class="preview-footer">Local preview · Built inside Nova STR · No AI provider used</footer></body></html>');
+ return chunks;
+}
+function renderBuildPanel(){
+ const button=$('strBuildLocal'),label=$('strBuildStatus'),progress=$('strBuildProgress'),frame=$('strPreviewFrame');
+ if(!button||!label||!progress||!frame)return;
+ const done=currentBuild&&Number.isSafeInteger(currentBuild.doneChunks)?currentBuild.doneChunks:0;
+ const total=currentBuild&&Number.isSafeInteger(currentBuild.totalChunks)?currentBuild.totalChunks:0;
+ progress.textContent=total?done+'/'+total:'0/0';
+ if(buildRunning)button.textContent=dict[lang].pauseBuild;
+ else if(currentBuild&&['paused','building'].includes(currentBuild.status))button.textContent=dict[lang].resumeBuild;
+ else if(currentBuild&&currentBuild.status==='complete')button.textContent=dict[lang].rebuildPreview;
+ else button.textContent=dict[lang].buildLocal;
+ button.disabled=!currentSpec||!currentApproval||buildRunning&&buildPauseRequested;
+ if(!currentSpec||!currentApproval)label.textContent=dict[lang].buildNeedsApproval;
+ else if(currentBuild&&currentBuild.status==='complete')label.textContent=dict[lang].buildDone;
+ else if(currentBuild&&currentBuild.status==='paused')label.textContent=dict[lang].buildPaused;
+ else if(currentBuild&&currentBuild.status==='building')label.textContent=dict[lang].buildStarting;
+ else label.textContent=dict[lang].buildReady;
+ const ready=!!(currentBuild&&currentBuild.status==='complete'&&typeof currentBuild.html==='string');
+ frame.hidden=!ready;
+ if(ready)frame.srcdoc=currentBuild.html;else if(frame.hasAttribute('srcdoc'))frame.removeAttribute('srcdoc');
+}
+async function persistBuildProgress(){
+ const latest=await getLatestDraft();
+ if(!latest||!currentBuild)return false;
+ await putDraft({...latest,build:currentBuild,updatedAt:Date.now()});
+ return true;
+}
+async function startLocalBuild(){
+ if(buildRunning){buildPauseRequested=true;return;}
+ if(!currentSpec||!currentApproval){status(dict[lang].buildNeedsApproval);renderBuildPanel();return;}
+ buildRunning=true;buildPauseRequested=false;renderBuildPanel();
+ try{
+  const approvedHash=await computeSpecFingerprint();
+  if(approvedHash!==currentApproval.hash){
+   currentApproval=null;currentBuild=null;await persistSpecEdits({quiet:true});
+   renderApprovalPanel();renderBuildPanel();status(dict[lang].needsApproval);return;
+  }
+  const chunks=buildLocalChunks(currentSpec,contentLang);
+  if(currentBuild&&currentBuild.approvedHash===approvedHash&&currentBuild.status!=='complete'&&Array.isArray(currentBuild.htmlParts)&&currentBuild.totalChunks===chunks.length){
+   currentBuild.status='building';
+  }else{
+   currentBuild={v:1,status:'building',approvedHash,totalChunks:chunks.length,doneChunks:0,htmlParts:[],html:'',createdAt:Date.now(),updatedAt:Date.now()};
+  }
+  await persistBuildProgress();
+  for(let index=currentBuild.doneChunks;index<chunks.length;index++){
+   if(buildPauseRequested){
+    currentBuild.status='paused';currentBuild.updatedAt=Date.now();await persistBuildProgress();
+    status(dict[lang].buildPaused);renderBuildPanel();return;
+   }
+   currentBuild.htmlParts[index]=chunks[index];
+   currentBuild.doneChunks=index+1;
+   currentBuild.updatedAt=Date.now();
+   await persistBuildProgress();
+   const progressText=dict[lang].buildProgress.replace('{done}',String(currentBuild.doneChunks)).replace('{total}',String(currentBuild.totalChunks));
+   $('strBuildStatus').textContent=progressText;
+   $('strBuildProgress').textContent=currentBuild.doneChunks+'/'+currentBuild.totalChunks;
+   await new Promise(resolve=>setTimeout(resolve,100));
+  }
+  if(buildPauseRequested){
+   currentBuild.status='paused';currentBuild.updatedAt=Date.now();await persistBuildProgress();
+   status(dict[lang].buildPaused);return;
+  }
+  currentBuild.html=currentBuild.htmlParts.join('');
+  if(currentBuild.html.length>250000)throw new Error('Local preview output exceeded its safe size limit.');
+  currentBuild.htmlParts=[];
+  currentBuild.status='complete';currentBuild.updatedAt=Date.now();
+  await persistBuildProgress();
+  renderBuildPanel();status(dict[lang].buildDone);
+ }catch(e){
+  if(currentBuild){currentBuild.status='failed';currentBuild.updatedAt=Date.now();try{await persistBuildProgress();}catch(ignore){}}
+  renderBuildPanel();status(dict[lang].buildError);
+ }finally{
+  buildRunning=false;buildPauseRequested=false;renderBuildPanel();
+ }
+}
+
 function copyKey(){return contentLang==='hinglish'?'hinglish':contentLang;}
 function editLabel(parent,text){
  const label=document.createElement('label');label.className='str-spec-copy-editor';
@@ -291,7 +407,7 @@ async function createSpec(){
   currentFieldValues={};originalFieldValues={};originalSpec=JSON.parse(JSON.stringify(data.spec));currentApproval=null;
   renderSpec(data);
   const previous=await getLatestDraft(),now=Date.now();
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:currentSpec,originalSpec:originalSpec||currentSpec,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,fieldValues:{...currentFieldValues},originalFieldValues:{...originalFieldValues},approval:currentApproval});
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:currentSpec,originalSpec:originalSpec||currentSpec,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,fieldValues:{...currentFieldValues},originalFieldValues:{...originalFieldValues},approval:currentApproval,build:null});
   status(dict[lang].specReady);
  }catch(e){status(dict[lang].specError);}
  finally{button.disabled=false;button.textContent=dict[lang].createSpec;}
@@ -303,7 +419,7 @@ async function saveDraft(){
  try{
   const previous=await getLatestDraft();
   const now=Date.now();
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,status:currentSpec?'spec_ready':'draft',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,spec:currentSpec||undefined,originalSpec:originalSpec||undefined,fieldValues:{...currentFieldValues},originalFieldValues:{...originalFieldValues},approval:currentApproval});
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,status:currentSpec?'spec_ready':'draft',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,spec:currentSpec||undefined,originalSpec:originalSpec||undefined,fieldValues:{...currentFieldValues},originalFieldValues:{...originalFieldValues},approval:currentApproval,build:currentBuild||null});
   status(dict[lang].saved);
  }catch(e){status(dict[lang].saveError);}
 }
@@ -316,9 +432,10 @@ async function restoreDraft(){
    originalFieldValues=d.originalFieldValues&&typeof d.originalFieldValues==='object'&&!Array.isArray(d.originalFieldValues)?{...d.originalFieldValues}:{};
    originalSpec=d.originalSpec&&d.originalSpec.v===1?d.originalSpec:(d.spec&&d.spec.v===1?JSON.parse(JSON.stringify(d.spec)):null);
    currentApproval=d.approval&&d.approval.algorithm==='SHA-256'&&/^[a-f0-9]{64}$/.test(d.approval.hash||'')&&Number.isFinite(d.approval.approvedAt)?d.approval:null;
+   currentBuild=d.build&&d.build.v===1&&Array.isArray(d.build.htmlParts)&&Number.isSafeInteger(d.build.doneChunks)&&Number.isSafeInteger(d.build.totalChunks)?d.build:null;
    if(d.contentLang==='hi'||d.contentLang==='en'||d.contentLang==='hinglish'){contentLang=d.contentLang;contentLangTouched=true;$('strContentLang').value=contentLang;}
    if(d.replyLang==='hi'||d.replyLang==='en'){replyLang=d.replyLang;$('strReplyLang').value=replyLang;}
-   if(d.spec&&d.spec.v===1){try{currentSpec=d.spec;if(currentApproval){try{if(await computeSpecFingerprint()!==currentApproval.hash)currentApproval=null;}catch(e){currentApproval=null;}}renderSpec({spec:d.spec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});}catch(e){currentSpec=null;currentApproval=null;}}
+   if(d.spec&&d.spec.v===1){try{currentSpec=d.spec;if(currentApproval){try{if(await computeSpecFingerprint()!==currentApproval.hash)currentApproval=null;}catch(e){currentApproval=null;}}if(!currentApproval||!currentBuild||currentBuild.approvedHash!==currentApproval.hash)currentBuild=null;renderSpec({spec:d.spec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});}catch(e){currentSpec=null;currentApproval=null;currentBuild=null;}}
   }
  }catch(e){}
 }
@@ -350,9 +467,10 @@ $('strLangEn').addEventListener('click',()=>setLanguage('en',true));
 $('strSaveDraft').addEventListener('click',saveDraft);
 $('strSavePlan').addEventListener('click',persistSpecEdits);
 $('strApproveSpec').addEventListener('click',approveSpec);
+$('strBuildLocal').addEventListener('click',startLocalBuild);
 $('strCreateSpec').addEventListener('click',createSpec);
 $('strClearDraft').addEventListener('click',async()=>{
- $('strPrompt').value='';currentSpec=null;originalSpec=null;currentApproval=null;currentFieldValues={};originalFieldValues={};$('strSpecPanel').hidden=true;
+ $('strPrompt').value='';currentSpec=null;originalSpec=null;currentApproval=null;currentFieldValues={};originalFieldValues={};currentBuild=null;$('strSpecPanel').hidden=true;
  try{await clearDrafts();status(dict[lang].cleared);}catch(e){status(dict[lang].saveError);}
 });
 window.addEventListener('nova:state-saved',()=>{
