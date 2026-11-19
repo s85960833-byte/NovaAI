@@ -472,6 +472,19 @@ try{
  assert.equal(await desktop.locator('[data-str-page-id="home"] [data-str-field="page-title"]').inputValue(),'Home Ghar','page title must restore from IndexedDB');
  assert.equal(await desktop.locator('[data-str-section-id="details"] [data-str-field="heading"]').inputValue(),'Updated after approval','revised section heading must restore from IndexedDB');
  assert.ok((await desktop.locator('#strApprovalState').innerText()).includes('इस डिवाइस पर मंज़ूर'),'saved approval must be re-verified when restoring the spec');
+ await desktop.evaluate(async()=>{
+  const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+  await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readwrite');tx.objectStore('drafts').put({id:'str-expired-retention-test',prompt:'expired draft',createdAt:Date.now()-8*86400000,updatedAt:Date.now()-8*86400000});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
+ });
+ await desktop.locator('#strBack').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strApp').hidden);
+ await desktop.locator('#nStr').click();
+ await desktop.waitForFunction(async()=>{
+  const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+  return await new Promise(resolve=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').get('str-expired-retention-test');r.onsuccess=()=>resolve(!r.result);r.onerror=()=>resolve(false)});
+ });
+ console.log('PASS STR seven-day IndexedDB retention removes expired drafts on reopen');
+
  assert.ok((await desktop.locator('#strApprovalState').innerText()).includes('इस डिवाइस पर मंज़ूर'),'saved approval must be re-verified when restoring the spec');
 
 
