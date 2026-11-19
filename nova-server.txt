@@ -52,7 +52,7 @@ function hasConfiguredSearchProvider() {
 app.get('/api/config', (q, r) => {
   const hasAI = !!(E.LLM_KEY || E.GROQ_API_KEY || E.OPENROUTER_API_KEY);
   const hasSearch = hasConfiguredSearchProvider();
-  const hasVision = !!((E.GROQ_API_KEY && E.GROQ_VISION_MODEL) || (E.OPENROUTER_API_KEY && E.OPENROUTER_VISION_MODEL && /:free$/i.test(E.OPENROUTER_VISION_MODEL)) || (E.LLM_KEY && E.LLM_VISION_MODEL && /openrouter\\.ai/i.test(BASE) && /:free$/i.test(E.LLM_VISION_MODEL)));
+  const hasVision = !!((E.GROQ_API_KEY && E.GROQ_VISION_MODEL) || (E.OPENROUTER_API_KEY && E.OPENROUTER_VISION_MODEL && /:free$/i.test(E.OPENROUTER_VISION_MODEL)) || (E.LLM_KEY && E.LLM_VISION_MODEL && /openrouter\.ai/i.test(BASE) && /:free$/i.test(E.LLM_VISION_MODEL)));
   if (!hasAI && !hasSearch) return r.status(503).end();
   const model = E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || null;
   r.json({ model: hasAI ? (model || 'free-provider-fallback') : null, image: !E.IMAGE_OFF, vision: hasVision, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: hasSearch, web: hasSearch, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY, hordeImage: !!E.HORDE_API_KEY } });
@@ -176,7 +176,7 @@ app.post('/api/chat/completions', async (q, r) => {
     body = fit(body, bud);
     const models = vis ? [VISION] : [E.LLM_MODEL, ...String(E.LLM_FALLBACK_MODELS || '').split(',').map(x => x.trim()).filter(Boolean)];
     const providers = [];
-    if (E.LLM_KEY) providers.push({ base: BASE, key: E.LLM_KEY, models: vis ? (VISION && /openrouter\\.ai/i.test(BASE) && /:free$/i.test(VISION) ? [VISION] : []) : models });
+    if (E.LLM_KEY) providers.push({ base: BASE, key: E.LLM_KEY, models: vis ? (VISION && /openrouter\.ai/i.test(BASE) && /:free$/i.test(VISION) ? [VISION] : []) : models });
     // Optional free-tier OpenAI-compatible providers; secrets are read only from Render env vars.
     if (E.GROQ_API_KEY) providers.push({ base: secureProviderBase('GROQ_BASE', E.GROQ_BASE, 'https://api.groq.com/openai/v1'), key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL || 'llama-3.3-70b-versatile'] });
     if (E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: secureProviderBase('OPENROUTER_BASE', E.OPENROUTER_BASE, 'https://openrouter.ai/api/v1'), key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL && /:free$/i.test(E.OPENROUTER_VISION_MODEL) ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'] });
