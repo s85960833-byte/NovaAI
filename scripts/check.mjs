@@ -171,7 +171,7 @@ if (!strScript.includes("indexedDB.open('nova-str-local'") || !strScript.include
 if (strScript.includes("localStorage.setItem('nova'") || /fetch\s*\(/.test(strScript) || /XMLHttpRequest/.test(strScript)) throw new Error('Phase 1 STR shell must not write Nova chat memory or send draft data to a provider');
 if (!strScript.includes('Draft saved on this device.') || !strScript.includes('ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।')) throw new Error('STR bilingual local-save feedback is missing');
 if (strProviderConfig.customer_builds_enabled !== false || strProviderConfig.routing.customer_data.length !== 0) throw new Error('STR customer builds/data routing must remain disabled in owner-only mode');
-if (strProviderConfig.providers.some(p => ['rpm','tpm','rpd','tpd'].some(k => p[k] === null)) && strProviderConfig.routing.unknown_limits_action !== 'block_and_report') throw new Error('Unknown provider quotas must fail closed');
+if (strProviderConfig.providers.some(p => ['requests_per_minute','tokens_per_minute','requests_per_day','tokens_per_day'].some(k => p[k] === null)) && strProviderConfig.routing.unknown_limits_action !== 'block_and_report') throw new Error('Unknown provider quotas must fail closed');
 if (!server.includes("const CACHE='nova-shell-v20-str'") || !server.includes("'/str-app.js'")) throw new Error('STR must be included in the versioned offline shell');
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
 process.stdout.write('PASS NOVA video-first entry gate markup, interaction, asset integrity, and streaming route\n');
