@@ -4,6 +4,7 @@ const express = require('express');
 const { sameOrigin, exactKeys, validClientId, consumeWindow, plainObject } = require('./security');
 const providerConfig = require('./provider-config.json');
 const { eligibleProviders } = require('./provider-router');
+const { classifyPrompt } = require('./safety');
 
 const RETENTION_DAYS = 7;
 const MAX_BODY_BYTES = 20 * 1024;
@@ -76,6 +77,16 @@ function createStrRouter() {
         !['hi', 'en'].includes(b.uiLang) || !['hi', 'hinglish', 'en'].includes(b.contentLang)) {
       return res.status(400).json({ error: 'Invalid STR spec request.' });
     }
+    const safety = classifyPrompt(b.prompt);
+    if (safety.unsafe.length) return res.status(422).json({
+      error: 'This STR request is not allowed.',
+      code: 'STR_UNSAFE_REQUEST',
+      unsafe: safety.unsafe,
+      message: {
+        hi: safety.messages.map(x => x.hi).join(' '),
+        en: safety.messages.map(x => x.en).join(' ')
+      }
+    });
     return disabled(res);
   });
 
