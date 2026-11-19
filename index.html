@@ -318,6 +318,14 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 .str-spec-diff>summary{cursor:pointer;font-weight:800;color:#fde68a}
 .str-spec-diff ul{max-height:220px;overflow:auto;overflow-wrap:anywhere}
 .str-spec-diff li{margin:7px 0;font-size:12px;color:#cbd5e1}
+.str-local-build{margin:14px 0;padding:14px;border:1px solid #475569;border-radius:14px;background:#111c33}
+.str-local-build h3{margin:0 0 8px}
+.str-local-build p{margin:6px 0;color:#cbd5e1;font-size:13px}
+.str-build-progress{height:6px;margin:10px 0;border-radius:99px;background:#334155;overflow:hidden}
+.str-build-progress span{display:inline-block;padding:4px 9px;border-radius:99px;background:#1e293b;color:#cbd5e1;font-size:11px}
+.str-build-local{min-height:42px;width:100%;border-color:#4f46e5;background:#3730a3;color:#fff;font-weight:800}
+#strPreviewFrame{display:block;width:100%;height:640px;margin-top:14px;border:1px solid #475569;border-radius:12px;background:#fff}
+@media(max-width:560px){#strPreviewFrame{height:560px}}
 @media(max-width:560px){.str-approve-spec{width:100%}}
 @media(max-width:560px){.str-spec-heading-actions{width:100%}.str-save-plan{width:100%}}
 </style></head><body>
@@ -391,6 +399,13 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
           <summary data-str="diffTitle">Changes from the starter plan</summary>
           <ul id="strSpecDiffList" class="str-spec-list"></ul>
         </details>
+        <div class="str-local-build" id="strBuildPanel">
+          <h3 data-str="previewTitle">Local website preview</h3>
+          <p id="strBuildStatus" role="status">Approve the spec before building.</p>
+          <div class="str-build-progress"><span id="strBuildProgress">0/0</span></div>
+          <button id="strBuildLocal" class="str-build-local" type="button" disabled data-str="buildLocal">Build local preview</button>
+          <iframe id="strPreviewFrame" title="Local website preview" sandbox="allow-scripts allow-forms" loading="lazy" hidden></iframe>
+        </div>
         <h3 data-str="sectionsTitle">Page sections</h3>
         <div class="str-spec-sections" id="strSpecSections"></div>
         <div class="str-spec-columns">
