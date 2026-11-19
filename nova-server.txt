@@ -373,20 +373,29 @@ async function wikiSummary(title, lang = 'en') {
   return { title: (j.title || title) + ' \u2014 Wikipedia', url: (j.content_urls && j.content_urls.desktop && j.content_urls.desktop.page) || ('https://' + lang + '.wikipedia.org/wiki/' + enc(title.replace(/ /g, '_'))), publisher: 'Wikipedia', date: iso(j.timestamp), snippet: lclean(j.extract, 420), kind: 'reference', connector: 'wikipedia' };
 }
 async function webSearch(q, o = {}) {
-  const errs = [];
-  // Keyless live search: DuckDuckGo HTML results and Wikipedia reference search only.
-  const fallback = await Promise.any([
-    cached('ddg:' + q, 4 * 6e4, () => ddg(q)).then(items => {
-      if (!items.length) throw new Error('no DuckDuckGo results');
-      return { items, via: 'duckduckgo' };
-    }).catch(e => { errs.push('duckduckgo'); throw e; }),
-    wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5).then(items => {
-      if (!items.length) throw new Error('no Wikipedia results');
-      return { items, via: 'wikipedia' };
-    }).catch(e => { errs.push('wikipedia'); throw e; })
-  ]).catch(() => null);
-  if (fallback) return fallback;
-  throw new Error('keyless web search unavailable (' + errs.join(', ') + ')');
+  const sources = [
+    ['duckduckgo', () => ddg(q)],
+    ['gdelt', () => gdelt(q, { n: 8, timespan: '3d' })],
+    ['google-news', () => gnews(q, { lang: o.lang === 'hi' ? 'hi' : 'en', n: 8 })],
+    ['wikipedia', () => wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5)]
+  ];
+  const settled = await Promise.allSettled(sources.map(([, run]) => run()));
+  const collected = [], via = [], failed = [];
+  settled.forEach((result, index) => {
+    const name = sources[index][0];
+    if (result.status === 'fulfilled' && Array.isArray(result.value) && result.value.length) {
+      via.push(name);
+      collected.push(...result.value);
+    } else {
+      failed.push(name);
+    }
+  });
+  const items = dedupe(collected);
+  if (!items.length) throw new Error('keyless web search unavailable (' + failed.join(', ') + ')');
+  // Keep general web results first, then dated news, then encyclopedic references.
+  const rank = { duckduckgo: 0, gdelt: 1, 'google-news': 2, wikipedia: 3 };
+  items.sort((a, b) => (rank[a.connector] ?? 4) - (rank[b.connector] ?? 4) || String(b.date || '').localeCompare(String(a.date || '')));
+  return { items: items.slice(0, Math.max(5, Math.min(15, Number(o.n) || 10))), via: via.join('+'), failed };
 }
 async function onThisDay(m, d) {
   const j = await cached('otd:' + m + '-' + d, 12 * 36e5, () => lhttp('https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/' + pad(m) + '/' + pad(d), { json: true }));
