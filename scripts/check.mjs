@@ -62,7 +62,7 @@ const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g
 const localAiClient = readFileSync('nova-local-ai.js', 'utf8');
 const keylessConfigSmoke = readFileSync('scripts/keyless-config-smoke.mjs', 'utf8');
 syntaxCheck('keyless-config-smoke.mjs', keylessConfigSmoke);
-if (!server.includes("app.get('/nova-local-ai.js'") || !html.includes('src="/nova-local-ai.js"') || !localAiClient.includes("Qwen3-0.6B-Instruct-ONNX") || !localAiClient.includes("onnx-community/whisper-tiny") || !localAiClient.includes("tesseract.js@6.0.1") || !localAiClient.includes("createWorker('eng+hin'") || !localAiClient.includes("device: 'webgpu'") || !localAiClient.includes("dtype: 'q4'")) throw new Error('Keyless local chat, voice, OCR engine or asset route is incomplete');
+if (!server.includes("app.get('/nova-local-ai.js'") || !html.includes('src="/nova-local-ai.js"') || !localAiClient.includes("Qwen3-0.6B-Instruct-ONNX") || !localAiClient.includes("onnx-community/whisper-base") || !localAiClient.includes("tesseract.js@6.0.1") || !localAiClient.includes("createWorker('eng+hin'") || !localAiClient.includes("device: 'webgpu'") || !localAiClient.includes("dtype: 'q4'")) throw new Error('Keyless local chat, voice, OCR engine or asset route is incomplete');
 if (!localAiClient.includes('const QWEN_CHAT_TEMPLATE =') || !localAiClient.includes('chat_template: QWEN_CHAT_TEMPLATE') || !localAiClient.includes('enable_thinking: false')) throw new Error('Qwen3 ONNX tokenizer must receive its explicit chat template');
 const appScript = readFileSync('nova-app.js', 'utf8');
 syntaxCheck('nova-local-ai.js', localAiClient);
