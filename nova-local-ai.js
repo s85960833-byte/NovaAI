@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const MODEL = 'onnx-community/Qwen3-0.6B-Instruct-ONNX';
-  const ASR_MODEL = 'onnx-community/whisper-tiny';
+  const ASR_MODEL = 'onnx-community/whisper-base';
   // This ONNX model stores its chat template in chat_template.jinja rather than
   // tokenizer_config.json. Supply the model-compatible ChatML template directly.
   const QWEN_CHAT_TEMPLATE = "{% for message in messages %}{{ '<|im_start|>' + message['role'] + '\\n' + message['content'] + '<|im_end|>\\n' }}{% endfor %}{% if add_generation_prompt %}{{ '<|im_start|>assistant\\n' }}{% if enable_thinking is defined and enable_thinking is false %}{{ '<think>\\n\\n</think>\\n\\n' }}{% else %}{{ '<think>\\n' }}{% endif %}{% endif %}";
@@ -57,7 +57,7 @@
     if (transcriber) return transcriber;
     if (asrPromise) return asrPromise;
     asrPromise = (async () => {
-      status(onStatus, 'Preparing offline voice recognition… Whisper Tiny model is an additional download.');
+      status(onStatus, 'Preparing offline voice recognition… Whisper Base model is an additional download.');
       const { pipeline } = await getPipeline();
       if (await hasGpu()) {
         try {
