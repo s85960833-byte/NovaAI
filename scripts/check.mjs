@@ -167,10 +167,15 @@ syntaxCheck('STR app shell', strScript);
 const strServer = readFileSync('str/server.js', 'utf8');
 const strSecurity = readFileSync('str/security.js', 'utf8');
 const strProviderRouter = readFileSync('str/provider-router.js', 'utf8');
+const strSafety = readFileSync('str/safety.js', 'utf8');
+const strSpecSchema = readFileSync('str/spec-schema.js', 'utf8');
 syntaxCheck('STR API router', strServer);
 syntaxCheck('STR security helpers', strSecurity);
 syntaxCheck('STR provider router', strProviderRouter);
+syntaxCheck('STR safety classifier', strSafety);
+syntaxCheck('STR spec schema', strSpecSchema);
 if (!server.includes("require('./str/server')()") || !strServer.includes("router.post('/spec'") || !strServer.includes("router.post('/section'") || !strServer.includes("router.post('/fix'") || !strServer.includes("router.post('/convert'")) throw new Error('STR fixed API routes are not mounted');
+if (!strServer.includes("classifyPrompt(b.prompt)") || !strSafety.includes("credential_collection")) throw new Error('STR unsafe-request refusal must run before any provider call');
 if (!strServer.includes("eligibleProviders(providerConfig, 'customer_data')") || !strProviderRouter.includes("provider.data_tier !== 'paid_no_training'") || !strProviderRouter.includes('quotasKnown(provider)')) throw new Error('STR customer-data routing must require verified paid no-training tiers and known quotas');
 if (!strServer.includes("generationEnabled: false") || !strServer.includes("customerBuildsEnabled: false") || !strServer.includes("RETENTION_DAYS = 7")) throw new Error('STR must remain owner-only and fail closed until provider verification');
 
