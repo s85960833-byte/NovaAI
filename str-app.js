@@ -31,7 +31,7 @@ saved:'ड्राफ्ट इसी डिवाइस पर सुरक्
 cleared:'ड्राफ्ट साफ़ कर दिया गया।',welcome:'आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं।'
 }
 };
-let lang='en', replyLang='en', contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false, currentSpec=null;
+let lang='en', replyLang='en', replyLangExplicit=false, contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false, currentSpec=null;
 function readInitialLanguage(){
  try{const v=localStorage.getItem('str_ui_lang');if(v==='hi'||v==='en')return v;}catch(e){}
  try{const n=JSON.parse(localStorage.getItem('nova')||'{}');return n.uiLang==='hi'?'hi':'en';}catch(e){return 'en';}
@@ -39,7 +39,7 @@ function readInitialLanguage(){
 function setLanguage(next,persist){
  const previous=lang;
  lang=next==='hi'?'hi':'en';
- let savedReply='';try{savedReply=localStorage.getItem('str_reply_lang')||'';}catch(e){}if(!savedReply||replyLang===previous)replyLang=lang;
+ let savedReply='';try{savedReply=localStorage.getItem('str_reply_lang')||'';}catch(e){}if(!replyLangExplicit)replyLang=lang;
  const reply=$('strReplyLang'),content=$('strContentLang');
  if(reply)reply.value=replyLang;
  if(content)content.value=contentLang;
@@ -201,7 +201,7 @@ function close(){
 }
 $('strBack').addEventListener('click',close);
 $('strLangHi').addEventListener('click',()=>setLanguage('hi',true));
-$('strReplyLang').addEventListener('change',event=>{replyLang=event.target.value==='hi'?'hi':'en';try{localStorage.setItem('str_reply_lang',replyLang);}catch(e){}});
+$('strReplyLang').addEventListener('change',event=>{replyLang=event.target.value==='hi'?'hi':'en';replyLangExplicit=true;try{localStorage.setItem('str_reply_lang',replyLang);}catch(e){}});
 $('strContentLang').addEventListener('change',event=>{contentLang=event.target.value==='hinglish'?'hinglish':event.target.value==='hi'?'hi':'en';contentLangTouched=true;try{localStorage.setItem('str_content_lang',contentLang);}catch(e){}});
 $('strPrompt').addEventListener('input',event=>{if(contentLangTouched)return;contentLang=inferContentLanguage(event.target.value);$('strContentLang').value=contentLang;});
 $('strLangEn').addEventListener('click',()=>setLanguage('en',true));
@@ -219,7 +219,7 @@ setLanguage(readInitialLanguage(),false);
 try{
  const savedReply=localStorage.getItem('str_reply_lang');
  const savedContent=localStorage.getItem('str_content_lang');
- replyLang=savedReply==='hi'?'hi':savedReply==='en'?'en':lang;
+ replyLang=savedReply==='hi'?'hi':savedReply==='en'?'en':lang;replyLangExplicit=!!savedReply;
  contentLang=savedContent==='hinglish'?'hinglish':savedContent==='hi'?'hi':savedContent==='en'?'en':'en';
  contentLangTouched=!!savedContent;
  $('strReplyLang').value=replyLang;$('strContentLang').value=contentLang;
