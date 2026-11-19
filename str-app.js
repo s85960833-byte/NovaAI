@@ -223,7 +223,23 @@ function buildLocalChunks(spec,locale){
    const body=localizedCopy(section.content&&section.content.body,locale);
    let extra='';
    if(section.type==='features'&&Array.isArray(spec.features)&&spec.features.length){
-    extra='<ul>'+spec.features.slice(0,20).map(item=>'<li>'+escapePreviewText(item)+'</li>').join('')+'</ul>';
+    const featureLabels={
+     whatsapp:{hi:'WhatsApp संपर्क',en:'WhatsApp contact'},
+     call:{hi:'कॉल बटन',en:'Call button'},
+     booking_form:{hi:'Booking form',en:'Booking form'},
+     contact_form:{hi:'संपर्क फ़ॉर्म',en:'Contact form'},
+     gallery:{hi:'फोटो गैलरी',en:'Photo gallery'},
+     price_list:{hi:'कीमतों की सूची',en:'Price list'},
+     calculator:{hi:'कैलकुलेटर',en:'Calculator'},
+     quiz:{hi:'प्रश्नोत्तरी',en:'Quiz'},
+     tracker:{hi:'ट्रैकर',en:'Tracker'},
+     share:{hi:'शेयर सुविधा',en:'Share feature'},
+     qr:{hi:'QR कोड',en:'QR code'}
+    };
+    extra='<ul>'+spec.features.slice(0,20).map(item=>{
+     const label=featureLabels[item]||{hi:'अनुरोधित सुविधा',en:'Requested feature'};
+     return '<li>'+escapePreviewText(label[lang]||label.en)+'</li>';
+    }).join('')+'</ul>';
    }
    if(section.type==='contact'&&spec.contact){
     const entries=Object.entries(spec.contact).filter(([,value])=>typeof value==='string'&&value.trim());
