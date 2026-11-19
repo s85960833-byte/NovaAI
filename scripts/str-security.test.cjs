@@ -86,7 +86,7 @@ test('STR compact spec validator accepts a valid bilingual v1 spec and rejects u
     v:1,name:'Ramu Kirana',kind:'shop',content_lang:'hi',ui_lang_at_creation:'hi',theme:'str-default',
     colors:{primary:'#1E1B4B',accent:'#F59E0B',bg:'#F8FAFC',text:'#0F172A'},
     fonts:{hi:'Noto Sans Devanagari',en:'Inter'},
-    pages:[{id:'home',title:{hi:'होम',en:'Home'},sections:[{id:'hero',type:'hero',content:{}}]}],
+    pages:[{id:'home',title:{hi:'होम',en:'Home'},sections:[{id:'hero',type:'hero',content:{heading:{hi:'स्वागत',en:'Welcome'},body:{hi:'अपना परिचय दें।',en:'Introduce yourself.'}}}]}],
     features:['whatsapp','call'],contact:{phone:'',whatsapp:'',address:'',hours:''},
     seo:{title:{hi:'रामू किराना',en:'Ramu Kirana'},desc:{hi:'दुकान',en:'Shop'}},
     assumed:[],placeholders:[],unsafe:[]
@@ -154,4 +154,29 @@ test('STR spec values retain bilingual page and section copy for the chosen cont
     assert.ok(section.content.heading.hi && section.content.heading.en);
     assert.ok(section.content.body.hi && section.content.body.en);
   }
+});
+
+test('STR spec editor can store optional Hinglish copy while requiring complete Hindi and English copy', () => {
+  const valid = {
+    v:1,name:'Edited Project',kind:'shop',content_lang:'hinglish',ui_lang_at_creation:'en',theme:'str-default',
+    colors:{primary:'#1E1B4B',accent:'#F59E0B',bg:'#F8FAFC',text:'#0F172A'},
+    fonts:{hi:'Noto Sans Devanagari',en:'Inter'},
+    pages:[{id:'home',title:{hi:'मुख्य पृष्ठ',en:'Home',hinglish:'Ghar'},sections:[{
+      id:'hero',type:'hero',
+      content:{heading:{hi:'स्वागत',en:'Welcome',hinglish:'Aapka welcome'},body:{hi:'परिचय दें।',en:'Introduce yourself.',hinglish:'Apna intro dein.'}}
+    }]}],
+    features:[],contact:{phone:'',whatsapp:'',address:'',hours:''},
+    seo:{title:{hi:'Edited Project',en:'Edited Project'},desc:{hi:'जानकारी',en:'Information'}},
+    assumed:[],placeholders:[],unsafe:[]
+  };
+  assert.equal(validateSpec(valid).valid,true);
+  const missingEnglish=structuredClone(valid);
+  missingEnglish.pages[0].sections[0].content.heading.en='';
+  assert.ok(validateSpec(missingEnglish).errors.includes('section_invalid'));
+  const unsupportedLocale=structuredClone(valid);
+  unsupportedLocale.pages[0].sections[0].content.body.fr='Bonjour';
+  assert.ok(validateSpec(unsupportedLocale).errors.includes('section_invalid'));
+  const blankHinglish=structuredClone(valid);
+  blankHinglish.pages[0].sections[0].content.body.hinglish='';
+  assert.ok(validateSpec(blankHinglish).errors.includes('section_invalid'));
 });
