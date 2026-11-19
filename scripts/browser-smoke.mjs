@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
 
 const BASE=process.env.NOVAAI_URL||'http://127.0.0.1:8787';
