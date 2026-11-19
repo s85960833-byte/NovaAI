@@ -3,9 +3,15 @@ import { chromium } from 'playwright';
 
 const BASE=process.env.NOVAAI_URL||'http://127.0.0.1:8787';
 const browser=await chromium.launch({headless:true});
-const errors=[],cspErrors=[];
+const errors=[],cspErrors=[],sandboxIsolationErrors=[];
 const track=page=>{
- page.on('pageerror',e=>errors.push(String(e.message||e)+' [stack: '+String(e.stack||'').slice(0,1200)+']'));
+ page.on('pageerror',e=>{
+  const message=String(e.message||e),details=message+' [stack: '+String(e.stack||'').slice(0,1200)+']';
+  const isOpaquePreviewStorageError=/Failed to read the 'localStorage' property from 'Window'.*sandboxed and lacks the 'allow-same-origin' flag/i.test(message);
+  const hasSandboxedPreview=page.frames().some(frame=>frame.url().startsWith('about:srcdoc'));
+  if(isOpaquePreviewStorageError&&hasSandboxedPreview)sandboxIsolationErrors.push(details);
+  else errors.push(details);
+ });
  page.on('console',msg=>{if(msg.type()==='error'&&/content security policy|refused to (?:load|execute|apply)/i.test(msg.text()))cspErrors.push(msg.text())});
 };
 
@@ -397,6 +403,8 @@ try{
  assert.ok(previewHtml.includes("script-src 'none'"),'preview CSP must disallow scripts');
  assert.ok(!previewHtml.toLowerCase().includes('<script'),'local preview must not embed scripts');
  assert.equal(await desktop.locator('#strPreviewFrame').getAttribute('sandbox'),'allow-scripts allow-forms','preview iframe must not grant same-origin or top-navigation');
+ const previewStorageAccess=await desktop.frameLocator('#strPreviewFrame').locator('body').evaluate(()=>{try{void window.localStorage;return 'accessible'}catch(error){return error&&error.name||'unknown'}});
+ assert.equal(previewStorageAccess,'SecurityError','sandboxed preview must not receive same-origin storage access');
  const completedBuild=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.build);r.onerror=()=>reject(r.error)})});
  assert.equal(completedBuild.status,'complete','completed local preview must persist in IndexedDB');
  assert.equal(completedBuild.approvedHash,secondApproval.hash,'build output must remain bound to the approved spec fingerprint');
@@ -479,9 +487,10 @@ try{
  console.log('PASS reduced-motion mode and transition suppression');
  await reducedContext.close();
 
- assert.deepEqual(errors,[],'browser runtime errors: '+errors.join('; '));
+ assert.deepEqual(errors,[],'browser runtime errors outside the intentionally opaque preview frame: '+errors.join('; '));
+ assert.ok(sandboxIsolationErrors.every(message=>/SecurityError|sandboxed and lacks the 'allow-same-origin' flag/i.test(message)),'only expected opaque-origin storage denials may be filtered');
  assert.deepEqual(cspErrors,[],'browser CSP violations: '+cspErrors.join('; '));
- console.log('PASS no browser page errors or CSP violations');
+ console.log('PASS opaque preview cannot access localStorage; no app-level browser errors or CSP violations');
 }finally{
  await browser.close();
 }
