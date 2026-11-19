@@ -56,7 +56,7 @@ try {
   assert.equal(engineResponse.status, 200, 'local inference engine asset must be served');
   const engine = await engineResponse.text();
   assert.ok(engine.includes('Qwen3-0.6B-Instruct-ONNX'));
-  assert.ok(engine.includes('onnx-community/whisper-tiny'));
+  assert.ok(engine.includes('onnx-community/whisper-base'));
   assert.ok(engine.includes('NovaLocalAI'));
   const homeResponse = await request('/');
   assert.equal(homeResponse.status, 200);
