@@ -435,7 +435,7 @@ try{
  assert.match(previewHtml,/<h1[ >]/i,'local preview must have a primary page heading');
  assert.match(previewHtml,/<main[ >]/i,'local preview must expose a main landmark');
  assert.doesNotMatch(previewHtml,/<(?:iframe|object|embed)\b/i,'local preview must not nest active embedded documents');
- assert.doesNotMatch(previewHtml,/\son[a-z]+\s*=/i,'local preview must not contain inline event handlers');
+ assert.doesNotMatch(previewHtml,/<[a-z][^>]*\son[a-z]+\s*=/i,'local preview must not contain inline event handlers on actual HTML elements');
  assert.doesNotMatch(previewHtml,/(?:src|href)\s*=\s*["']https?:\/\//i,'local preview must not load remote resources automatically');
  assert.ok(previewHtml.length<250000,'local preview must stay within the documented output size cap');
  assert.equal(await desktop.locator('#strPreviewFrame').getAttribute('sandbox'),'allow-scripts allow-forms','preview iframe must not grant same-origin or top-navigation');
