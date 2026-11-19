@@ -237,6 +237,76 @@ function buildLocalChunks(spec,locale){
  chunks.push('</main><footer class="preview-footer">Local preview · Built inside Nova STR · No AI provider used</footer></body></html>');
  return chunks;
 }
+
+function zipCrc32(bytes){
+ let crc=0xffffffff;
+ for(const byte of bytes){
+  crc^=byte;
+  for(let bit=0;bit<8;bit++)crc=(crc>>>1)^(0xedb88320&-(crc&1));
+ }
+ return (crc^0xffffffff)>>>0;
+}
+function makeLocalZip(files){
+ const enc=new TextEncoder(),parts=[],central=[];
+ let offset=0,centralBytes=0;
+ if(files.length>12)throw new Error('Too many package files');
+ const now=new Date(),date=((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate();
+ for(const file of files){
+  const name=String(file.name),nameBytes=enc.encode(name),data=enc.encode(file.body);
+  if(!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,60}$/.test(name)||data.length>300000)throw new Error('Invalid package entry');
+  const crc=zipCrc32(data),local=new Uint8Array(30+nameBytes.length),lv=new DataView(local.buffer);
+  lv.setUint32(0,0x04034b50,true);lv.setUint16(4,20,true);lv.setUint16(6,0x0800,true);
+  lv.setUint16(8,0,true);lv.setUint16(10,0,true);lv.setUint16(12,date,true);
+  lv.setUint32(14,crc,true);lv.setUint32(18,data.length,true);lv.setUint32(22,data.length,true);
+  lv.setUint16(26,nameBytes.length,true);lv.setUint16(28,0,true);local.set(nameBytes,30);
+  parts.push(local,data);
+  const dir=new Uint8Array(46+nameBytes.length),dv=new DataView(dir.buffer);
+  dv.setUint32(0,0x02014b50,true);dv.setUint16(4,20,true);dv.setUint16(6,20,true);
+  dv.setUint16(8,0x0800,true);dv.setUint16(10,0,true);dv.setUint16(12,0,true);dv.setUint16(14,date,true);
+  dv.setUint32(16,crc,true);dv.setUint32(20,data.length,true);dv.setUint32(24,data.length,true);
+  dv.setUint16(28,nameBytes.length,true);dv.setUint16(30,0,true);dv.setUint16(32,0,true);
+  dv.setUint16(34,0,true);dv.setUint16(36,0,true);dv.setUint32(38,0,true);dv.setUint32(42,offset,true);
+  dir.set(nameBytes,46);central.push(dir);offset+=local.length+data.length;centralBytes+=dir.length;
+ }
+ const end=new Uint8Array(22),v=new DataView(end.buffer),count=files.length;
+ v.setUint32(0,0x06054b50,true);v.setUint16(4,0,true);v.setUint16(6,0,true);
+ v.setUint16(8,count,true);v.setUint16(10,count,true);v.setUint32(12,centralBytes,true);
+ v.setUint32(16,offset,true);v.setUint16(20,0,true);
+ return new Blob([...parts,...central,end],{type:'application/zip'});
+}
+function localPackageGuide(name){
+ return '# '+name+' — NOVA STR\n\n## English guide\n'+
+ '1. Extract this archive. 2. Open index.html in a modern browser. 3. Review every section before sharing. 4. Edit index.html with a text editor when needed. 5. Test on phone and desktop.\n\n'+
+ 'This is a static preview, not a production application. Forms do not submit data. No backend, database, accounts, payments, analytics or deployment setup is included.\n\n'+
+ '## हिंदी गाइड\n1. ZIP archive को extract करें। 2. index.html को आधुनिक browser में खोलें। 3. साझा करने से पहले सभी हिस्सों को जाँचें। 4. जरूरत हो तो text editor से index.html बदलें। 5. मोबाइल और desktop दोनों पर जाँचें।\n\n'+
+ 'यह static preview है, production application नहीं। Form डेटा जमा नहीं करते। इसमें backend, database, accounts, payment या deployment setup शामिल नहीं है।\n';
+}
+async function downloadLocalPackage(){
+ try{
+  if(!currentBuild||currentBuild.status!=='complete'||!currentApproval)throw new Error('Preview approval required');
+  const hash=await computeSpecFingerprint();
+  if(hash!==currentApproval.hash||currentBuild.approvedHash!==hash){
+   currentApproval=null;currentBuild=null;await persistSpecEdits({quiet:true});
+   renderApprovalPanel();renderBuildPanel();status(dict[lang].needsApproval);return;
+  }
+  const name=String(currentSpec&&currentSpec.name||'Nova STR Website').slice(0,80);
+  const primary=/^#[0-9a-f]{6}$/i.test(currentSpec.colors&&currentSpec.colors.primary||'')?currentSpec.colors.primary:'#1E1B4B';
+  const icon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="'+primary+'"/><path d="M32 7 40 24 57 32 40 40 32 57 24 40 7 32 24 24Z" fill="#F59E0B"/></svg>';
+  const manifest=JSON.stringify({name,short_name:name.slice(0,12),start_url:'./',display:'standalone',theme_color:primary,icons:[{src:'./icon.svg',sizes:'any',type:'image/svg+xml'}]},null,2);
+  const archive=makeLocalZip([
+   {name:'index.html',body:currentBuild.html},
+   {name:'GUIDE.md',body:localPackageGuide(name)},
+   {name:'manifest.webmanifest',body:manifest},
+   {name:'icon.svg',body:icon}
+  ]);
+  if(archive.size>400000)throw new Error('Archive exceeds size limit');
+  const href=URL.createObjectURL(archive),link=document.createElement('a');
+  const slug=name.normalize('NFKD').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase()||'nova-str-site';
+  link.href=href;link.download=slug+'.zip';link.hidden=true;document.body.append(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(href),30000);status(dict[lang].zipReady);
+ }catch(error){status(dict[lang].zipError);}
+ finally{renderBuildPanel();}
+}
 function renderBuildPanel(){
  const button=$('strBuildLocal'),label=$('strBuildStatus'),progress=$('strBuildProgress'),frame=$('strPreviewFrame');
  if(!button||!label||!progress||!frame)return;
