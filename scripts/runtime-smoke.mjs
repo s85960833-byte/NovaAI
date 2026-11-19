@@ -32,8 +32,7 @@ await expect('malformed JSON API body returns JSON 400','/api/search',{method:'P
 const oversizedJson='{"q":"'+'x'.repeat(6*1024*1024)+'"}';
 await expect('oversized JSON API body returns JSON 413','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:oversizedJson},(r,b)=>r.status===413&&JSON.parse(b).error==='Request body is too large');
 await expect('search validation','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
-await expect('image validation','/api/image',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
-await expect('image job status validation','/api/image/status/not-a-real-job',{},r=>r.status===404);
+await expect('strict keyless image generation disabled without remote provider','/api/image',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:'simple flower'})},(r,b)=>r.status===503&&/strict keyless mode/i.test(JSON.parse(b).error));
 await expect('provider fan-out self-test is disabled by default','/api/live/selftest',{},r=>r.status===404);
 await expect('hosted transcription endpoint disabled in keyless mode','/api/transcribe',{method:'POST',headers:{'content-type':'audio/webm'},body:new Uint8Array()},r=>r.status===410);
 await expect('previous home UI without new four-workspace redesign','/',{},(r,b)=>r.ok&&b.includes('nova-home')&&b.includes('nova-workspaces')&&!b.includes('CHAT & STUDY')&&!b.includes('VOICE CHAT'));
