@@ -388,7 +388,7 @@ try{
  assert.equal(savedCopy[0].spec.pages[0].title.hinglish,'Home Ghar','page title edit must persist in Hinglish');
  const savedDetails=savedCopy[0].spec.pages[0].sections.find(section=>section.id==='details');
  assert.equal(savedDetails.content.heading.hinglish,'Products and services','section heading edit must persist in Hinglish');
- assert.equal(savedDetails.content.body.hinglish,'Yahan products aur services ki details dein.','section description edit must persist in Hinglish');
+ assert.equal(savedDetails.content.body.hinglish,'Yahan details dein. <img src=x onerror=alert(1)>','section description edit must persist in Hinglish');
  await desktop.locator('#strSpecDiff').evaluate(el=>{el.open=true;});
  const diffReview=await desktop.locator('#strSpecDiffList').innerText();
  assert.ok(diffReview.includes('Page home title · hinglish'),'approval diff must show edited page titles');
