@@ -132,7 +132,7 @@ test('loads multilingual Whisper locally and transcribes decoded audio samples',
   assert.equal(result.text, 'नमस्ते, यह ऑफलाइन आवाज़ परीक्षण है।');
   assert.equal(result.backend, 'webgpu');
   assert.equal(h.calls[0].task, 'automatic-speech-recognition');
-  assert.equal(h.calls[0].model, 'onnx-community/whisper-tiny');
+  assert.equal(h.calls[0].model, 'onnx-community/whisper-base');
   assert.equal(h.calls[0].options.device, 'webgpu');
   assert.equal(h.calls[0].options.dtype, 'q4f16');
   assert.equal(h.inputs[0].samples.length, 16000);
