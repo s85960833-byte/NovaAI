@@ -162,5 +162,16 @@ if (!html.includes('id="novaEntryGate"') || html.includes('id="novaEntryVideo"')
   throw new Error('NOVA crisp, non-interactive, persistent one-time motion intro is missing');
 }
 
+const strScript = readFileSync('str-app.js', 'utf8');
+syntaxCheck('STR app shell', strScript);
+const strProviderConfig = JSON.parse(readFileSync('str/provider-config.json', 'utf8'));
+if (!html.includes('id="nStr"') || !html.includes('id="strApp"') || !html.includes('src="/str-app.js"')) throw new Error('STR navigation, isolated shell, or script entry point is missing');
+if (!server.includes("app.get('/str-app.js'") || !server.includes("'/str-app.js'")) throw new Error('STR script route or offline cache entry is missing');
+if (!strScript.includes("indexedDB.open('nova-str-local'") || !strScript.includes("localStorage.getItem('str_ui_lang')") || !strScript.includes("localStorage.getItem('nova')")) throw new Error('STR must use its own IndexedDB and seed language from Nova without sharing chat memory');
+if (strScript.includes("localStorage.setItem('nova'") || /fetch\\s*\\(/.test(strScript) || /XMLHttpRequest/.test(strScript)) throw new Error('Phase 1 STR shell must not write Nova chat memory or send draft data to a provider');
+if (!strScript.includes('Draft saved on this device.') || !strScript.includes('ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।')) throw new Error('STR bilingual local-save feedback is missing');
+if (strProviderConfig.customer_builds_enabled !== false || strProviderConfig.routing.customer_data.length !== 0) throw new Error('STR customer builds/data routing must remain disabled in owner-only mode');
+if (strProviderConfig.providers.some(p => ['rpm','tpm','rpd','tpd'].some(k => p[k] === null)) && strProviderConfig.routing.unknown_limits_action !== 'block_and_report') throw new Error('Unknown provider quotas must fail closed');
+if (!server.includes("const CACHE='nova-shell-v20-str'") || !server.includes("'/str-app.js'")) throw new Error('STR must be included in the versioned offline shell');
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
 process.stdout.write('PASS NOVA video-first entry gate markup, interaction, asset integrity, and streaming route\n');
