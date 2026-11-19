@@ -361,6 +361,13 @@ try{
  const savedDetails=savedCopy[0].spec.pages[0].sections.find(section=>section.id==='details');
  assert.equal(savedDetails.content.heading.hinglish,'Products and services','section heading edit must persist in Hinglish');
  assert.equal(savedDetails.content.body.hinglish,'Yahan products aur services ki details dein.','section description edit must persist in Hinglish');
+ await desktop.locator('#strBack').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strApp').hidden);
+ await desktop.locator('#nStr').click();
+ await desktop.locator('#strSpecPanel').waitFor({state:'visible'});
+ assert.equal(await desktop.locator('[data-str-page-id="home"] [data-str-field="page-title"]').inputValue(),'Home Ghar','page title must restore from IndexedDB');
+ assert.equal(await desktop.locator('[data-str-section-id="details"] [data-str-field="heading"]').inputValue(),'Products and services','section heading must restore from IndexedDB');
+
 
  assert.equal(await desktop.evaluate(()=>localStorage.getItem('nova')),novaStorageBefore,'STR must not modify Nova chat storage');
  await desktop.locator('#strBack').click();
