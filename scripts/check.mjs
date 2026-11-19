@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { runInNewContext } from 'node:vm';
 
 function syntaxCheck(name, source) {
   const extension = name.endsWith('.mjs') ? '.mjs' : '.js';
@@ -95,7 +96,33 @@ if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy websit
 if (!server.includes("r.setHeader('X-Content-Type-Options', 'nosniff')") || !server.includes("r.setHeader('X-Frame-Options', 'DENY')") || !server.includes("r.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')")) throw new Error('Baseline security response headers are missing');
 if (!server.includes('r2: false') || !server.includes('maxImageBytes = 8 * 1024 * 1024') || !server.includes("imageBuffer.toString('ascii', 8, 12) === 'WEBP'") || server.includes('fetch(generated') || !server.includes('const freeOnly = body.freeOnly === true') || !server.includes('if (!freeOnly && E.ALLOW_PAID_IMAGE') || !server.includes('const tries = freeOnly ? [] : E.POLLI_KEY')) throw new Error('Community image SSRF, payload validation, or paid-provider bypass guards are missing');
 if (!server.includes('Your developer is Thakur Shreyansh Singh ji.') || !server.includes("Respond in the user's language while keeping the developer name exactly as written.") || server.includes('Respond in English only, regardless of the user')) throw new Error('Developer identity must be exact and compatible with the user language');
-if (!server.includes("via: 'arxiv+science-rss-fallback'") || !server.includes("T('openalex', async () =>") || !server.includes("feedCat('science', 6)")) throw new Error('Live science retrieval must fall back to independent arXiv and science RSS when OpenAlex fails');
+const searchImpl = server.slice(server.indexOf('async function webSearch'), server.indexOf('async function onThisDay'));
+const liveImpl = server.slice(server.indexOf('async function runLive'), server.indexOf('function rank(items, q)'));
+const feedImpl = server.slice(server.indexOf("app.get('/api/feed'"), server.indexOf('// Normalize JSON parser failures'));
+if (!server.includes('function hasConfiguredSearchProvider()') || !server.includes('return !!(E.TAVILY_KEY || E.BRAVE_KEY)')) throw new Error('Live retrieval must depend on an explicitly configured Tavily or Brave provider');
+if (!searchImpl.includes('Live search unavailable') || /\b(?:ddg|wikiSearch)\s*\(/.test(searchImpl)) throw new Error('General search must not fall back to unconfigured providers');
+if (!liveImpl.includes('webSearch(query') || /\b(?:feedCat|gnews|gdelt|arxiv|openalex|espn|yahooQuote|coingecko|weather)\s*\(/.test(liveImpl)) throw new Error('Live answers must use only the configured search provider');
+if (!liveImpl.includes('Ask one short question: Which city should I check?') || !liveImpl.includes('do not search or guess a location')) throw new Error('Weather requests without a city must ask for the location instead of guessing');
+if (!feedImpl.includes('webSearch(') || feedImpl.includes('feedCat(') || !feedImpl.includes('LIVE_SEARCH_UNAVAILABLE')) throw new Error('News feed must use configured search and report missing providers clearly');
+if (!server.includes('live: hasSearch, web: hasSearch')) throw new Error('API config must expose live-search availability independently of AI model availability');
+if (!server.includes('const hasVision = !!((E.GROQ_API_KEY && E.GROQ_VISION_MODEL) || (E.OPENROUTER_API_KEY && E.OPENROUTER_VISION_MODEL && /:free$/i.test(E.OPENROUTER_VISION_MODEL)) || (E.LLM_KEY && E.LLM_VISION_MODEL && /openrouter\\.ai/i.test(BASE) && /:free$/i.test(E.LLM_VISION_MODEL)))') || !server.includes("code: 'VISION_UNAVAILABLE'")) throw new Error('Photo answers must fail clearly unless a configured supported vision model is available');
+if (!appScript.includes('Photo understanding is unavailable') || !appScript.includes('VISION_UNAVAILABLE')) throw new Error('Photo-answer provider failures must show a clear unavailable message');
+if (!appScript.includes('window.SpeechRecognition||window.webkitSpeechRecognition') || !appScript.includes('SpeechSynthesisUtterance') || !appScript.includes('speechSynthesis.speak') || !appScript.includes('const canRec=()=>') || !appScript.includes('navigator.mediaDevices.getUserMedia') || !appScript.includes('new MediaRecorder') || !appScript.includes("err==='network'") || !appScript.includes("err==='not-allowed'")) throw new Error('Browser voice, speech output, and recorder fallback paths are incomplete');
+const hindiMathStart = appScript.indexOf('const HNUM=');
+const hindiMathEnd = appScript.indexOf('async function localMathPhase', hindiMathStart);
+if (hindiMathStart < 0 || hindiMathEnd < 0) throw new Error('Hindi maths parser source is missing');
+const hindiMathSandbox = {};
+runInNewContext(appScript.slice(hindiMathStart, hindiMathEnd) + '\nglobalThis.normalizeHindiNumbers = normalizeHindiNumbers;', hindiMathSandbox);
+for (const [input, expected] of [['दो सौ पचास', '250'], ['एक हजार दो सौ पचास', '1250'], ['दो लाख पचास हजार', '250000'], ['दो सौ पचास का 17 प्रतिशत', '250 का 17 प्रतिशत']]) {
+  const actual = hindiMathSandbox.normalizeHindiNumbers(input);
+  if (actual !== expected) throw new Error('Hindi number parsing failed: ' + input + ' => ' + actual + ', expected ' + expected);
+}
+process.stdout.write('PASS Hindi number words: hundreds, thousands, lakhs, and mixed maths prompts\n');
+const mathDispatch = appScript.slice(appScript.indexOf('const localMath=await localMathPhase'), appScript.indexOf('catch(e){if(!(ctl.signal.aborted))', appScript.indexOf('const localMath=await localMathPhase')));
+if (!mathDispatch.includes('if(localMath){a.c=localMath.answer}') || mathDispatch.includes('sysM+=localMath.prompt')) throw new Error('Supported deterministic maths must return locally without calling an AI provider');
+if (!appScript.includes('async function mathPhase') || !appScript.includes('async function localMathPhase') || !appScript.includes('localMathOnly') || !appScript.includes('normalizeHindiNumbers') || !appScript.includes('const HNUM=') || !appScript.includes('[०-९]') || !appScript.includes('जोड़(?:ो|ें)?|\\bplus\\b|\\badd\\b') || !appScript.includes('गुणा|गुना|\\bmultiply\\b|\\btimes\\b|\\binto\\b') || !appScript.includes('भाग|\\bplus\\b|\\bminus\\b|\\bmultiply\\b|\\btimes\\b|\\bdivide\\b|\\bdivided by\\b|\\badd\\b|\\bsubtract\\b') || !appScript.includes('NOVA local calculator (no AI/API call)') || !appScript.includes('const ast=M.parse(expr)') || !appScript.includes('const worked=steps.length') || !appScript.includes('NOVA local symbolic maths engine (no AI/API call)') || !appScript.includes("name:'calculate'") || !appScript.includes("name:'symbolic'") || !appScript.includes('Verified results from the exact calculator')) throw new Error('Maths must use local deterministic arithmetic/symbolic tools before any AI-assisted fallback');
+if (!server.includes("error: 'Live search unavailable', code: 'LIVE_SEARCH_UNAVAILABLE'")) throw new Error('Live routes must give an explicit unavailable response without a configured provider');
+if (!appScript.includes('Live search unavailable right now') || !appScript.includes("SV={model:null,live:false,web:false")) throw new Error('Frontend must display a clear live-search-unavailable instruction without breaking BYOK chat');
 syntaxCheck('provider URL validation', providerUrl);
 syntaxCheck('backend', server);
 const liveSmoke=readFileSync('scripts/smoke.mjs','utf8');
@@ -135,6 +162,7 @@ if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"
 if (!['src="/nova-business-core.js"','src="/nova-business.js"','src="/nova-business-cloud.js"'].every(x=>html.includes(x)) || !html.includes('@supabase/supabase-js@2.119.0')) throw new Error('NOVA BI scripts and Supabase client are not connected in the homepage');
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>html.includes(x))) throw new Error('NOVA dashboard UI components missing');
 if (!appScript.includes('localStorage.getItem(\'nova\')') || !appScript.includes('const persistable=()=>') || !appScript.includes('JSON.stringify(persistable())') || !appScript.includes('One-time migration: keep any previously saved key available for this tab') || appScript.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Nova storage compatibility or BYOK secret-persistence protection changed');
+if (!appScript.includes('Mirror the person:') || !appScript.includes('Reply in the language the user writes in.') || !appScript.includes('const persistable=()=>') || !appScript.includes("localStorage.getItem('nova')")) throw new Error('Natural conversation style and saved-chat persistence requirements are missing');
 const shareHandler = appScript.slice(appScript.indexOf("$('share').onclick"), appScript.indexOf("$('mem').onclick"));
 if (!shareHandler.includes('const exportedConfig={api:CFG.api,brand:CFG.brand,base:k.base,model:k.model}') || !shareHandler.includes('JSON.stringify(exportedConfig)') || shareHandler.includes("key:$('key').value") || shareHandler.includes('JSON.stringify(k)')) throw new Error('Shareable NOVA exports must include provider settings but never a personal API key');
 if (!appScript.includes('Your API key is never included') || !appScript.includes('आपकी API key शामिल नहीं होती')) throw new Error('BYOK export privacy disclosure must explain that recipients supply their own keys');

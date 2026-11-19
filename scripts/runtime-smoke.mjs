@@ -5,7 +5,7 @@ let ready=false;for(let i=0;i<30;i++){try{const r=await req('/api/config');if(r.
 if(!ready)throw new Error('local Express server did not become ready');
 const html=await expect('previous standard chat UI','/',{},(r,b)=>r.ok&&b.includes('<html lang="en">')&&b.includes('id="msgs"')&&b.includes('id="dset"')&&b.includes('id="photo"')&&['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>b.includes(x))&&!b.includes('id="nova-future-style"')&&!b.includes('id="nova-future-script"')&&!b.includes('nova-living-core')&&!b.includes('INDIAN SOUL • FUTURE INTELLIGENCE'));
 await expect('NOVA workspace scripts connected','/',{},(r,b)=>r.ok&&['src="/nova-config.js"','src="/nova-app.js"','src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>b.includes(x))&&!/<script\b(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i.test(b));
-await expect('externalized NOVA app script','/nova-app.js',{},(r,b)=>r.ok&&b.includes('const CFG=Object.assign')&&b.includes("localStorage.getItem('nova')")&&b.includes('const persistable=()=>')&&b.includes('JSON.stringify(persistable())')&&b.length>100000);
+await expect('externalized NOVA app script','/nova-app.js',{},(r,b)=>r.ok&&b.includes('const CFG=Object.assign')&&b.includes("localStorage.getItem('nova')")&&b.includes('const persistable=()=>')&&b.includes('JSON.stringify(persistable())')&&b.includes('async function localMathPhase')&&b.includes('NOVA local calculator (no AI/API call)')&&b.includes('NOVA local symbolic maths engine (no AI/API call)')&&b.length>100000);
 await expect('externalized NOVA config script','/nova-config.js',{},(r,b)=>r.ok&&b.includes('window.NOVA_CONFIG'));
 await expect('Business Intelligence scripts included on homepage','/',{},(r,b)=>r.ok&&b.includes('src="/nova-business-core.js"')&&b.includes('src="/nova-business.js"')&&b.includes('src="/nova-business-cloud.js"'));
 await expect('standard UI language dictionaries','/nova-app.js',{},(r,b)=>r.ok&&b.includes('hi:{')&&b.includes('phSolve:'));
@@ -20,7 +20,7 @@ await expect('Business Intelligence workspace','/nova-business.js',{},(r,b)=>r.o
 await expect('Business Intelligence cloud/auth client','/nova-business-cloud.js',{},(r,b)=>r.ok&&b.includes('createClient')&&b.includes('nova-bi-api'));
 await expect('mode registry asset','/mode-registry.js',{},(r,b)=>r.ok&&b.includes('NovaModeRegistry'));
 await expect('mode workspace asset','/mode-workspace.js',{},(r,b)=>r.ok&&b.includes('NovaModeWorkspace'));
-const config=JSON.parse(await expect('server config','/api/config',{},(r,b)=>r.ok&&JSON.parse(b).model==='test-model'));
+const config=JSON.parse(await expect('server config','/api/config',{},(r,b)=>r.ok&&JSON.parse(b).model==='test-model'&&JSON.parse(b).vision===false&&JSON.parse(b).live===false));
 await expect('PWA manifest','/manifest.webmanifest',{},(r,b)=>r.ok&&JSON.parse(b).name.toLowerCase().includes('nova'));
 await expect('PWA service worker','/sw.js',{},(r,b)=>r.ok&&b.length>100&&b.includes('nova-config.js')&&b.includes('nova-app.js')&&b.includes('nova-reference.js')&&b.includes('nova-business-core.js')&&b.includes('nova-business-cloud.js'));
 await expect('PWA icon 192','/icons/icon-192.png',{},r=>r.ok);
@@ -30,6 +30,9 @@ await expect('malformed JSON API body returns JSON 400','/api/search',{method:'P
 const oversizedJson='{"q":"'+'x'.repeat(6*1024*1024)+'"}';
 await expect('oversized JSON API body returns JSON 413','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:oversizedJson},(r,b)=>r.status===413&&JSON.parse(b).error==='Request body is too large');
 await expect('search validation','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
+await expect('live info explicitly unavailable without configured search provider','/api/live',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:'latest news'})},(r,b)=>r.status===503&&JSON.parse(b).code==='LIVE_SEARCH_UNAVAILABLE');
+await expect('news feed explicitly unavailable without configured search provider','/api/feed?cat=all',{},(r,b)=>r.status===503&&JSON.parse(b).code==='LIVE_SEARCH_UNAVAILABLE');
+await expect('photo answers explicitly unavailable without configured vision model','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:[{type:'text',text:'Read this photo'},{type:'image_url',image_url:{url:'data:image/jpeg;base64,AA=='}}]}]})},(r,b)=>r.status===503&&JSON.parse(b).code==='VISION_UNAVAILABLE');
 await expect('image validation','/api/image',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
 await expect('image job status validation','/api/image/status/not-a-real-job',{},r=>r.status===404);
 await expect('provider fan-out self-test is disabled by default','/api/live/selftest',{},r=>r.status===404);
