@@ -136,6 +136,22 @@ test('STR spec engine creates valid, assumption-rich plans for five vague prompt
   }
 });
 
+test('STR local plans add a visible bilingual feature section without claiming integrations are active', () => {
+  const spec = generateLocalSpec({
+    prompt: 'मेरी दुकान की वेबसाइट बनाओ। WhatsApp और कॉल बटन चाहिए।',
+    uiLang: 'hi',
+    contentLang: 'hi'
+  });
+  const featureSection = spec.pages[0].sections.find(section => section.id === 'features');
+  assert.ok(featureSection, 'requested features should be represented by a dedicated section');
+  assert.equal(featureSection.type, 'features');
+  assert.match(featureSection.content.heading.hi, /अनुरोधित सुविधाएँ/);
+  assert.match(featureSection.content.heading.en, /Requested features/);
+  assert.match(featureSection.content.body.en, /not implemented/i);
+  assert.ok(spec.features.includes('whatsapp'));
+  assert.ok(spec.features.includes('call'));
+});
+
 test('STR local spec never invents supplied prices, phone numbers or addresses', () => {
   const spec = generateLocalSpec({ prompt: 'मेरी दुकान की वेबसाइट बनाओ।', uiLang: 'hi', contentLang: 'hi' });
   assert.equal(spec.contact.phone, '');
