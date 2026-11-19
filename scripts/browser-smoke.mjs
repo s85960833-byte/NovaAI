@@ -316,8 +316,7 @@ try{
   Object.defineProperty(window,'NovaLocalAI',{configurable:true,writable:true,value:window.__novaRealLocalAI});
   delete window.__novaRealLocalAI;
  });
- await desktop.locator('#nmClose').click();
- await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
+ assert.equal(await desktop.locator('#novaModes').evaluate(el=>el.classList.contains('open')),false,'opening Agents Studio should already have closed its parent workspace overlay');
 
  // The Build workspace Image Studio action must reveal the existing image composer from the dashboard.
  await desktop.locator('#hi .nr-card[data-group="build"]').click();
