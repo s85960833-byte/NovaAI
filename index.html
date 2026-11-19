@@ -272,6 +272,11 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 @keyframes strFadeUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
 @media(max-width:560px){.str-top{gap:8px}.str-quota{font-size:11px;padding:6px 8px}.str-back{padding:8px 10px!important}.str-state{grid-template-columns:1fr}.str-hero{padding-top:38px}}
 @media(prefers-reduced-motion:reduce){.str-intro,.str-intro-mark,.str-intro-word,.str-intro-tag{animation:none!important}.str-intro{transition:opacity .3s ease}}
+
+.str-language-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px 0;border-bottom:1px solid #334155}
+.str-language-settings label{display:grid;gap:5px;min-width:0;color:#cbd5e1;font-size:12px}
+.str-language-settings select{width:100%;min-height:44px;border:1px solid #475569;border-radius:10px;background:#17213a;color:#f8fafc;padding:8px 10px;font:inherit;font-size:14px}
+@media(max-width:560px){.str-language-settings{grid-template-columns:1fr}}
 </style></head><body>
 <section id="novaEntryGate" aria-label="NOVA introduction" aria-live="polite"><div class="nova-entry-core"><div class="nova-entry-mark" aria-hidden="true">✦</div><p class="nova-entry-word">NOVA</p><p class="nova-entry-tagline">A NEW ERA OF INTELLIGENCE</p><div class="nova-entry-rule" aria-hidden="true"></div><p class="nova-entry-caption">THINK · CREATE · DISCOVER</p></div></section>
 
@@ -306,6 +311,14 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
       </div>
       <span class="str-quota" id="strQuota">Owner mode</span>
     </header>
+    <section class="str-language-settings" aria-label="STR language settings">
+      <label><span data-str="replyLabel">Reply language</span>
+        <select id="strReplyLang" aria-label="Reply language"><option value="en">English</option><option value="hi">हिंदी</option></select>
+      </label>
+      <label><span data-str="contentLabel">Website content</span>
+        <select id="strContentLang" aria-label="Website content language"><option value="en">English</option><option value="hi">हिंदी</option><option value="hinglish">Hinglish</option></select>
+      </label>
+    </section>
     <main>
       <section class="str-hero">
         <div class="str-eyebrow">STRATA / NOVA BUILDER</div>
