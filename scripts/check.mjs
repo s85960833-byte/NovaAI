@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { runInNewContext } from 'node:vm';
 
 function syntaxCheck(name, source) {
   const extension = name.endsWith('.mjs') ? '.mjs' : '.js';
@@ -105,6 +106,16 @@ if (!feedImpl.includes('webSearch(') || feedImpl.includes('feedCat(') || !feedIm
 if (!server.includes('live: hasSearch, web: hasSearch')) throw new Error('API config must expose live-search availability independently of AI model availability');
 if (!server.includes('const hasVision = !!((E.GROQ_API_KEY && E.GROQ_VISION_MODEL) || (E.OPENROUTER_API_KEY && E.OPENROUTER_VISION_MODEL && /:free$/i.test(E.OPENROUTER_VISION_MODEL)) || (E.LLM_KEY && E.LLM_VISION_MODEL && /openrouter\\.ai/i.test(BASE) && /:free$/i.test(E.LLM_VISION_MODEL)))') || !server.includes("code: 'VISION_UNAVAILABLE'")) throw new Error('Photo answers must fail clearly unless a configured supported vision model is available');
 if (!appScript.includes('Photo understanding is unavailable') || !appScript.includes('VISION_UNAVAILABLE')) throw new Error('Photo-answer provider failures must show a clear unavailable message');
+const hindiMathStart = appScript.indexOf('const HNUM=');
+const hindiMathEnd = appScript.indexOf('async function localMathPhase', hindiMathStart);
+if (hindiMathStart < 0 || hindiMathEnd < 0) throw new Error('Hindi maths parser source is missing');
+const hindiMathSandbox = {};
+runInNewContext(appScript.slice(hindiMathStart, hindiMathEnd) + '\\nglobalThis.normalizeHindiNumbers = normalizeHindiNumbers;', hindiMathSandbox);
+for (const [input, expected] of [['दो सौ पचास', '250'], ['एक हजार दो सौ पचास', '1250'], ['दो लाख पचास हजार', '250000'], ['दो सौ पचास का 17 प्रतिशत', '250 का 17 प्रतिशत']]) {
+  const actual = hindiMathSandbox.normalizeHindiNumbers(input);
+  if (actual !== expected) throw new Error('Hindi number parsing failed: ' + input + ' => ' + actual + ', expected ' + expected);
+}
+process.stdout.write('PASS Hindi number words: hundreds, thousands, lakhs, and mixed maths prompts\\n');
 if (!appScript.includes('async function mathPhase') || !appScript.includes('async function localMathPhase') || !appScript.includes('localMathOnly') || !appScript.includes('normalizeHindiNumbers') || !appScript.includes('const HNUM=') || !appScript.includes('[०-९]') || !appScript.includes('NOVA local calculator (no AI/API call)') || !appScript.includes('NOVA local symbolic maths engine (no AI/API call)') || !appScript.includes("name:'calculate'") || !appScript.includes("name:'symbolic'") || !appScript.includes('Verified results from the exact calculator')) throw new Error('Maths must use local deterministic arithmetic/symbolic tools before any AI-assisted fallback');
 if (!server.includes("error: 'Live search unavailable', code: 'LIVE_SEARCH_UNAVAILABLE'")) throw new Error('Live routes must give an explicit unavailable response without a configured provider');
 if (!appScript.includes('Live search unavailable right now') || !appScript.includes("SV={model:null,live:false,web:false")) throw new Error('Frontend must display a clear live-search-unavailable instruction without breaking BYOK chat');
