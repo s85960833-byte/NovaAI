@@ -44,3 +44,28 @@ test('STR per-client rate windows reset and fail closed at capacity', () => {
   assert.equal(consumeWindow(full, 'new', 1000, 2, 60000, 1).capacity, true);
 });
 
+
+const { eligibleProviders, chooseProvider } = require('../str/provider-router');
+
+test('customer data can only route to verified paid no-training providers with known quotas', () => {
+  const base = { model: 'safe-model', verified_on: '2026-11-19', requests_per_minute: 10, tokens_per_minute: 10000, requests_per_day: 100, tokens_per_day: 100000 };
+  const config = { providers: [
+    { ...base, provider: 'free', data_tier: 'unpaid' },
+    { ...base, provider: 'unknown', data_tier: 'unverified' },
+    { ...base, provider: 'paid', data_tier: 'paid_no_training' },
+    { ...base, provider: 'paid-unknown-quota', data_tier: 'paid_no_training', tokens_per_minute: null }
+  ] };
+  assert.deepEqual(eligibleProviders(config, 'customer_data').map(p => p.provider), ['paid']);
+  assert.equal(chooseProvider(config, 'customer_data', { inputTokens: 4000, outputTokens: 2000 }).provider.provider, 'paid');
+  assert.equal(chooseProvider(config, 'customer_data', { inputTokens: 9000, outputTokens: 2000 }).provider, null);
+});
+
+test('owner-only non-personal tests may use any configured tier but never unknown quotas', () => {
+  const config = { providers: [
+    { provider: 'unverified', model: 'test-model', data_tier: 'unverified', verified_on: null, requests_per_minute: 5, tokens_per_minute: 5000, requests_per_day: 20, tokens_per_day: 20000 },
+    { provider: 'unknown-limits', model: 'test-model', data_tier: 'unpaid', requests_per_minute: null, tokens_per_minute: null, requests_per_day: null, tokens_per_day: null }
+  ] };
+  assert.deepEqual(eligibleProviders(config, 'owner_non_personal_test_data').map(p => p.provider), ['unverified']);
+  assert.equal(chooseProvider(config, 'customer_data').provider, null);
+});
+
