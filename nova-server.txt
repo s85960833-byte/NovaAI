@@ -996,7 +996,10 @@ async function runLive(qraw, o = {}) {
   if (!weatherQ && !marketsQ && !sportsQ && !scienceQ && !historyQ) query += ' latest news and verified reporting';
 
   const notes = [];
-  if (weatherQ && !placeFrom(q, o.place)) notes.push('No city was provided for the weather request. Ask the user which city; do not guess a location.');
+  if (weatherQ && !placeFrom(q, o.place)) {
+    notes.push('No city was provided. Ask the user which city; do not search or guess a location.');
+    return { ok: true, q, retrievedAt: now.toISOString(), tz, intents, used: [], failed: [], notes, sources: [], context: 'The user asked for current weather but did not specify a city. Ask one short question: Which city should I check? Do not provide a forecast or guess a location.' };
+  }
   const found = await webSearch(query, { lang, news: newsQ || (!weatherQ && !marketsQ && !sportsQ && !scienceQ && !historyQ) });
   const items = (found.items || []).filter(x => x && x.title && safeUrl(x.url)).slice(0, 10);
   if (!items.length) throw new Error('Live search unavailable. The configured provider returned no usable sources.');
