@@ -18,7 +18,7 @@ saved:'Draft saved on this device.',saveError:'This browser could not save the d
 cleared:'Draft cleared.',welcome:'You can choose Hindi or English. You can change this any time.'
 },
 hi:{
-back:'Nova',headline:'एक स्पष्ट विचार। पूरा build।',
+back:'Nova',replyLabel:'उत्तर भाषा',contentLabel:'वेबसाइट की भाषा',headline:'एक स्पष्ट विचार। पूरा build।',
 subhead:'जिस app या website की जरूरत है, उसका वर्णन करें। STR उसे योजना, preview और download package में बदलेगा।',
 promptLabel:'आप क्या बनाना चाहते हैं?',promptPlaceholder:'मेरी दुकान की वेबसाइट बनाओ…',
 saveDraft:'ड्राफ्ट सुरक्षित करें',clear:'साफ़ करें',localNote:'आपका ड्राफ्ट केवल इसी डिवाइस पर सुरक्षित है। इस चरण में यह किसी AI provider को नहीं भेजा जाता।',
