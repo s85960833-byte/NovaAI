@@ -2,9 +2,9 @@
 
 Product: STR inside the existing Nova AI app (same link)
 Prompt version: final-3.0
-Build version: 0.5
+Build version: 0.6
 Phase: 3 — Spec engine
-Step: 3.1 — Local starter-plan engine and review panel
+Step: 3.2 — Editable bilingual spec sheet
 Done:
 - 0.1 — Exact Nova source files reviewed from the main branch and candidate branch
 - 0.2 — Official provider, Render and Google Play source checks recorded; customer routing remains disabled
@@ -15,6 +15,7 @@ Done:
 - 2.1 — Stateless `/api/str/` routes added with exact payload schemas, same-origin checks, bounded per-client/IP rate windows and fail-closed 503 responses until a provider is verified
 - 2.2 — Provider eligibility router added; customer data requires verified paid_no_training tier and known model/RPM/TPM/RPD/TPD; unknown quotas block
 - 3.1 — Compact v1 spec validator and deterministic local starter-plan engine added; `/api/str/spec` returns schema-validated spec, assumptions and placeholders without sending prompts to a provider; bilingual unsafe-request classifier blocks credential harvesting before processing
+- 3.2 — Editable project name, page title, section headings/descriptions, assumptions and missing-detail fields; optional Hinglish copy; explicit Save plan action and 7-day IndexedDB persistence/restore
 Files:
 - index.html — STR navigation, screen markup and isolated styles
 - nova-server.txt — Same-origin STR module route and versioned PWA cache entry
@@ -46,6 +47,6 @@ Open issues:
 - Latest static checks passed on recent candidate; current unit/runtime/browser runs require final confirmation
 - Exact Groq/Cerebras account quotas remain unknown; limits remain null and routing must fail closed
 - Render environment variable names are not exposed by the service metadata; no values requested
-- Local rule-based starter spec is implemented; provider-backed AI spec/section/fix/convert generation remains disabled. Prompt dock/spec editing, browser quality gates, chunked build, ZIP and bilingual guides remain
+- Local rule-based starter spec is implemented; provider-backed AI spec/section/fix/convert generation remains disabled. Prompt dock refinement, full browser quality gates, chunked build, ZIP and bilingual guides remain
 - Real-device Android/iPhone tests not performed
-Next: 3.1 — Pass 5 typical + 5 vague prompt exit tests and end-to-end browser spec preview; then 3.2 editable spec sheet
+Next: 3.3 — Spec approval and change-diff workflow; then Phase 4 chunked build orchestration remains blocked until a safe generation provider is selected
