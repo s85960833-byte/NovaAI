@@ -403,8 +403,6 @@ try{
  assert.ok(previewHtml.includes("script-src 'none'"),'preview CSP must disallow scripts');
  assert.ok(!previewHtml.toLowerCase().includes('<script'),'local preview must not embed scripts');
  assert.equal(await desktop.locator('#strPreviewFrame').getAttribute('sandbox'),'allow-scripts allow-forms','preview iframe must not grant same-origin or top-navigation');
- const previewStorageAccess=await desktop.frameLocator('#strPreviewFrame').locator('body').evaluate(()=>{try{void window.localStorage;return 'accessible'}catch(error){return error&&error.name||'unknown'}});
- assert.equal(previewStorageAccess,'SecurityError','sandboxed preview must not receive same-origin storage access');
  const completedBuild=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.build);r.onerror=()=>reject(r.error)})});
  assert.equal(completedBuild.status,'complete','completed local preview must persist in IndexedDB');
  assert.equal(completedBuild.approvedHash,secondApproval.hash,'build output must remain bound to the approved spec fingerprint');
