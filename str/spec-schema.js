@@ -9,7 +9,14 @@ const ROOT_KEYS = ['v','name','kind','content_lang','ui_lang_at_creation','theme
 
 function object(value) { return !!value && typeof value === 'object' && !Array.isArray(value); }
 function shortString(value, max = 300) { return typeof value === 'string' && value.trim().length > 0 && value.length <= max; }
-function bilingual(value, max = 300) { return object(value) && shortString(value.hi,max) && shortString(value.en,max); }
+function bilingual(value, max = 300) {
+  if (!object(value)) return false;
+  const allowed = new Set(['hi', 'en', 'hinglish']);
+  if (Object.keys(value).some(key => !allowed.has(key))) return false;
+  if (!shortString(value.hi, max) || !shortString(value.en, max)) return false;
+  if (Object.prototype.hasOwnProperty.call(value, 'hinglish') && !shortString(value.hinglish, max)) return false;
+  return true;
+}
 
 function validateSpec(spec) {
   const errors = [];
@@ -30,7 +37,12 @@ function validateSpec(spec) {
     if (!object(page) || !shortString(page.id,80) || pageIds.has(page.id) || !bilingual(page.title,120) || !Array.isArray(page.sections) || page.sections.length < 1 || page.sections.length > 20) { errors.push('page_invalid'); continue; }
     pageIds.add(page.id);
     for (const section of page.sections) {
-      if (!object(section) || !shortString(section.id,80) || sectionIds.has(section.id) || !SECTION_TYPES.has(section.type) || !object(section.content)) errors.push('section_invalid');
+      if (!object(section) || !shortString(section.id,80) || sectionIds.has(section.id) ||
+          !SECTION_TYPES.has(section.type) || !object(section.content) ||
+          Object.keys(section.content).length !== 2 ||
+          !Object.prototype.hasOwnProperty.call(section.content, 'heading') ||
+          !Object.prototype.hasOwnProperty.call(section.content, 'body') ||
+          !bilingual(section.content.heading, 160) || !bilingual(section.content.body, 600)) errors.push('section_invalid');
       else sectionIds.add(section.id);
     }
   }
