@@ -24,12 +24,12 @@ const last=hist.filter(m=>m.role==='user').slice(-1)[0];if(!last)return '';
 let q=tx(last).replace(/[०-९]/g,d=>String('०१२३४५६७८९'.indexOf(d))).replace(/,/g,'').trim();
 let expr='',m;
 // Percentage forms: "25% of 400", "400 का 25%", "400 ka 25 percent".
-m=q.match(/(\\d+(?:\\.\\d+)?)\\s*(?:%|percent|प्रतिशत)\\s*(?:of|का|की|के)?\\s*(\\d+(?:\\.\\d+)?)/i);
+m=q.match(/(\d+(?:\.\d+)?)\s*(?:%|percent|प्रतिशत)\s*(?:of|का|की|के)?\s*(\d+(?:\.\d+)?)/i);
 if(m)expr='('+m[2]+'*'+m[1]+'/100)';
-if(!expr){m=q.match(/(\\d+(?:\\.\\d+)?)\\s*(?:का|की|के|ka|ki|ke)\\s*(\\d+(?:\\.\\d+)?)\\s*(?:%|percent|प्रतिशत)/i);if(m)expr='('+m[1]+'*'+m[2]+'/100)'}
-if(!expr){m=q.match(/(?:^|[^\\w.])((?:\\d+(?:\\.\\d+)?|\\.)[\\d\\s()+\\-*/^×÷.]*[+\\-*/^×÷][\\d\\s()+\\-*/^×÷.]*)(?:$|[^\\w.])/);if(m)expr=m[1].trim()}
-if(!expr||!/^[\\d\\s()+\\-*/^.]+$/.test(expr))return '';
-try{const M=await getMath();if(!M)return '';const result=M.format(M.evaluate(expr),{precision:20});return '\\n\\nVerified result from NOVA local calculator (no AI/API call):\\n'+expr+' = '+result+'\\nShow the working clearly and use this exact result.'}catch(e){return ''}
+if(!expr){m=q.match(/(\d+(?:\.\d+)?)\s*(?:का|की|के|ka|ki|ke)\s*(\d+(?:\.\d+)?)\s*(?:%|percent|प्रतिशत)/i);if(m)expr='('+m[1]+'*'+m[2]+'/100)'}
+if(!expr){m=q.match(/(?:^|[^\w.])((?:\d+(?:\.\d+)?|\.)[\d\s()+\-*/^×÷.]*[+\-*/^×÷][\d\s()+\-*/^×÷.]*)(?:$|[^\w.])/);if(m)expr=m[1].trim()}
+if(!expr||!/^[\d\s()+\-*/^.]+$/.test(expr))return '';
+try{const M=await getMath();if(!M)return '';const result=M.format(M.evaluate(expr),{precision:20});return '\n\nVerified result from NOVA local calculator (no AI/API call):\n'+expr+' = '+result+'\nShow the working clearly and use this exact result.'}catch(e){return ''}
 }
 async function mathPhase(hist,signal,mdl){
 const tx=m=>typeof m.content==='string'?m.content:(m.content||[]).map(p=>p.text||'').join(' ');
