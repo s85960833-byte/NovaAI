@@ -5,7 +5,7 @@ const BASE=process.env.NOVAAI_URL||'http://127.0.0.1:8787';
 const browser=await chromium.launch({headless:true});
 const errors=[],cspErrors=[];
 const track=page=>{
- page.on('pageerror',e=>errors.push(String(e.message||e)));
+ page.on('pageerror',e=>errors.push(String(e.message||e)+' [stack: '+String(e.stack||'').slice(0,1200)+']'));
  page.on('console',msg=>{if(msg.type()==='error'&&/content security policy|refused to (?:load|execute|apply)/i.test(msg.text()))cspErrors.push(msg.text())});
 };
 
