@@ -95,7 +95,16 @@ if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy websit
 if (!server.includes("r.setHeader('X-Content-Type-Options', 'nosniff')") || !server.includes("r.setHeader('X-Frame-Options', 'DENY')") || !server.includes("r.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')")) throw new Error('Baseline security response headers are missing');
 if (!server.includes('r2: false') || !server.includes('maxImageBytes = 8 * 1024 * 1024') || !server.includes("imageBuffer.toString('ascii', 8, 12) === 'WEBP'") || server.includes('fetch(generated') || !server.includes('const freeOnly = body.freeOnly === true') || !server.includes('if (!freeOnly && E.ALLOW_PAID_IMAGE') || !server.includes('const tries = freeOnly ? [] : E.POLLI_KEY')) throw new Error('Community image SSRF, payload validation, or paid-provider bypass guards are missing');
 if (!server.includes('Your developer is Thakur Shreyansh Singh ji.') || !server.includes("Respond in the user's language while keeping the developer name exactly as written.") || server.includes('Respond in English only, regardless of the user')) throw new Error('Developer identity must be exact and compatible with the user language');
-if (!server.includes("via: 'arxiv+science-rss-fallback'") || !server.includes("T('openalex', async () =>") || !server.includes("feedCat('science', 6)")) throw new Error('Live science retrieval must fall back to independent arXiv and science RSS when OpenAlex fails');
+const searchImpl = server.slice(server.indexOf('async function webSearch'), server.indexOf('async function onThisDay'));
+const liveImpl = server.slice(server.indexOf('async function runLive'), server.indexOf('function rank(items, q)'));
+const feedImpl = server.slice(server.indexOf("app.get('/api/feed'"), server.indexOf('// Normalize JSON parser failures'));
+if (!server.includes('function hasConfiguredSearchProvider()') || !server.includes('return !!(E.TAVILY_KEY || E.BRAVE_KEY)')) throw new Error('Live retrieval must depend on an explicitly configured Tavily or Brave provider');
+if (!searchImpl.includes('Live search unavailable') || /\\b(?:ddg|wikiSearch)\\s*\\(/.test(searchImpl)) throw new Error('General search must not fall back to unconfigured providers');
+if (!liveImpl.includes('webSearch(query') || /\\b(?:feedCat|gnews|gdelt|arxiv|openalex|espn|yahooQuote|coingecko|weather)\\s*\\(/.test(liveImpl)) throw new Error('Live answers must use only the configured search provider');
+if (!feedImpl.includes('webSearch(') || feedImpl.includes('feedCat(') || !feedImpl.includes('LIVE_SEARCH_UNAVAILABLE')) throw new Error('News feed must use configured search and report missing providers clearly');
+if (!server.includes('live: hasSearch, web: hasSearch')) throw new Error('API config must expose live-search availability independently of AI model availability');
+if (!server.includes("error: 'Live search unavailable', code: 'LIVE_SEARCH_UNAVAILABLE'")) throw new Error('Live routes must give an explicit unavailable response without a configured provider');
+if (!appScript.includes('Live search unavailable right now') || !appScript.includes("SV={model:null,live:false,web:false")) throw new Error('Frontend must display a clear live-search-unavailable instruction without breaking BYOK chat');
 syntaxCheck('provider URL validation', providerUrl);
 syntaxCheck('backend', server);
 const liveSmoke=readFileSync('scripts/smoke.mjs','utf8');
