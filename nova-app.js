@@ -20,7 +20,7 @@ const MTOOLS=[{type:'function',function:{name:'calculate',description:'Exactly e
 const MATHY=/(\d\s*[-+*\/^×÷]\s*\d)|[०-९]\s*[-+*\/^×÷]\s*[०-९]|%|percent|प्रतिशत|sqrt|root|मूल|वर्ग|घन|गुणा|जोड़|घटा|integra|derivativ|differenti|इंटीग्रल|अवकल|समीकरण|equation|solve|calculat|compute|कितना|कितने|how much|simplif|factor|हिसाब|ब्याज|interest|औसत|average|\b(sin|cos|tan|log|ln)\b|सौ|हज़ार|हजार|लाख|करोड़/i;
 const HNUM={'शून्य':0,'एक':1,'दो':2,'तीन':3,'चार':4,'पाँच':5,'पांच':5,'छह':6,'छः':6,'सात':7,'आठ':8,'नौ':9,'दस':10,'ग्यारह':11,'बारह':12,'तेरह':13,'चौदह':14,'पंद्रह':15,'पन्द्रह':15,'सोलह':16,'सत्रह':17,'अठारह':18,'उन्नीस':19,'बीस':20,'इक्कीस':21,'बाईस':22,'बाइस':22,'तेईस':23,'चौबीस':24,'पच्चीस':25,'छब्बीस':26,'सत्ताईस':27,'अट्ठाईस':28,'उनतीस':29,'तीस':30,'चालीस':40,'पचास':50,'साठ':60,'सत्तर':70,'अस्सी':80,'नब्बे':90,'सौ':100,'हजार':1000,'हज़ार':1000,'लाख':100000,'करोड़':10000000};
 function normalizeHindiNumbers(value){
-const words=Object.keys(HNUM).sort((a,b)=>b.length-a.length),alt=words.join('|'),re=new RegExp('(^|[^\\u0900-\\u097F])('+alt+'(?:\\s+(?:'+alt+'))*)(?=$|[^\\u0900-\\u097F])','g');
+const words=Object.keys(HNUM).sort((a,b)=>b.length-a.length),alt=words.join('|'),re=new RegExp('(^|[^\\u0900-\\u097F])((?:'+alt+')(?:\\s+(?:'+alt+'))*)(?=$|[^\\u0900-\\u097F])','g');
 return String(value).replace(re,(all,prefix,phrase)=>{let total=0,current=0;for(const word of phrase.split(/\\s+/)){const n=HNUM[word];if(n===100)current=(current||1)*100;else if(n>=1000){total+=(current||1)*n;current=0}else current+=n}return prefix+String(total+current)});
 }
 async function localMathPhase(hist){
