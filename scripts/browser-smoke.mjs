@@ -350,6 +350,18 @@ try{
  assert.equal(strSaved[0].spec.name,'Test Shop Plan','edited project name must persist in the spec');
  assert.equal(strSaved[0].spec.assumed[0].value,'Owner confirmed name','edited assumptions must persist in IndexedDB');
  assert.equal(strSaved[0].fieldValues['Contact phone number'],'Sample contact detail','filled placeholders must persist separately from the compact spec');
+ // The editable page and section copy is stored independently for the selected content language.
+ await desktop.locator('[data-str-page-id="home"] [data-str-field="page-title"]').fill('Home Ghar');
+ await desktop.locator('[data-str-section-id="details"] [data-str-field="heading"]').fill('Products and services');
+ await desktop.locator('[data-str-section-id="details"] [data-str-field="body"]').fill('Yahan products aur services ki details dein.');
+ await desktop.locator('#strSavePlan').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strStatus')?.textContent.includes('योजना में किए गए बदलाव'));
+ const savedCopy=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})});
+ assert.equal(savedCopy[0].spec.pages[0].title.hinglish,'Home Ghar','page title edit must persist in Hinglish');
+ const savedDetails=savedCopy[0].spec.pages[0].sections.find(section=>section.id==='details');
+ assert.equal(savedDetails.content.heading.hinglish,'Products and services','section heading edit must persist in Hinglish');
+ assert.equal(savedDetails.content.body.hinglish,'Yahan products aur services ki details dein.','section description edit must persist in Hinglish');
+
  assert.equal(await desktop.evaluate(()=>localStorage.getItem('nova')),novaStorageBefore,'STR must not modify Nova chat storage');
  await desktop.locator('#strBack').click();
  await desktop.waitForFunction(()=>document.querySelector('#strApp').hidden);
