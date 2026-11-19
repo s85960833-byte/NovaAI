@@ -66,7 +66,7 @@ await expect('STR valid spec request uses local rules without a provider','/api/
 const strRateHeaders={origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_rate_1234567890','content-type':'application/json'};
 for(let i=0;i<10;i++){
  const response=await req('/api/str/spec',{method:'POST',headers:strRateHeaders,body:JSON.stringify({prompt:'owner test',uiLang:'en',contentLang:'en'})});
- if(response.status!==503)throw new Error('STR per-client rate limit blocked request '+(i+1)+' before its threshold: HTTP '+response.status);
+ if(response.status!==200)throw new Error('STR per-client rate limit blocked request '+(i+1)+' before its threshold: HTTP '+response.status);
 }
 await expect('STR per-client rate limit blocks request eleven','/api/str/spec',{method:'POST',headers:strRateHeaders,body:JSON.stringify({prompt:'owner test',uiLang:'en',contentLang:'en'})},r=>r.status===429);
 await expect('STR prompt hard cap is enforced','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_cap_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'x'.repeat(1001),uiLang:'en',contentLang:'en'})},r=>r.status===400);
