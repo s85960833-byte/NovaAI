@@ -30,7 +30,7 @@ await expect('malformed JSON API body returns JSON 400','/api/search',{method:'P
 const oversizedJson='{"q":"'+'x'.repeat(6*1024*1024)+'"}';
 await expect('oversized JSON API body returns JSON 413','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:oversizedJson},(r,b)=>r.status===413&&JSON.parse(b).error==='Request body is too large');
 await expect('search validation','/api/search',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
-await expect('live info explicitly unavailable without configured search provider','/api/live',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:'latest news'})},async (r,b)=>r.status===503&&JSON.parse(b).code==='LIVE_SEARCH_UNAVAILABLE');
+await expect('live info explicitly unavailable without configured search provider','/api/live',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({q:'latest news'})},(r,b)=>r.status===503&&JSON.parse(b).code==='LIVE_SEARCH_UNAVAILABLE');
 await expect('news feed explicitly unavailable without configured search provider','/api/feed?cat=all',{},(r,b)=>r.status===503&&JSON.parse(b).code==='LIVE_SEARCH_UNAVAILABLE');
 await expect('photo answers explicitly unavailable without configured vision model','/api/chat/completions',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:[{type:'text',text:'Read this photo'},{type:'image_url',image_url:{url:'data:image/jpeg;base64,AA=='}}]}]})},(r,b)=>r.status===503&&JSON.parse(b).code==='VISION_UNAVAILABLE');
 await expect('image validation','/api/image',{method:'POST',headers:{'content-type':'application/json'},body:'{}'},r=>r.status===400);
