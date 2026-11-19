@@ -383,6 +383,24 @@ try{
  await desktop.waitForFunction(()=>document.querySelector('#strApprovalState')?.textContent.includes('इस डिवाइस पर मंज़ूर'));
  const secondApproval=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.approval);r.onerror=()=>reject(r.error)})});
  assert.notEqual(secondApproval.hash,firstApproval.hash,'re-approval must bind to the revised spec fingerprint');
+ await desktop.locator('#strBuildLocal').click();
+ await desktop.waitForFunction(()=>Number((document.querySelector('#strBuildProgress')?.textContent||'0/0').split('/')[0])>=1);
+ await desktop.locator('#strBuildLocal').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strBuildStatus')?.textContent.includes('रुका है'));
+ const pausedBuild=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.build);r.onerror=()=>reject(r.error)})});
+ assert.equal(pausedBuild.status,'paused','local build interruption must checkpoint to IndexedDB');
+ assert.ok(pausedBuild.doneChunks>0&&pausedBuild.doneChunks<pausedBuild.totalChunks,'pause must retain completed chunk progress');
+ await desktop.locator('#strBuildLocal').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strBuildStatus')?.textContent.includes('स्थानीय preview तैयार है'),{timeout:10000});
+ const previewHtml=await desktop.locator('#strPreviewFrame').getAttribute('srcdoc');
+ assert.ok(previewHtml.includes('Updated after approval'),'preview must include approved user edits');
+ assert.ok(previewHtml.includes("script-src 'none'"),'preview CSP must disallow scripts');
+ assert.ok(!previewHtml.toLowerCase().includes('<script'),'local preview must not embed scripts');
+ assert.equal(await desktop.locator('#strPreviewFrame').getAttribute('sandbox'),'allow-scripts allow-forms','preview iframe must not grant same-origin or top-navigation');
+ const completedBuild=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.build);r.onerror=()=>reject(r.error)})});
+ assert.equal(completedBuild.status,'complete','completed local preview must persist in IndexedDB');
+ assert.equal(completedBuild.approvedHash,secondApproval.hash,'build output must remain bound to the approved spec fingerprint');
+
 
  await desktop.locator('#strBack').click();
  await desktop.waitForFunction(()=>document.querySelector('#strApp').hidden);
