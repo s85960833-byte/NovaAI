@@ -78,8 +78,7 @@ assert.ok(workspace.includes('Calculation check (user-provided rate)'),'GST inst
 assert.ok(workspace.includes('file?.image?null:cacheGet(ck)'),'image-specific answers must bypass text-only cache');
 assert.ok(workspace.includes('Low Data Mode')&&workspace.includes('कम डेटा मोड'),'low-data mode toggle must be bilingual');
 assert.ok(workspace.includes("window.addEventListener('nova:ui-language-changed'"),'mode workspace must react to the global interface language selector');
-const imageProvider=readFileSync('nova-image-horde.js','utf8');
-assert.ok(server.includes("require('./nova-image-horde')")&&imageProvider.includes("provider: 'community-free'")&&imageProvider.includes("const ANONYMOUS_KEY = '0000000000'")&&imageProvider.includes('shared: true')&&!server.includes('pollinations.ai'),'anonymous keyless community image-generation fallback is missing');
+assert.ok(!server.includes("require('./nova-image-horde')")&&!server.includes("apikey:")&&!server.includes('pollinations.ai'),'strict keyless server must not call anonymous or keyed image-generation providers');
 assert.ok(server.includes('unsafeImagePrompt')&&imageProvider.includes('nsfw: false')&&imageProvider.includes('censor_nsfw: true'),'image safety settings are missing');
 assert.ok(server.includes("app.get('/api/image/status/:id'")&&server.includes('UUID job IDs are unguessable'),'image status polling must tolerate proxy IP rotation');
 assert.ok(app.includes('hi:{'),'Previous standard UI Hindi dictionary missing');
