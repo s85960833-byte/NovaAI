@@ -308,7 +308,7 @@ async function downloadLocalPackage(){
  finally{renderBuildPanel();}
 }
 function renderBuildPanel(){
- const button=$('strBuildLocal'),label=$('strBuildStatus'),progress=$('strBuildProgress'),frame=$('strPreviewFrame');
+ const button=$('strBuildLocal'),label=$('strBuildStatus'),progress=$('strBuildProgress'),frame=$('strPreviewFrame'),download=$('strDownloadZip');
  if(!button||!label||!progress||!frame)return;
  const done=currentBuild&&Number.isSafeInteger(currentBuild.doneChunks)?currentBuild.doneChunks:0;
  const total=currentBuild&&Number.isSafeInteger(currentBuild.totalChunks)?currentBuild.totalChunks:0;
@@ -326,6 +326,7 @@ function renderBuildPanel(){
  const ready=!!(currentBuild&&currentBuild.status==='complete'&&typeof currentBuild.html==='string');
  frame.hidden=!ready;
  if(ready)frame.srcdoc=currentBuild.html;else if(frame.hasAttribute('srcdoc'))frame.removeAttribute('srcdoc');
+ download.disabled=!(ready&&currentApproval&&currentBuild.approvedHash===currentApproval.hash);
 }
 async function persistBuildProgress(){
  const latest=await getLatestDraft();
@@ -538,6 +539,7 @@ $('strSaveDraft').addEventListener('click',saveDraft);
 $('strSavePlan').addEventListener('click',persistSpecEdits);
 $('strApproveSpec').addEventListener('click',approveSpec);
 $('strBuildLocal').addEventListener('click',startLocalBuild);
+$('strDownloadZip').addEventListener('click',downloadLocalPackage);
 $('strCreateSpec').addEventListener('click',createSpec);
 $('strClearDraft').addEventListener('click',async()=>{
  $('strPrompt').value='';currentSpec=null;originalSpec=null;currentApproval=null;currentFieldValues={};originalFieldValues={};currentBuild=null;$('strSpecPanel').hidden=true;
