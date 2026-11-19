@@ -182,7 +182,15 @@ if (!strServer.includes("generateLocalSpec({ prompt: b.prompt, uiLang: b.uiLang,
 if (!strScript.includes('async function persistSpecEdits(options={})') || !strScript.includes('str-assumption-row') || !strScript.includes('str-placeholder-row') || !strScript.includes('fieldValues:{...currentFieldValues}') || !strScript.includes("setAttribute('data-str-field','page-title')") || !strScript.includes("setAttribute('data-str-field','heading')") || !strScript.includes("setAttribute('data-str-field','body')") || !html.includes('id="strSavePlan"') || !html.includes('.str-spec-copy-editor') || !strScript.includes('conversionBlocked') || !strScript.includes('async function approveSpec()') || !strScript.includes('async function computeSpecFingerprint()') || !strScript.includes('function buildSpecDiff()') || !strScript.includes("algorithm:'SHA-256'") || !strScript.includes('function markSpecChanged()') || !html.includes('id="strApproveSpec"') || !html.includes('id="strSpecDiff"') || !strScript.includes('function buildLocalChunks(') || !strScript.includes('async function startLocalBuild()') || !strScript.includes('async function persistBuildProgress()') || !html.includes('id="strBuildLocal"') || !html.includes('sandbox="allow-scripts allow-forms"') || html.includes('allow-same-origin')) throw new Error('STR local chunk builder, resumability or preview sandbox is missing');
 if (!html.includes('.str-spec-page') || !html.includes('.str-assumption-row') || !html.includes('.str-placeholder-row')) throw new Error('STR strata cards and editable dotted placeholders are missing');
 
-if (!strServer.includes("eligibleProviders(providerConfig, 'customer_data')") || !strProviderRouter.includes("provider.data_tier !== 'paid_no_training'") || !strProviderRouter.includes('quotasKnown(provider)')) throw new Error('STR customer-data routing must require verified paid no-training tiers and known quotas');
+if (!strServer.includes("eligibleProviders(providerConfig, 'customer_data')") ||
+    !strProviderRouter.includes('customerDataControlsVerified(provider)') ||
+    !strProviderRouter.includes("provider.data_tier === 'paid_no_training'") ||
+    !strProviderRouter.includes('verifiedTermsUrl(provider.terms_url)') ||
+    !strProviderRouter.includes('provider.no_training_confirmed === true') ||
+    !strProviderRouter.includes('provider.owner_only_access === true') ||
+    !strProviderRouter.includes('quotasKnown(provider)')) {
+  throw new Error('STR customer-data routing must require verified paid no-training terms, known quotas and owner access controls');
+}
 if (!strServer.includes("generationEnabled: false") || !strServer.includes("customerBuildsEnabled: false") || !strServer.includes("RETENTION_DAYS = 7")) throw new Error('STR must remain owner-only and fail closed until provider verification');
 
 if (!strScript.includes("localStorage.setItem('str_reply_lang',replyLang)") ||
