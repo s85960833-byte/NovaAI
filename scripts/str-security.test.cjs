@@ -14,8 +14,8 @@ test('STR origin guard accepts exact same origin and rejects cross-origin/null o
   assert.equal(sameOrigin(req({ origin: 'https://attacker.example' })), false);
   assert.equal(sameOrigin(req({ origin: 'null' })), false);
   assert.equal(sameOrigin(req({ fetchSite: 'cross-site' })), false);
-  assert.equal(sameOrigin(req({ origin: undefined })), false);
-  assert.equal(sameOrigin(req({ method: 'GET', origin: undefined })), true);
+  assert.equal(sameOrigin(req({ origin: null })), false);
+  assert.equal(sameOrigin(req({ method: 'GET', origin: null })), true);
 });
 
 test('STR fixed payload schemas reject unknown and missing fields', () => {
