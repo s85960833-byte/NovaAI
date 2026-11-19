@@ -2,6 +2,8 @@
 
 const express = require('express');
 const { sameOrigin, exactKeys, validClientId, consumeWindow, plainObject } = require('./security');
+const providerConfig = require('./provider-config.json');
+const { eligibleProviders } = require('./provider-router');
 
 const RETENTION_DAYS = 7;
 const MAX_BODY_BYTES = 20 * 1024;
@@ -35,6 +37,8 @@ function createStrRouter() {
     requestsPerDay: null,
     tokensPerDay: null,
     unknownLimitsAction: 'block_and_report',
+    eligibleOwnerTestProviders: eligibleProviders(providerConfig, 'owner_non_personal_test_data').length,
+    eligibleCustomerProviders: eligibleProviders(providerConfig, 'customer_data').length,
     message: {
       hi: 'STR निर्माण अभी बंद है। Provider की सुरक्षित शर्तें और सीमाएँ जाँचने के बाद इसे चालू किया जाएगा।',
       en: 'STR generation is disabled until provider data terms and quotas are verified.'
