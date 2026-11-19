@@ -56,8 +56,8 @@ NOVA's existing assistant and answer-generation features are designed to use **n
 - **Voice transcription:** Whisper Base ONNX runs locally in the browser; WebGPU first, CPU/WASM fallback. Text-to-speech uses the browser speech engine.
 - **Photo text reading and scanned-PDF OCR:** Tesseract.js runs locally for English and Hindi. This extracts readable text; it is not general scene/object understanding.
 - **PDF/text/document handling:** PDF.js and browser file APIs parse supported files locally; extracted text is passed to the local model on the current device.
-- **Current answers:** main chat defaults to live research. The NOVA server retrieves evidence from public no-key sources such as DuckDuckGo, GDELT, Google News RSS and Wikipedia, plus public feeds/data services for weather, time, markets, science, statistics, natural events and sports.
-- **NOVA Learn / Build / Agents:** their time-sensitive questions use the same no-key live research route before local-model generation.
+- **Current answers:** main chat always checks live public sources before local-model generation. The NOVA server retrieves evidence from public no-key sources such as DuckDuckGo, GDELT, Google News RSS and Wikipedia, plus public feeds/data services for weather, time, markets, science, statistics, natural events and sports.
+- **NOVA Learn / Build / Agents:** each submitted question uses the same no-key live research route before local-model generation.
 - **Image generation:** deliberately disabled until a genuinely on-device image model is integrated and validated. No AI Horde, Pollinations or other remote image-generation request is made.
 - **Local storage:** chats and files remain browser-local unless the user explicitly enables the separate account/cloud feature.
 
