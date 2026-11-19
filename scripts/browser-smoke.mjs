@@ -315,6 +315,9 @@ try{
  assert.ok((await desktop.locator('#strApp').innerText()).includes('आप क्या बनाना चाहते हैं?'),'STR Hindi labels should update immediately');
  assert.equal(await desktop.locator('#strReplyLang').inputValue(),'hi','reply language should follow the UI language until explicitly changed');
  await desktop.locator('#strReplyLang').selectOption('en');
+ await desktop.locator('#strLangEn').click();
+ await desktop.locator('#strLangHi').click();
+ assert.equal(await desktop.locator('#strReplyLang').inputValue(),'en','explicit reply-language choice must remain independent when the interface language changes');
  await desktop.locator('#strPrompt').fill('मेरी दुकान की वेबसाइट बनाओ।');
  assert.equal(await desktop.locator('#strReplyLang').inputValue(),'en','typing Hindi must not change the selected English reply language');
  assert.equal(await desktop.locator('#strContentLang').inputValue(),'hi','website content language should default from a Hindi prompt');
