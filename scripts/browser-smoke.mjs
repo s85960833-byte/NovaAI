@@ -291,6 +291,24 @@ try{
  await desktop.locator('#log img.thumb[src^="data:image/png;base64,"]').waitFor({state:'visible',timeout:12000});
  assert.equal(imageRequests.length,1,'Build Image Studio must submit one image-generation job');
  assert.ok(imageRequests[0].prompt.includes('blue geometric star'),"image-generation request must include the user's prompt");
+  // STR must open as an isolated bilingual workspace and keep drafts out of Nova chat storage.
+ const novaStorageBefore=await desktop.evaluate(()=>localStorage.getItem('nova'));
+ await desktop.locator('#nStr').click();
+ await desktop.locator('#strApp').waitFor({state:'visible'});
+ await desktop.waitForTimeout(350);
+ await desktop.locator('#strSkipIntro').click();
+ await desktop.locator('#strPrompt').fill('मेरी दुकान की वेबसाइट बनाओ।');
+ await desktop.locator('#strLangHi').click();
+ assert.ok((await desktop.locator('#strApp').innerText()).includes('आप क्या बनाना चाहते हैं?'),'STR Hindi labels should update immediately');
+ await desktop.locator('#strSaveDraft').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strStatus')?.textContent.includes('ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।'));
+ const strSaved=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})});
+ assert.equal(strSaved.length,1,'STR draft must be stored in its own IndexedDB database');
+ assert.equal(strSaved[0].prompt,'मेरी दुकान की वेबसाइट बनाओ।','STR must preserve the saved prompt');
+ assert.equal(await desktop.evaluate(()=>localStorage.getItem('nova')),novaStorageBefore,'STR must not modify Nova chat storage');
+ await desktop.locator('#strBack').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strApp').hidden);
+ console.log('PASS STR open/close, Hindi switch, non-blocking intro, IndexedDB draft isolation and Nova storage preservation');
  console.log('PASS NOVA Build Image Studio launch, async image job polling and rendered image result');
  await desktop.locator('#imbar').click();
  await desktop.waitForFunction(()=>!document.body.classList.contains('nova-image-mode'));
