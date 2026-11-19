@@ -164,6 +164,16 @@ if (!html.includes('id="novaEntryGate"') || html.includes('id="novaEntryVideo"')
 
 const strScript = readFileSync('str-app.js', 'utf8');
 syntaxCheck('STR app shell', strScript);
+if (!strScript.includes("localStorage.setItem('str_reply_lang',replyLang)") ||
+    !strScript.includes("localStorage.setItem('str_content_lang',contentLang)") ||
+    !strScript.includes("contentLang,replyLang,uiLang:lang") ||
+    !html.includes('id="strReplyLang"') || !html.includes('id="strContentLang"') ||
+    !strScript.includes("replyLabel:'Reply language'") || !strScript.includes("replyLabel:'उत्तर की भाषा'")) {
+  throw new Error('STR must keep UI, reply and website-content languages independent and bilingual');
+}
+const strKeys = [...strScript.matchAll(/(?:en|hi):\\{([\\s\\S]*?)\\n\\},?/g)].slice(0,2).map(m=>[...m[1].matchAll(/([A-Za-z][A-Za-z0-9]*):/g)].map(x=>x[1]));
+if (strKeys.length!==2 || strKeys[0].length!==strKeys[1].length || strKeys[0].some(k=>!strKeys[1].includes(k))) throw new Error('Every STR visible dictionary key must exist in Hindi and English');
+
 const strProviderConfig = JSON.parse(readFileSync('str/provider-config.json', 'utf8'));
 if (!html.includes('id="nStr"') || !html.includes('id="strApp"') || !html.includes('src="/str-app.js"')) throw new Error('STR navigation, isolated shell, or script entry point is missing');
 if (!server.includes("app.get('/str-app.js'") || !server.includes("'/str-app.js'")) throw new Error('STR script route or offline cache entry is missing');
