@@ -126,23 +126,28 @@ try {
     assert.ok(item.title, 'live search results must include titles');
   }
   console.log('[PASS] Live no-key search: ' + search.body.results.length + ' results via ' + search.body.provider);
-
-  // Start one safe, generic community image job while the browser downloads and tests local models.
-  const imageSubmit = await jsonRequest(BASE + '/api/image', {
+  const live = await jsonRequest(BASE + '/api/live', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: 'A simple blue flower illustration on a plain light background',
-      width: 512,
-      height: 512,
-      seed: 20261118
-    })
+    body: JSON.stringify({ q: 'latest NASA news', mode: 'always', lang: 'en', tz: 'Asia/Kolkata' })
   });
-  assert.equal(imageSubmit.response.status, 202, 'anonymous keyless image route should queue a safe request');
-  assert.ok(imageSubmit.body.jobId, 'image route should return a job ID');
-  console.log('[NOVA] Anonymous community image job accepted; waiting while local inference runs.');
+  assert.equal(live.response.status, 200, 'live research endpoint must work without provider API keys');
+  assert.equal(live.body.ok, true, 'live research should return an explicit success flag');
+  assert.ok(typeof live.body.context === 'string' && live.body.context.includes('LIVE DATA'), 'live research must return evidence context for the local model');
+  assert.ok(Array.isArray(live.body.sources), 'live research must return source metadata');
+  for (const source of live.body.sources) assert.ok(/^https:\/\//.test(source.url || ''), 'live source URLs must be HTTPS');
+  console.log('[PASS] Live no-key evidence retrieval: ' + live.body.sources.length + ' sources');
 
-  browser = await chromium.launch({
+  const imageDisabled = await jsonRequest(BASE + '/api/image', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'A simple blue flower illustration on a plain light background' })
+  });
+  assert.equal(imageDisabled.response.status, 503, 'strict keyless mode must not call a remote image provider');
+  assert.match(imageDisabled.body.error || '', /strict keyless mode/i);
+
+
+  // Image generation intentionally stays disabled until a local model is integrated and validated.\n\n  browser = await chromium.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-dev-shm-usage']
   });
@@ -215,28 +220,7 @@ try {
   assert.match(recognized, /hello/, 'Whisper fixture transcription should recognize the clear first spoken word “hello”');
   console.log('[PASS] Real local Whisper transcription via ' + voice.state.voiceBackend + ': ' + voice.result.text.trim().slice(0, 180));
 
-  // Poll the actual public queue, but do not spin indefinitely or bypass its rate limits.
-  let imageResult = null, imageError = '';
-  const deadline = Date.now() + 9 * 60 * 1000;
-  while (Date.now() < deadline) {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    const poll = await jsonRequest(BASE + '/api/image/status/' + encodeURIComponent(imageSubmit.body.jobId));
-    if (poll.response.status === 200 && ['queued', 'processing'].includes(poll.body.status)) continue;
-    if (poll.response.status === 200 && poll.body.status === 'done' && typeof poll.body.image === 'string') {
-      imageResult = poll.body.image;
-      break;
-    }
-    imageError = poll.body.error || ('unexpected image status HTTP ' + poll.response.status + ' ' + JSON.stringify(poll.body).slice(0, 180));
-    break;
-  }
-  assert.ok(imageResult, 'real anonymous image job should finish within nine minutes: ' + imageError);
-  assert.match(imageResult, /^data:image\/(?:webp|png|jpeg|gif);base64,/i, 'image response must be a validated image data URL');
-  const imageBytes = Buffer.from(imageResult.split(',')[1], 'base64');
-  assert.ok(imageBytes.length >= 1000 && imageBytes.length <= 8 * 1024 * 1024, 'image response size must be within safe bounds');
-  console.log('[PASS] Real anonymous community image generation: ' + imageBytes.length + ' bytes (' + imageResult.slice(5, imageResult.indexOf(';')) + ')');
-
-  console.log('[PASS] Real local inference and live no-key feature smoke: chat + OCR + voice + live search + image generation.');
-  await context.close();
+  console.log('[PASS] Real local inference and live no-key feature smoke: chat + OCR + Whisper + live search + live evidence; image generation correctly disabled.');\n  await context.close();
 } catch (error) {
   console.error('[FAIL] ' + String(error && error.stack || error));
   console.error('[NOVA status history] ' + JSON.stringify(statusMessages.slice(-30)));
