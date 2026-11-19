@@ -381,7 +381,7 @@ try{
  // The editable page and section copy is stored independently for the selected content language.
  await desktop.locator('[data-str-page-id="home"] [data-str-field="page-title"]').fill('Home Ghar');
  await desktop.locator('[data-str-section-id="details"] [data-str-field="heading"]').fill('Products and services');
- await desktop.locator('[data-str-section-id="details"] [data-str-field="body"]').fill('Yahan products aur services ki details dein.');
+ await desktop.locator('[data-str-section-id="details"] [data-str-field="body"]').fill('Yahan details dein. <img src=x onerror=alert(1)>');
  await desktop.locator('#strSavePlan').click();
  await desktop.waitForFunction(()=>document.querySelector('#strStatus')?.textContent.includes('योजना में किए गए बदलाव'));
  const savedCopy=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})});
@@ -426,6 +426,7 @@ try{
  console.log('PERF STR local preview resume: '+localResumeMs+' ms');
  const previewHtml=await desktop.locator('#strPreviewFrame').getAttribute('srcdoc');
  assert.ok(previewHtml.includes('Updated after approval'),'preview must include approved user edits');
+  assert.ok(previewHtml.includes('&lt;img src=x onerror=alert(1)&gt;')&&!/<img src=x onerror=alert\(1\)>/i.test(previewHtml),'user-supplied HTML must be rendered as inert escaped text');
   assert.ok(previewHtml.includes('WhatsApp contact')&&previewHtml.includes('Call button'),'preview must surface requested features with safe bilingual labels');
   assert.ok(previewHtml.includes('interactive integrations are not implemented'),'preview must not imply requested integrations are already functional');
  assert.ok(previewHtml.includes("script-src 'none'"),'preview CSP must disallow scripts');
@@ -523,6 +524,37 @@ try{
  await mobile.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
  console.log('PASS Android-sized touch navigation, strict Build/Agents placement and Agents-only chat composer');
  await mobileContext.close();
+
+ // Exercise STR itself on narrow Android-sized viewports, not just the NOVA home screen.
+ const strMobileContext=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+ const strMobile=await strMobileContext.newPage();
+ track(strMobile);
+ await strMobile.goto(BASE,{waitUntil:'domcontentloaded'});
+ await enterNOVA(strMobile);
+ await strMobile.locator('#menu').tap();
+ await strMobile.locator('#nStr').tap();
+ await strMobile.locator('#strApp').waitFor({state:'visible'});
+ await strMobile.locator('#strSkipIntro').tap();
+ for(const width of [360,390,412]){
+  await strMobile.setViewportSize({width,height:844});
+  const layout=await strMobile.evaluate(()=>{
+   const app=document.querySelector('#strApp').getBoundingClientRect(),prompt=document.querySelector('#strPrompt').getBoundingClientRect();
+   return {viewport:innerWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth,
+    appLeft:app.left,appRight:app.right,appWidth:app.width,promptLeft:prompt.left,promptRight:prompt.right};
+  });
+  assert.ok(layout.document<=width+1&&layout.body<=width+1,'STR must not introduce horizontal overflow at '+width+'px');
+  assert.ok(Math.abs(layout.appLeft)<=1&&Math.abs(layout.appRight-width)<=1&&Math.abs(layout.appWidth-width)<=1,'STR must occupy full phone width at '+width+'px');
+  assert.ok(layout.promptLeft>=0&&layout.promptRight<=width+1,'STR prompt must remain inside viewport at '+width+'px');
+ }
+ await strMobile.locator('#strPrompt').fill('Build a small shop website with WhatsApp and a call button.');
+ await strMobile.locator('#strCreateSpec').tap();
+ await strMobile.locator('#strSpecPanel').waitFor({state:'visible',timeout:5000});
+ const mobileSpec=await strMobile.evaluate(()=>({width:innerWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth}));
+ assert.ok(mobileSpec.document<=mobileSpec.width+1&&mobileSpec.body<=mobileSpec.width+1,'expanded STR plan must not overflow on mobile');
+ assert.equal(await strMobile.locator('#strBuildLocal').isVisible(),true,'local build action must remain reachable on mobile');
+ await strMobile.locator('#strBack').tap();
+ await strMobileContext.close();
+ console.log('PASS STR full-width phone layout, prompt, editable plan and build action at 360/390/412 CSS px');
 
  const reducedContext=await browser.newContext({viewport:{width:412,height:915},reducedMotion:'reduce'});
  const reduced=await reducedContext.newPage();

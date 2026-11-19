@@ -45,15 +45,36 @@ test('STR per-client rate windows reset and fail closed at capacity', () => {
 });
 
 
-const { eligibleProviders, chooseProvider } = require('../str/provider-router');
+const { eligibleProviders, chooseProvider, verifiedDate, verifiedTermsUrl } = require('../str/provider-router');
 
-test('customer data can only route to verified paid no-training providers with known quotas', () => {
-  const base = { model: 'safe-model', verified_on: '2026-11-19', requests_per_minute: 10, tokens_per_minute: 10000, requests_per_day: 100, tokens_per_day: 100000 };
+test('provider verification dates and terms URLs are strictly validated', () => {
+  assert.equal(verifiedDate('2026-11-19'), true);
+  assert.equal(verifiedDate('2026-02-31'), false);
+  assert.equal(verifiedDate('2026-2-03'), false);
+  assert.equal(verifiedDate('not-a-date'), false);
+  assert.equal(verifiedTermsUrl('https://provider.example/terms'), true);
+  assert.equal(verifiedTermsUrl('http://provider.example/terms'), false);
+  assert.equal(verifiedTermsUrl('https://user:pass@provider.example/terms'), false);
+  assert.equal(verifiedTermsUrl('javascript:alert(1)'), false);
+});
+test('customer data requires paid no-training terms, account tier, quotas and verified owner access controls', () => {
+  const base = {
+    model: 'safe-model', verified_on: '2026-11-19',
+    requests_per_minute: 10, tokens_per_minute: 10000,
+    requests_per_day: 100, tokens_per_day: 100000,
+    terms_url: 'https://provider.example/terms', terms_reviewed_on: '2026-11-19',
+    no_training_confirmed: true, owner_access_verified_on: '2026-11-19', owner_only_access: true
+  };
   const config = { providers: [
     { ...base, provider: 'free', data_tier: 'unpaid' },
     { ...base, provider: 'unknown', data_tier: 'unverified' },
     { ...base, provider: 'paid', data_tier: 'paid_no_training' },
-    { ...base, provider: 'paid-unknown-quota', data_tier: 'paid_no_training', tokens_per_minute: null }
+    { ...base, provider: 'paid-unknown-quota', data_tier: 'paid_no_training', tokens_per_minute: null },
+    { ...base, provider: 'missing-terms-review', data_tier: 'paid_no_training', terms_reviewed_on: null },
+    { ...base, provider: 'training-not-confirmed', data_tier: 'paid_no_training', no_training_confirmed: false },
+    { ...base, provider: 'owner-access-unverified', data_tier: 'paid_no_training', owner_only_access: false },
+    { ...base, provider: 'invalid-calendar-date', data_tier: 'paid_no_training', terms_reviewed_on: '2026-02-31' },
+    { ...base, provider: 'insecure-terms-link', data_tier: 'paid_no_training', terms_url: 'http://provider.example/terms' }
   ] };
   assert.deepEqual(eligibleProviders(config, 'customer_data').map(p => p.provider), ['paid']);
   assert.equal(chooseProvider(config, 'customer_data', { inputTokens: 4000, outputTokens: 2000 }).provider.provider, 'paid');

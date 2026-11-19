@@ -7,7 +7,23 @@ function quotasKnown(provider) {
 }
 
 function verifiedDate(value) {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value + 'T00:00:00Z'));
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(value + 'T00:00:00.000Z');
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+function verifiedTermsUrl(value) {
+  if (typeof value !== 'string' || value.length > 2048) return false;
+  try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password; }
+  catch { return false; }
+}
+function customerDataControlsVerified(provider) {
+  return provider.data_tier === 'paid_no_training' &&
+    verifiedDate(provider.verified_on) &&
+    verifiedTermsUrl(provider.terms_url) &&
+    verifiedDate(provider.terms_reviewed_on) &&
+    provider.no_training_confirmed === true &&
+    verifiedDate(provider.owner_access_verified_on) &&
+    provider.owner_only_access === true;
 }
 
 function eligibleProviders(config, dataClass, estimate = {}) {
@@ -17,7 +33,7 @@ function eligibleProviders(config, dataClass, estimate = {}) {
   if (!Number.isFinite(input) || !Number.isFinite(output) || input < 0 || output < 0) return [];
   return config.providers.filter(provider => {
     if (!provider || typeof provider.model !== 'string' || !provider.model.trim() || !quotasKnown(provider)) return false;
-    if (dataClass === 'customer_data' && (provider.data_tier !== 'paid_no_training' || !verifiedDate(provider.verified_on))) return false;
+    if (dataClass === 'customer_data' && !customerDataControlsVerified(provider)) return false;
     if (dataClass === 'owner_non_personal_test_data' && !['paid_no_training', 'unpaid', 'unverified'].includes(provider.data_tier)) return false;
     const total = input + output;
     if (total > provider.tokens_per_minute || total > provider.tokens_per_day) return false;
@@ -33,4 +49,4 @@ function chooseProvider(config, dataClass, estimate = {}) {
   return { provider: null, reason: 'unknown_data_class' };
 }
 
-module.exports = { REQUIRED_LIMITS, quotasKnown, eligibleProviders, chooseProvider };
+module.exports = { REQUIRED_LIMITS, quotasKnown, verifiedDate, verifiedTermsUrl, customerDataControlsVerified, eligibleProviders, chooseProvider };
