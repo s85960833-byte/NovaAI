@@ -306,6 +306,13 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 .str-assumption-why{display:block;color:#94a3b8;font-size:11px;line-height:1.45}
 .str-placeholder-row{border:1px dashed #64748b;border-radius:10px;padding:9px}
 .str-placeholder-label{font-size:12px;color:#cbd5e1}
+.str-spec-heading-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.str-save-plan{min-height:40px!important;background:#f59e0b!important;border-color:#f59e0b!important;color:#1e1b4b!important;font-weight:800}
+.str-spec-copy-editor{display:grid;gap:6px;margin:8px 0;color:#cbd5e1;font-size:12px}
+.str-spec-copy-editor input,.str-spec-copy-editor textarea{width:100%;min-height:42px;border:1px solid #64748b;border-radius:8px;background:#0f172a;color:#f8fafc;padding:9px 10px;font:inherit;font-size:14px;line-height:1.5}
+.str-spec-copy-editor textarea{min-height:82px;resize:vertical}
+.str-copy-preview{margin:6px 0 0!important;color:#94a3b8!important;font-size:12px!important}
+@media(max-width:560px){.str-spec-heading-actions{width:100%}.str-save-plan{width:100%}}
 </style></head><body>
 <section id="novaEntryGate" aria-label="NOVA introduction" aria-live="polite"><div class="nova-entry-core"><div class="nova-entry-mark" aria-hidden="true">✦</div><p class="nova-entry-word">NOVA</p><p class="nova-entry-tagline">A NEW ERA OF INTELLIGENCE</p><div class="nova-entry-rule" aria-hidden="true"></div><p class="nova-entry-caption">THINK · CREATE · DISCOVER</p></div></section>
 
@@ -368,7 +375,7 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
       <section class="str-panel str-spec-panel" id="strSpecPanel" hidden aria-labelledby="strSpecTitle">
         <div class="str-spec-heading">
           <div><div class="str-eyebrow" data-str="specEyebrow">LOCAL STARTER PLAN</div><h2 id="strSpecTitle" data-str="specTitle">Review your starter plan</h2></div>
-          <span class="str-local-badge" data-str="localBadge">Local rules · No AI</span>
+          <div class="str-spec-heading-actions"><span class="str-local-badge" data-str="localBadge">Local rules · No AI</span><button id="strSavePlan" class="str-save-plan" type="button" data-str="savePlan">Save plan edits</button></div>
         </div>
         <p class="str-note str-spec-notice" id="strSpecNotice" role="status"></p>
         <div class="str-spec-meta" id="strSpecMeta"></div>
