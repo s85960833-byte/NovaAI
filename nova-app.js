@@ -28,9 +28,9 @@ m=q.match(/(\d+(?:\.\d+)?)\s*(?:%|percent|प्रतिशत)\s*(?:of|का|
 if(m)expr='('+m[2]+'*'+m[1]+'/100)';
 if(!expr){m=q.match(/(\d+(?:\.\d+)?)\s*(?:का|की|के|ka|ki|ke)\s*(\d+(?:\.\d+)?)\s*(?:%|percent|प्रतिशत)/i);if(m)expr='('+m[1]+'*'+m[2]+'/100)'}
 if(!expr){m=q.match(/(?:^|[^\w.])((?:\d+(?:\.\d+)?|\.)[\d\s()+\-*\/^×÷.]*[+\-*\/^×÷][\d\s()+\-*\/^×÷.]*)(?:$|[^\w.])/);if(m)expr=m[1].trim()}
-if(expr&&/^[\d\s()+\-*\/^.]+$/.test(expr)){try{const M=await getMath();if(M){const result=M.format(M.evaluate(expr),{precision:20});return '\n\nVerified result from NOVA local calculator (no AI/API call):\n'+expr+' = '+result+'\nShow the working clearly and use this exact result.'}}catch(e){}}
+if(expr&&/^[\d\s()+\-*\/^.]+$/.test(expr)){try{const M=await getMath();if(M){const result=M.format(M.evaluate(expr),{precision:20});return {prompt:'\n\nVerified result from NOVA local calculator (no AI/API call):\n'+expr+' = '+result+'\nShow the working clearly and use this exact result.',answer:'Calculation: '+expr+' = '+result+'\n\nSteps:\n1. Evaluate the expression using the local calculator.\n2. The verified result is '+result+'.\n\nFinal answer: '+result}}}catch(e){}}
 const ops=[['differentiate|derivative(?: of)?|diff|अवकलन|अवकलज','diff'],['integrate|integral(?: of)?|समाकलन','integrate'],['factor|गुणनखंड','factor'],['expand|विस्तार','expand'],['simplify|सरल करो|सरलीकरण','simplify'],['solve|हल करो|समीकरण','solve']];
-for(const [words,op] of ops){const re=new RegExp('(?:'+words+')\\s*(?:the\\s+)?(?:expression\\s*)?[:：-]?\\s*([0-9a-zA-Z_\\s()+\\-*\/^=.,]+)','i');m=q.match(re);if(!m)continue;expr=m[1].trim().replace(/[?।]+$/,'');if(!expr||!/[a-z]/i.test(expr)||!/^[0-9a-zA-Z_\s()+\-*\/^=.,]+$/.test(expr))continue;try{const out=await runTool('symbolic',{operation:op,expression:expr,variable:'x'});return '\n\nVerified result from NOVA local symbolic maths engine (no AI/API call):\n'+op+'('+expr+') = '+out+'\nExplain the steps clearly and use this exact result.'}catch(e){return ''}}
+for(const [words,op] of ops){const re=new RegExp('(?:'+words+')\\s*(?:the\\s+)?(?:expression\\s*)?[:：-]?\\s*([0-9a-zA-Z_\\s()+\\-*\/^=.,]+)','i');m=q.match(re);if(!m)continue;expr=m[1].trim().replace(/[?।]+$/,'');if(!expr||!/[a-z]/i.test(expr)||!/^[0-9a-zA-Z_\s()+\-*\/^=.,]+$/.test(expr))continue;try{const out=await runTool('symbolic',{operation:op,expression:expr,variable:'x'});return {prompt:'\n\nVerified result from NOVA local symbolic maths engine (no AI/API call):\n'+op+'('+expr+') = '+out+'\nExplain the steps clearly and use this exact result.',answer:'Using NOVA local symbolic maths engine:\n'+op+'('+expr+') = '+out+'\n\nThis result was calculated locally without an AI/API call.'}}catch(e){return ''}}
 return '';
 }
 async function mathPhase(hist,signal,mdl){
@@ -141,8 +141,8 @@ const ck=(lab,key)=>{const i=document.createElement('input');i.type='checkbox';i
 const c=document.createElement('input');c.type='text';c.maxLength=40;c.value=P.city||'';c.placeholder='Delhi';c.oninput=()=>{P.city=c.value.trim();save()};row(LS('pCity'),c);
 const tb=document.createElement('button');tb.type='button';tb.textContent='🔧 '+LS('pTest');const so=document.createElement('div');so.className='stout';tb.onclick=async()=>{so.textContent=LS('pTesting');try{const rs=await fetch(API+'/live/selftest'),jj=await rs.json();if(!rs.ok||!jj.results)throw 0;so.innerHTML='';const okn=jj.results.filter(x=>x.ok).length,hb=document.createElement('b');hb.textContent=okn+'/'+jj.results.length+' ✓';so.append(hb);jj.results.forEach(x=>{const d=document.createElement('div');d.textContent=(x.ok?'✅ ':'❌ ')+x.name+' — '+x.ms+' ms'+(x.ok?'':' ('+x.note+')');so.append(d)})}catch(e){so.textContent='❌ '+LS('pTestFail')}};box.append(tb,so);
 const r=document.createElement('input');r.type='range';r.min='0.7';r.max='1.4';r.step='0.1';r.value=P.rate||1;r.oninput=()=>{P.rate=Number(r.value);save()};row(LS('pRate'),r)}
-async function ask(c){const cf=SMP?{base:'x',model:'x',key:'x'}:(SV&&SV.model)?{base:API,model:SV.model,key:'-'}:(S.cfg.key?S.cfg:BUILT_IN)||S.cfg;if(!cf.key||!cf.model||!cf.base){$('dcfg').showModal();return}
-if(BUILT_IN&&!S.cfg.key){const d=new Date().toDateString();if(S.day!==d){S.day=d;S.n=0}if((S.n||0)>=30){c.m.push({r:'assistant',c:t('eDay'),e:1});save();render();return}S.n=(S.n||0)+1;save()}
+async function ask(c){const cf=SMP?{base:'x',model:'x',key:'x'}:(SV&&SV.model)?{base:API,model:SV.model,key:'-'}:(S.cfg.key?S.cfg:BUILT_IN)||S.cfg;const lastAsk=[...c.m].reverse().find(m=>m.r==='user'),localMathOnly=!!(!SMP&&!(SV&&SV.model)&&(!cf.key||!cf.model||!cf.base)&&lastAsk&&MATHY.test(String(lastAsk.c||'')));if((!cf.key||!cf.model||!cf.base)&&!localMathOnly){$('dcfg').showModal();return}
+if(BUILT_IN&&!S.cfg.key&&!localMathOnly){const d=new Date().toDateString();if(S.day!==d){S.day=d;S.n=0}if((S.n||0)>=30){c.m.push({r:'assistant',c:t('eDay'),e:1});save();render();return}S.n=(S.n||0)+1;save()}
 busy=true;ctl=new AbortController();const a={r:'assistant',c:''};c.m.push(a);render();
 let wr='',wsrc='';
 {const lu=[...c.m].reverse().find(m=>m.r==='user'),lq=lu?String(lu.c||''):'',lmode=S.live||'auto',fl=WEB;WEB=false;
@@ -162,7 +162,7 @@ const sysRaw="You are "+CFG.brand+", a warm, brilliant assistant in a one-to-one
 const sys=SV&&SV.model?sysRaw:sysRaw.replace(/\[\[\/?PACKS\]\]/g,''),sysLite=sysRaw.replace(/\[\[PACKS\]\][\s\S]*?\[\[\/PACKS\]\]/,'');
 const hs=c.m.slice(0,-1).filter(m=>!m.e&&(m.c!==''||m.img)).slice(-30);let li=-1;hs.forEach((m,i)=>{if(m.img&&m.r==='user')li=i});const hist=mergeRoles(hs.map((m,i)=>({role:m.r==='user'?'user':'assistant',content:(m.r==='user'&&m.img&&i===li)?[{type:'text',text:m.c||PHOTOQ},{type:'image_url',image_url:{url:m.img}}]:m.c})));
 const lc=$('log').lastChild,el=lc&&lc.querySelector?lc.querySelector('.b'):null;
-try{if(SMP){const ms=hist.map(m=>({role:m.role,content:typeof m.content==='string'?m.content:m.content[0].text}));ms[ms.length-1].content=sys+'\n\n---\nUser message:\n'+ms[ms.length-1].content;
+try{const localMath=await localMathPhase(hist);if(localMathOnly){if(localMath)a.c=localMath.answer;else{a.e=1;a.c='This question is not covered by the local maths engine yet. It can solve arithmetic, percentages and common symbolic operations without an AI/API connection.'}}else if(SMP){const ms=hist.map(m=>({role:m.role,content:typeof m.content==='string'?m.content:m.content[0].text}));ms[ms.length-1].content=sys+'\n\n---\nUser message:\n'+ms[ms.length-1].content;
 const o={signal:ctl.signal,cache:false,modelTier:LV?'quick':'default',onText:x=>{a.c=x.text;schedPaint(el,a);if(LV)lvFeed(a.c)}};
 if(li>=0){let cap=null;try{cap=(await SMP.limits()).images}catch(x){}
 if(!cap){if(li===hs.length-1)throw{vis:1}}else{const bs=atob(hs[li].img.split(',')[1]),u8=new Uint8Array(bs.length);for(let i=0;i<bs.length;i++)u8[i]=bs.charCodeAt(i);o.images=[new Blob([u8],{type:'image/jpeg'})];if(li<hs.length-1)ms[ms.length-1].content+='\n\n(The photo shared earlier in this chat is attached again for reference.)'}}
@@ -172,7 +172,7 @@ const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
 for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
 for(const l of ls){if(!l.startsWith('data:'))continue;const d=l.slice(5).trim();if(d==='[DONE]')continue;try{a.c+=JSON.parse(d).choices[0].delta.content||''}catch(x){}}
 schedPaint(el,a);if(LV)lvFeed(a.c)}};
-let sysM=sys;try{const localMath=await localMathPhase(hist);if(localMath)sysM+=localMath;else if(SV&&SV.model)sysM+=await mathPhase(hist,ctl.signal,cf.model)}catch(x){}
+let sysM=sys;if(localMath)sysM+=localMath.prompt;else if(SV&&SV.model){try{sysM+=await mathPhase(hist,ctl.signal,cf.model)}catch(x){}}
 try{await run(sysM)}catch(e){if(e&&e.status===400&&sys!==sysLite&&/context|token|too long|maximum|exceed|length/i.test(e.body||'')){toast(t('eLite'));a.c='';await run(sysLite)}else throw e}
 if(a.c&&wsrc)a.c+=wsrc;if(!a.c){a.e=1;a.c=t('eEmpty')}}}
 catch(e){if(!(ctl.signal.aborted)){a.e=1;a.c=errText(e)+(e&&e.body?' Provider said: '+e.body:'')}else if(!a.c){c.m.pop()}}
