@@ -5,7 +5,7 @@ if(!root||window.NovaSTR)return;
 const $=id=>document.getElementById(id);
 const dict={
 en:{
-back:'Nova',replyLabel:'Reply language',contentLabel:'Website content',headline:'A clear idea. A complete build.',
+back:'Nova',replyLabel:'Reply language',contentLabel:'Website content',createSpec:'Create starter plan',specEyebrow:'LOCAL STARTER PLAN',specTitle:'Review your starter plan',localBadge:'Local rules · No AI',sectionsTitle:'Page sections',assumedTitle:'Assumptions to review',placeholderTitle:'Details you still need',buildBlocked:'Full AI website generation and ZIP export are not enabled yet. This plan is a reviewable outline only.',analyzing:'Preparing a local starter plan…',specReady:'Starter plan ready. Review every assumption before using it.',specError:'The starter plan could not be created. Please check the prompt and try again.',unsafeError:'This request cannot be used to create a plan.',localNote:'Your prompt and starter plan stay inside Nova. No AI provider is used in this preview phase.',headline:'A clear idea. A complete build.',
 subhead:'Describe the app or website you want. STR will turn your idea into a structured plan, a preview and a downloadable package.',
 promptLabel:'What would you like to build?',promptPlaceholder:'Describe your shop website…',
 saveDraft:'Save draft',clear:'Clear',localNote:'Your draft is saved only on this device. It is not sent to an AI provider in this phase.',
@@ -18,7 +18,7 @@ saved:'Draft saved on this device.',saveError:'This browser could not save the d
 cleared:'Draft cleared.',welcome:'You can choose Hindi or English. You can change this any time.'
 },
 hi:{
-back:'Nova',replyLabel:'उत्तर भाषा',contentLabel:'वेबसाइट की भाषा',headline:'एक स्पष्ट विचार। पूरा build।',
+back:'Nova',replyLabel:'उत्तर भाषा',contentLabel:'वेबसाइट की भाषा',createSpec:'शुरुआती योजना बनाएँ',specEyebrow:'स्थानीय शुरुआती योजना',specTitle:'अपनी शुरुआती योजना जाँचें',localBadge:'स्थानीय नियम · AI नहीं',sectionsTitle:'पेज के हिस्से',assumedTitle:'जाँचने वाली मान्यताएँ',placeholderTitle:'अभी जरूरी जानकारी',buildBlocked:'पूरा AI वेबसाइट निर्माण और ZIP export अभी चालू नहीं हैं। यह केवल समीक्षा के लिए शुरुआती रूपरेखा है।',analyzing:'स्थानीय शुरुआती योजना बनाई जा रही है…',specReady:'शुरुआती योजना तैयार है। इस्तेमाल से पहले हर मान्यता जाँचें।',specError:'योजना नहीं बन पाई। विवरण जाँचकर दोबारा कोशिश करें।',unsafeError:'इस अनुरोध से योजना नहीं बनाई जा सकती।',localNote:'आपका prompt और शुरुआती योजना Nova के अंदर रहते हैं। इस preview में कोई AI provider इस्तेमाल नहीं होता।',headline:'एक स्पष्ट विचार। पूरा build।',
 subhead:'जिस app या website की जरूरत है, उसका वर्णन करें। STR उसे योजना, preview और download package में बदलेगा।',
 promptLabel:'आप क्या बनाना चाहते हैं?',promptPlaceholder:'मेरी दुकान की वेबसाइट बनाओ…',
 saveDraft:'ड्राफ्ट सुरक्षित करें',clear:'साफ़ करें',localNote:'आपका ड्राफ्ट केवल इसी डिवाइस पर सुरक्षित है। इस चरण में यह किसी AI provider को नहीं भेजा जाता।',
@@ -31,7 +31,7 @@ saved:'ड्राफ्ट इसी डिवाइस पर सुरक्
 cleared:'ड्राफ्ट साफ़ कर दिया गया।',welcome:'आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं।'
 }
 };
-let lang='en', replyLang='en', contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false;
+let lang='en', replyLang='en', contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false, currentSpec=null;
 function readInitialLanguage(){
  try{const v=localStorage.getItem('str_ui_lang');if(v==='hi'||v==='en')return v;}catch(e){}
  try{const n=JSON.parse(localStorage.getItem('nova')||'{}');return n.uiLang==='hi'?'hi':'en';}catch(e){return 'en';}
@@ -92,6 +92,73 @@ async function clearDrafts(){
  });
 }
 function status(message){$('strStatus').textContent=message;}
+
+function appendText(parent,tag,text,className){
+ const node=document.createElement(tag);if(className)node.className=className;node.textContent=String(text==null?'':text);parent.appendChild(node);return node;
+}
+function clientId(){
+ try{
+  let id=localStorage.getItem('str_client_id');
+  if(!/^[A-Za-z0-9_-]{16,64}$/.test(id||'')){
+   id=window.crypto&&typeof crypto.randomUUID==='function'?crypto.randomUUID().replace(/-/g,''):'str'+Date.now().toString(36)+Math.random().toString(36).slice(2,18);
+   localStorage.setItem('str_client_id',id);
+  }
+  return id;
+ }catch(e){return 'str'+Date.now().toString(36)+Math.random().toString(36).slice(2,18);}
+}
+function renderSpec(payload){
+ currentSpec=payload.spec;
+ const panel=$('strSpecPanel');panel.hidden=false;
+ $('strSpecNotice').textContent=payload.notice&&payload.notice[lang]||dict[lang].specReady;
+ const meta=$('strSpecMeta');meta.replaceChildren();
+ const contentName=currentSpec.content_lang==='hi'?'हिंदी':currentSpec.content_lang==='hinglish'?'Hinglish':'English';
+ [currentSpec.name,currentSpec.kind,contentName,currentSpec.pages.length+' page(s)'].forEach(v=>appendText(meta,'span',v,'str-spec-chip'));
+ const sections=$('strSpecSections');sections.replaceChildren();
+ currentSpec.pages.forEach(page=>{
+  appendText(sections,'h3',(page.title&&page.title[contentLang])||page.title.en||'Page');
+  page.sections.forEach(section=>{
+   const card=document.createElement('article');card.className='str-spec-section';
+   appendText(card,'b',(section.content.heading&&section.content.heading[contentLang])||section.id);
+   appendText(card,'p',(section.content.body&&section.content.body[contentLang])||'');
+   sections.appendChild(card);
+  });
+ });
+ const assumed=$('strAssumed');assumed.replaceChildren();
+ currentSpec.assumed.forEach(item=>{
+  const li=document.createElement('li');
+  const why=item.why&&item.why[lang]||'';
+  li.textContent=item.field+': '+item.value+' — '+why;
+  assumed.appendChild(li);
+ });
+ const placeholders=$('strPlaceholders');placeholders.replaceChildren();
+ currentSpec.placeholders.forEach(item=>appendText(placeholders,'li',item));
+}
+async function createSpec(){
+ const prompt=$('strPrompt').value.trim();
+ if(!prompt){status(dict[lang].empty);$('strPrompt').focus();return;}
+ const button=$('strCreateSpec');button.disabled=true;button.textContent=dict[lang].analyzing;status('');
+ try{
+  const response=await fetch('/api/str/spec',{
+   method:'POST',credentials:'same-origin',
+   headers:{'content-type':'application/json','x-str-client-id':clientId()},
+   body:JSON.stringify({prompt,uiLang:lang,contentLang})
+  });
+  let data={};try{data=await response.json();}catch(e){}
+  if(!response.ok){
+   if(response.status===422&&data.message)status(data.message[lang]||dict[lang].unsafeError);
+   else if(response.status===429)status(lang==='hi'?'STR की अनुरोध सीमा पूरी हुई। कुछ देर बाद फिर कोशिश करें।':'STR request limit reached. Please retry shortly.');
+   else status(dict[lang].specError);
+   return;
+  }
+  if(!data.spec||data.aiGenerated!==false||data.mode!=='local_rules_no_provider')throw new Error('Unexpected local spec response');
+  renderSpec(data);
+  const previous=await getLatestDraft(),now=Date.now();
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:data.spec,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1});
+  status(dict[lang].specReady);
+ }catch(e){status(dict[lang].specError);}
+ finally{button.disabled=false;button.textContent=dict[lang].createSpec;}
+}
+
 async function saveDraft(){
  const prompt=$('strPrompt').value.trim();
  if(!prompt){status(dict[lang].empty);$('strPrompt').focus();return;}
@@ -107,6 +174,7 @@ async function restoreDraft(){
   const d=await getLatestDraft();
   if(d&&d.prompt){
    $('strPrompt').value=d.prompt;
+   if(d.spec&&d.spec.v===1){try{renderSpec({spec:d.spec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});}catch(e){currentSpec=null;}}
    if(d.contentLang==='hi'||d.contentLang==='en'||d.contentLang==='hinglish'){contentLang=d.contentLang;contentLangTouched=true;$('strContentLang').value=contentLang;}
    if(d.replyLang==='hi'||d.replyLang==='en'){replyLang=d.replyLang;$('strReplyLang').value=replyLang;}
   }
@@ -138,8 +206,9 @@ $('strContentLang').addEventListener('change',event=>{contentLang=event.target.v
 $('strPrompt').addEventListener('input',event=>{if(contentLangTouched)return;contentLang=inferContentLanguage(event.target.value);$('strContentLang').value=contentLang;});
 $('strLangEn').addEventListener('click',()=>setLanguage('en',true));
 $('strSaveDraft').addEventListener('click',saveDraft);
+$('strCreateSpec').addEventListener('click',createSpec);
 $('strClearDraft').addEventListener('click',async()=>{
- $('strPrompt').value='';
+ $('strPrompt').value='';currentSpec=null;$('strSpecPanel').hidden=true;
  try{await clearDrafts();status(dict[lang].cleared);}catch(e){status(dict[lang].saveError);}
 });
 window.addEventListener('nova:state-saved',()=>{
@@ -156,7 +225,7 @@ try{
  $('strReplyLang').value=replyLang;$('strContentLang').value=contentLang;
 }catch(e){replyLang=lang;}
 restoreDraft();
-window.NovaSTR=Object.freeze({open,close,getLanguage:()=>lang});
+window.NovaSTR=Object.freeze({open,close,getLanguage:()=>lang,createSpec});
 })();
 // STR navigation stays isolated from Nova chat state.
 document.addEventListener('DOMContentLoaded',function(){const b=document.getElementById('nStr');if(b)b.addEventListener('click',function(){if(window.NovaSTR)window.NovaSTR.open();});});
