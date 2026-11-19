@@ -393,6 +393,7 @@ try{
  assert.equal(await desktop.locator('[data-str-page-id="home"] [data-str-field="page-title"]').inputValue(),'Home Ghar','page title must restore from IndexedDB');
  assert.equal(await desktop.locator('[data-str-section-id="details"] [data-str-field="heading"]').inputValue(),'Products and services','section heading must restore from IndexedDB');
  assert.ok((await desktop.locator('#strApprovalState').innerText()).includes('इस डिवाइस पर मंज़ूर'),'saved approval must be re-verified when restoring the spec');
+ assert.ok((await desktop.locator('#strApprovalState').innerText()).includes('इस डिवाइस पर मंज़ूर'),'saved approval must be re-verified when restoring the spec');
 
 
  assert.equal(await desktop.evaluate(()=>localStorage.getItem('nova')),novaStorageBefore,'STR must not modify Nova chat storage');
