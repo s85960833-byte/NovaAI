@@ -4,7 +4,7 @@ Product: STR inside the existing Nova AI app (same production app and URL)
 Prompt version: final-3.0
 Build version: 0.9 (owner-only, deterministic local build)
 Current phase: Phase 4.1 — local chunked build foundation implemented; provider-backed generation and full release gates remain blocked
-Latest branch commit at this update: 7ee977982da25da0bd681d49d14575894a1fbb71
+Latest code commit at this update: 376646b40b794d014257761e426f59fd37c0df68
 Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 
 ## Completed work (verified in source and CI evidence)
@@ -18,7 +18,7 @@ Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 ### Phase 1 — isolated Nova integration
 - STR shell, navigation, isolated responsive styles, bilingual interface, intro and language selectors.
 - UI language, reply language and website-content language are independent.
-- STR drafts use a separate IndexedDB database and seven-day expiry; they do not replace Nova chat storage.
+- STR drafts use a separate IndexedDB database and seven-day expiry; a browser regression inserts an eight-day-old record and verifies it is pruned on reopen. STR does not replace Nova chat storage.
 
 ### Phase 2 — stateless API and safety boundary
 - Same-origin /api/str/ route shells, exact payload schemas, prompt/body limits and bounded client/IP rate windows.
@@ -40,6 +40,7 @@ Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 - Preview is isolated in iframe sandbox=`allow-scripts allow-forms` (no allow-same-origin or top-navigation); preview CSP blocks scripts, network connections, form submission, base URL and object content.
 - Build output remains bound to the approved spec fingerprint.
 - User-provided HTML-like content is escaped and rendered as inert text; browser regression explicitly probes an image/event-handler injection string.
+- UI wording now accurately distinguishes a local starter site/preview from a complete AI-generated application.
 - Playwright mobile regression opens STR inside Nova at 360, 390 and 412 CSS-pixel widths, checks full viewport width/no horizontal overflow, then creates a plan and checks the local build action remains visible.
 
 ### Phase 5 — local delivery package
@@ -49,7 +50,8 @@ Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 - This static ZIP is not a production application and does not include a verified hosted backend or provider-generated full application.
 
 ## Latest verification evidence
-- Browser workflow at commit `7ee977982da25da0bd681d49d14575894a1fbb71` succeeded: https://github.com/s85960833-byte/NovaAI/actions/runs/44577552807
+- Browser workflow at commit `7ee977982da25da0bd681d49d14575894a1fbb71` succeeded: https://github.com/s85960833-byte/NovaAI/actions/runs/44577552807. It confirmed full-width STR layout at 360/390/412 CSS px, approved local ZIP, preview safety and IndexedDB draft persistence.
+- Final candidate `376646b40b794d014257761e426f59fd37c0df68` adds a seven-day expiry regression and copy corrections; its final CI runs are pending/in progress and must pass before this candidate is treated as verified.
 - That workflow exercised the STR API refusal/rate/schema checks, local spec, local preview/pause-resume, preview sandbox/CSP, ZIP export, and the added mobile-width regression.
 - Backend verification for the same commit was still running at the last check: https://github.com/s85960833-byte/NovaAI/actions/runs/44577552801
 - Previous integrated candidate had an XSS-test false positive because the inline-handler regex matched the escaped user text. The assertion now inspects actual HTML tags only; the latest browser workflow passed with that correction.
