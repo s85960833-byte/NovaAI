@@ -52,9 +52,10 @@ function hasConfiguredSearchProvider() {
 app.get('/api/config', (q, r) => {
   const hasAI = !!(E.LLM_KEY || E.GROQ_API_KEY || E.OPENROUTER_API_KEY);
   const hasSearch = hasConfiguredSearchProvider();
+  const hasVision = !!(E.LLM_KEY || (E.GROQ_API_KEY && E.GROQ_VISION_MODEL) || (E.OPENROUTER_API_KEY && E.OPENROUTER_VISION_MODEL));
   if (!hasAI && !hasSearch) return r.status(503).end();
   const model = E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || null;
-  r.json({ model: hasAI ? (model || 'free-provider-fallback') : null, image: !E.IMAGE_OFF, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: hasSearch, web: hasSearch, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY, hordeImage: !!E.HORDE_API_KEY } });
+  r.json({ model: hasAI ? (model || 'free-provider-fallback') : null, image: !E.IMAGE_OFF, vision: hasVision, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: hasSearch, web: hasSearch, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY, hordeImage: !!E.HORDE_API_KEY } });
 });
 
 // Speech to text for live voice when the phone browser cannot do it itself (same provider key, e.g. Groq Whisper).
@@ -179,6 +180,7 @@ app.post('/api/chat/completions', async (q, r) => {
     // Optional free-tier OpenAI-compatible providers; secrets are read only from Render env vars.
     if (E.GROQ_API_KEY) providers.push({ base: secureProviderBase('GROQ_BASE', E.GROQ_BASE, 'https://api.groq.com/openai/v1'), key: E.GROQ_API_KEY, models: vis ? (E.GROQ_VISION_MODEL ? [E.GROQ_VISION_MODEL] : []) : [E.GROQ_MODEL || 'llama-3.3-70b-versatile'] });
     if (E.OPENROUTER_API_KEY && E.OPENROUTER_API_KEY !== E.LLM_KEY) providers.push({ base: secureProviderBase('OPENROUTER_BASE', E.OPENROUTER_BASE, 'https://openrouter.ai/api/v1'), key: E.OPENROUTER_API_KEY, models: vis ? (E.OPENROUTER_VISION_MODEL ? [E.OPENROUTER_VISION_MODEL] : []) : [E.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'] });
+    if (vis && !providers.some(p => p.models.length)) return r.status(503).json({ error: 'Photo understanding unavailable: configure a supported free vision model on the server.', code: 'VISION_UNAVAILABLE' });
     let extra = vis ? { reasoning_format: 'hidden' } : {};   // keep the model's private thinking out of the answer
     let good = null, first = null, last = 0;
     for (const provider of providers) {
@@ -203,6 +205,7 @@ app.post('/api/chat/completions', async (q, r) => {
       if (good) break;
       // Always attempt the next configured provider; one provider's outage must not block the rest.
     }
+    if (!good && vis) return r.status(502).json({ error: 'Photo understanding unavailable: the configured vision provider did not accept the image.', code: 'VISION_UNAVAILABLE', status: first ? first.status : 502 });
     if (!good) return r.status(first ? first.status : 502).json({ error: 'LLM provider request failed', status: first ? first.status : 502 });
     r.status(good.status).set('Content-Type', good.headers.get('content-type') || 'text/event-stream');
     for await (const c of good.body) r.write(c);
