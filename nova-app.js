@@ -28,8 +28,10 @@ m=q.match(/(\d+(?:\.\d+)?)\s*(?:%|percent|प्रतिशत)\s*(?:of|का|
 if(m)expr='('+m[2]+'*'+m[1]+'/100)';
 if(!expr){m=q.match(/(\d+(?:\.\d+)?)\s*(?:का|की|के|ka|ki|ke)\s*(\d+(?:\.\d+)?)\s*(?:%|percent|प्रतिशत)/i);if(m)expr='('+m[1]+'*'+m[2]+'/100)'}
 if(!expr){m=q.match(/(?:^|[^\w.])((?:\d+(?:\.\d+)?|\.)[\d\s()+\-*/^×÷.]*[+\-*/^×÷][\d\s()+\-*/^×÷.]*)(?:$|[^\w.])/);if(m)expr=m[1].trim()}
-if(!expr||!/^[\d\s()+\-*/^.]+$/.test(expr))return '';
-try{const M=await getMath();if(!M)return '';const result=M.format(M.evaluate(expr),{precision:20});return '\n\nVerified result from NOVA local calculator (no AI/API call):\n'+expr+' = '+result+'\nShow the working clearly and use this exact result.'}catch(e){return ''}
+if(expr&&/^[\d\s()+\-*/^.]+$/.test(expr)){try{const M=await getMath();if(M){const result=M.format(M.evaluate(expr),{precision:20});return '\n\nVerified result from NOVA local calculator (no AI/API call):\n'+expr+' = '+result+'\nShow the working clearly and use this exact result.'}}catch(e){}}
+const ops=[['differentiate|derivative(?: of)?|diff|अवकलन|अवकलज','diff'],['integrate|integral(?: of)?|समाकलन','integrate'],['factor|गुणनखंड','factor'],['expand|विस्तार','expand'],['simplify|सरल करो|सरलीकरण','simplify'],['solve|हल करो|समीकरण','solve']];
+for(const [words,op] of ops){const re=new RegExp('(?:'+words+')\\s*(?:the\\s+)?(?:expression\\s*)?[:：-]?\\s*([0-9a-zA-Z_\\s()+\\-*/^=.,]+)','i');m=q.match(re);if(!m)continue;expr=m[1].trim().replace(/[?।]+$/,'');if(!expr||!/[a-z]/i.test(expr)||!/^[0-9a-zA-Z_\\s()+\\-*/^=.,]+$/.test(expr))continue;try{const out=await runTool('symbolic',{operation:op,expression:expr,variable:'x'});return '\n\nVerified result from NOVA local symbolic maths engine (no AI/API call):\n'+op+'('+expr+') = '+out+'\nExplain the steps clearly and use this exact result.'}catch(e){return ''}}
+return '';
 }
 async function mathPhase(hist,signal,mdl){
 const tx=m=>typeof m.content==='string'?m.content:(m.content||[]).map(p=>p.text||'').join(' ');
