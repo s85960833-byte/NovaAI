@@ -291,7 +291,20 @@ try{
  await desktop.locator('#log img.thumb[src^="data:image/png;base64,"]').waitFor({state:'visible',timeout:12000});
  assert.equal(imageRequests.length,1,'Build Image Studio must submit one image-generation job');
  assert.ok(imageRequests[0].prompt.includes('blue geometric star'),"image-generation request must include the user's prompt");
-  // STR must open as an isolated bilingual workspace and keep drafts out of Nova chat storage.
+  console.log('PASS NOVA Build Image Studio launch, async image job polling and rendered image result');
+ await desktop.locator('#imbar').click();
+ await desktop.waitForFunction(()=>!document.body.classList.contains('nova-image-mode'));
+ assert.equal(await desktop.locator('#box').isVisible(),true,'closing Image Studio must return to the saved generated-image chat');
+ assert.equal(await desktop.locator('#log img.thumb[src^="data:image/png;base64,"]').count(),1,'generated image must remain visible after leaving Image Studio');
+ await desktop.evaluate(()=>window.NovaModeWorkspace.openGroup('learn'));
+ await desktop.locator('#novaModes.open').waitFor();
+ await desktop.locator('#nmContent [data-quick="openPhoto"]').click();
+ await desktop.locator('#photo').waitFor({state:'visible'});
+ await desktop.locator('#pclose2').click();
+ await desktop.waitForFunction(()=>document.querySelector('#photo').hidden);
+ console.log('PASS Learn Photo Questions launcher opens and closes the existing photo-question panel');
+
+ // STR must open as an isolated bilingual workspace and keep drafts out of Nova chat storage.
  const novaStorageBefore=await desktop.evaluate(()=>localStorage.getItem('nova'));
  await desktop.locator('#nStr').click();
  await desktop.locator('#strApp').waitFor({state:'visible'});
@@ -309,18 +322,6 @@ try{
  await desktop.locator('#strBack').click();
  await desktop.waitForFunction(()=>document.querySelector('#strApp').hidden);
  console.log('PASS STR open/close, Hindi switch, non-blocking intro, IndexedDB draft isolation and Nova storage preservation');
- console.log('PASS NOVA Build Image Studio launch, async image job polling and rendered image result');
- await desktop.locator('#imbar').click();
- await desktop.waitForFunction(()=>!document.body.classList.contains('nova-image-mode'));
- assert.equal(await desktop.locator('#box').isVisible(),true,'closing Image Studio must return to the saved generated-image chat');
- assert.equal(await desktop.locator('#log img.thumb[src^="data:image/png;base64,"]').count(),1,'generated image must remain visible after leaving Image Studio');
- await desktop.evaluate(()=>window.NovaModeWorkspace.openGroup('learn'));
- await desktop.locator('#novaModes.open').waitFor();
- await desktop.locator('#nmContent [data-quick="openPhoto"]').click();
- await desktop.locator('#photo').waitFor({state:'visible'});
- await desktop.locator('#pclose2').click();
- await desktop.waitForFunction(()=>document.querySelector('#photo').hidden);
- console.log('PASS Learn Photo Questions launcher opens and closes the existing photo-question panel');
 
  const mobileContext=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2,isMobile:true,hasTouch:true});
  const mobile=await mobileContext.newPage();
