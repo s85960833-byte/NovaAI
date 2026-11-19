@@ -39,7 +39,7 @@ function readInitialLanguage(){
 function setLanguage(next,persist){
  const previous=lang;
  lang=next==='hi'?'hi':'en';
- if(!localStorage.getItem('str_reply_lang')||replyLang===previous)replyLang=lang;
+ let savedReply='';try{savedReply=localStorage.getItem('str_reply_lang')||'';}catch(e){}if(!savedReply||replyLang===previous)replyLang=lang;
  const reply=$('strReplyLang'),content=$('strContentLang');
  if(reply)reply.value=replyLang;
  if(content)content.value=contentLang;
@@ -103,7 +103,14 @@ async function saveDraft(){
  }catch(e){status(dict[lang].saveError);}
 }
 async function restoreDraft(){
- try{const d=await getLatestDraft();if(d&&d.prompt)$('strPrompt').value=d.prompt;}catch(e){}
+ try{
+  const d=await getLatestDraft();
+  if(d&&d.prompt){
+   $('strPrompt').value=d.prompt;
+   if(d.contentLang==='hi'||d.contentLang==='en'||d.contentLang==='hinglish'){contentLang=d.contentLang;contentLangTouched=true;$('strContentLang').value=contentLang;}
+   if(d.replyLang==='hi'||d.replyLang==='en'){replyLang=d.replyLang;$('strReplyLang').value=replyLang;}
+  }
+ }catch(e){}
 }
 function playIntro(){
  if(introShown)return;introShown=true;
