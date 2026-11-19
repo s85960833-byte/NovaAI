@@ -55,7 +55,7 @@ for(let i=0;i<60;i++){
 const blocked=await req('/api/config',{headers:{'x-forwarded-for':rateLimitIp}});
 if(blocked.status!==429) throw new Error('API rate limit did not reject request 61: HTTP '+blocked.status);
 console.log('PASS integrated per-IP API rate limit (60 allowed, 61st blocked)');
-await expect('STR navigation and bilingual shell','/',{},(r,b)=>r.ok&&b.includes('id="nStr"')&&b.includes('id="strApp"')&&b.includes('src="/str-app.js"')&&b.includes('id="strLangHi"')&&b.includes('id="strLangEn"'));
-await expect('STR isolated frontend module','/str-app.js',{},(r,b)=>r.ok&&b.includes("indexedDB.open('nova-str-local'")&&b.includes("localStorage.getItem('str_ui_lang')")&&b.includes('इंट्रो छोड़ें')&&b.includes('Draft saved on this device.'));
+await expect('STR navigation and bilingual shell','/',{},(r,b)=>r.ok&&b.includes('id="nStr"')&&b.includes('id="strApp"')&&b.includes('src="/str-app.js"')&&b.includes('id="strLangHi"')&&b.includes('id="strLangEn"')&&b.includes('id="strReplyLang"')&&b.includes('id="strContentLang"'));
+await expect('STR isolated frontend module','/str-app.js',{},(r,b)=>r.ok&&b.includes("indexedDB.open('nova-str-local'")&&b.includes("localStorage.getItem('str_ui_lang')")&&b.includes('इंट्रो छोड़ें')&&b.includes('Draft saved on this device.')&&b.includes("localStorage.setItem('str_reply_lang',replyLang)")&&b.includes("localStorage.setItem('str_content_lang',contentLang)"));
 await expect('STR PWA cache includes isolated module','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v20-str')&&b.includes('/str-app.js'));
 console.log('PASS local runtime smoke tests');
