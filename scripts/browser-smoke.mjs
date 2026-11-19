@@ -353,7 +353,7 @@ try{
  await desktop.locator('#strSpecPanel').waitFor({state:'visible',timeout:5000});
  assert.ok((await desktop.locator('#strSpecPanel').innerText()).includes('स्थानीय नियम'),'starter plan must clearly disclose that it uses local rules rather than AI');
  assert.ok((await desktop.locator('#strSpecSections').innerText()).includes('Products and services'),'starter plan should show a structured shop section');
-  assert.ok((await desktop.locator('#strSpecSections').innerText()).includes('अनुरोधित सुविधाएँ'),'starter plan should show a requested-features section');
+  assert.ok((await desktop.locator('#strSpecSections').innerText()).includes('Requested features'),'starter plan should show a requested-features section');
  assert.ok((await desktop.locator('#strAssumed').innerText()).length>0,'starter plan must list assumptions for review');
  assert.ok((await desktop.locator('#strPlaceholders').innerText()).length>0,'starter plan must list missing details');
  assert.equal(await desktop.locator('#strSpecName').inputValue(),'Untitled Project','vague prompt should use a disclosed temporary name');
@@ -418,8 +418,12 @@ try{
  const pausedBuild=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.build);r.onerror=()=>reject(r.error)})});
  assert.equal(pausedBuild.status,'paused','local build interruption must checkpoint to IndexedDB');
  assert.ok(pausedBuild.doneChunks>0&&pausedBuild.doneChunks<pausedBuild.totalChunks,'pause must retain completed chunk progress');
+ const localResumeStartedAt=Date.now();
  await desktop.locator('#strBuildLocal').click();
  await desktop.waitForFunction(()=>document.querySelector('#strBuildStatus')?.textContent.includes('स्थानीय preview तैयार है'),{timeout:10000});
+ const localResumeMs=Date.now()-localResumeStartedAt;
+ assert.ok(localResumeMs<10000,'resuming a bounded local preview should complete within the 10-second smoke budget');
+ console.log('PERF STR local preview resume: '+localResumeMs+' ms');
  const previewHtml=await desktop.locator('#strPreviewFrame').getAttribute('srcdoc');
  assert.ok(previewHtml.includes('Updated after approval'),'preview must include approved user edits');
   assert.ok(previewHtml.includes('WhatsApp contact')&&previewHtml.includes('Call button'),'preview must surface requested features with safe bilingual labels');
@@ -445,7 +449,9 @@ try{
  assert.equal(zipDownload.suggestedFilename(),'test-shop-plan.zip');
  const zipPath=await zipDownload.path();
  assert.ok(zipPath);
- const zipFiles=inspectStoredZip(readFileSync(zipPath));
+ const zipBytes=readFileSync(zipPath);
+ assert.ok(zipBytes.byteLength<400000,'local ZIP must respect the 400 KB archive limit');
+ const zipFiles=inspectStoredZip(zipBytes);
  assert.deepEqual(Object.keys(zipFiles).sort(),['GUIDE.md','icon.svg','index.html','manifest.webmanifest']);
  assert.ok(zipFiles['index.html'].includes('Updated after approval'));
  assert.ok(zipFiles['GUIDE.md'].includes('English guide')&&zipFiles['GUIDE.md'].includes('हिंदी गाइड'));
