@@ -97,3 +97,50 @@ test('STR compact spec validator accepts a valid bilingual v1 spec and rejects u
   assert.ok(validateSpec({...valid,colors:{...valid.colors,primary:'red'}}).errors.includes('colors_invalid'));
 });
 
+
+
+const { generateLocalSpec } = require('../str/spec-engine');
+
+test('STR spec engine creates valid structured plans for five typical prompts', () => {
+  const prompts = [
+    'मेरी किराना दुकान की वेबसाइट बनाओ। नाम रामू किराना, सुबह 7 से रात 10 बजे खुला।',
+    'मैं 10वीं और 12वीं गणित पढ़ाता हूँ। Batch timing और फ़ीस दिखाओ।',
+    'घर का टिफिन, सोमवार से शनिवार, मासिक ₹2500, WhatsApp से order।',
+    'मैं इलेक्ट्रीशियन हूँ। Emergency कॉल बटन और सेवाओं की सूची।',
+    'फ़ोटोग्राफ़र हूँ, 12 फ़ोटो की gallery और booking फ़ॉर्म।'
+  ];
+  for (const prompt of prompts) {
+    const spec = generateLocalSpec({ prompt, uiLang: 'hi', contentLang: 'hi' });
+    assert.equal(validateSpec(spec).valid, true, prompt);
+    assert.equal(spec.ui_lang_at_creation, 'hi');
+    assert.equal(spec.content_lang, 'hi');
+    assert.equal(spec.pages.length, 1);
+    assert.ok(spec.pages[0].sections.length >= 4);
+  }
+});
+
+test('STR spec engine creates valid, assumption-rich plans for five vague prompts', () => {
+  const prompts = [
+    'मेरी दुकान की वेबसाइट बनाओ।',
+    'मेरे बिज़नेस के लिए कुछ बनाओ।',
+    'एक ऐप बनाओ।',
+    'website bana do',
+    'कुछ अच्छा बना दो।'
+  ];
+  for (const prompt of prompts) {
+    const spec = generateLocalSpec({ prompt, uiLang: 'en', contentLang: 'en' });
+    assert.equal(validateSpec(spec).valid, true, prompt);
+    assert.ok(spec.assumed.length >= 4, 'vague prompts should disclose assumptions');
+    assert.ok(spec.placeholders.length >= 1, 'vague prompts should disclose missing details');
+    assert.equal(spec.unsafe.length, 0);
+  }
+});
+
+test('STR local spec never invents supplied prices, phone numbers or addresses', () => {
+  const spec = generateLocalSpec({ prompt: 'मेरी दुकान की वेबसाइट बनाओ।', uiLang: 'hi', contentLang: 'hi' });
+  assert.equal(spec.contact.phone, '');
+  assert.equal(spec.contact.address, '');
+  assert.ok(spec.assumed.some(x => x.field === 'pricing'));
+  assert.ok(spec.placeholders.includes('Contact phone number'));
+  assert.ok(spec.placeholders.includes('Business or service address'));
+});
