@@ -312,6 +312,13 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 .str-spec-copy-editor input,.str-spec-copy-editor textarea{width:100%;min-height:42px;border:1px solid #64748b;border-radius:8px;background:#0f172a;color:#f8fafc;padding:9px 10px;font:inherit;font-size:14px;line-height:1.5}
 .str-spec-copy-editor textarea{min-height:82px;resize:vertical}
 .str-copy-preview{margin:6px 0 0!important;color:#94a3b8!important;font-size:12px!important}
+.str-approve-spec{min-height:40px!important;background:#3730a3!important;border-color:#4f46e5!important;color:#fff!important;font-weight:800}
+.str-approval-state{margin:10px 0;padding:10px 12px;border:1px solid #475569;border-radius:10px;color:#e2e8f0;background:#111c33;font-size:13px}
+.str-spec-diff{margin:10px 0;padding:10px 12px;border:1px solid #475569;border-radius:10px;background:#111c33}
+.str-spec-diff>summary{cursor:pointer;font-weight:800;color:#fde68a}
+.str-spec-diff ul{max-height:220px;overflow:auto;overflow-wrap:anywhere}
+.str-spec-diff li{margin:7px 0;font-size:12px;color:#cbd5e1}
+@media(max-width:560px){.str-approve-spec{width:100%}}
 @media(max-width:560px){.str-spec-heading-actions{width:100%}.str-save-plan{width:100%}}
 </style></head><body>
 <section id="novaEntryGate" aria-label="NOVA introduction" aria-live="polite"><div class="nova-entry-core"><div class="nova-entry-mark" aria-hidden="true">✦</div><p class="nova-entry-word">NOVA</p><p class="nova-entry-tagline">A NEW ERA OF INTELLIGENCE</p><div class="nova-entry-rule" aria-hidden="true"></div><p class="nova-entry-caption">THINK · CREATE · DISCOVER</p></div></section>
@@ -375,10 +382,15 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
       <section class="str-panel str-spec-panel" id="strSpecPanel" hidden aria-labelledby="strSpecTitle">
         <div class="str-spec-heading">
           <div><div class="str-eyebrow" data-str="specEyebrow">LOCAL STARTER PLAN</div><h2 id="strSpecTitle" data-str="specTitle">Review your starter plan</h2></div>
-          <div class="str-spec-heading-actions"><span class="str-local-badge" data-str="localBadge">Local rules · No AI</span><button id="strSavePlan" class="str-save-plan" type="button" data-str="savePlan">Save plan edits</button></div>
+          <div class="str-spec-heading-actions"><span class="str-local-badge" data-str="localBadge">Local rules · No AI</span><button id="strSavePlan" class="str-save-plan" type="button" data-str="savePlan">Save plan edits</button><button id="strApproveSpec" class="str-approve-spec" type="button" data-str="approveSpec">Approve this plan</button></div>
         </div>
         <p class="str-note str-spec-notice" id="strSpecNotice" role="status"></p>
         <div class="str-spec-meta" id="strSpecMeta"></div>
+        <div class="str-approval-state" id="strApprovalState" role="status">Not approved yet.</div>
+        <details class="str-spec-diff" id="strSpecDiff" hidden>
+          <summary data-str="diffTitle">Changes from the starter plan</summary>
+          <ul id="strSpecDiffList" class="str-spec-list"></ul>
+        </details>
         <h3 data-str="sectionsTitle">Page sections</h3>
         <div class="str-spec-sections" id="strSpecSections"></div>
         <div class="str-spec-columns">
