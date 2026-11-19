@@ -19,11 +19,20 @@ const sizes = [
 for (const size of sizes) {
   test('NOVA three-workspace home fits ' + size.width + 'x' + size.height, async ({ page, browserName }) => {
     const pageErrors = [];
-    page.on('pageerror', error => pageErrors.push(error.message));
+    const sandboxIsolationErrors = [];
+    page.on('pageerror', error => {
+      const message = String(error.message || error);
+      if (/Failed to read the 'localStorage' property from 'Window'.*sandboxed and lacks the 'allow-same-origin' flag/i.test(message)) {
+        sandboxIsolationErrors.push(message);
+      } else {
+        pageErrors.push(message);
+      }
+    });
     await page.setViewportSize(size);
     await skipIntroForLayoutTest(page);
     await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('#main')).toBeVisible();
+    await expect(page.locator('#strPreviewFrame')).toHaveAttribute('sandbox', 'allow-scripts allow-forms');
     await expect(page.locator('#hi .nr-cards')).toBeVisible();
     await expect(page.locator('#hi .nr-card[data-group="learn"]')).toBeVisible();
     await expect(page.locator('#new')).toBeHidden();
@@ -55,6 +64,7 @@ for (const size of sizes) {
     if(size.width<=760){ expect(layout.side).toBe('fixed'); expect(Math.abs(layout.main.width-size.width)).toBeLessThanOrEqual(1); expect(layout.columns).toBe(1); }
     else { expect(layout.main.x).toBeGreaterThan(0); expect(layout.columns).toBe(3); }
     await page.screenshot({path:'artifacts/'+browserName+'-workspace-'+size.width+'x'+size.height+'.png',fullPage:true});
+    expect(sandboxIsolationErrors.every(message => /Failed to read the 'localStorage' property from 'Window'.*sandboxed and lacks the 'allow-same-origin' flag/i.test(message))).toBeTruthy();
     expect(pageErrors).toEqual([]);
   });
 }
