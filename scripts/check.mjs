@@ -110,12 +110,12 @@ const hindiMathStart = appScript.indexOf('const HNUM=');
 const hindiMathEnd = appScript.indexOf('async function localMathPhase', hindiMathStart);
 if (hindiMathStart < 0 || hindiMathEnd < 0) throw new Error('Hindi maths parser source is missing');
 const hindiMathSandbox = {};
-runInNewContext(appScript.slice(hindiMathStart, hindiMathEnd) + '\\nglobalThis.normalizeHindiNumbers = normalizeHindiNumbers;', hindiMathSandbox);
+runInNewContext(appScript.slice(hindiMathStart, hindiMathEnd) + '\nglobalThis.normalizeHindiNumbers = normalizeHindiNumbers;', hindiMathSandbox);
 for (const [input, expected] of [['दो सौ पचास', '250'], ['एक हजार दो सौ पचास', '1250'], ['दो लाख पचास हजार', '250000'], ['दो सौ पचास का 17 प्रतिशत', '250 का 17 प्रतिशत']]) {
   const actual = hindiMathSandbox.normalizeHindiNumbers(input);
   if (actual !== expected) throw new Error('Hindi number parsing failed: ' + input + ' => ' + actual + ', expected ' + expected);
 }
-process.stdout.write('PASS Hindi number words: hundreds, thousands, lakhs, and mixed maths prompts\\n');
+process.stdout.write('PASS Hindi number words: hundreds, thousands, lakhs, and mixed maths prompts\n');
 const mathDispatch = appScript.slice(appScript.indexOf('const localMath=await localMathPhase'), appScript.indexOf('catch(e){if(!(ctl.signal.aborted))', appScript.indexOf('const localMath=await localMathPhase')));
 if (!mathDispatch.includes('if(localMath){a.c=localMath.answer}') || mathDispatch.includes('sysM+=localMath.prompt')) throw new Error('Supported deterministic maths must return locally without calling an AI provider');
 if (!appScript.includes('async function mathPhase') || !appScript.includes('async function localMathPhase') || !appScript.includes('localMathOnly') || !appScript.includes('normalizeHindiNumbers') || !appScript.includes('const HNUM=') || !appScript.includes('[०-९]') || !appScript.includes('NOVA local calculator (no AI/API call)') || !appScript.includes('const ast=M.parse(expr)') || !appScript.includes('const worked=steps.length') || !appScript.includes('NOVA local symbolic maths engine (no AI/API call)') || !appScript.includes("name:'calculate'") || !appScript.includes("name:'symbolic'") || !appScript.includes('Verified results from the exact calculator')) throw new Error('Maths must use local deterministic arithmetic/symbolic tools before any AI-assisted fallback');
