@@ -28,6 +28,8 @@
     } catch (_) {}
   };
   if (hasPlayed()) {
+    // Migrate every recognised legacy marker to the current release before dismissing.
+    rememberPlayed();
     gate.remove();
     return;
   }
