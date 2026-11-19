@@ -222,7 +222,8 @@ try {
   assert.match(recognized, /hello/, 'Whisper fixture transcription should recognize the clear first spoken word “hello”');
   console.log('[PASS] Real local Whisper transcription via ' + voice.state.voiceBackend + ': ' + voice.result.text.trim().slice(0, 180));
 
-  console.log('[PASS] Real local inference and live no-key feature smoke: chat + OCR + Whisper + live search + live evidence; image generation correctly disabled.');\n  await context.close();
+  console.log('[PASS] Real local inference and live no-key feature smoke: chat + OCR + Whisper + live search + live evidence; image generation correctly disabled.');
+  await context.close();
 } catch (error) {
   console.error('[FAIL] ' + String(error && error.stack || error));
   console.error('[NOVA status history] ' + JSON.stringify(statusMessages.slice(-30)));
