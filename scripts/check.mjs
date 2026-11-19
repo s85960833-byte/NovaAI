@@ -175,7 +175,7 @@ if (!strScript.includes("localStorage.setItem('str_reply_lang',replyLang)") ||
     !strScript.includes("localStorage.setItem('str_content_lang',contentLang)") ||
     !strScript.includes("uiLang:lang,contentLang,replyLang") ||
     !html.includes('id="strReplyLang"') || !html.includes('id="strContentLang"') ||
-    !strScript.includes("replyLabel:'Reply language'") || !strScript.includes("replyLabel:'उत्तर की भाषा'")) {
+    !strScript.includes("replyLabel:'Reply language'") || !strScript.includes("replyLabel:'उत्तर भाषा'")) {
   throw new Error('STR must keep UI, reply and website-content languages independent and bilingual');
 }
 const strKeys = [...strScript.matchAll(/(?:en|hi):\{([\s\S]*?)\n\},?/g)].slice(0,2).map(m=>[...m[1].matchAll(/([A-Za-z][A-Za-z0-9]*):/g)].map(x=>x[1]));
