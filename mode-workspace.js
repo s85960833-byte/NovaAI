@@ -114,7 +114,7 @@ async function schemeSources(profile){
 }
 async function fetchLiveEvidence(q){
  const tz=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return 'Asia/Kolkata'}})();
- const response=await fetch(API+'/live',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:String(q||'').slice(0,500),mode:'auto',lang:isHi()?'hi':'en',tz}),signal:AbortSignal.timeout(22000)});
+ const response=await fetch(API+'/live',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:String(q||'').slice(0,500),mode:'always',lang:isHi()?'hi':'en',tz}),signal:AbortSignal.timeout(22000)});
  const result=await response.json().catch(()=>({}));
  if(!response.ok||!result.ok||!result.context)throw new Error(result.error||'Live internet research is unavailable right now.');
  return {context:result.context,sources:Array.isArray(result.sources)?result.sources.filter(x=>x&&/^https:\/\//i.test(String(x.url||''))).slice(0,10):[],retrievedAt:result.retrievedAt||''};
