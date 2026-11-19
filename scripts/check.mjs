@@ -99,8 +99,8 @@ const searchImpl = server.slice(server.indexOf('async function webSearch'), serv
 const liveImpl = server.slice(server.indexOf('async function runLive'), server.indexOf('function rank(items, q)'));
 const feedImpl = server.slice(server.indexOf("app.get('/api/feed'"), server.indexOf('// Normalize JSON parser failures'));
 if (!server.includes('function hasConfiguredSearchProvider()') || !server.includes('return !!(E.TAVILY_KEY || E.BRAVE_KEY)')) throw new Error('Live retrieval must depend on an explicitly configured Tavily or Brave provider');
-if (!searchImpl.includes('Live search unavailable') || /\\b(?:ddg|wikiSearch)\\s*\\(/.test(searchImpl)) throw new Error('General search must not fall back to unconfigured providers');
-if (!liveImpl.includes('webSearch(query') || /\\b(?:feedCat|gnews|gdelt|arxiv|openalex|espn|yahooQuote|coingecko|weather)\\s*\\(/.test(liveImpl)) throw new Error('Live answers must use only the configured search provider');
+if (!searchImpl.includes('Live search unavailable') || /\b(?:ddg|wikiSearch)\s*\(/.test(searchImpl)) throw new Error('General search must not fall back to unconfigured providers');
+if (!liveImpl.includes('webSearch(query') || /\b(?:feedCat|gnews|gdelt|arxiv|openalex|espn|yahooQuote|coingecko|weather)\s*\(/.test(liveImpl)) throw new Error('Live answers must use only the configured search provider');
 if (!feedImpl.includes('webSearch(') || feedImpl.includes('feedCat(') || !feedImpl.includes('LIVE_SEARCH_UNAVAILABLE')) throw new Error('News feed must use configured search and report missing providers clearly');
 if (!server.includes('live: hasSearch, web: hasSearch')) throw new Error('API config must expose live-search availability independently of AI model availability');
 if (!server.includes("error: 'Live search unavailable', code: 'LIVE_SEARCH_UNAVAILABLE'")) throw new Error('Live routes must give an explicit unavailable response without a configured provider');
