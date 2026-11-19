@@ -113,6 +113,13 @@ function buildSections(kind, features) {
   if (features.includes('booking_form') || features.includes('contact_form')) {
     sections.push(makeSection('form', 'form', 'संपर्क / अनुरोध फ़ॉर्म', 'Contact / request form', 'फ़ॉर्म के फ़ील्ड और उन्हें संभालने का तरीका तय करना बाकी है।', 'The form fields and handling method still need to be decided.'));
   }
+  if (features.length) {
+    sections.push(makeSection(
+      'features', 'features', 'अनुरोधित सुविधाएँ', 'Requested features',
+      'ये सुविधाएँ योजना में शामिल हैं; इनके interactive integrations अभी लागू नहीं हैं।',
+      'These requested features are listed for planning; interactive integrations are not implemented in this local preview.'
+    ));
+  }
   sections.push(makeSection('contact', 'contact', 'संपर्क करें', 'Contact', 'संपर्क जानकारी भरें।', 'Add contact information.'));
   sections.push(makeSection('footer', 'footer', 'धन्यवाद', 'Thank you', 'यहाँ व्यवसाय का नाम और ज़रूरी लिंक दिखेंगे।', 'The business name and useful links will appear here.'));
   return sections;
