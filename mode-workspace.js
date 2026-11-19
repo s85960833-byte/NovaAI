@@ -112,10 +112,9 @@ async function schemeSources(profile){
  const j=await r.json(),official=(j.results||[]).filter(x=>{try{return /(^|\.)(gov\.in|nic\.in)$/i.test(new URL(x.url).hostname)}catch(e){return false}});
  return {profile:{age,state,work,income},results:official.slice(0,6)};
 }
-const needsFreshEvidence=q=>/(?:latest|current|currently|today|tonight|right now|recent|newest|breaking|news|update|this week|this month|this year|score|live|match|ipl|price|stock|share|sensex|nifty|bitcoin|crypto|gold|silver|petrol|diesel|exchange rate|weather|forecast|temperature|rain|aqi|earthquake|election|result|winner|released|launch|trending|version|आज|अभी|ताज़ा|नवीनतम|वर्तमान|फिलहाल|खबर|अपडेट|मौसम|भाव|चुनाव|नतीजा|स्कोर|बारिश)/i.test(String(q||''));
 async function fetchLiveEvidence(q){
  const tz=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return 'Asia/Kolkata'}})();
- const response=await fetch(API+'/live',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:String(q||'').slice(0,500),mode:'always',lang:isHi()?'hi':'en',tz}),signal:AbortSignal.timeout(22000)});
+ const response=await fetch(API+'/live',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:String(q||'').slice(0,500),mode:'auto',lang:isHi()?'hi':'en',tz}),signal:AbortSignal.timeout(22000)});
  const result=await response.json().catch(()=>({}));
  if(!response.ok||!result.ok||!result.context)throw new Error(result.error||'Live internet research is unavailable right now.');
  return {context:result.context,sources:Array.isArray(result.sources)?result.sources.filter(x=>x&&/^https:\/\//i.test(String(x.url||''))).slice(0,10):[],retrievedAt:result.retrievedAt||''};
@@ -132,7 +131,7 @@ async function send(){
  try{
    let extra='',profile=null,sourceLinks=[];
    if(modeId==='schemes'){const x=await schemeSources(schemeInput);profile=x.profile;if(!x.results.length)throw Error(tr('No official government sources were found right now. Please check the official portal directly.','अभी कोई आधिकारिक सरकारी स्रोत नहीं मिला। कृपया सीधे सरकारी पोर्टल देखें।'));sourceLinks=x.results.map(z=>({title:z.title,url:z.url}));extra='\nUse only the official government-domain sources listed below. If eligibility cannot be verified from them, clearly say so.\n'+JSON.stringify(x.results);}
-   if(modeId!=='schemes'&&needsFreshEvidence(q)){
+   if(modeId!=='schemes'){
      $('#nmStatus').textContent=tr('Checking current internet sources…','इंटरनेट पर ताज़ा स्रोत जाँचे जा रहे हैं…');
      try{
        const live=await fetchLiveEvidence(q);
