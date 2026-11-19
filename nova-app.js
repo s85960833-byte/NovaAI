@@ -167,7 +167,7 @@ const sysRaw="You are "+CFG.brand+", a warm, brilliant assistant in a one-to-one
 const sys=SV&&SV.model?sysRaw:sysRaw.replace(/\[\[\/?PACKS\]\]/g,''),sysLite=sysRaw.replace(/\[\[PACKS\]\][\s\S]*?\[\[\/PACKS\]\]/,'');
 const hs=c.m.slice(0,-1).filter(m=>!m.e&&(m.c!==''||m.img)).slice(-30);let li=-1;hs.forEach((m,i)=>{if(m.img&&m.r==='user')li=i});const hist=mergeRoles(hs.map((m,i)=>({role:m.r==='user'?'user':'assistant',content:(m.r==='user'&&m.img&&i===li)?[{type:'text',text:m.c||PHOTOQ},{type:'image_url',image_url:{url:m.img}}]:m.c})));
 const lc=$('log').lastChild,el=lc&&lc.querySelector?lc.querySelector('.b'):null;
-try{const localMath=await localMathPhase(hist);if(localMathOnly){if(localMath)a.c=localMath.answer;else{a.e=1;a.c='This question is not covered by the local maths engine yet. It can solve arithmetic, percentages and common symbolic operations without an AI/API connection.'}}else if(SMP){const ms=hist.map(m=>({role:m.role,content:typeof m.content==='string'?m.content:m.content[0].text}));ms[ms.length-1].content=sys+'\n\n---\nUser message:\n'+ms[ms.length-1].content;
+try{const localMath=await localMathPhase(hist);if(localMath){a.c=localMath.answer}else if(localMathOnly){a.e=1;a.c='This question is not covered by the local maths engine yet. It can solve arithmetic, percentages and common symbolic operations without an AI/API connection.'}else if(SMP){const ms=hist.map(m=>({role:m.role,content:typeof m.content==='string'?m.content:m.content[0].text}));ms[ms.length-1].content=sys+'\n\n---\nUser message:\n'+ms[ms.length-1].content;
 const o={signal:ctl.signal,cache:false,modelTier:LV?'quick':'default',onText:x=>{a.c=x.text;schedPaint(el,a);if(LV)lvFeed(a.c)}};
 if(li>=0){let cap=null;try{cap=(await SMP.limits()).images}catch(x){}
 if(!cap){if(li===hs.length-1)throw{vis:1}}else{const bs=atob(hs[li].img.split(',')[1]),u8=new Uint8Array(bs.length);for(let i=0;i<bs.length;i++)u8[i]=bs.charCodeAt(i);o.images=[new Blob([u8],{type:'image/jpeg'})];if(li<hs.length-1)ms[ms.length-1].content+='\n\n(The photo shared earlier in this chat is attached again for reference.)'}}
@@ -177,7 +177,7 @@ const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
 for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
 for(const l of ls){if(!l.startsWith('data:'))continue;const d=l.slice(5).trim();if(d==='[DONE]')continue;try{a.c+=JSON.parse(d).choices[0].delta.content||''}catch(x){}}
 schedPaint(el,a);if(LV)lvFeed(a.c)}};
-let sysM=sys;if(localMath)sysM+=localMath.prompt;else if(SV&&SV.model){try{sysM+=await mathPhase(hist,ctl.signal,cf.model)}catch(x){}}
+let sysM=sys;if(SV&&SV.model){try{sysM+=await mathPhase(hist,ctl.signal,cf.model)}catch(x){}}
 try{await run(sysM)}catch(e){if(e&&e.status===400&&sys!==sysLite&&/context|token|too long|maximum|exceed|length/i.test(e.body||'')){toast(t('eLite'));a.c='';await run(sysLite)}else throw e}
 if(a.c&&wsrc)a.c+=wsrc;if(!a.c){a.e=1;a.c=t('eEmpty')}}}
 catch(e){if(!(ctl.signal.aborted)){a.e=1;a.c=errText(e)+(e&&e.body?' Provider said: '+e.body:'')}else if(!a.c){c.m.pop()}}
