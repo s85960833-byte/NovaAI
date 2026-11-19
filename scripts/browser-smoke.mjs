@@ -82,7 +82,8 @@ try{
  assert.equal(syncAsset.loaded,true,'cloud-sync merge helper must execute before app initialization');
  console.log('PASS cloud-sync merge helper route, MIME type and browser global');
  const csp=await desktop.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content');
- assert.ok(csp.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net"),'script CSP must allow only reviewed self/CDN script sources');
+ assert.ok(csp.includes("script-src 'self' blob: 'wasm-unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net"),'script CSP must allow only reviewed self/CDN script sources plus WASM compilation');
+ assert.doesNotMatch(csp,/script-src[^;]*'unsafe-eval'(?!-wasm)/,'script CSP must not allow general JavaScript eval');
  assert.doesNotMatch(csp,/script-src[^;]*'unsafe-inline'/,'script CSP must not permit inline execution');
  assert.match(csp,/worker-src[^;]*https:\/\/cdn\.jsdelivr\.net/,'worker CSP must allow the pinned PDF.js worker origin');
  await desktop.locator('#setb').click();
@@ -142,23 +143,23 @@ try{
  assert.ok(searchPlaceholder.includes('Search saved chats'),'English interface must show an English search placeholder');
  console.log('PASS desktop workspace home, English-only cards, no global assistant shortcuts, no overflow');
 
- // A legacy key remains usable in this tab after migration, but must be scrubbed from durable storage.
+ // A legacy provider key is removed from durable storage and the old provider form is absent.
  await desktop.evaluate(()=>{const state=JSON.parse(localStorage.getItem('nova')||'{}');state.cfg={...(state.cfg||{}),base:'https://api.example.test/v1',model:'test-model',key:'legacy-test-key'};localStorage.setItem('nova',JSON.stringify(state));});
  await desktop.reload({waitUntil:'domcontentloaded'});
-  await enterNOVA(desktop);
- const migrated=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg?.key||'');
- assert.equal(migrated,'','legacy BYOK key must be removed from localStorage during migration');
+ await enterNOVA(desktop);
+ const migrated=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg||{});
+ assert.deepEqual(migrated,{base:'',model:'',key:''},'legacy BYOK settings must be scrubbed from localStorage during migration');
  await desktop.evaluate(()=>document.querySelector('#cfg').onclick());
- assert.equal(await desktop.locator('#key').inputValue(),'legacy-test-key','legacy key should remain usable in the active tab after migration');
- await desktop.locator('#csave').click();
- const savedKey=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg?.key||'');
- assert.equal(savedKey,'','saving provider settings must not persist the API key');
+ await desktop.locator('#dcfg').waitFor({state:'visible'});
+ assert.equal(await desktop.locator('#key').count(),0,'hosted API key input must not be present in keyless settings');
+ assert.equal(await desktop.locator('#pre').count(),0,'hosted provider selector must not be present in keyless settings');
+ assert.equal(await desktop.locator('#base').count(),0,'hosted base URL field must not be present in keyless settings');
+ assert.equal(await desktop.locator('#model').count(),0,'hosted model field must not be present in keyless settings');
+ await desktop.locator('#cclose').click();
  await desktop.reload({waitUntil:'domcontentloaded'});
-  await enterNOVA(desktop);
- await desktop.evaluate(()=>document.querySelector('#cfg').onclick());
- assert.equal(await desktop.locator('#key').inputValue(),'','BYOK key must not survive a page reload');
- await desktop.locator('#dcfg').evaluate(el=>el.close());
- console.log('PASS BYOK legacy-key migration, active-tab use and non-persistent key storage');
+ await enterNOVA(desktop);
+ assert.deepEqual(await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova')||'{}').cfg||{}),{base:'',model:'',key:''},'legacy provider settings must remain cleared after reload');
+ console.log('PASS BYOK legacy-key migration and removal of hosted-provider setup controls');
 
  const learn=desktop.locator('#hi .nr-card[data-group="learn"]');
  await learn.click();
@@ -176,7 +177,8 @@ try{
  assert.ok(learnText.includes('Photo Questions'),'Learn should contain photo questions');
  assert.ok(!learnText.includes('History Archive'),'History Archive must not be in Learn');
  assert.ok(!learnText.includes('Live Voice'),'voice must not be in Learn');
- await desktop.locator('#nmClose').click();
+ // Escape closes the workspace overlay and restores focus to its launch card.
+ await desktop.keyboard.press('Escape');
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
  assert.equal(await desktop.evaluate(()=>document.activeElement.dataset.group),'learn','closing with Escape should restore focus to the launch card');
  console.log('PASS keyboard open/close, dialog semantics, focus entry/restoration and Learn isolation');
@@ -225,57 +227,106 @@ try{
  await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
  console.log('PASS Business Intelligence and Company Cloud launch only from Agents; nested dialogs restore focus');
 
- // Exercise a complete Agents chat round trip against deterministic local API responses.
+ // Exercise Agents modes and Agents Studio against a deterministic browser-local model stub.
  const modeChatRequests=[];
- await desktop.route('**/api/config',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({model:'browser-test-model',image:true})}));
- await desktop.route('**/api/chat/completions',async route=>{
-  const payload=route.request().postDataJSON();
+ const liveModeRequests=[];
+ let hostedChatRequests=0;
+ desktop.on('request',request=>{if(request.url().includes('/api/chat/completions'))hostedChatRequests++});
+ await desktop.route('**/api/live',async route=>{
+  liveModeRequests.push(route.request().postDataJSON());
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,retrievedAt:'2026-11-19T03:30:00.000Z',tz:'Asia/Kolkata',intents:['news'],used:['duckduckgo'],failed:[],
+   context:'LIVE DATA\\n[1] Current NOVA smoke-test evidence: a deterministic live source confirms the integration test is running.\\n',
+   sources:[{n:1,title:'NOVA live evidence smoke test',url:'https://example.org/nova-live-smoke',publisher:'NOVA test',date:'2026-11-19',eventDate:'2026-11-19',kind:'news',quality:'test'}]
+  })});
+ });
+ await desktop.exposeFunction('__novaLocalGenerateForTest',async payload=>{
   modeChatRequests.push(payload);
-  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({choices:[{message:{role:'assistant',content:'NOVA_CHAT_FLOW_OK_'+modeChatRequests.length}}]})});
+  return 'NOVA_CHAT_FLOW_OK_'+modeChatRequests.length;
+ });
+ await desktop.evaluate(()=>{
+  window.__novaRealLocalAI=window.NovaLocalAI;
+  Object.defineProperty(window,'NovaLocalAI',{configurable:true,writable:true,value:{
+   generate:(messages,options={})=>window.__novaLocalGenerateForTest({messages,max_new_tokens:options.max_new_tokens}),
+   transcribe:async(samples,options={})=>{window.__novaVoiceLang=options.language;window.__novaWhisperSampleCount=samples.length;return{text:'Voice transcript smoke test',backend:'wasm'}}
+  }});
  });
  const imageRequests=[];
- const testImage='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/Yf8AAAAASUVORK5CYII=';
  await desktop.route('**/api/image',async route=>{
   imageRequests.push(route.request().postDataJSON());
-  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({jobId:'browser-image-job'})});
+  await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'strict keyless mode'})});
  });
- await desktop.route('**/api/image/status/browser-image-job',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({status:'done',image:testImage})}));
  await desktop.locator('#hi .nr-card[data-group="agents"]').click();
  await desktop.locator('#novaModes.open').waitFor();
  await desktop.locator('#nmContent [data-mode="general"]').click();
  await desktop.locator('#nmInput').fill('Please verify the NOVA chat round trip.');
  await desktop.locator('#nmSend').click();
  await desktop.waitForFunction(()=>[...document.querySelectorAll('#nmContent .nmchat .nmbubble.assistant')].some(el=>el.textContent.includes('NOVA_CHAT_FLOW_OK')));
- assert.equal(modeChatRequests.length,1,'Agents chat must make exactly one backend request');
+ assert.equal(modeChatRequests.length,1,'Agents chat must make exactly one local-model request');
  assert.ok(modeChatRequests[0].messages.some(m=>String(m.content).includes('Please verify the NOVA chat round trip.')),'Agents chat request must include the submitted user message');
+ assert.ok(modeChatRequests[0].max_new_tokens>0,'Agents chat must pass a bounded local token limit');
+ assert.equal(hostedChatRequests,0,'Agents chat must not call the disabled hosted chat endpoint');
  const persistedModeHistory=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova_modes_v1')||'{}').histories?.general||[]);
  assert.ok(persistedModeHistory.some(m=>m.role==='user'&&m.text==='Please verify the NOVA chat round trip.'),'Agents chat must persist the user message in its own mode history');
- assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK_1'),'Agents chat must persist the assistant reply in its own mode history');
- console.log('PASS Agents chat round trip, backend request, assistant response and per-mode history persistence');
+ assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text.startsWith('NOVA_CHAT_FLOW_OK_1')),'Agents chat must persist the assistant reply and appended source list in its own mode history');
+ assert.equal(liveModeRequests.length,1,'Agents chat must fetch live public evidence without a provider API key');
+ assert.equal(liveModeRequests[0].mode,'always','Agents chat must request live evidence by default');
+ assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text.includes('https://example.org/nova-live-smoke')),'Agents chat must preserve source URLs with the answer');
+ console.log('PASS Agents chat round trip through local AI, assistant response and per-mode history persistence');
 
- // Simulate the browser speech-recognition API to test the voice-to-chat bridge without claiming hardware microphone access.
+ // Simulate MediaRecorder and local audio decoding so the voice-to-local-Whisper bridge is deterministic without microphone hardware.
  await desktop.locator('#nmBack').click();
  await desktop.locator('#nmContent [data-mode="voice"]').click();
  await desktop.locator('#nmVoiceLang').waitFor();
  await desktop.locator('#nmVoiceLang').selectOption('hi-IN');
  await desktop.evaluate(()=>{
   window.__novaVoiceLang='';
-  window.SpeechRecognition=class{
-   constructor(){this.lang='';}
-   start(){window.__novaVoiceLang=this.lang;setTimeout(()=>this.onresult?.({results:[[{transcript:'Voice transcript smoke test'}]]}),0);}
-   stop(){}
+  window.__novaWhisperSampleCount=0;
+  window.__novaRecorderState='idle';
+  Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>({getTracks:()=>[{stop(){}}]})}});
+  class FakeMediaRecorder{
+   static isTypeSupported(){return true}
+   constructor(stream,options={}){this.stream=stream;this.mimeType=options.mimeType||'audio/webm';this.state='inactive'}
+   start(){this.state='recording';window.__novaRecorderState='recording'}
+   stop(){this.state='inactive';this.ondataavailable?.({data:new Blob([new Uint8Array([1,2,3])],{type:this.mimeType})});window.__novaRecorderState='stopped';this.onstop?.()}
+  }
+  window.MediaRecorder=FakeMediaRecorder;
+  window.AudioContext=class{
+   async decodeAudioData(){return{sampleRate:16000,getChannelData:()=>{const samples=new Float32Array(16000);samples.fill(.01);return samples}}}
+   async close(){}
   };
  });
  await desktop.locator('#nmMic').click();
+ await desktop.waitForFunction(()=>window.__novaRecorderState==='recording');
+ await desktop.locator('#nmMic').click();
  await desktop.waitForFunction(()=>[...document.querySelectorAll('#nmContent .nmchat .nmbubble.assistant')].some(el=>el.textContent.includes('NOVA_CHAT_FLOW_OK_2')));
- assert.equal(await desktop.evaluate(()=>window.__novaVoiceLang),'hi-IN','voice recognition must use the selected Hindi (India) language');
- assert.equal(modeChatRequests.length,2,'voice transcription must submit exactly one additional chat request');
+ assert.equal(await desktop.evaluate(()=>window.__novaVoiceLang),'hi','local Whisper must receive the selected Hindi language code');
+ assert.equal(await desktop.evaluate(()=>window.__novaWhisperSampleCount),16000,'voice audio must be decoded and resampled to 16 kHz');
+ assert.equal(modeChatRequests.length,2,'local voice transcription must submit exactly one additional local model request');
  const voiceHistory=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova_modes_v1')||'{}').histories?.voice||[]);
  assert.ok(voiceHistory.some(m=>m.role==='user'&&m.text==='Voice transcript smoke test'),'voice transcript must enter the Voice mode history');
- assert.ok(voiceHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK_2'),'voice reply must persist in the Voice mode history');
- console.log('PASS mocked voice recognition, Hindi language selection, transcription-to-chat bridge and Voice history persistence');
- await desktop.locator('#nmClose').click();
- await desktop.waitForFunction(()=>!document.querySelector('#novaModes').classList.contains('open'));
+ assert.ok(voiceHistory.some(m=>m.role==='assistant'&&m.text.startsWith('NOVA_CHAT_FLOW_OK_2')),'voice reply and live source list must persist in the Voice mode history');
+ console.log('PASS local MediaRecorder-to-Whisper voice bridge, Hindi selection, 16 kHz resampling and Voice history persistence');
+
+ // Agents Studio must also use the browser-local model rather than the disabled hosted endpoint.
+ await desktop.locator('#nmBack').click();
+ await desktop.locator('#nmContent [data-quick="openAgentsSuite"]').click();
+ await desktop.locator('#novaSuite.show').waitFor();
+ await desktop.locator('#nsNav [data-id="business"]').click();
+ await desktop.locator('#bizIdea').fill('A local-first study planner for students');
+ await desktop.locator('#bizRun').click();
+ await desktop.waitForFunction(()=>document.querySelector('#bizOut')?.textContent.includes('NOVA_CHAT_FLOW_OK_3'));
+ assert.equal(modeChatRequests.length,3,'Agents Studio should make one local model request after the two mode-chat requests');
+ assert.ok(String(modeChatRequests[2].messages?.[0]?.content||'').includes('business blueprint'),'Agents Studio must send its blueprint task to the local model');
+ assert.equal(hostedChatRequests,0,'Agents Studio must not call the disabled hosted chat endpoint');
+ await desktop.locator('#nsClose').click();
+ console.log('PASS Agents Studio business blueprint uses browser-local AI without hosted chat API');
+
+ await desktop.evaluate(()=>{
+  Object.defineProperty(window,'NovaLocalAI',{configurable:true,writable:true,value:window.__novaRealLocalAI});
+  delete window.__novaRealLocalAI;
+ });
+ assert.equal(await desktop.locator('#novaModes').evaluate(el=>el.classList.contains('open')),false,'opening Agents Studio should already have closed its parent workspace overlay');
 
  // The Build workspace Image Studio action must reveal the existing image composer from the dashboard.
  await desktop.locator('#hi .nr-card[data-group="build"]').click();
@@ -288,14 +339,13 @@ try{
  await desktop.locator('#imopt button[aria-pressed="true"]').click();
  await desktop.locator('#in').fill('A small blue geometric star on a dark background');
  await desktop.locator('#send').click();
- await desktop.locator('#log img.thumb[src^="data:image/png;base64,"]').waitFor({state:'visible',timeout:12000});
- assert.equal(imageRequests.length,1,'Build Image Studio must submit one image-generation job');
- assert.ok(imageRequests[0].prompt.includes('blue geometric star'),"image-generation request must include the user's prompt");
- console.log('PASS NOVA Build Image Studio launch, async image job polling and rendered image result');
+ await desktop.locator('#log .b').filter({hasText:/Image generation is unavailable in strict keyless mode/i}).waitFor({state:'visible',timeout:8000});
+ assert.equal(imageRequests.length,0,'strict keyless Build Image Studio must not call a remote image provider');
+ assert.equal(await desktop.locator('#log img.thumb').count(),0,'no remote image may be displayed in strict keyless mode');
+ console.log('PASS NOVA Build Image Studio launch and explicit no-remote-provider limitation');
  await desktop.locator('#imbar').click();
  await desktop.waitForFunction(()=>!document.body.classList.contains('nova-image-mode'));
- assert.equal(await desktop.locator('#box').isVisible(),true,'closing Image Studio must return to the saved generated-image chat');
- assert.equal(await desktop.locator('#log img.thumb[src^="data:image/png;base64,"]').count(),1,'generated image must remain visible after leaving Image Studio');
+ assert.equal(await desktop.locator('#box').isVisible(),true,'closing Image Studio must return to the standard chat composer');
  await desktop.evaluate(()=>window.NovaModeWorkspace.openGroup('learn'));
  await desktop.locator('#novaModes.open').waitFor();
  await desktop.locator('#nmContent [data-quick="openPhoto"]').click();

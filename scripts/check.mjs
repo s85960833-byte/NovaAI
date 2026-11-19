@@ -38,6 +38,8 @@ for (const pattern of ['.env', '.env.*', '*.pem', '*.key', '*.p12', '*.pfx', 'se
   if (!gitignore.split(/\r?\n/).includes(pattern)) throw new Error('Local secrets and generated files must be ignored: ' + pattern);
 }
 const verificationWorkflow = readFileSync('.github/workflows/novaai-verification.yml', 'utf8');
+const accountBrowserWorkflow = readFileSync('.github/workflows/nova-account-browser-verification.yml', 'utf8');
+if (!verificationWorkflow.includes('runs-on: ubuntu-24.04') || !accountBrowserWorkflow.includes('runs-on: ubuntu-24.04')) throw new Error('Browser and verification workflows must pin a Playwright-supported Ubuntu 24.04 runner');
 if (!/^permissions:\n  contents: read$/m.test(verificationWorkflow)) throw new Error('Verification workflow must use least-privilege read-only repository permissions');
 const supabaseDeno = JSON.parse(readFileSync('supabase/functions/nova-bi-api/deno.json', 'utf8'));
 if (supabaseDeno.imports?.['@supabase/server'] !== 'npm:@supabase/server@1.9.2') throw new Error('Supabase server SDK must be pinned to a reviewed stable version');
@@ -50,17 +52,24 @@ if (!/alter function public\.nova_bi_consume_rate_limit\([\s\S]*?set search_path
 if (!/revoke all[\s\S]*?from public, anon, authenticated/i.test(forwardHardening)) throw new Error('Forward migration must keep rate-limit RPC private to service_role');
 const rlsIntegration = readFileSync('scripts/supabase-rls-integration.sql', 'utf8');
 if (!rlsIntegration.includes('Every public SECURITY DEFINER function must pin an empty search_path')) throw new Error('Database integration test must guard SECURITY DEFINER search_path');
-if (!server.includes("secureProviderBase('LLM_BASE'") || !server.includes("secureProviderBase('GROQ_BASE'") || !server.includes("secureProviderBase('OPENROUTER_BASE'") || !server.includes("secureProviderBase('IMAGE_BASE'") || !server.includes("secureProviderBase('HORDE_BASE'")) throw new Error('All secret-bearing provider endpoints must require validated HTTPS URLs');
+if (!server.includes("providers: { keyless: true, hostedAi: false }") || !server.includes("Hosted AI providers are disabled") || !server.includes("Hosted transcription is disabled") || server.includes("require('./nova-image-horde')") || !server.includes("app.post('/api/image'") || !server.includes("strict keyless mode") || server.includes("ANONYMOUS_KEY") || server.includes("apikey:") || server.includes("pollinations.ai") || !server.includes("async function webSearch") || !server.includes("['duckduckgo', () => ddg(q)]") || !server.includes("['gdelt', () => gdelt(q") || !server.includes("['google-news', () => gnews(q") || !server.includes("['wikipedia', () => wikiSearch(q")) throw new Error('NOVA must stay in strict keyless AI, voice, image-disabled and multi-source search mode');
 if (!server.includes('app.disable(\'x-powered-by\')') || !server.includes('nova-business-core.js') || !server.includes('nova-business-cloud.js') || !server.includes("'/nova-reference.js','/nova-business-core.js'")) throw new Error('BI server routes or offline dashboard cache are missing');
-if (!server.includes('Content-Security-Policy') || !server.includes('frame-ancestors \'none\'') || !server.includes('camera=(self), microphone=(self), geolocation=()')) throw new Error('Combined browser security policy is incomplete');
+if (!server.includes('Content-Security-Policy') || !server.includes("script-src 'self' blob: 'wasm-unsafe-eval'") || !server.includes('frame-ancestors \'none\'') || !server.includes('camera=(self), microphone=(self), geolocation=()')) throw new Error('Combined browser security policy is incomplete');
 const requiredCspFragments = ['http-equiv="Content-Security-Policy"', "default-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'self'"];
 const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(match => !/\bsrc\s*=/.test(match[1]));
+const localAiClient = readFileSync('nova-local-ai.js', 'utf8');
+const keylessConfigSmoke = readFileSync('scripts/keyless-config-smoke.mjs', 'utf8');
+syntaxCheck('keyless-config-smoke.mjs', keylessConfigSmoke);
+if (!server.includes("app.get('/nova-local-ai.js'") || !html.includes('src="/nova-local-ai.js"') || !localAiClient.includes("Qwen3-0.6B-Instruct-ONNX") || !localAiClient.includes("onnx-community/whisper-base") || !localAiClient.includes("tesseract.js@6.0.1") || !localAiClient.includes("createWorker('eng+hin'") || !localAiClient.includes("device: 'webgpu'") || !localAiClient.includes("dtype: 'q4'")) throw new Error('Keyless local chat, voice, OCR engine or asset route is incomplete');
+if (!localAiClient.includes('const QWEN_CHAT_TEMPLATE =') || !localAiClient.includes('chat_template: QWEN_CHAT_TEMPLATE') || !localAiClient.includes('enable_thinking: false')) throw new Error('Qwen3 ONNX tokenizer must receive its explicit chat template');
 const appScript = readFileSync('nova-app.js', 'utf8');
+syntaxCheck('nova-local-ai.js', localAiClient);
+if (!appScript.includes("SV={model:'nova-local-browser',local:true") || !appScript.includes('S.cfg={base:\'\',model:\'\',key:\'\'}') || !appScript.includes('SV&&SV.local') || !appScript.includes('window.NovaLocalAI.generate') || !appScript.includes('Hosted AI connectors are intentionally not initialized')) throw new Error('NOVA client must force local-only inference and discard hosted provider settings');
 const configScript = readFileSync('nova-config.js', 'utf8');
 if (inlineScripts.length) throw new Error('Executable script blocks must be externalized; inline event-handler attributes are tracked separately');
 const inlineEventAttributes = [...html.matchAll(/\son[a-z]+\s*=/gi)];
 if (inlineEventAttributes.length) throw new Error('Inline HTML event-handler attributes are not permitted by the script CSP');
-if (!html.includes("script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net") || html.includes("script-src 'self' 'unsafe-inline'")) throw new Error('Script CSP must not allow inline script execution');
+if (!html.includes("script-src 'self' blob: 'wasm-unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net") || html.includes("script-src 'self' 'unsafe-inline'")) throw new Error('Script CSP must not allow inline script execution');
 if (!server.includes("app.get('/nova-config.js'") || !server.includes("app.get('/nova-app.js'")) throw new Error('Externalized NOVA scripts are not served by the backend');
 syntaxCheck('NOVA app external script', appScript);
 syntaxCheck('NOVA config external script', configScript);
@@ -93,8 +102,8 @@ if (pkg.engines?.node !== '22.x') throw new Error('Render and CI must use the sa
 for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api/live/selftest'", "app.get('/api/feed'", "app.get('/nova-reference.js'"]) if (!server.includes(route)) throw new Error('Required backend route missing: ' + route);
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
 if (!server.includes("r.setHeader('X-Content-Type-Options', 'nosniff')") || !server.includes("r.setHeader('X-Frame-Options', 'DENY')") || !server.includes("r.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')")) throw new Error('Baseline security response headers are missing');
-if (!server.includes('r2: false') || !server.includes('maxImageBytes = 8 * 1024 * 1024') || !server.includes("imageBuffer.toString('ascii', 8, 12) === 'WEBP'") || server.includes('fetch(generated') || !server.includes('const freeOnly = body.freeOnly === true') || !server.includes('if (!freeOnly && E.ALLOW_PAID_IMAGE') || !server.includes('const tries = freeOnly ? [] : E.POLLI_KEY')) throw new Error('Community image SSRF, payload validation, or paid-provider bypass guards are missing');
-if (!server.includes('Your developer is Thakur Shreyansh Singh ji.') || !server.includes("Respond in the user's language while keeping the developer name exactly as written.") || server.includes('Respond in English only, regardless of the user')) throw new Error('Developer identity must be exact and compatible with the user language');
+if (server.includes('E.IMAGE_KEY') || server.includes('E.POLLI_KEY') || server.includes('HORDE_API_KEY') || server.includes('ANONYMOUS_KEY') || server.includes('apikey:') || server.includes('ALLOW_PAID_IMAGE')) throw new Error('No image-provider API key may be referenced by the keyless server');
+if (!localAiClient.includes('Your developer is Thakur Shreyansh Singh ji.') || !localAiClient.includes("Respond in the user's language while keeping the developer name exactly as written.")) throw new Error('Local model must preserve the exact developer identity and user-language policy');
 if (!server.includes("via: 'arxiv+science-rss-fallback'") || !server.includes("T('openalex', async () =>") || !server.includes("feedCat('science', 6)")) throw new Error('Live science retrieval must fall back to independent arXiv and science RSS when OpenAlex fails');
 syntaxCheck('provider URL validation', providerUrl);
 syntaxCheck('backend', server);
@@ -126,7 +135,7 @@ if (!appScript.includes("document.body.classList.add('nova-dashboard-home')") ||
 if (!reference.includes("const root=$('#hi');") || !reference.includes("const host=$('#log');") || reference.includes('#novaSHome')) throw new Error('Reference dashboard must mount into #hi and observe #log for future home renders');
 
 
-for (const file of ['scripts/runtime-smoke.mjs','scripts/browser-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs','scripts/company-cloud-browser.mjs','scripts/supabase-edge-smoke.mjs','scripts/smoke-free-image.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
+for (const file of ['scripts/runtime-smoke.mjs','scripts/browser-smoke.mjs','scripts/smoke.mjs','scripts/wait-live.mjs','scripts/company-cloud-browser.mjs','scripts/supabase-edge-smoke.mjs','scripts/real-local-inference-smoke.mjs']) syntaxCheck(file, readFileSync(file,'utf8'));
 
 if (!html.includes('id="msgs"')) throw new Error('Previous standard chat UI input was not found');
 if (!html.includes('id="uiLang"') || !html.includes('id="uiLangTop"') || !html.includes('<option value="en">English</option>') || !html.includes('<option value="hi">हिंदी</option>') || !appScript.includes("uiLang:'en'") || !appScript.includes("const ui=()=>S.uiLang==='hi'?'hi':'en'") || !appScript.includes("$('uiLangTop').onchange") || !appScript.includes("const L=['English','हिन्दी|Hindi'];") || !appScript.includes("window.dispatchEvent(new CustomEvent('nova:ui-language-changed'")) throw new Error('Global English/Hindi interface language switch is missing');
@@ -134,20 +143,20 @@ if (!appScript.includes("document.documentElement.dir='ltr'") || appScript.inclu
 if (!['src="/mode-registry.js"','src="/mode-workspace.js"','src="/nova-suite.js"','src="/s-tier.js"'].every(x=>html.includes(x))) throw new Error('NOVA Learn, Build and Agents workspace scripts are not connected in the homepage');
 if (!['src="/nova-business-core.js"','src="/nova-business.js"','src="/nova-business-cloud.js"'].every(x=>html.includes(x)) || !html.includes('@supabase/supabase-js@2.119.0')) throw new Error('NOVA BI scripts and Supabase client are not connected in the homepage');
 if (!['nova-home','nova-hero','nova-workspaces','nova-tool-grid'].every(x=>html.includes(x))) throw new Error('NOVA dashboard UI components missing');
-if (!appScript.includes('localStorage.getItem(\'nova\')') || !appScript.includes('const persistable=()=>') || !appScript.includes('JSON.stringify(persistable())') || !appScript.includes('One-time migration: keep any previously saved key available for this tab') || appScript.includes('localStorage.setItem(\'nova\',JSON.stringify(S))')) throw new Error('Nova storage compatibility or BYOK secret-persistence protection changed');
+if (!appScript.includes("localStorage.getItem('nova')") || !appScript.includes('const persistable=()=>') || !appScript.includes('JSON.stringify(persistable())') || !appScript.includes("S.cfg={base:'',model:'',key:''}") || !appScript.includes('Keyless-only mode never restores or persists a hosted AI provider key') || appScript.includes("localStorage.setItem('nova',JSON.stringify(S))")) throw new Error('Nova storage must discard legacy provider settings and persist no hosted AI key');
 const shareHandler = appScript.slice(appScript.indexOf("$('share').onclick"), appScript.indexOf("$('mem').onclick"));
-if (!shareHandler.includes('const exportedConfig={api:CFG.api,brand:CFG.brand,base:k.base,model:k.model}') || !shareHandler.includes('JSON.stringify(exportedConfig)') || shareHandler.includes("key:$('key').value") || shareHandler.includes('JSON.stringify(k)')) throw new Error('Shareable NOVA exports must include provider settings but never a personal API key');
-if (!appScript.includes('Your API key is never included') || !appScript.includes('आपकी API key शामिल नहीं होती')) throw new Error('BYOK export privacy disclosure must explain that recipients supply their own keys');
+if (!shareHandler.includes('const exportedConfig={api:CFG.api,brand:CFG.brand}') || !shareHandler.includes('JSON.stringify(exportedConfig)') || shareHandler.includes('base:k.base') || shareHandler.includes('model:k.model') || shareHandler.includes("key:$('key').value") || shareHandler.includes('JSON.stringify(k)')) throw new Error('Shared NOVA app copies must not export hosted provider settings or keys');
+if (!appScript.includes("NOVA's hosted AI-provider endpoints and AI API-key setup are disabled") || !appScript.includes('NOVA के hosted AI-provider endpoints और AI API-key setup बंद हैं')) throw new Error('Keyless local AI privacy disclosures are missing');
 
 if (html.includes('CHAT · LEARN · MASTER') || html.includes('IMAGINE · DESIGN · CREATE') || html.includes('RESEARCH · DISCOVER · EXPLORE')) throw new Error('Old four-workspace visual shell remains');
 if (!html.includes('id="dset"')) throw new Error('Settings panel missing');
 if (appScript.includes('Nova AI has no server of its own') || appScript.includes('Nova AI का अपना कोई सर्वर नहीं है।')) throw new Error('Outdated privacy disclosure incorrectly says NOVA has no backend');
 if (!appScript.includes('backend hosted on Render') || !appScript.includes('Optional account-based cloud sync is OFF by default') || !appScript.includes('image attachments are excluded')) throw new Error('NOVA backend and cloud-sync privacy disclosures are missing');
 if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
-if (!appScript.includes('async function pollImageJob(') || !appScript.includes("API+'/image/status/'") || !appScript.includes('pollImageJob(j.jobId,sig)') || !appScript.includes("sig.addEventListener('abort',abort,{once:true})") || !appScript.includes("e1?.status===429")) throw new Error('Image studio must abort polling promptly and must not bypass server image rate limits');
+if (!appScript.includes('async function pollImageJob(') || !appScript.includes("API+'/image/status/'") || !appScript.includes('pollImageJob(j.jobId,sig)') || !appScript.includes("sig.addEventListener('abort',abort,{once:true})") || !appScript.includes('if(!r.ok)throw{status:r.status,message:j.error}') || appScript.includes('pollin(')) throw new Error('Image studio must abort polling promptly, honour server rate limits and avoid unverified provider fallbacks');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'") || !server.includes("app.get('/nova-account.js'")) throw new Error('Existing optional feature asset routes missing');
-if (!server.includes("const CACHE='nova-shell-v19-entry-gate'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
+if (!server.includes("const CACHE='nova-shell-v21-keyless-ui'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
 // Frontend entry points are external files and are syntax-checked above.
 
 const entryClient = readFileSync('nova-entry.js', 'utf8');
