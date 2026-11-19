@@ -98,7 +98,7 @@ async function saveDraft(){
  try{
   const previous=await getLatestDraft();
   const now=Date.now();
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,status:'draft',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang:/[\u0900-\u097f]/.test(prompt)?'hi':'en',specVersion:1});
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,status:'draft',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1});
   status(dict[lang].saved);
  }catch(e){status(dict[lang].saveError);}
 }
