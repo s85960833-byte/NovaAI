@@ -277,6 +277,23 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 .str-language-settings label{display:grid;gap:5px;min-width:0;color:#cbd5e1;font-size:12px}
 .str-language-settings select{width:100%;min-height:44px;border:1px solid #475569;border-radius:10px;background:#17213a;color:#f8fafc;padding:8px 10px;font:inherit;font-size:14px}
 @media(max-width:560px){.str-language-settings{grid-template-columns:1fr}}
+
+.str-spec-panel{margin-top:14px}
+.str-spec-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.str-spec-panel h2{margin:8px 0 4px;font-size:22px}
+.str-spec-panel h3{margin:18px 0 10px;font-size:14px}
+.str-local-badge{border:1px solid #a16207;color:#fde68a;background:#422006;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:700}
+.str-spec-notice{border-left:3px solid #f59e0b;padding:10px 12px;background:#111c33;border-radius:8px}
+.str-spec-meta{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.str-spec-chip{border:1px solid #475569;border-radius:999px;padding:6px 9px;color:#e2e8f0;font-size:12px}
+.str-spec-sections{display:grid;gap:8px}
+.str-spec-section{border:1px solid #334155;background:#111c33;border-radius:12px;padding:12px}
+.str-spec-section b{display:block;margin-bottom:5px}
+.str-spec-section p{margin:0;color:#cbd5e1;font-size:13px;line-height:1.55}
+.str-spec-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.str-spec-list{margin:0;padding-inline-start:20px;color:#cbd5e1;font-size:13px;line-height:1.65}
+.str-blocked-note{margin-top:18px;border:1px solid #92400e;background:#2b1b0a;color:#fde68a;border-radius:12px;padding:12px;font-size:13px;line-height:1.55}
+@media(max-width:560px){.str-spec-columns{grid-template-columns:1fr}.str-spec-heading{align-items:flex-start}}
 </style></head><body>
 <section id="novaEntryGate" aria-label="NOVA introduction" aria-live="polite"><div class="nova-entry-core"><div class="nova-entry-mark" aria-hidden="true">✦</div><p class="nova-entry-word">NOVA</p><p class="nova-entry-tagline">A NEW ERA OF INTELLIGENCE</p><div class="nova-entry-rule" aria-hidden="true"></div><p class="nova-entry-caption">THINK · CREATE · DISCOVER</p></div></section>
 
@@ -333,7 +350,28 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
           <button id="strClearDraft" class="str-secondary" type="button" data-str="clear">Clear</button>
         </div>
         <p class="str-note" data-str="localNote">Your draft is saved only on this device. It is not sent to an AI provider in this phase.</p>
+        <div class="str-actions">
+          <button id="strCreateSpec" class="str-primary" type="button" data-str="createSpec">Create starter plan</button>
+          <button id="strSaveDraft" class="str-secondary" type="button" data-str="saveDraft">Save draft</button>
+          <button id="strClearDraft" class="str-secondary" type="button" data-str="clear">Clear</button>
+        </div>
+        <p class="str-note" data-str="localNote">Your prompt and starter plan stay inside Nova. No AI provider is used in this preview phase.</p>
         <div class="str-status" id="strStatus" role="status" aria-live="polite"></div>
+      </section>
+      <section class="str-panel str-spec-panel" id="strSpecPanel" hidden aria-labelledby="strSpecTitle">
+        <div class="str-spec-heading">
+          <div><div class="str-eyebrow" data-str="specEyebrow">LOCAL STARTER PLAN</div><h2 id="strSpecTitle" data-str="specTitle">Review your starter plan</h2></div>
+          <span class="str-local-badge" data-str="localBadge">Local rules · No AI</span>
+        </div>
+        <p class="str-note str-spec-notice" id="strSpecNotice" role="status"></p>
+        <div class="str-spec-meta" id="strSpecMeta"></div>
+        <h3 data-str="sectionsTitle">Page sections</h3>
+        <div class="str-spec-sections" id="strSpecSections"></div>
+        <div class="str-spec-columns">
+          <div><h3 data-str="assumedTitle">Assumptions to review</h3><ul id="strAssumed" class="str-spec-list"></ul></div>
+          <div><h3 data-str="placeholderTitle">Details you still need</h3><ul id="strPlaceholders" class="str-spec-list"></ul></div>
+        </div>
+        <div class="str-blocked-note" data-str="buildBlocked">Full AI website generation and ZIP export are not enabled yet. This plan is a reviewable outline only.</div>
       </section>
       <section class="str-state" aria-label="Build stages">
         <div class="str-state-card"><b data-str="stageSpec">01 · Spec</b><span data-str="stageSpecDesc">Understand the idea and list assumptions.</span></div>
