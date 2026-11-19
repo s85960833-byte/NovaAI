@@ -8,8 +8,10 @@ const track=page=>{
  page.on('pageerror',e=>{
   const message=String(e.message||e),details=message+' [stack: '+String(e.stack||'').slice(0,1200)+']';
   const isOpaquePreviewStorageError=/Failed to read the 'localStorage' property from 'Window'.*sandboxed and lacks the 'allow-same-origin' flag/i.test(message);
-  const hasSandboxedPreview=page.frames().some(frame=>frame.url().startsWith('about:srcdoc'));
-  if(isOpaquePreviewStorageError&&hasSandboxedPreview)sandboxIsolationErrors.push(details);
+  // Chromium can surface an opaque-origin storage denial from the sandboxed preview
+  // without a stable srcdoc frame URL. The exact message itself proves sandbox denial;
+  // do not weaken the iframe sandbox to silence this expected browser exception.
+  if(isOpaquePreviewStorageError)sandboxIsolationErrors.push(details);
   else errors.push(details);
  });
  page.on('console',msg=>{if(msg.type()==='error'&&/content security policy|refused to (?:load|execute|apply)/i.test(msg.text()))cspErrors.push(msg.text())});
@@ -486,7 +488,7 @@ try{
  await reducedContext.close();
 
  assert.deepEqual(errors,[],'browser runtime errors outside the intentionally opaque preview frame: '+errors.join('; '));
- assert.ok(sandboxIsolationErrors.every(message=>/SecurityError|sandboxed and lacks the 'allow-same-origin' flag/i.test(message)),'only expected opaque-origin storage denials may be filtered');
+ assert.ok(sandboxIsolationErrors.every(message=>/Failed to read the 'localStorage' property from 'Window'.*sandboxed and lacks the 'allow-same-origin' flag/i.test(message)),'only the exact expected opaque-origin localStorage denial may be filtered');
  assert.deepEqual(cspErrors,[],'browser CSP violations: '+cspErrors.join('; '));
  console.log('PASS opaque preview cannot access localStorage; no app-level browser errors or CSP violations');
 }finally{
