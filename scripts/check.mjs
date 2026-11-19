@@ -173,7 +173,7 @@ if (!strServer.includes("generationEnabled: false") || !strServer.includes("cust
 
 if (!strScript.includes("localStorage.setItem('str_reply_lang',replyLang)") ||
     !strScript.includes("localStorage.setItem('str_content_lang',contentLang)") ||
-    !strScript.includes("contentLang,replyLang,uiLang:lang") ||
+    !strScript.includes("uiLang:lang,contentLang,replyLang") ||
     !html.includes('id="strReplyLang"') || !html.includes('id="strContentLang"') ||
     !strScript.includes("replyLabel:'Reply language'") || !strScript.includes("replyLabel:'उत्तर की भाषा'")) {
   throw new Error('STR must keep UI, reply and website-content languages independent and bilingual');
