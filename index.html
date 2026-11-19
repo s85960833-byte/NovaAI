@@ -261,8 +261,8 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 .str-state-card b{display:block;font-size:13px;margin-bottom:5px}
 .str-state-card span{font-size:12px;color:#94a3b8;line-height:1.4}
 .str-footer{margin-top:auto;padding:18px 0 24px;color:#94a3b8;font-size:12px;border-top:1px solid #334155}
-.str-intro{position:fixed;inset:0;z-index:2;display:grid;place-items:center;background:#0f172a;pointer-events:auto;animation:strFade .2s ease both}
-.str-intro-inner{text-align:center;display:grid;justify-items:center;gap:10px}
+.str-intro{position:fixed;inset:0;z-index:2;display:grid;place-items:center;background:#0f172a;pointer-events:none;animation:strFade .2s ease both}
+.str-intro-inner{text-align:center;display:grid;justify-items:center;gap:10px}.str-skip{pointer-events:auto;margin-top:12px;min-height:44px;background:#17213a;border:1px solid #64748b;color:#f8fafc;border-radius:999px;padding:8px 16px}.str-skip:disabled{opacity:.45}
 .str-intro-mark{width:94px;height:94px;animation:strRise .5s cubic-bezier(.16,1,.3,1) both}
 .str-intro-word{font-size:32px;font-weight:800;letter-spacing:.08em;opacity:0;animation:strFadeUp .35s .65s ease forwards}
 .str-intro-tag{font-size:13px;color:#cbd5e1;opacity:0;animation:strFade .3s 1s ease forwards}
@@ -339,7 +339,7 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
         <path d="M78 20 105 8 116 19 102 42 88 33Z" fill="#F59E0B"/>
       </svg>
       <div class="str-intro-word">STR</div>
-      <div class="str-intro-tag" data-str="tagline">Short prompt. Complete app.</div>
+      <div class="str-intro-tag" data-str="tagline">Short prompt. Complete app.</div><button id="strSkipIntro" class="str-skip" type="button" disabled data-str="skipIntro">Skip intro</button>
     </div>
   </div>
 </section>
