@@ -169,13 +169,16 @@ const strSecurity = readFileSync('str/security.js', 'utf8');
 const strProviderRouter = readFileSync('str/provider-router.js', 'utf8');
 const strSafety = readFileSync('str/safety.js', 'utf8');
 const strSpecSchema = readFileSync('str/spec-schema.js', 'utf8');
+const strSpecEngine = readFileSync('str/spec-engine.js', 'utf8');
 syntaxCheck('STR API router', strServer);
 syntaxCheck('STR security helpers', strSecurity);
 syntaxCheck('STR provider router', strProviderRouter);
 syntaxCheck('STR safety classifier', strSafety);
 syntaxCheck('STR spec schema', strSpecSchema);
+syntaxCheck('STR spec engine', strSpecEngine);
 if (!server.includes("require('./str/server')()") || !strServer.includes("router.post('/spec'") || !strServer.includes("router.post('/section'") || !strServer.includes("router.post('/fix'") || !strServer.includes("router.post('/convert'")) throw new Error('STR fixed API routes are not mounted');
 if (!strServer.includes("classifyPrompt(b.prompt)") || !strSafety.includes("credential_collection")) throw new Error('STR unsafe-request refusal must run before any provider call');
+if (!strServer.includes("generateLocalSpec({ prompt: b.prompt, uiLang: b.uiLang, contentLang: b.contentLang })") || !strSpecEngine.includes('validateSpec(spec)') || !strScript.includes("id=") && !html.includes('id="strCreateSpec"')) throw new Error('STR local spec engine and prompt dock must be connected');
 if (!strServer.includes("eligibleProviders(providerConfig, 'customer_data')") || !strProviderRouter.includes("provider.data_tier !== 'paid_no_training'") || !strProviderRouter.includes('quotasKnown(provider)')) throw new Error('STR customer-data routing must require verified paid no-training tiers and known quotas');
 if (!strServer.includes("generationEnabled: false") || !strServer.includes("customerBuildsEnabled: false") || !strServer.includes("RETENTION_DAYS = 7")) throw new Error('STR must remain owner-only and fail closed until provider verification');
 
@@ -193,7 +196,7 @@ const strProviderConfig = JSON.parse(readFileSync('str/provider-config.json', 'u
 if (!html.includes('id="nStr"') || !html.includes('id="strApp"') || !html.includes('src="/str-app.js"')) throw new Error('STR navigation, isolated shell, or script entry point is missing');
 if (!server.includes("app.get('/str-app.js'") || !server.includes("'/str-app.js'")) throw new Error('STR script route or offline cache entry is missing');
 if (!strScript.includes("indexedDB.open('nova-str-local'") || !strScript.includes("localStorage.getItem('str_ui_lang')") || !strScript.includes("localStorage.getItem('nova')")) throw new Error('STR must use its own IndexedDB and seed language from Nova without sharing chat memory');
-if (strScript.includes("localStorage.setItem('nova'") || /fetch\s*\(/.test(strScript) || /XMLHttpRequest/.test(strScript)) throw new Error('Phase 1 STR shell must not write Nova chat memory or send draft data to a provider');
+if (strScript.includes("localStorage.setItem('nova'") || /fetch\s*\(\s*['\"]https?:/i.test(strScript) || /XMLHttpRequest/.test(strScript) || !strScript.includes("fetch('/api/str/spec'") || !strScript.includes("credentials:'same-origin'")) throw new Error('STR may only call its fixed same-origin local spec endpoint and must not write Nova chat memory');
 if (!strScript.includes('Draft saved on this device.') || !strScript.includes('ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।')) throw new Error('STR bilingual local-save feedback is missing');
 if (strProviderConfig.customer_builds_enabled !== false || strProviderConfig.routing.customer_data.length !== 0) throw new Error('STR customer builds/data routing must remain disabled in owner-only mode');
 if (strProviderConfig.providers.some(p => ['requests_per_minute','tokens_per_minute','requests_per_day','tokens_per_day'].some(k => p[k] === null)) && strProviderConfig.routing.unknown_limits_action !== 'block_and_report') throw new Error('Unknown provider quotas must fail closed');
