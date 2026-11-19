@@ -147,7 +147,7 @@ if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
 if (!appScript.includes('async function pollImageJob(') || !appScript.includes("API+'/image/status/'") || !appScript.includes('pollImageJob(j.jobId,sig)') || !appScript.includes("sig.addEventListener('abort',abort,{once:true})") || !appScript.includes("e1?.status===429")) throw new Error('Image studio must abort polling promptly and must not bypass server image rate limits');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'") || !server.includes("app.get('/nova-account.js'")) throw new Error('Existing optional feature asset routes missing');
-if (!server.includes("const CACHE='nova-shell-v19-entry-gate'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
+if (!server.includes("const CACHE='nova-shell-v20-str'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
 // Frontend entry points are external files and are syntax-checked above.
 
 const entryClient = readFileSync('nova-entry.js', 'utf8');
@@ -168,7 +168,7 @@ const strProviderConfig = JSON.parse(readFileSync('str/provider-config.json', 'u
 if (!html.includes('id="nStr"') || !html.includes('id="strApp"') || !html.includes('src="/str-app.js"')) throw new Error('STR navigation, isolated shell, or script entry point is missing');
 if (!server.includes("app.get('/str-app.js'") || !server.includes("'/str-app.js'")) throw new Error('STR script route or offline cache entry is missing');
 if (!strScript.includes("indexedDB.open('nova-str-local'") || !strScript.includes("localStorage.getItem('str_ui_lang')") || !strScript.includes("localStorage.getItem('nova')")) throw new Error('STR must use its own IndexedDB and seed language from Nova without sharing chat memory');
-if (strScript.includes("localStorage.setItem('nova'") || /fetch\\s*\\(/.test(strScript) || /XMLHttpRequest/.test(strScript)) throw new Error('Phase 1 STR shell must not write Nova chat memory or send draft data to a provider');
+if (strScript.includes("localStorage.setItem('nova'") || /fetch\s*\(/.test(strScript) || /XMLHttpRequest/.test(strScript)) throw new Error('Phase 1 STR shell must not write Nova chat memory or send draft data to a provider');
 if (!strScript.includes('Draft saved on this device.') || !strScript.includes('ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।')) throw new Error('STR bilingual local-save feedback is missing');
 if (strProviderConfig.customer_builds_enabled !== false || strProviderConfig.routing.customer_data.length !== 0) throw new Error('STR customer builds/data routing must remain disabled in owner-only mode');
 if (strProviderConfig.providers.some(p => ['rpm','tpm','rpd','tpd'].some(k => p[k] === null)) && strProviderConfig.routing.unknown_limits_action !== 'block_and_report') throw new Error('Unknown provider quotas must fail closed');
