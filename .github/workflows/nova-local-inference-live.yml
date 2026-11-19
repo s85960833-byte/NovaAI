@@ -37,7 +37,7 @@ jobs:
         run: |
           env -u LLM_KEY -u LLM_MODEL -u GROQ_API_KEY -u OPENROUTER_API_KEY -u TAVILY_KEY -u BRAVE_KEY -u IMAGE_KEY -u HORDE_API_KEY -u POLLI_KEY PORT=8787 node nova-server.txt > /tmp/nova-real-inference.log 2>&1 &
           echo $! > /tmp/nova-real-inference.pid
-      - name: Download and run real local Qwen, Tesseract and Whisper models; verify live search and anonymous image generation
+      - name: Download and run real local Qwen, Tesseract and Whisper models; verify keyless live search and image-provider blocking
         timeout-minutes: 38
         env:
           NOVAAI_URL: http://127.0.0.1:8787
