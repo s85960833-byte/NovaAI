@@ -229,8 +229,17 @@ try{
 
  // Exercise Agents modes and Agents Studio against a deterministic browser-local model stub.
  const modeChatRequests=[];
+ const liveModeRequests=[];
  let hostedChatRequests=0;
  desktop.on('request',request=>{if(request.url().includes('/api/chat/completions'))hostedChatRequests++});
+ await desktop.route('**/api/live',async route=>{
+  liveModeRequests.push(route.request().postDataJSON());
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   ok:true,retrievedAt:'2026-11-19T03:30:00.000Z',tz:'Asia/Kolkata',intents:['news'],used:['duckduckgo'],failed:[],
+   context:'LIVE DATA\\n[1] Current NOVA smoke-test evidence: a deterministic live source confirms the integration test is running.\\n',
+   sources:[{n:1,title:'NOVA live evidence smoke test',url:'https://example.org/nova-live-smoke',publisher:'NOVA test',date:'2026-11-19',eventDate:'2026-11-19',kind:'news',quality:'test'}]
+  })});
+ });
  await desktop.exposeFunction('__novaLocalGenerateForTest',async payload=>{
   modeChatRequests.push(payload);
   return 'NOVA_CHAT_FLOW_OK_'+modeChatRequests.length;
@@ -259,7 +268,10 @@ try{
  assert.equal(hostedChatRequests,0,'Agents chat must not call the disabled hosted chat endpoint');
  const persistedModeHistory=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova_modes_v1')||'{}').histories?.general||[]);
  assert.ok(persistedModeHistory.some(m=>m.role==='user'&&m.text==='Please verify the NOVA chat round trip.'),'Agents chat must persist the user message in its own mode history');
- assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK_1'),'Agents chat must persist the assistant reply in its own mode history');
+ assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text.startsWith('NOVA_CHAT_FLOW_OK_1')),'Agents chat must persist the assistant reply and appended source list in its own mode history');
+ assert.equal(liveModeRequests.length,1,'Agents chat must fetch live public evidence without a provider API key');
+ assert.equal(liveModeRequests[0].mode,'always','Agents chat must request live evidence by default');
+ assert.ok(persistedModeHistory.some(m=>m.role==='assistant'&&m.text.includes('https://example.org/nova-live-smoke')),'Agents chat must preserve source URLs with the answer');
  console.log('PASS Agents chat round trip through local AI, assistant response and per-mode history persistence');
 
  // Simulate MediaRecorder and local audio decoding so the voice-to-local-Whisper bridge is deterministic without microphone hardware.
@@ -293,7 +305,7 @@ try{
  assert.equal(modeChatRequests.length,2,'local voice transcription must submit exactly one additional local model request');
  const voiceHistory=await desktop.evaluate(()=>JSON.parse(localStorage.getItem('nova_modes_v1')||'{}').histories?.voice||[]);
  assert.ok(voiceHistory.some(m=>m.role==='user'&&m.text==='Voice transcript smoke test'),'voice transcript must enter the Voice mode history');
- assert.ok(voiceHistory.some(m=>m.role==='assistant'&&m.text==='NOVA_CHAT_FLOW_OK_2'),'voice reply must persist in the Voice mode history');
+ assert.ok(voiceHistory.some(m=>m.role==='assistant'&&m.text.startsWith('NOVA_CHAT_FLOW_OK_2')),'voice reply and live source list must persist in the Voice mode history');
  console.log('PASS local MediaRecorder-to-Whisper voice bridge, Hindi selection, 16 kHz resampling and Voice history persistence');
 
  // Agents Studio must also use the browser-local model rather than the disabled hosted endpoint.
