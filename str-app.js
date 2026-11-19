@@ -15,7 +15,7 @@ stageCheck:'03 · Quality',stageCheckDesc:'Check safety, mobile layout and compl
 footer:'STR is in setup. Build generation will be enabled after the secure pipeline is ready.',
 tagline:'Short prompt. Complete app.',skipIntro:'Skip intro',owner:'Owner mode',empty:'Write a short description first.',
 saved:'Draft saved on this device.',saveError:'This browser could not save the draft. Please try again.',
-cleared:'Draft cleared.',welcome:'You can choose Hindi or English. You can change this any time.'
+cleared:'Draft cleared.',welcome:'You can choose Hindi or English. You can change this any time.',savePlan:'Save plan edits',specSaved:'Plan changes saved on this device.',conversionBlocked:'Content conversion needs a verified provider and is not available yet.',voiceUnavailable:'On-device speech recognition is not available in this build. Please type your idea.'
 },
 hi:{
 back:'Nova',replyLabel:'उत्तर भाषा',contentLabel:'वेबसाइट की भाषा',createSpec:'शुरुआती योजना बनाएँ',specEyebrow:'स्थानीय शुरुआती योजना',specTitle:'अपनी शुरुआती योजना जाँचें',localBadge:'स्थानीय नियम · AI नहीं',sectionsTitle:'पेज के हिस्से',assumedTitle:'जाँचने वाली मान्यताएँ',placeholderTitle:'अभी जरूरी जानकारी',buildBlocked:'पूरा AI वेबसाइट निर्माण और ZIP export अभी चालू नहीं हैं। यह केवल समीक्षा के लिए शुरुआती रूपरेखा है।',analyzing:'स्थानीय शुरुआती योजना बनाई जा रही है…',specReady:'शुरुआती योजना तैयार है। इस्तेमाल से पहले हर मान्यता जाँचें।',specError:'योजना नहीं बन पाई। विवरण जाँचकर दोबारा कोशिश करें।',unsafeError:'इस अनुरोध से योजना नहीं बनाई जा सकती।',localNote:'आपका prompt और शुरुआती योजना Nova के अंदर रहते हैं। इस preview में कोई AI provider इस्तेमाल नहीं होता।',headline:'एक स्पष्ट विचार। पूरा build।',
@@ -28,10 +28,10 @@ stageCheck:'03 · गुणवत्ता',stageCheckDesc:'सुरक्ष�
 footer:'STR अभी तैयार हो रहा है। सुरक्षित build pipeline तैयार होने के बाद generation चालू होगी।',
 tagline:'छोटा सा प्रॉम्प्ट, पूरा ऐप।',skipIntro:'इंट्रो छोड़ें',owner:'मालिक मोड',empty:'पहले छोटा-सा विवरण लिखें।',
 saved:'ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।',saveError:'इस browser में ड्राफ्ट सुरक्षित नहीं हो पाया। दोबारा कोशिश करें।',
-cleared:'ड्राफ्ट साफ़ कर दिया गया।',welcome:'आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं।'
+cleared:'ड्राफ्ट साफ़ कर दिया गया।',welcome:'आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं।',savePlan:'योजना में बदलाव सुरक्षित करें',specSaved:'योजना में किए गए बदलाव इसी डिवाइस पर सुरक्षित हो गए।',conversionBlocked:'Content बदलने के लिए verified provider चाहिए; यह सुविधा अभी उपलब्ध नहीं है।',voiceUnavailable:'इस build में डिवाइस पर चलने वाली voice typing उपलब्ध नहीं है। कृपया अपना विचार टाइप करें।'
 }
 };
-let lang='en', replyLang='en', replyLangExplicit=false, contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false, currentSpec=null;
+let lang='en', replyLang='en', replyLangExplicit=false, contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false, currentSpec=null, currentFieldValues={};
 function readInitialLanguage(){
  try{const v=localStorage.getItem('str_ui_lang');if(v==='hi'||v==='en')return v;}catch(e){}
  try{const n=JSON.parse(localStorage.getItem('nova')||'{}');return n.uiLang==='hi'?'hi':'en';}catch(e){return 'en';}
@@ -106,32 +106,62 @@ function clientId(){
   return id;
  }catch(e){return 'str'+Date.now().toString(36)+Math.random().toString(36).slice(2,18);}
 }
+async function persistSpecEdits(){
+ try{
+  const previous=await getLatestDraft(),now=Date.now(),prompt=$('strPrompt').value.trim();
+  if(!prompt||!currentSpec)return;
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:currentSpec,fieldValues:currentFieldValues,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1});
+  status(dict[lang].specSaved);
+ }catch(e){status(dict[lang].saveError);}
+}
 function renderSpec(payload){
  currentSpec=payload.spec;
  const panel=$('strSpecPanel');panel.hidden=false;
  $('strSpecNotice').textContent=payload.notice&&payload.notice[lang]||dict[lang].specReady;
  const meta=$('strSpecMeta');meta.replaceChildren();
  const contentName=currentSpec.content_lang==='hi'?'हिंदी':currentSpec.content_lang==='hinglish'?'Hinglish':'English';
- [currentSpec.name,currentSpec.kind,contentName,currentSpec.pages.length+' page(s)'].forEach(v=>appendText(meta,'span',v,'str-spec-chip'));
+ [currentSpec.kind,contentName,currentSpec.pages.length+' page(s)'].forEach(v=>appendText(meta,'span',v,'str-spec-chip'));
+ const nameLabel=document.createElement('label');nameLabel.className='str-spec-name-label';
+ appendText(nameLabel,'span',lang==='hi'?'प्रोजेक्ट का नाम':'Project name');
+ const nameInput=document.createElement('input');nameInput.id='strSpecName';nameInput.type='text';nameInput.maxLength=100;nameInput.value=currentSpec.name;nameInput.setAttribute('aria-label',lang==='hi'?'प्रोजेक्ट का नाम':'Project name');
+ nameInput.addEventListener('change',async()=>{const value=nameInput.value.trim().slice(0,100);if(!value){nameInput.value=currentSpec.name;return;}currentSpec.name=value;currentSpec.seo.title.hi=value;currentSpec.seo.title.en=value;await persistSpecEdits();});
+ nameLabel.appendChild(nameInput);meta.appendChild(nameLabel);
  const sections=$('strSpecSections');sections.replaceChildren();
  currentSpec.pages.forEach(page=>{
-  appendText(sections,'h3',(page.title&&(page.title[contentLang]||page.title.en))||'Page');
+  const card=document.createElement('details');card.className='str-spec-page';card.open=true;
+  const summary=document.createElement('summary');
+  summary.textContent=(page.title&&(page.title[contentLang]||page.title.en))||'Page';
+  card.appendChild(summary);
+  const convert=document.createElement('button');convert.type='button';convert.disabled=true;convert.className='str-convert-disabled';convert.textContent=lang==='hi'?'भाषा बदलें':'Convert';convert.title=dict[lang].conversionBlocked;card.appendChild(convert);
   page.sections.forEach(section=>{
-   const card=document.createElement('article');card.className='str-spec-section';
-   appendText(card,'b',(section.content.heading&&(section.content.heading[contentLang]||section.content.heading.en))||section.id);
-   appendText(card,'p',(section.content.body&&(section.content.body[contentLang]||section.content.body.en))||'');
-   sections.appendChild(card);
+   const row=document.createElement('article');row.className='str-spec-section';
+   const header=document.createElement('div');header.className='str-section-heading';
+   appendText(header,'b',(section.content.heading&&(section.content.heading[contentLang]||section.content.heading.en))||section.id);
+   const sectionConvert=document.createElement('button');sectionConvert.type='button';sectionConvert.disabled=true;sectionConvert.textContent=lang==='hi'?'बदलें':'Convert';sectionConvert.title=dict[lang].conversionBlocked;header.appendChild(sectionConvert);
+   row.appendChild(header);
+   appendText(row,'p',(section.content.body&&(section.content.body[contentLang]||section.content.body.en))||'');
+   card.appendChild(row);
   });
+  sections.appendChild(card);
  });
  const assumed=$('strAssumed');assumed.replaceChildren();
  currentSpec.assumed.forEach(item=>{
-  const li=document.createElement('li');
-  const why=item.why&&item.why[lang]||'';
-  li.textContent=item.field+': '+item.value+' — '+why;
-  assumed.appendChild(li);
+  const row=document.createElement('li');row.className='str-assumption-row';
+  appendText(row,'span',item.field,'str-assumption-field');
+  const input=document.createElement('input');input.type='text';input.maxLength=200;input.value=item.value;input.setAttribute('aria-label',(lang==='hi'?'मान्यता संपादित करें: ':'Edit assumption: ')+item.field);
+  input.addEventListener('change',async()=>{item.value=input.value.trim().slice(0,200);await persistSpecEdits();});
+  row.appendChild(input);
+  appendText(row,'small',item.why&&item.why[lang]||'','str-assumption-why');
+  assumed.appendChild(row);
  });
  const placeholders=$('strPlaceholders');placeholders.replaceChildren();
- currentSpec.placeholders.forEach(item=>appendText(placeholders,'li',item));
+ currentSpec.placeholders.forEach(item=>{
+  const row=document.createElement('li');row.className='str-placeholder-row';
+  appendText(row,'label',item,'str-placeholder-label');
+  const input=document.createElement('input');input.type='text';input.maxLength=300;input.placeholder=lang==='hi'?'यह जानकारी यहाँ भरें':'Enter this detail here';input.value=currentFieldValues[item]||'';input.setAttribute('aria-label',item);
+  input.addEventListener('change',async()=>{const value=input.value.trim().slice(0,300);if(value)currentFieldValues[item]=value;else delete currentFieldValues[item];await persistSpecEdits();});
+  row.appendChild(input);placeholders.appendChild(row);
+ });
 }
 async function createSpec(){
  const prompt=$('strPrompt').value.trim();
@@ -153,7 +183,7 @@ async function createSpec(){
   if(!data.spec||data.aiGenerated!==false||data.mode!=='local_rules_no_provider')throw new Error('Unexpected local spec response');
   renderSpec(data);
   const previous=await getLatestDraft(),now=Date.now();
-  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:data.spec,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,spec:currentSpec||undefined});
+  await putDraft({id:previous&&previous.id||('str-'+now+'-'+Math.random().toString(36).slice(2,8)),prompt,spec:data.spec,status:'spec_ready',createdAt:previous&&previous.createdAt||now,updatedAt:now,uiLang:lang,contentLang,replyLang,specVersion:1,spec:currentSpec||undefined,fieldValues:currentFieldValues});
   status(dict[lang].specReady);
  }catch(e){status(dict[lang].specError);}
  finally{button.disabled=false;button.textContent=dict[lang].createSpec;}
