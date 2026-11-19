@@ -3,7 +3,7 @@
 const KINDS = new Set(['shop','coaching','tiffin','freelancer','portfolio','event','tool','other']);
 const CONTENT_LANGS = new Set(['hi','hinglish','en']);
 const UI_LANGS = new Set(['hi','en']);
-const SECTION_TYPES = new Set(['hero','list','grid','form','faq','contact','map','footer','calculator','tracker','custom']);
+const SECTION_TYPES = new Set(['hero','list','grid','form','faq','contact','map','footer','calculator','tracker','features','custom']);
 const FEATURES = new Set(['whatsapp','call','contact_form','gallery','price_list','calculator','booking_form','share','qr','quiz','tracker']);
 const ROOT_KEYS = ['v','name','kind','content_lang','ui_lang_at_creation','theme','colors','fonts','pages','features','contact','seo','assumed','placeholders','unsafe'];
 
