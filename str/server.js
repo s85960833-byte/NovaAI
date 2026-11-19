@@ -5,6 +5,7 @@ const { sameOrigin, exactKeys, validClientId, consumeWindow, plainObject } = req
 const providerConfig = require('./provider-config.json');
 const { eligibleProviders } = require('./provider-router');
 const { classifyPrompt } = require('./safety');
+const { generateLocalSpec } = require('./spec-engine');
 
 const RETENTION_DAYS = 7;
 const MAX_BODY_BYTES = 20 * 1024;
@@ -38,6 +39,8 @@ function createStrRouter() {
     requestsPerDay: null,
     tokensPerDay: null,
     unknownLimitsAction: 'block_and_report',
+    specPreviewEnabled: true,
+    specPreviewMode: 'local_rules_no_provider',
     eligibleOwnerTestProviders: eligibleProviders(providerConfig, 'owner_non_personal_test_data').length,
     eligibleCustomerProviders: eligibleProviders(providerConfig, 'customer_data').length,
     message: {
@@ -87,7 +90,25 @@ function createStrRouter() {
         en: safety.messages.map(x => x.en).join(' ')
       }
     });
-    return disabled(res);
+    try {
+      const spec = generateLocalSpec({ prompt: b.prompt, uiLang: b.uiLang, contentLang: b.contentLang });
+      return res.status(200).json({
+        ok: true,
+        mode: 'local_rules_no_provider',
+        provider: null,
+        aiGenerated: false,
+        spec,
+        notice: {
+          hi: 'यह शुरुआती योजना स्थानीय नियमों से बनी है, AI से नहीं। नाम, कीमत और बाकी मान्यताओं की जाँच करें। पूरा AI build अभी सुरक्षित provider की पुष्टि होने तक बंद है।',
+          en: 'This starter plan was assembled with local rules, not AI. Review the name, prices and assumptions. Full AI building remains disabled until a provider is verified.'
+        }
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: 'STR could not validate its local starter plan.',
+        code: 'STR_LOCAL_SPEC_FAILED'
+      });
+    }
   });
 
   router.post('/section', postGuard, (req, res) => {
