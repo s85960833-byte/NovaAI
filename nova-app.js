@@ -26,7 +26,7 @@ return String(value).replace(re,(all,prefix,phrase)=>{let total=0,current=0;for(
 async function localMathPhase(hist){
 const tx=m=>typeof m.content==='string'?m.content:(m.content||[]).map(p=>p.text||'').join(' ');
 const last=hist.filter(m=>m.role==='user').slice(-1)[0];if(!last)return '';
-let q=normalizeHindiNumbers(tx(last)).replace(/[०-९]/g,d=>String('०१२३४५६७८९'.indexOf(d))).replace(/,/g,'').trim().replace(/जोड़(?:ो|ें)?|plus|add/gi,' + ').replace(/गुणा|गुना|multiply|times|into/gi,' * ').replace(/घटाओ|घटा|minus|subtract/gi,' - ').replace(/भाग|divide|divided by/gi,' / ').replace(/\s+/g,' ');
+let q=normalizeHindiNumbers(tx(last)).replace(/[०-९]/g,d=>String('०१२३४५६७८९'.indexOf(d))).replace(/,/g,'').trim().replace(/जोड़(?:ो|ें)?|plus|add/gi,' + ').replace(/गुणा|गुना|multiply|times|into/gi,' * ').replace(/घटाओ|घटा|minus|subtract/gi,' - ').replace(/भाग|divide|divided by/gi,' / ').replace(/×/g,' * ').replace(/÷/g,' / ').replace(/\s+/g,' ');
 let expr='',m;
 // Percentage forms: "25% of 400", "400 का 25%", "400 ka 25 percent".
 m=q.match(/(\d+(?:\.\d+)?)\s*(?:%|percent|प्रतिशत)\s*(?:of|का|की|के)?\s*(\d+(?:\.\d+)?)/i);
