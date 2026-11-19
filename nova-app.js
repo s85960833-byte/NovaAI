@@ -26,7 +26,7 @@ const LC={Hindi:'hi-IN',English:'en-IN',Spanish:'es-ES',French:'fr-FR',German:'d
 let S={chats:[],cur:null,rl:'English',uiLang:'en',mem:'',cfg:{base:'',model:'',key:''}},ctl=null,busy=false,doc=null;
 try{S=Object.assign(S,JSON.parse(localStorage.getItem('nova')||'{}'))}catch(e){}
 S.cfg={base:'',model:'',key:''}; // Saved provider settings are intentionally discarded in keyless-only NOVA.
-if(S.live!=='on'&&S.live!=='off')S.live='on'; // Migrate legacy auto/default to live internet research.
+S.live='on'; // Keyless Core always checks public live sources; no hosted AI API is used.
 if(!['English','Hindi'].includes(S.rl))S.rl='English';S.uiLang=S.uiLang==='hi'?'hi':'en';S.deletedChatIds=Array.isArray(S.deletedChatIds)?S.deletedChatIds.map(String).slice(-2000):[];
 try{localStorage.setItem('nova_t','1');localStorage.removeItem('nova_t')}catch(e){STORE=false}
 const persistable=()=>{const value=Object.assign({},S);if(value.cfg)value.cfg=Object.assign({},value.cfg,{key:''});return value};
@@ -105,7 +105,7 @@ const row=(lab,el)=>{const l=document.createElement('label');const s=document.cr
 const sel=(opts,val,fn)=>{const s=document.createElement('select');opts.forEach(([v,t0])=>{const o=document.createElement('option');o.value=v;o.textContent=t0;if(v===val)o.selected=true;s.append(o)});s.onchange=()=>{fn(s.value);save()};return s};
 row(LS('pLen'),sel([['short',LS('pShort')],['normal',LS('pNorm')],['long',LS('pLong')]],P.len,v=>{P.len=v}));
 row(LS('pTone'),sel([['casual',LS('pCas')],['formal',LS('pFor')]],P.tone,v=>{P.tone=v}));
-row(LS('pLive'),sel([['auto',LS('pAuto')],['on',LS('pOn')],['off',LS('pOff')]],S.live||'on',v=>{S.live=v;paintLive()}));
+row(LS('pLive'),sel([['on',LS('pOn')]],'on',()=>{S.live='on';save();paintLive()}));
 const ck=(lab,key)=>{const i=document.createElement('input');i.type='checkbox';i.checked=P[key]!==false;i.onchange=()=>{P[key]=i.checked;save();render()};row(lab,i)};ck(LS('pCite'),'cite');ck(LS('pChips'),'chips');
 const c=document.createElement('input');c.type='text';c.maxLength=40;c.value=P.city||'';c.placeholder='Delhi';c.oninput=()=>{P.city=c.value.trim();save()};row(LS('pCity'),c);
 const tb=document.createElement('button');tb.type='button';tb.textContent='🔧 '+LS('pTest');const so=document.createElement('div');so.className='stout';tb.onclick=async()=>{so.textContent=LS('pTesting');try{const rs=await fetch(API+'/live/selftest'),jj=await rs.json();if(!rs.ok||!jj.results)throw 0;so.innerHTML='';const okn=jj.results.filter(x=>x.ok).length,hb=document.createElement('b');hb.textContent=okn+'/'+jj.results.length+' ✓';so.append(hb);jj.results.forEach(x=>{const d=document.createElement('div');d.textContent=(x.ok?'✅ ':'❌ ')+x.name+' — '+x.ms+' ms'+(x.ok?'':' ('+x.note+')');so.append(d)})}catch(e){so.textContent='❌ '+LS('pTestFail')}};box.append(tb,so);
@@ -114,7 +114,7 @@ async function ask(c){if(!window.NovaLocalAI||typeof window.NovaLocalAI.generate
 
 busy=true;ctl=new AbortController();const a={r:'assistant',c:''};c.m.push(a);render();
 let wr='',wsrc='';
-{const lu=[...c.m].reverse().find(m=>m.r==='user'),lq=lu?String(lu.c||''):'',lmode=S.live||'on',fl=WEB;WEB=false;
+{const lu=[...c.m].reverse().find(m=>m.r==='user'),lq=lu?String(lu.c||''):'',lmode='on',fl=WEB;WEB=false;
 if(SV&&SV.live&&!IM&&lq&&(fl||lmode!=='off')&&(fl||lmode==='on'||(LIVEY.test(lq)&&!lu.img))){
 a.srch=1;render();if(LV)lvSet('search');
 try{const c2=new AbortController(),tm=setTimeout(()=>c2.abort(),24000),ab=()=>c2.abort();ctl.signal.addEventListener('abort',ab);
@@ -652,7 +652,7 @@ $('gen').onclick=()=>setIM(IM?null:{name:t('imMode')});
 $('imbar').onclick=()=>setIM(null);
 setTimeout(()=>{loadJS('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js').then(()=>{try{render()}catch(e){}}).catch(()=>{})},1200);
 fetch(API+'/config').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.model){SV=j;$('cfg').style.display='none';if(j.live||j.web){$('web').hidden=false;paintLive();loadWN()}first=true;syncFeatures();render();trUI()}}).catch(()=>{});
-$('web').onclick=()=>{const o=['auto','on','off'],n=o[(o.indexOf(S.live||'on')+1)%3];S.live=n;save();paintLive();toast(LS(n==='on'?'liveOn':n==='off'?'liveOff':'liveAuto'))};
+$('web').onclick=()=>{S.live='on';save();paintLive();toast(LS('liveOn'))};
 // Hosted AI connectors are intentionally not initialized: NOVA runs browser-local models only.
 
 const SEN=/[.!?।؟]+["')\]]*\s|[。！？]|\n+/g;
