@@ -371,7 +371,7 @@ try{
  await desktop.waitForFunction(()=>document.querySelector('#strStatus')?.textContent.includes('ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।'));
  const strSaved=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})});
  assert.equal(strSaved.length,1,'STR draft must be stored in its own IndexedDB database');
- assert.equal(strSaved[0].prompt,'मेरी दुकान की वेबसाइट बनाओ।','STR must preserve the saved prompt');
+ assert.equal(strSaved[0].prompt,'मेरी दुकान की वेबसाइट बनाओ। WhatsApp और कॉल बटन चाहिए。','STR must preserve the saved prompt');
  assert.equal(strSaved[0].replyLang,'en','draft must persist reply language independently');
  assert.equal(strSaved[0].contentLang,'hinglish','draft must persist the explicit website content language');
  assert.equal(strSaved[0].spec.content_lang,'hinglish','draft must preserve the local spec and its content language');
