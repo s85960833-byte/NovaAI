@@ -26,6 +26,7 @@ const LC={Hindi:'hi-IN',English:'en-IN',Spanish:'es-ES',French:'fr-FR',German:'d
 let S={chats:[],cur:null,rl:'English',uiLang:'en',mem:'',cfg:{base:'',model:'',key:''}},ctl=null,busy=false,doc=null;
 try{S=Object.assign(S,JSON.parse(localStorage.getItem('nova')||'{}'))}catch(e){}
 S.cfg={base:'',model:'',key:''}; // Saved provider settings are intentionally discarded in keyless-only NOVA.
+if(S.live!=='on'&&S.live!=='off')S.live='on'; // Migrate legacy auto/default to live internet research.
 if(!['English','Hindi'].includes(S.rl))S.rl='English';S.uiLang=S.uiLang==='hi'?'hi':'en';S.deletedChatIds=Array.isArray(S.deletedChatIds)?S.deletedChatIds.map(String).slice(-2000):[];
 try{localStorage.setItem('nova_t','1');localStorage.removeItem('nova_t')}catch(e){STORE=false}
 const persistable=()=>{const value=Object.assign({},S);if(value.cfg)value.cfg=Object.assign({},value.cfg,{key:''});return value};
@@ -637,12 +638,6 @@ async function getImg(u,sig){const r=await fetch(u,{signal:sig});if(!r.ok)throw{
 async function dlImg(m){try{let u=m.img,x='png';if(u.startsWith('data:'))x=/^data:image\/svg/.test(u)?'svg':/^data:image\/jpeg/.test(u)?'jpg':'png';else{u=URL.createObjectURL(await getImg(u,new AbortController().signal));x='jpg'}const a=document.createElement('a');a.href=u;a.download='nova-'+Date.now()+'.'+x;document.body.append(a);a.click();a.remove();if(u.startsWith('blob:'))setTimeout(()=>URL.revokeObjectURL(u),4000)}catch(e){window.open(m.img,'_blank','noopener')}}
 async function pollImageJob(jobId,sig){for(let attempt=0;attempt<285;attempt++){if(sig.aborted)throw{name:'AbortError'};await new Promise((resolve,reject)=>{let timer;const abort=()=>{clearTimeout(timer);sig.removeEventListener('abort',abort);reject({name:'AbortError'})};timer=setTimeout(()=>{sig.removeEventListener('abort',abort);resolve()},2000);sig.addEventListener('abort',abort,{once:true})});const r=await fetch(API+'/image/status/'+encodeURIComponent(jobId),{signal:sig,cache:'no-store'}),j=await r.json().catch(()=>({}));if(!r.ok)throw{status:r.status,message:j.error};if(j.status==='done'&&j.image)return j.image;if(j.status==='error')throw{status:502,message:j.error||'Image generation failed'}}throw{status:504,message:'Image queue timed out'}}
 async function makeImg(v,re){if(busy){toast(t('wait'));return}
-let imageSharingAccepted=false;try{imageSharingAccepted=localStorage.getItem('nova_ai_horde_shared_consent_v1')==='accepted'}catch(e){}
-if(SV&&SV.image&&!imageSharingAccepted){
- const notice=ui()==='hi'?'मुफ़्त image generation AI Horde के anonymous volunteer workers पर चलती है। Anonymous requests LAION के dataset सुधारने के लिए share होती हैं। निजी या व्यक्तिगत जानकारी न डालें। इसमें कई मिनट लग सकते हैं। जारी रखें?':'Free image generation uses AI Horde anonymous volunteer workers. Anonymous requests are shared with LAION to improve its dataset. Do not include private or personal information. It may take several minutes. Continue?';
- if(!window.confirm(notice))return;
- try{localStorage.setItem('nova_ai_horde_shared_consent_v1','accepted')}catch(e){}
-}
 if(!chat())newChat();const c=chat(),st=re?re.is:(IM&&IM.d?IM.d:''),ar=re?re.ar:IMS.ar,seed=Math.floor(Math.random()*1e9);popN=2;
 if(!re){c.m.push({r:'user',c:'🎨 '+(st?'['+IM.name+'] ':'')+v});if(c.title==='New chat')c.title=v.slice(0,40);$('in').value='';$('in').style.height='auto'}
 busy=true;ctl=new AbortController();const sig=ctl.signal,a={r:'assistant',c:'',gen:{ar,t0:Date.now()},ip:v,ar,is:st};c.m.push(a);stick=true;render();
