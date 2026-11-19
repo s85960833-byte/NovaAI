@@ -423,6 +423,13 @@ try{
  assert.ok(previewHtml.includes('Updated after approval'),'preview must include approved user edits');
  assert.ok(previewHtml.includes("script-src 'none'"),'preview CSP must disallow scripts');
  assert.ok(!previewHtml.toLowerCase().includes('<script'),'local preview must not embed scripts');
+ assert.match(previewHtml,/<meta[^>]+name=["']viewport["'][^>]+>/i,'local preview must declare a responsive viewport');
+ assert.match(previewHtml,/<h1[ >]/i,'local preview must have a primary page heading');
+ assert.match(previewHtml,/<main[ >]/i,'local preview must expose a main landmark');
+ assert.doesNotMatch(previewHtml,/<(?:iframe|object|embed)\b/i,'local preview must not nest active embedded documents');
+ assert.doesNotMatch(previewHtml,/\son[a-z]+\s*=/i,'local preview must not contain inline event handlers');
+ assert.doesNotMatch(previewHtml,/(?:src|href)\s*=\s*["']https?:\/\//i,'local preview must not load remote resources automatically');
+ assert.ok(previewHtml.length<250000,'local preview must stay within the documented output size cap');
  assert.equal(await desktop.locator('#strPreviewFrame').getAttribute('sandbox'),'allow-scripts allow-forms','preview iframe must not grant same-origin or top-navigation');
  const completedBuild=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.build);r.onerror=()=>reject(r.error)})});
  assert.equal(completedBuild.status,'complete','completed local preview must persist in IndexedDB');
@@ -441,6 +448,8 @@ try{
  assert.ok(zipFiles['GUIDE.md'].includes('English guide')&&zipFiles['GUIDE.md'].includes('हिंदी गाइड'));
  assert.equal(JSON.parse(zipFiles['manifest.webmanifest']).name,'Test Shop Plan');
  assert.ok(zipFiles['icon.svg'].includes('<svg'));
+ assert.ok(zipFiles['GUIDE.md'].includes('not a production application'));
+ assert.ok(Buffer.byteLength(zipFiles['index.html'],'utf8')<250000,'ZIP preview must respect the local output size cap');
  console.log('PASS local ZIP download includes approved preview, bilingual guide, manifest and app icon');
 
 
