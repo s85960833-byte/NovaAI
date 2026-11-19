@@ -324,6 +324,7 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 .str-build-progress{height:6px;margin:10px 0;border-radius:99px;background:#334155;overflow:hidden}
 .str-build-progress span{display:inline-block;padding:4px 9px;border-radius:99px;background:#1e293b;color:#cbd5e1;font-size:11px}
 .str-build-local{min-height:42px;width:100%;border-color:#4f46e5;background:#3730a3;color:#fff;font-weight:800}
+.str-download-zip{margin-top:8px;border-color:#0f766e;background:#115e59}.str-download-zip:disabled{opacity:.45;cursor:not-allowed}
 #strPreviewFrame{display:block;width:100%;height:640px;margin-top:14px;border:1px solid #475569;border-radius:12px;background:#fff}
 @media(max-width:560px){#strPreviewFrame{height:560px}}
 @media(max-width:560px){.str-approve-spec{width:100%}}
@@ -404,6 +405,7 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
           <p id="strBuildStatus" role="status">Approve the spec before building.</p>
           <div class="str-build-progress"><span id="strBuildProgress">0/0</span></div>
           <button id="strBuildLocal" class="str-build-local" type="button" disabled data-str="buildLocal">Build local preview</button>
+          <button id="strDownloadZip" class="str-build-local str-download-zip" type="button" disabled data-str="downloadZip">Download ZIP</button>
           <iframe id="strPreviewFrame" title="Local website preview" sandbox="allow-scripts allow-forms" loading="lazy" hidden></iframe>
         </div>
         <h3 data-str="sectionsTitle">Page sections</h3>
