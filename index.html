@@ -231,7 +231,7 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 .str-app button{min-height:44px;border:1px solid #334155;border-radius:12px;padding:10px 14px;background:#17213a;color:#f8fafc;cursor:pointer}
 .str-app button:focus-visible,.str-app textarea:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
 .str-wrap{width:min(100%,960px);margin:0 auto;min-height:100%;display:flex;flex-direction:column}
-.str-top{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #334155}
+.str-welcome{font-size:11px;line-height:1.4;color:#94a3b8;margin:0 4px;max-width:240px}.str-top{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #334155}
 .str-mark{width:38px;height:38px;flex:none}
 .str-word{font-weight:800;letter-spacing:.06em;font-size:19px}
 .str-grow{flex:1}
@@ -299,7 +299,7 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
         <path d="M78 20 105 8 116 19 102 42 88 33Z" fill="#F59E0B"/>
       </svg>
       <strong class="str-word">STR</strong>
-      <span class="str-grow"></span>
+      <span class="str-grow"></span><p id="strWelcome" class="str-welcome">आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं। / You can choose Hindi or English. You can change this any time.</p>
       <div class="str-lang" role="group" aria-label="STR interface language">
         <button id="strLangHi" type="button" aria-pressed="false">हिंदी</button>
         <button id="strLangEn" type="button" aria-pressed="true">English</button>
