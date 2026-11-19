@@ -2,9 +2,9 @@
 
 Product: STR inside the existing Nova AI app (same production app and URL)
 Prompt version: final-3.0
-Build version: 0.8
+Build version: 0.9
 Current phase: Phase 4 — local chunked build foundation implemented; provider-backed build and complete quality gates remain blocked
-Latest branch commit at this update: 6bf84ba5f435a56b0bac7e7b8875655f20f3d16b
+Latest branch commit at this update: 588b186bb23fae596c4d4844975a861f71ce7af4
 Draft PR: #112
 
 ## Completed work (verified in source and workflow evidence)
@@ -38,7 +38,7 @@ Draft PR: #112
 - Deterministic HTML preview is generated locally without provider calls and is capped in size.
 - Preview is isolated in iframe sandbox=`allow-scripts allow-forms` (no allow-same-origin or top-navigation); preview CSP blocks scripts, network connections, form submission, base URL and object content.
 - Build output remains bound to the approved spec fingerprint.
-- Playwright browser smoke exercised local preview, pause/resume, strict sandbox, CSP and restore behavior successfully on the tested candidate. The full integrated CI is still being rerun after the test collector fix below.
+- Playwright browser smoke exercised local preview, pause/resume, strict sandbox, CSP and restore behavior successfully on the tested candidate. The integrated CI at commit bbee195 passed both backend and browser workflows; latest candidate 8bcffce is under a newer CI rerun after additional changes.
 
 ## Current provider state and decisions
 - Model 1 — owner-only free; customer builds, onboarding, customer sales and billing remain disabled.
@@ -52,10 +52,13 @@ Draft PR: #112
 
 ### Phase 4.2 — provider-backed generation and eight quality gates
 - Not implemented/enabled. Requires a verified permitted provider, exact paid/no-training terms, model, quotas and owner access controls.
-- The eight quality gates must be implemented and tested before any full build is advertised as complete.
+- The eight full-build quality gates must be implemented and tested before any AI-generated full build is advertised as complete. Local ZIP packaging checks are not a substitute for these gates.
 
 ### Phase 5 — delivery package
-- ZIP export, generated icons/assets, complete bilingual handoff guides and store/submission materials remain unimplemented.
+- Implemented a local ZIP export available only after a completed preview and matching approved-spec fingerprint.
+- ZIP contains the static `index.html`, bilingual `GUIDE.md`, `manifest.webmanifest` and generated `icon.svg`; archive entry names and sizes are bounded and the package has a maximum-size guard.
+- Browser smoke inspects the downloaded ZIP entries, confirms the bilingual guide, preview content, manifest and icon, and checks the download unlocks only after approval.
+- Store/submission materials and production-ready backend/deployment packaging remain out of scope until the secure generation pipeline is verified.
 
 ### Phase 6 — quotas and billing framework
 - Customer monetization/onboarding deliberately disabled by Model 1; only add owner-safe internal accounting necessary for the owner-only path.
@@ -71,7 +74,7 @@ Draft PR: #112
 ## Latest regression investigation
 - Previous run at commit fc74fd4: main backend verification and integrated browser checks completed except five-viewport layout regression, which collected the exact Chromium opaque-sandbox localStorage SecurityError as a page error.
 - That SecurityError states the document is sandboxed and lacks allow-same-origin; do not weaken the preview sandbox to make the test green.
-- Commit 6bf84ba adds a narrow test-only classification for that exact browser error and explicitly asserts the preview iframe sandbox remains `allow-scripts allow-forms`. New CI runs are pending.
+- Commit 6bf84ba added a narrow test-only classification for that exact browser error and explicitly asserts the preview iframe sandbox remains `allow-scripts allow-forms`. Both workflows passed on bbee195. Candidate 8bcffce started new runs; latest copy correction is committed at 588b186 and must be reverified.
 - Any unrelated runtime error or CSP violation must still fail tests.
 
 ## Production and branch invariants
