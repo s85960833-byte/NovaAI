@@ -363,8 +363,10 @@ try{
  assert.equal(savedDetails.content.body.hinglish,'Yahan products aur services ki details dein.','section description edit must persist in Hinglish');
  await desktop.locator('#strBack').click();
  await desktop.waitForFunction(()=>document.querySelector('#strApp').hidden);
+ await desktop.evaluate(()=>{document.querySelector('#strSpecPanel').hidden=true;});
  await desktop.locator('#nStr').click();
  await desktop.locator('#strSpecPanel').waitFor({state:'visible'});
+ await desktop.waitForFunction(()=>document.querySelector('[data-str-page-id="home"] [data-str-field="page-title"]')?.value==='Home Ghar');
  assert.equal(await desktop.locator('[data-str-page-id="home"] [data-str-field="page-title"]').inputValue(),'Home Ghar','page title must restore from IndexedDB');
  assert.equal(await desktop.locator('[data-str-section-id="details"] [data-str-field="heading"]').inputValue(),'Products and services','section heading must restore from IndexedDB');
 
