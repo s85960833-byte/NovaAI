@@ -5,35 +5,16 @@ hi:{new:'＋ नई चैट',search:'चैट खोजें…',mem:'🧠 �
 const ui=()=>S.uiLang==='hi'?'hi':'en';
 const t=k=>{const chosen=T[ui()]?.[k],fallback=T[ui()==='hi'?'en':'hi']?.[k];return chosen??fallback??k};
 function applyUI(){document.documentElement.lang=ui();document.documentElement.dir='ltr';document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));document.querySelectorAll('[data-p]').forEach(e=>e.placeholder=t(e.dataset.p));$('in').placeholder=t('ph');if($('uiLangTop')){$('uiLangTop').value=ui();$('uiLangTop').setAttribute('aria-label',ui()==='hi'?'इंटरफ़ेस भाषा':'Interface language')}if($('uiLang'))$('uiLang').value=ui();const languageLabel=document.querySelector('.ui-language-label');if(languageLabel)languageLabel.textContent=ui()==='hi'?'भाषा':'Language';fillMode();syncAcc();document.querySelector('.note').textContent=t('note');$('privt').innerHTML=String(t('privacy')).replace(/<(?!\/?(p|ul|li|b)\b)[^>]*>/gi,'').replace(/<(p|ul|li|b)\b[^>]*>/gi,'<$1>');window.dispatchEvent(new CustomEvent('nova:ui-language-changed',{detail:{language:ui()}}));window.NovaBusiness?.refreshLanguage?.();}
-let pimg=null,SV={model:'nova-local-browser',local:true,image:true,stt:true,live:true,web:true,providers:{keyless:true,hostedAi:false}},SMP=null,WEB=false,IM=null,LV=false,stick=true,paintQ=0,STORE=true,popN=0,dashEnter=true,first=false,camStream=null,camFace='environment',pickGot=false;
+let pimg=null,SV={model:'nova-local-browser',local:true,image:false,stt:true,live:true,web:true,providers:{keyless:true,hostedAi:false}},SMP=null,WEB=false,IM=null,LV=false,stick=true,paintQ=0,STORE=true,popN=0,dashEnter=true,first=false,camStream=null,camFace='environment',pickGot=false;
 /* ---- Exact maths (math.js + nerdamer) and formulas (KaTeX), loaded only when needed ---- */
 const _ld={};function loadJS(u){return _ld[u]||(_ld[u]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;const f=e=>{delete _ld[u];no(e)};setTimeout(()=>f(new Error('timeout')),8000);s.onload=ok;s.onerror=()=>f(new Error('load '+u));document.head.appendChild(s)}))}
 let _M=null,_N=null;
-async function getMath(){if(_M)return _M;try{await loadJS('https://cdnjs.cloudflare.com/ajax/libs/mathjs/15.2.0/math.min.js');if(window.math){_M=window.math.create(window.math.all,{number:'BigNumber',precision:50});return _M}}catch(e){}return null}
-async function getNerd(){if(_N)return _N;try{await loadJS('https://cdnjs.cloudflare.com/ajax/libs/nerdamer/1.1.13/all.min.js');if(window.nerdamer){_N=window.nerdamer;return _N}}catch(e){}return null}
-async function runTool(n,a){
-if(n==='calculate'){const e=String(a.expression||'');const M=await getMath();if(M)return M.format(M.evaluate(e),{precision:20});throw new Error('calculator library did not load')}
-if(n==='symbolic'){const N=await getNerd();if(!N)throw new Error('symbolic engine unavailable');const e=String(a.expression||''),v=a.variable||'x',op=a.operation;let r;
-if(op==='solve')r=N.solve(e,v);else r=N((op==='integrate'?'integrate(':op==='diff'?'diff(':op==='factor'?'factor(':op==='expand'?'expand(':'simplify(')+e+(op==='integrate'||op==='diff'?','+v:'')+')');return String(r.toString())}
-throw new Error('unknown tool')}
-const MTOOLS=[{type:'function',function:{name:'calculate',description:'Exactly evaluate a numeric expression (math.js syntax: + - * / ^ ( ) sqrt() sin() log() etc). Use for EVERY arithmetic step. Percent: X% of Y = Y*X/100.',parameters:{type:'object',properties:{expression:{type:'string'}},required:['expression']}}},{type:'function',function:{name:'symbolic',description:'Symbolic algebra and calculus: integrate, diff, solve (equation or expression = 0), factor, expand, simplify.',parameters:{type:'object',properties:{operation:{type:'string',enum:['integrate','diff','solve','factor','expand','simplify']},expression:{type:'string'},variable:{type:'string'}},required:['operation','expression']}}}];
-const MATHY=/(\d\s*[-+*\/^×÷]\s*\d)|%|percent|प्रतिशत|sqrt|root|मूल|वर्ग|घन|गुणा|जोड़|घटा|integra|derivativ|differenti|इंटीग्रल|अवकल|समीकरण|equation|solve|calculat|compute|कितना|कितने|how much|simplif|factor|हिसाब|ब्याज|interest|औसत|average|\b(sin|cos|tan|log|ln)\b|सौ|हज़ार|हजार|लाख|करोड़/i;
-async function mathPhase(hist,signal,mdl){
-const tx=m=>typeof m.content==='string'?m.content:(m.content||[]).map(p=>p.text||'').join(' ');
-const last=hist.filter(m=>m.role==='user').slice(-1)[0];if(!last||!MATHY.test(tx(last)))return '';
-const msgs=[{role:'system',content:'You are a calculation router. For every numeric calculation or algebra/calculus step in the user request, call the tools instead of computing in your head. First convert Hindi/English number words to digits (for example दो सौ पचास = 250, and 17 प्रतिशत of X = X*17/100). Call tools only; never write the final answer.'},...hist.slice(-3).map(m=>({role:m.role,content:tx(m).slice(0,600)}))];
-const res=[];
-for(let k=0;k<2;k++){let r;try{r=await fetch(API+'/chat/completions',{method:'POST',signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({model:mdl,stream:false,messages:msgs,tools:MTOOLS,tool_choice:'auto'})})}catch(e){break}
-if(!r.ok)break;let j;try{j=await r.json()}catch(e){break}const m=j.choices&&j.choices[0]&&j.choices[0].message;if(!m||!m.tool_calls||!m.tool_calls.length)break;
-msgs.push({role:'assistant',content:m.content||'',tool_calls:m.tool_calls});
-for(const tc of m.tool_calls){let a={},o;try{a=JSON.parse(tc.function.arguments||'{}');o=await runTool(tc.function.name,a)}catch(e){o='Error: '+e.message}res.push(tc.function.name+'('+JSON.stringify(a)+') = '+(/^Error/.test(o)?'(tool unavailable for this step: compute it carefully yourself and say it is unchecked)':o));msgs.push({role:'tool',tool_call_id:tc.id,content:String(o)})}}
-return res.length?'\n\nVerified results from the exact calculator (use exactly these values in your answer and show the steps):\n'+res.join('\n'):''}
 const mathify=h=>{if(!window.katex)return h;const f=(t,d)=>{try{return katex.renderToString(t.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&amp;/g,'&'),{output:'mathml',displayMode:d,throwOnError:false})}catch(e){return t}};return h.split(/(<pre>[\s\S]*?<\/pre>)/).map(x=>x.startsWith('<pre>')?x:x.replace(/\\\[([\s\S]+?)\\\]/g,(m,t)=>f(t,true)).replace(/\\\(([\s\S]+?)\\\)/g,(m,t)=>f(t,false))).join('')};
 async function llm(p){
 if(!SV||!SV.local||!window.NovaLocalAI)return '';
 return window.NovaLocalAI.generate([{role:'user',content:String(p||'')}],{max_new_tokens:320});
 }
-async function trUI(){const l=S.rl;if(!l||l==='Auto'||l==='English'||l==='Hindi'||(S.tr&&S.tr[l]&&S.tr[l].arT)||!(SMP||SV||S.cfg.key||BUILT_IN))return;
+async function trUI(){const l=S.rl;if(!l||l==='Auto'||l==='English'||l==='Hindi'||(S.tr&&S.tr[l]&&S.tr[l].arT)||!(SV&&SV.local&&window.NovaLocalAI))return;
 $('in').placeholder='…';try{const o=await llm('Translate the string values of this JSON into '+l+'. Keep the keys, the emoji and symbols (＋ ⬇ ⬆ ⚙ 🧠 🔒 🌐), the name Nova AI and all HTML tags and the placeholder {s} unchanged. Reply with ONLY the JSON.\n'+JSON.stringify(T.en));
 const j=JSON.parse(o.slice(o.indexOf('{'),o.lastIndexOf('}')+1));if(j.chips&&j.privacy&&j.hello){S.tr=S.tr||{};S.tr[l]=Object.assign({},T.en,j);save()}}catch(e){}
 if(S.rl===l){applyUI();render()}}
@@ -41,7 +22,7 @@ const shrink=f=>new Promise((ok,no)=>{const u=URL.createObjectURL(f),im=new Imag
 
 const L=['English','हिन्दी|Hindi'];
 const LC={Hindi:'hi-IN',English:'en-IN',Spanish:'es-ES',French:'fr-FR',German:'de-DE',Arabic:'ar-SA',Chinese:'zh-CN',Japanese:'ja-JP',Korean:'ko-KR',Bengali:'bn-IN',Tamil:'ta-IN',Telugu:'te-IN',Marathi:'mr-IN',Gujarati:'gu-IN',Urdu:'ur-PK',Portuguese:'pt-BR',Russian:'ru-RU',Turkish:'tr-TR',Indonesian:'id-ID',Punjabi:'pa-IN',Kannada:'kn-IN',Malayalam:'ml-IN'};
-/*BUILTIN*/const BUILT_IN=null;/*END*/
+/*BUILTIN*//* Hosted BUILT_IN provider fallback intentionally removed in keyless core. */
 let S={chats:[],cur:null,rl:'English',uiLang:'en',mem:'',cfg:{base:'',model:'',key:''}},ctl=null,busy=false,doc=null;
 try{S=Object.assign(S,JSON.parse(localStorage.getItem('nova')||'{}'))}catch(e){}
 S.cfg={base:'',model:'',key:''}; // Saved provider settings are intentionally discarded in keyless-only NOVA.
@@ -86,7 +67,7 @@ function renderMain(){document.body.classList.toggle('nova-image-mode',!!IM);doc
 if(!c||!c.m.length){dash()}
 else{c.m.forEach((m,i)=>{const n=bubble(m,i===c.m.length-1);if(popN&&i>=c.m.length-popN)n.classList.add('pop');log.append(n)});popN=0}
 $('send').textContent=busy?'■':'↑';$('send').setAttribute('aria-label',t(busy?'stop':'send'));$('imbar').hidden=!IM;if($('imopt'))$('imopt').hidden=!IM;if(IM)$('imbar').textContent='🎨 '+t('imMode')+(IM.d?' · '+IM.name:'')+'  ✕';$('in').placeholder=IM?t('imPh'):t('ph');$('xcopy').hidden=$('xexp').hidden=!(c&&c.m.length);$('xcopy').title=t('copyChat');$('xexp').title=t('expChat');$('xcopy').setAttribute('aria-label',t('copyChat'));$('xexp').setAttribute('aria-label',t('expChat'));$('docbar').hidden=!doc&&!pimg;$('docbar').textContent=(doc?'📎 '+doc.n+'  ':'')+(pimg?t('img')+'  ':'')+'✕';if(pimg){const im=new Image();im.src=pimg;im.className='mini';im.alt='';$('docbar').prepend(im)}{const mm=$('msgs');if(!(chat()&&chat().m.length))mm.scrollTop=0;else if(stick)mm.scrollTop=mm.scrollHeight;$('tobot').hidden=stick||!(c&&c.m.length)}}
-function errText(e){const s=e&&e.status;if(!s&&navigator.onLine===false)return 'इंटरनेट बंद है — कनेक्शन चालू करके दोबारा भेजें. / No internet connection: turn it on and resend.';if(SV&&(s===401||s===403))return 'सर्वर की API चाबी गलत या खत्म हो गई है — Render में LLM_KEY जाँचें. / The server API key is wrong or expired: check LLM_KEY on Render.';if(e&&(e.vis||e.code==='images_unavailable'||e.code==='image_rejected'))return t('eVis');if(e&&e.code==='rate_limited')return t('eRate');if(e&&e.code==='not_granted')return t('eGrant');if(s===401||s===403)return t('e401');if(s===429)return t('e429');if(s===400)return t('e400');if(s===404)return t('e404');if(s)return t('eSrv').replace('{s}',s);return t('eNet')}
+function errText(e){const s=e&&e.status;if(!s&&navigator.onLine===false)return 'इंटरनेट बंद है — कनेक्शन चालू करके दोबारा भेजें. / No internet connection: turn it on and resend.';if(SV&&(s===401||s===403))return 'A public internet source refused the request. Nova local AI can still answer from its on-device model. / किसी सार्वजनिक इंटरनेट स्रोत ने अनुरोध रोक दिया। Nova का लोकल AI फिर भी जवाब दे सकता है।';if(e&&(e.vis||e.code==='images_unavailable'||e.code==='image_rejected'))return t('eVis');if(e&&e.code==='rate_limited')return t('eRate');if(e&&e.code==='not_granted')return t('eGrant');if(s===401||s===403)return t('e401');if(s===429)return t('e429');if(s===400)return t('e400');if(s===404)return t('e404');if(s)return t('eSrv').replace('{s}',s);return t('eNet')}
 
 const LSTR={en:{srch:'Searching live sources…',live:'Live',sources:'sources',unavail:'Live verification is unavailable right now — this answer may be outdated.',partial:'Some sources were unavailable: ',liveAuto:'Live search: Auto (searches when the question needs fresh facts)',liveOn:'Live search: Always on',liveOff:'Live search: Off',wnT:'World Now',wnUp:'Updated',wnLoad:'Loading the latest headlines…',wnFail:'Could not load headlines right now.',wnAsk:'Explain this news in simple words with the latest details: ',pers:'Personalization',pLen:'Answer length',pShort:'Short',pNorm:'Normal',pLong:'Detailed',pTone:'Tone',pCas:'Casual',pFor:'Formal',pLive:'Live search',pAuto:'Auto',pOn:'Always',pOff:'Off',pCite:'Show [1] source numbers in answers',pChips:'Show source list under answers',pCity:'My city (weather & time)',pRate:'Speech speed',verify:'Check this live',pTest:'Test live sources',pTesting:'Testing…',pTestFail:'Test could not run',tabs:{world:'World',india:'India',hindi:'हिंदी',tech:'Tech',science:'Science',business:'Business',sports:'Sports'},q:[['📰','Breaking news','What is happening in the world right now?'],['🌤','Weather','What is the weather like today{c}?'],['📈','Markets','Sensex, Nifty, gold and bitcoin price now'],['🏏','Sports','Latest sports scores today'],['🤖','AI & tech','Latest AI and tech news today'],['🔬','Science','Latest science discoveries this week'],['☀️','Daily briefing','My daily briefing today: top world and India news, tech, markets and weather{c}'],['📅','2026 so far','Timeline of the major world events of 2026 so far']]},
 hi:{srch:'लाइव स्रोतों में खोज रहा हूँ…',live:'लाइव',sources:'स्रोत',unavail:'अभी लाइव जाँच उपलब्ध नहीं है — यह जवाब पुराना हो सकता है।',partial:'कुछ स्रोत उपलब्ध नहीं थे: ',liveAuto:'लाइव खोज: ऑटो (ताज़ा जानकारी चाहिए तो खुद खोजेगा)',liveOn:'लाइव खोज: हमेशा चालू',liveOff:'लाइव खोज: बंद',wnT:'दुनिया अभी',wnUp:'अपडेट',wnLoad:'ताज़ा सुर्खियाँ आ रही हैं…',wnFail:'अभी सुर्खियाँ नहीं आ पाईं।',wnAsk:'इस खबर को आसान भाषा में समझाओ और ताज़ा जानकारी दो: ',pers:'पसंद की सेटिंग्स',pLen:'जवाब की लंबाई',pShort:'छोटा',pNorm:'सामान्य',pLong:'विस्तार से',pTone:'अंदाज़',pCas:'दोस्ताना',pFor:'औपचारिक',pLive:'लाइव खोज',pAuto:'ऑटो',pOn:'हमेशा',pOff:'बंद',pCite:'जवाब में [1] स्रोत नंबर दिखाओ',pChips:'जवाब के नीचे स्रोत सूची दिखाओ',pCity:'मेरा शहर (मौसम और समय के लिए)',pRate:'बोलने की रफ़्तार',verify:'लाइव जाँचो',pTest:'लाइव स्रोत जाँचो',pTesting:'जाँच चल रही है…',pTestFail:'जाँच नहीं हो पाई',tabs:{world:'दुनिया',india:'भारत',hindi:'हिंदी',tech:'टेक',science:'विज्ञान',business:'व्यापार',sports:'खेल'},q:[['📰','ताज़ा खबरें','दुनिया में अभी क्या चल रहा है?'],['🌤','मौसम','आज{c} मौसम कैसा है?'],['📈','बाज़ार','सेंसेक्स, निफ्टी, सोना और बिटकॉइन का भाव अभी'],['🏏','खेल','आज के खेल के ताज़ा स्कोर'],['🤖','AI और टेक','आज की ताज़ा AI और टेक खबरें'],['🔬','विज्ञान','इस हफ्ते की नई वैज्ञानिक खोजें'],['☀️','आज की ब्रीफिंग','आज की मेरी ब्रीफिंग: दुनिया और भारत की बड़ी खबरें, टेक, बाज़ार और मौसम{c}'],['📅','2026 अब तक','2026 की अब तक की बड़ी घटनाओं की टाइमलाइन']]}};
@@ -105,7 +86,7 @@ if(!A.length){const d=document.createElement('div');d.className='swarn';d.textCo
 const hd=document.createElement('div');hd.className='shd';let tm='';try{tm=new Date(L.at).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',timeZone:L.tz||undefined,timeZoneName:'short'})}catch(e){}hd.textContent='🔎 '+LS('live')+(tm?' · '+tm:'')+' · '+A.length+' '+LS('sources');w.append(hd);
 if(!S.pref||S.pref.chips!==false){const row=document.createElement('div');row.className='srow';A.forEach(s=>{const a=document.createElement('a');a.className='sc'+(s.q==='primary'?' pri':'');a.href=s.u;a.target='_blank';a.rel='noopener noreferrer nofollow';a.title=s.t;const ag=s.e||fmtAgo(s.d);a.textContent='['+s.n+'] '+String(s.p||'').slice(0,24)+(ag?' · '+ag:'')+(s.q==='primary'?' ✓':'');row.append(a)});w.append(row)}
 if(L.failed&&L.failed.length){const f=document.createElement('div');f.className='sfail';f.textContent=LS('partial')+L.failed.join(', ');w.append(f)}return w}
-function paintLive(){const b=$('web');if(!b)return;const m=S.live||'auto';b.style.background=m==='on'?'var(--acc)':'';b.style.color=m==='on'?'var(--onacc)':'';b.style.opacity=m==='off'?'.45':'';b.textContent=m==='on'?'🔎':'🌐';b.title=LS(m==='on'?'liveOn':m==='off'?'liveOff':'liveAuto');b.setAttribute('aria-label',b.title)}
+function paintLive(){const b=$('web');if(!b)return;const m=S.live||'on';b.style.background=m==='on'?'var(--acc)':'';b.style.color=m==='on'?'var(--onacc)':'';b.style.opacity=m==='off'?'.45':'';b.textContent=m==='on'?'🔎':'🌐';b.title=LS(m==='on'?'liveOn':m==='off'?'liveOff':'liveAuto');b.setAttribute('aria-label',b.title)}
 let WN={t:0,d:null,tab:'world',busy:false,err:0};
 async function loadWN(force){if(!SV||!SV.live||WN.busy)return;if(!force&&WN.d&&Date.now()-WN.t<3e5)return;WN.busy=true;WN.err=0;try{const r=await fetch(API+'/feed?cat=all&lang='+ui()),j=await r.json();if(r.ok&&j.cats&&Object.keys(j.cats).length){WN.d=j.cats;WN.t=Date.now();WN.at=j.at;if(!j.cats[WN.tab])WN.tab=Object.keys(j.cats)[0]}else WN.err=1}catch(e){WN.err=1}WN.busy=false;const p=document.getElementById('wnbody');if(p)fillWN()}
 function askLive(q){$('in').value=q;go()}
@@ -123,16 +104,16 @@ const row=(lab,el)=>{const l=document.createElement('label');const s=document.cr
 const sel=(opts,val,fn)=>{const s=document.createElement('select');opts.forEach(([v,t0])=>{const o=document.createElement('option');o.value=v;o.textContent=t0;if(v===val)o.selected=true;s.append(o)});s.onchange=()=>{fn(s.value);save()};return s};
 row(LS('pLen'),sel([['short',LS('pShort')],['normal',LS('pNorm')],['long',LS('pLong')]],P.len,v=>{P.len=v}));
 row(LS('pTone'),sel([['casual',LS('pCas')],['formal',LS('pFor')]],P.tone,v=>{P.tone=v}));
-row(LS('pLive'),sel([['auto',LS('pAuto')],['on',LS('pOn')],['off',LS('pOff')]],S.live||'auto',v=>{S.live=v;paintLive()}));
+row(LS('pLive'),sel([['auto',LS('pAuto')],['on',LS('pOn')],['off',LS('pOff')]],S.live||'on',v=>{S.live=v;paintLive()}));
 const ck=(lab,key)=>{const i=document.createElement('input');i.type='checkbox';i.checked=P[key]!==false;i.onchange=()=>{P[key]=i.checked;save();render()};row(lab,i)};ck(LS('pCite'),'cite');ck(LS('pChips'),'chips');
 const c=document.createElement('input');c.type='text';c.maxLength=40;c.value=P.city||'';c.placeholder='Delhi';c.oninput=()=>{P.city=c.value.trim();save()};row(LS('pCity'),c);
 const tb=document.createElement('button');tb.type='button';tb.textContent='🔧 '+LS('pTest');const so=document.createElement('div');so.className='stout';tb.onclick=async()=>{so.textContent=LS('pTesting');try{const rs=await fetch(API+'/live/selftest'),jj=await rs.json();if(!rs.ok||!jj.results)throw 0;so.innerHTML='';const okn=jj.results.filter(x=>x.ok).length,hb=document.createElement('b');hb.textContent=okn+'/'+jj.results.length+' ✓';so.append(hb);jj.results.forEach(x=>{const d=document.createElement('div');d.textContent=(x.ok?'✅ ':'❌ ')+x.name+' — '+x.ms+' ms'+(x.ok?'':' ('+x.note+')');so.append(d)})}catch(e){so.textContent='❌ '+LS('pTestFail')}};box.append(tb,so);
 const r=document.createElement('input');r.type='range';r.min='0.7';r.max='1.4';r.step='0.1';r.value=P.rate||1;r.oninput=()=>{P.rate=Number(r.value);save()};row(LS('pRate'),r)}
-async function ask(c){const cf=SMP?{base:'x',model:'x',key:'x'}:SV?{base:API,model:SV.model,key:'-'}:(S.cfg.key?S.cfg:BUILT_IN)||S.cfg;if(!cf.key||!cf.model||!cf.base){$('dcfg').showModal();return}
-if(BUILT_IN&&!S.cfg.key){const d=new Date().toDateString();if(S.day!==d){S.day=d;S.n=0}if((S.n||0)>=30){c.m.push({r:'assistant',c:t('eDay'),e:1});save();render();return}S.n=(S.n||0)+1;save()}
+async function ask(c){if(!window.NovaLocalAI||typeof window.NovaLocalAI.generate!=='function'){c.m.push({r:'assistant',c:'The on-device Nova AI engine is unavailable. Reload NOVA and try again. / NOVA का लोकल AI इंजन उपलब्ध नहीं है। NOVA रीलोड करके फिर कोशिश करें।',e:1});save();render();return}
+
 busy=true;ctl=new AbortController();const a={r:'assistant',c:''};c.m.push(a);render();
 let wr='',wsrc='';
-{const lu=[...c.m].reverse().find(m=>m.r==='user'),lq=lu?String(lu.c||''):'',lmode=S.live||'auto',fl=WEB;WEB=false;
+{const lu=[...c.m].reverse().find(m=>m.r==='user'),lq=lu?String(lu.c||''):'',lmode=S.live||'on',fl=WEB;WEB=false;
 if(SV&&SV.live&&!IM&&lq&&(fl||lmode!=='off')&&(fl||lmode==='on'||(LIVEY.test(lq)&&!lu.img))){
 a.srch=1;render();if(LV)lvSet('search');
 try{const c2=new AbortController(),tm=setTimeout(()=>c2.abort(),24000),ab=()=>c2.abort();ctl.signal.addEventListener('abort',ab);
@@ -146,19 +127,15 @@ const sysRaw="You are "+CFG.brand+", a warm, brilliant assistant in a one-to-one
 const sys=SV?sysRaw:sysRaw.replace(/\[\[\/?PACKS\]\]/g,''),sysLite=sysRaw.replace(/\[\[PACKS\]\][\s\S]*?\[\[\/PACKS\]\]/,'');
 const hs=c.m.slice(0,-1).filter(m=>!m.e&&(m.c!==''||m.img)).slice(-30);let li=-1;hs.forEach((m,i)=>{if(m.img&&m.r==='user')li=i});const hist=mergeRoles(hs.map((m,i)=>({role:m.r==='user'?'user':'assistant',content:(m.r==='user'&&m.img&&i===li)?[{type:'text',text:m.c||PHOTOQ},{type:'image_url',image_url:{url:m.img}}]:m.c})));
 const lc=$('log').lastChild,el=lc&&lc.querySelector?lc.querySelector('.b'):null;
-try{if(SV&&SV.local){const localMessages=[{role:'system',content:sys},...hist];a.c='';const localAnswer=await window.NovaLocalAI.generate(localMessages,{signal:ctl.signal,max_new_tokens:S.mode==='archive'?(CFG.archiveTokens||420):420,onStatus:message=>{a.c='Preparing on-device Nova AI… '+message;schedPaint(el,a)}});a.c=localAnswer;if(li>=0)a.c+='\n\nNote: this local model cannot inspect photo pixels yet. Please type the visible question text.';}else if(SMP){const ms=hist.map(m=>({role:m.role,content:typeof m.content==='string'?m.content:m.content[0].text}));ms[ms.length-1].content=sys+'\n\n---\nUser message:\n'+ms[ms.length-1].content;
-const o={signal:ctl.signal,cache:false,modelTier:LV?'quick':'default',onText:x=>{a.c=x.text;schedPaint(el,a);if(LV)lvFeed(a.c)}};
-if(li>=0){let cap=null;try{cap=(await SMP.limits()).images}catch(x){}
-if(!cap){if(li===hs.length-1)throw{vis:1}}else{const bs=atob(hs[li].img.split(',')[1]),u8=new Uint8Array(bs.length);for(let i=0;i<bs.length;i++)u8[i]=bs.charCodeAt(i);o.images=[new Blob([u8],{type:'image/jpeg'})];if(li<hs.length-1)ms[ms.length-1].content+='\n\n(The photo shared earlier in this chat is attached again for reference.)'}}
-const rr=await SMP(ms,o);a.c=rr.text||a.c;if(!a.c){a.e=1;a.c=t('e400')}}else{const run=async(sysText)=>{const r=await fetch(cf.base.replace(/\/$/,'')+'/chat/completions',{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',Authorization:'Bearer '+cf.key},body:JSON.stringify({model:cf.model,stream:true,max_tokens:(S.mode==='archive'?(CFG.archiveTokens||4096):undefined),temperature:(li>=0||(typeof MATHY!=='undefined'&&MATHY.test((c.m.filter(x=>x.r==='user').pop()||{}).c||'')))?0.3:0.8,messages:[{role:'system',content:sysText},...hist]})});
-if(!r.ok){let b='';try{const j=await r.json();b=(j.error&&(j.error.message||j.error))||''}catch(x){}throw{status:r.status,body:String(b).slice(0,200)}}
-const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
-for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
-for(const l of ls){if(!l.startsWith('data:'))continue;const d=l.slice(5).trim();if(d==='[DONE]')continue;try{a.c+=JSON.parse(d).choices[0].delta.content||''}catch(x){}}
-schedPaint(el,a);if(LV)lvFeed(a.c)}};
-let sysM=sys;if(SV&&!SV.local){try{sysM=sys+await mathPhase(hist,ctl.signal,cf.model)}catch(x){}}
-try{await run(sysM)}catch(e){if(e&&e.status===400&&sys!==sysLite&&/context|token|too long|maximum|exceed|length/i.test(e.body||'')){toast(t('eLite'));a.c='';await run(sysLite)}else throw e}
-if(a.c&&wsrc)a.c+=wsrc;if(!a.c){a.e=1;a.c=t('eEmpty')}}}
+try{
+if(!window.NovaLocalAI||typeof window.NovaLocalAI.generate!=='function')throw new Error('The on-device Nova AI engine is unavailable. Reload NOVA and try again.');
+const localMessages=[{role:'system',content:sys},...hist];
+a.c='';
+const localAnswer=await window.NovaLocalAI.generate(localMessages,{signal:ctl.signal,max_new_tokens:S.mode==='archive'?(CFG.archiveTokens||420):420,onStatus:message=>{a.c='Preparing on-device Nova AI… '+message;schedPaint(el,a)}});
+a.c=localAnswer;
+if(li>=0)a.c+='\n\nNote: NOVA extracted readable text locally with OCR. It cannot identify objects or scenes in the photo yet.';
+if(!a.c){a.e=1;a.c=t('eEmpty')}
+}
 catch(e){if(!(ctl.signal.aborted)){a.e=1;a.c=errText(e)+(e&&e.body?' Provider said: '+e.body:'')}else if(!a.c){c.m.pop()}}
 if(paintQ){clearTimeout(paintQ);paintQ=0}if(S.ar&&!LV&&!a.e&&a.c&&window.speechSynthesis)readAloud(a.c);if(LV)lvDone(a);busy=false;ctl=null;save();render()}
 function go(){if(busy){ctl&&ctl.abort();return}const v=$('in').value.trim();if(!v&&!pimg)return;if(IM&&v){makeImg(v);return}if(!chat())newChat();const c=chat();stick=true;popN=2;try{navigator.vibrate&&navigator.vibrate(8)}catch(e){}c.m.push({r:'user',c:v,img:pimg||undefined});pimg=null;
@@ -622,7 +599,7 @@ const PST=[['ans','Answers only','सिर्फ़ उत्तर','Answers o
 function phChips(){const b=$('psub');b.innerHTML='';for(let i=1;i<=5;i++){const k=t('phS'+i),x=document.createElement('button');x.type='button';x.textContent=k;x.onclick=()=>{PH.sub=PH.sub===k?null:k;phSync()};b.append(x)}
 PST.forEach(p=>{const k=ui()==='hi'?p[2]:p[1],x=document.createElement('button');x.type='button';x.textContent=k;x.dataset.st=p[0];x.onclick=()=>{PH.st=PH.st===p[0]?null:p[0];phSync()};b.append(x)})}
 function phSync(){const has=!!pimg,cam=!!camStream;$('pprev').hidden=!has||cam;if(has)$('pprev').src=pimg;$('pempty').hidden=has||cam;$('psolve').disabled=!has;[...$('psub').children].forEach(b=>b.classList.toggle('on',b.dataset.st?b.dataset.st===PH.st:b.textContent===PH.sub))}
-async function openPhoto(){camOff();$('phelp').hidden=true;IM=null;PH.sub=null;PH.st=null;$('side').classList.remove('open');phChips();$('perr').textContent='';$('pnote').value='';$('photo').hidden=false;render();phSync();if(SMP){let cap=null;try{cap=(await SMP.limits()).images}catch(e){}if(!cap)$('perr').textContent=t('eVis')}}
+async function openPhoto(){camOff();$('phelp').hidden=true;IM=null;PH.sub=null;PH.st=null;$('side').classList.remove('open');phChips();$('perr').textContent='';$('pnote').value='';$('photo').hidden=false;render();phSync();}
 function closePhoto(){camOff();$('photo').hidden=true}
 function goHome(){dashEnter=true;S.cur=null;stick=true;save();render();$('side').classList.remove('open')}
 function setIM(o){IM=o;if(o)document.body.classList.remove('nova-dashboard-home');render();if(o)$('in').focus()}
@@ -671,9 +648,7 @@ if(!re){c.m.push({r:'user',c:'🎨 '+(st?'['+IM.name+'] ':'')+v});if(c.title==='
 busy=true;ctl=new AbortController();const sig=ctl.signal,a={r:'assistant',c:'',gen:{ar,t0:Date.now()},ip:v,ar,is:st};c.m.push(a);stick=true;render();
 try{const base=st?v+'. Style: '+st:v,p=(re&&re.fp)||(IMS.enh?await enhance(base,sig):base);a.fp=p;
 if(SV&&SV.image){const r=await fetch(API+'/image',{method:'POST',signal:sig,headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p,aspect:ar,width:DIM[ar][0],height:DIM[ar][1],seed})});const j=await r.json().catch(()=>({}));if(!r.ok)throw{status:r.status,message:j.error};if(j.image)a.img=j.image;else if(j.jobId)a.img=await pollImageJob(j.jobId,sig);else throw{status:502}}
-else if(SMP){const o=await SMP('Create a beautiful, richly detailed SVG illustration (viewBox 0 0 1024 1024) of: '+p+'\nUse layered shapes, gradients, soft shadows and a harmonious colour palette. Return ONLY the SVG markup starting with <svg and ending with </svg>. No explanation, no code fences, no scripts, no external images, no foreignObject.',{cache:false});
-let s=(o.text.match(/<svg[\s\S]*<\/svg>/i)||[''])[0];if(!s||/<script|foreignObject|\son\w+\s*=|javascript:|href\s*=\s*["']?https?:/i.test(s))throw{};if(!/xmlns=/.test(s))s=s.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');a.img='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s)}
-else throw{status:503,message:'Keyless community image generation is unavailable'};
+else throw{status:503,message:'Image generation is unavailable until an on-device image model is integrated and tested'};
 if(sig.aborted)throw{name:'AbortError'};a.c=v;a.fresh=1}
 catch(e){if(sig.aborted||(e&&e.name==='AbortError')){const i=c.m.indexOf(a);if(i>=0)c.m.splice(i,1)}else{a.e=1;a.c=(e&&e.status===429)?errText(e):tI('fail')}}
 delete a.gen;busy=false;if(ctl&&ctl.signal===sig)ctl=null;save();render()}
@@ -682,7 +657,7 @@ $('gen').onclick=()=>setIM(IM?null:{name:t('imMode')});
 $('imbar').onclick=()=>setIM(null);
 setTimeout(()=>{loadJS('https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js').then(()=>{try{render()}catch(e){}}).catch(()=>{})},1200);
 fetch(API+'/config').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.model){SV=j;$('cfg').style.display='none';if(j.live||j.web){$('web').hidden=false;paintLive();loadWN()}first=true;syncFeatures();render();trUI()}}).catch(()=>{});
-$('web').onclick=()=>{const o=['auto','on','off'],n=o[(o.indexOf(S.live||'auto')+1)%3];S.live=n;save();paintLive();toast(LS(n==='on'?'liveOn':n==='off'?'liveOff':'liveAuto'))};
+$('web').onclick=()=>{const o=['auto','on','off'],n=o[(o.indexOf(S.live||'on')+1)%3];S.live=n;save();paintLive();toast(LS(n==='on'?'liveOn':n==='off'?'liveOff':'liveAuto'))};
 // Hosted AI connectors are intentionally not initialized: NOVA runs browser-local models only.
 
 const SEN=/[.!?।؟]+["')\]]*\s|[。！？]|\n+/g;
