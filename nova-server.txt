@@ -45,9 +45,16 @@ app.use('/api', (q, r, next) => {
 
 app.use(express.json({ limit: '6mb' }));
 
+function hasConfiguredSearchProvider() {
+  return !!(E.TAVILY_KEY || E.BRAVE_KEY);
+}
+
 app.get('/api/config', (q, r) => {
-  if (!E.LLM_KEY && !E.GROQ_API_KEY && !E.OPENROUTER_API_KEY) return r.status(503).end();
-  r.json({ model: E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || 'free-provider-fallback', image: !E.IMAGE_OFF, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: true, web: true, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY, hordeImage: !!E.HORDE_API_KEY } });
+  const hasAI = !!(E.LLM_KEY || E.GROQ_API_KEY || E.OPENROUTER_API_KEY);
+  const hasSearch = hasConfiguredSearchProvider();
+  if (!hasAI && !hasSearch) return r.status(503).end();
+  const model = E.LLM_MODEL || E.GROQ_MODEL || E.OPENROUTER_MODEL || null;
+  r.json({ model: hasAI ? (model || 'free-provider-fallback') : null, image: hasAI && !E.IMAGE_OFF, stt: !E.STT_OFF && !!(E.LLM_KEY || E.GROQ_API_KEY), live: hasSearch, web: hasSearch, providers: { tavily: !!E.TAVILY_KEY, brave: !!E.BRAVE_KEY, groqFallback: !!E.GROQ_API_KEY, openrouterFallback: !!E.OPENROUTER_API_KEY, pollinationsKey: !!E.POLLI_KEY, hordeImage: !!E.HORDE_API_KEY } });
 });
 
 // Speech to text for live voice when the phone browser cannot do it itself (same provider key, e.g. Groq Whisper).
@@ -206,10 +213,11 @@ app.post('/api/chat/completions', async (q, r) => {
 app.post('/api/search', async (q, r) => {
   const query = String((q.body && q.body.q) || '').trim().slice(0, 400);
   if (!query) return r.status(400).json({ error: 'Search query is required' });
+  if (!hasConfiguredSearchProvider()) return r.status(503).json({ error: 'Live search unavailable', code: 'LIVE_SEARCH_UNAVAILABLE' });
   try {
     const found = await withTimeout(webSearch(query, { lang: 'en' }), 16000, 'web-search');
     r.json({ query, provider: found.via, retrievedAt: new Date().toISOString(), results: found.items.slice(0, 8).map(x => ({ title: x.title, url: x.url, publisher: x.publisher, date: x.date || '', content: String(x.snippet || '').slice(0, 900) })) });
-  } catch (e) { r.status(502).json({ error: 'Live internet search is temporarily unavailable' }); }
+  } catch (e) { r.status(502).json({ error: 'Live search unavailable: configured provider did not return results', code: 'LIVE_SEARCH_UNAVAILABLE' }); }
 });
 
 // Image jobs run in the background so Render's HTTP request timeout cannot cancel a free queue wait.
@@ -631,21 +639,27 @@ async function wikiSummary(title, lang = 'en') {
 async function webSearch(q, o = {}) {
   const errs = [], primary = [];
   if (E.BRAVE_KEY) {
-    primary.push(cached('brctx:' + q + ':' + (o.lang || 'en'), 3 * 6e4, () => braveContext(q, o)).then(items => { if (!items.length) throw new Error('no results'); return { items, via: 'brave-llm-context' }; }).catch(e => { errs.push('brave-llm-context'); throw e; }));
-    primary.push(cached('br:' + q, 3 * 6e4, () => brave(q)).then(items => { if (!items.length) throw new Error('no results'); return { items, via: 'brave' }; }).catch(e => { errs.push('brave'); throw e; }));
+    primary.push(cached('brctx:' + q + ':' + (o.lang || 'en'), 3 * 6e4, () => braveContext(q, o)).then(items => {
+      if (!items.length) throw new Error('no results');
+      return { items, via: 'brave-llm-context' };
+    }).catch(e => { errs.push('brave-llm-context'); throw e; }));
+    primary.push(cached('br:' + q, 3 * 6e4, () => brave(q)).then(items => {
+      if (!items.length) throw new Error('no results');
+      return { items, via: 'brave' };
+    }).catch(e => { errs.push('brave'); throw e; }));
   }
-  if (E.TAVILY_KEY) primary.push(cached('tv:' + (o.news ? 'news:' : 'general:') + q, 3 * 6e4, () => tavily(q, o)).then(items => { if (!items.length) throw new Error('no results'); return { items, via: 'tavily' }; }).catch(e => { errs.push('tavily'); throw e; }));
-  if (primary.length) {
-    const winner = await Promise.any(primary).catch(() => null);
-    if (winner && winner.items && winner.items.length) return winner;
+  if (E.TAVILY_KEY) {
+    primary.push(cached('tv:' + (o.news ? 'news:' : 'general:') + q, 3 * 6e4, () => tavily(q, o)).then(items => {
+      if (!items.length) throw new Error('no results');
+      return { items, via: 'tavily' };
+    }).catch(e => { errs.push('tavily'); throw e; }));
   }
-  const fallback = await Promise.any([
-    cached('ddg:' + q, 4 * 6e4, () => ddg(q)).then(items => { if (!items.length) throw new Error('no DuckDuckGo results'); return { items, via: 'duckduckgo' }; }).catch(e => { errs.push('duckduckgo'); throw e; }),
-    wikiSearch(q, o.lang === 'hi' ? 'hi' : 'en', 5).then(items => { if (!items.length) throw new Error('no Wikipedia results'); return { items, via: 'wikipedia' }; }).catch(e => { errs.push('wikipedia'); throw e; })
-  ]).catch(() => null);
-  if (fallback) return fallback;
-  throw new Error('all web search providers failed (' + errs.join(', ') + ')');
+  if (!primary.length) throw new Error('Live search unavailable. Configure BRAVE_KEY or TAVILY_KEY.');
+  const winner = await Promise.any(primary).catch(() => null);
+  if (winner && winner.items && winner.items.length) return winner;
+  throw new Error('Live search unavailable. Configured search provider failed (' + errs.join(', ') + ').');
 }
+
 async function onThisDay(m, d) {
   const j = await cached('otd:' + m + '-' + d, 12 * 36e5, () => lhttp('https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/' + pad(m) + '/' + pad(d), { json: true }));
   const ev = (j.events || []).filter(e => e.text && e.year).sort((a, b) => b.year - a.year);
@@ -950,75 +964,64 @@ function detect(q, o, wh) {
   return f;
 }
 async function runLive(qraw, o = {}) {
-  const t0 = Date.now(), now = new Date(), tz = validTz(o.tz || 'Asia/Kolkata'), q = String(qraw).slice(0, 500), hi = /[\u0900-\u097F]/.test(q) || o.lang === 'hi', lang = hi ? 'hi' : 'en';
-  const wh = when(q, tz, now), f = detect(q, o, wh), always = o.mode === 'always', sq = searchQ(q) || q, tq = topicQ(q), brief = /briefing|\u092c\u094d\u0930\u0940\u092b\u093f\u0902\u0917|daily digest|morning update/i.test(q);
-  const tasks = [], notes = [], intents = [];
-  const T = (name, fn, ms) => tasks.push({ name, run: () => withTimeout(fn(), ms || 11000, name) });
-  const gn = (qq, x) => T('google-news', () => gnews(qq, { lang, ...(x || {}) }).then(items => ({ items })));
-  const gd = (qq, x) => T('gdelt', async () => {
-    try { return { items: await gdelt(qq, x), via: 'gdelt' }; }
-    catch (e) { const fallback = await gnews(qq, { lang, n: (x && x.n) || 10 }); if (!fallback.length) throw e; return { items: fallback, via: 'google-news-fallback' }; }
-  }, 17000);
-  const ws = (qq, x) => T('web-search', () => webSearch(qq, { lang, ...(x || {}) }).then(r => ({ items: r.items, via: r.via })), 18000);
-  const feedT = (cat, filt) => T('feeds:' + cat, () => feedCat(cat, 14).then(r => { let it = r.items; if (filt) { const k = toks(filt); const sc = it.map(x => [x, jac(k, toks(x.title + ' ' + x.snippet))]).filter(z => z[1] > 0.05).sort((a, b) => b[1] - a[1]); it = sc.map(z => z[0]); } if (!it.length) throw new Error('no matching items'); return { items: it }; }));
-  // time & place
-  if (f.time) { intents.push('time'); const pl = placeFrom(q, ''); T('time', () => timeIn(pl, tz).then(b => ({ blocks: [b] })), 9000); }
-  if (f.weather) { intents.push('weather'); const pl = placeFrom(q, o.place); if (!pl) notes.push('Weather was requested but no city was given and none is saved; ask the person which city.'); else T('weather', () => weather(pl, lang).then(b => ({ blocks: [b] })), 15000); }
-  // markets
-  if (f.finance) {
-    intents.push('markets'); const syms = []; SYM.forEach(s => { if (s[0].test(q) && !syms.find(z => z[1] === s[1])) syms.push([s[0], s[1], s[2]]); });
-    const cry = CRYPTO.filter(c => c[0].test(q));
-    if (brief && !syms.length && !cry.length) { SYM.filter(s => ['^NSEI', '^BSESN', 'GC=F'].includes(s[1])).forEach(s => syms.push([s[0], s[1], s[2]])); cry.push(CRYPTO[0]); }
-    if (cry.length) T('coingecko', () => coingecko(cry).then(b => ({ blocks: [b] })), 9000);
-    syms.slice(0, 3).forEach(s => T('quote:' + s[1], () => yahooQuote(s[1], s[2]).then(b => ({ blocks: [b] })), 10000));
-    if (/inr|rupee|dollar|usd|eur|euro|pound|yen|exchange|forex|\u0930\u0941\u092a\u092f|\u0921\u0949\u0932\u0930/i.test(q)) T('fx', () => fxRate(q).then(b => ({ blocks: [b] })), 9000);
-    if (!syms.length && !cry.length && !/inr|rupee|dollar|usd|eur/i.test(q) && !brief) notes.push('A market question was detected but no known instrument matched; do not guess a price.');
-    gn((tq || sq) + ' market', { when: '2d', n: 6 });
-  }
-  if (f.sports) { intents.push('sports'); T('scoreboard', () => espn(q).then(b => ({ blocks: [b] })), 9000); }
-  if (f.quake) { intents.push('natural-events'); if (/earthquake|\u092d\u0942\u0915\u0902\u092a/i.test(q)) T('usgs', () => quakes().then(b => ({ blocks: [b] })), 9000); else T('nasa-eonet', () => eonet().then(b => ({ blocks: [b] })), 9000); gn(sq, { when: '7d', n: 8 }); }
-  if (f.science) { intents.push('science'); T('arxiv', () => arxiv(tq || sq).then(items => ({ items })), 11000); T('openalex', async () => { try { const items = await openalex(tq || sq); return { items, via: 'openalex' }; } catch (primaryError) { const [papers, feed] = await Promise.allSettled([arxiv(tq || sq), feedCat('science', 6)]); const items = [...(papers.status === 'fulfilled' ? papers.value : []), ...(feed.status === 'fulfilled' ? feed.value.items : [])]; if (!items.length) throw primaryError; return { items, via: 'arxiv+science-rss-fallback', note: 'OpenAlex unavailable; independent arXiv and science RSS fallback active' }; } }, 18000); gn(sq + ' study', { when: '30d', n: 6 }); feedT('science', tq || sq); }
-  if (f.stats) { intents.push('statistics'); T('world-bank', () => worldBank(q).then(b => ({ blocks: [b] })), 11000); }
-  if (f.health) { intents.push('health'); feedT('health', tq); gn(sq, { when: '14d', n: 6 }); }
-  if (f.tech) { intents.push('technology'); gn(sq, { when: '14d', n: 8 }); feedT('official', tq || sq); feedT('tech', tq || sq); if (/\bai\b|\bllm\b|\bgpt\b|startup|programming|software/i.test(q)) T('hacker-news', () => hackerNews().then(items => ({ items })), 11000); }
-  if (f.govt) { intents.push('government'); T('pib', () => gnews(sq, { lang, site: 'pib.gov.in', n: 6 }).then(items => ({ items: items.map(x => ({ ...x, kind: 'official' })) })), 10000); feedT('india'); gn(sq, { when: '14d', n: 8 }); }
-  // history / dates
-  const ceDays = [];
-  if (f.hasDate || (f.hist && /on this day|today in history|\u0906\u091c \u0915\u0947 \u0926\u093f\u0928|\u0907\u0924\u093f\u0939\u093e\u0938 \u092e\u0947\u0902 \u0906\u091c/i.test(q))) {
-    intents.push('history');
-    if (wh.future) notes.push('The requested period is in the future. Do not present anything as a completed event; only report officially scheduled or forecast items and label them as such.');
-    else if (wh.kind === 'day') { const s = wh.start; ceDays.push(s); if (s.y >= 2004) T('wiki-current-events', () => currentEvents(s.y, s.m, s.d).then(b => ({ blocks: [b] })), 12000); gn(tq || sq, { after: ymd(dayShift(new Date(Date.UTC(s.y, s.m - 1, s.d)), 'UTC', -1)), before: ymd(dayShift(new Date(Date.UTC(s.y, s.m - 1, s.d)), 'UTC', 1)), n: 10 }); if (s.y >= 2017) gd(tq || sq, { start: s.y + pad(s.m) + pad(s.d) + '000000', end: s.y + pad(s.m) + pad(s.d) + '235959', n: 12 }); }
-    else if (wh.kind === 'range') { const a = wh.start, b = wh.end, days = Math.round((Date.UTC(b.y, b.m - 1, b.d) - Date.UTC(a.y, a.m - 1, a.d)) / 864e5); if (days <= 4 && a.y >= 2004) for (let i = 0; i <= days; i++) { const d = dayShift(new Date(Date.UTC(a.y, a.m - 1, a.d, 12)), 'UTC', i); T('wiki-current-events', () => currentEvents(d.y, d.m, d.d).then(bl => ({ blocks: [bl] })), 12000); } else if (a.y >= 2004) { const key = a.y + '_' + pad(a.m); T('wiki-month', () => wikiExtract(MONTHS[a.m - 1] + '_' + a.y, null, 2600).then(b => ({ blocks: [b] })), 12000); } gn(tq || sq, { after: ymd(a), before: ymd(dayShift(new Date(Date.UTC(b.y, b.m - 1, b.d)), 'UTC', 1)), n: 12 }); if (a.y >= 2017) gd(tq || sq, { start: a.y + pad(a.m) + pad(a.d) + '000000', end: b.y + pad(b.m) + pad(b.d) + '235959', n: 15 }); }
-    else if (wh.kind === 'month') { const s = wh.start; T('wiki-month', () => wikiExtract(MONTHS[s.m - 1] + '_' + s.y, null, 3200).then(b => ({ blocks: [b] })), 12000); const last = new Date(Date.UTC(s.y, s.m, 0)).getUTCDate(); gn(tq || sq, { after: s.y + '-' + pad(s.m) + '-01', before: ymd(dayShift(new Date(Date.UTC(s.y, s.m - 1, last)), 'UTC', 1)), n: 12 }); if (s.y >= 2017) gd(tq || sq, { start: s.y + pad(s.m) + '01000000', end: s.y + pad(s.m) + pad(last) + '235959', n: 15 }); }
-    else if (wh.kind === 'year') { const s = wh.start; let ctry = ''; for (const k of Object.keys(CC).sort((a, b) => b.length - a.length)) if (CC[k] !== 'WLD' && q.toLowerCase().includes(k)) { ctry = { IN: 'India', US: 'the_United_States', CN: 'China', JP: 'Japan', DE: 'Germany', FR: 'France', GB: 'the_United_Kingdom', RU: 'Russia', BR: 'Brazil', PK: 'Pakistan', BD: 'Bangladesh', LK: 'Sri_Lanka', NP: 'Nepal', ID: 'Indonesia', ZA: 'South_Africa', CA: 'Canada', AU: 'Australia', IT: 'Italy', ES: 'Spain', MX: 'Mexico', SA: 'Saudi_Arabia', AE: 'the_United_Arab_Emirates', TR: 'Turkey', KR: 'South_Korea' }[CC[k]] || ''; break; }
-      T('wiki-year', () => wikiExtract(ctry ? s.y + '_in_' + ctry : String(s.y), null, 3200).then(b => ({ blocks: [b] })), 12000); gn(tq || sq, { after: s.y + '-01-01', before: (s.y + 1) + '-01-01', n: 10 }); }
-    if (f.hist && /on this day|today in history|\u0906\u091c \u0915\u0947 \u0926\u093f\u0928|\u0907\u0924\u093f\u0939\u093e\u0938 \u092e\u0947\u0902 \u0906\u091c/i.test(q) && !wh.future) { const td = wh.today; T('wiki-on-this-day', () => onThisDay(td.m, td.d).then(b => ({ blocks: [b] })), 12000); }
-  } else if (wh.isToday && (f.news || f.hist) && !intents.length) {
-    // "what happened today": portal for today + fresh news
-    intents.push('news'); const td = wh.today; T('wiki-current-events', () => currentEvents(td.y, td.m, td.d).then(b => ({ blocks: [b] })), 12000);
-  }
-  // general news / current affairs
-  const entity = (tq || '').replace(/\b(world|india|indian|everything|anything|things|happening|going on)\b/gi, '').replace(/\u0926\u0941\u0928\u093f\u092f\u093e|\u092d\u093e\u0930\u0924|\u0926\u0947\u0936|\u091a\u0932|\u0930\u0939\u093e|\u0930\u0939\u0940|\u0930\u0939\u0947|\u0939\u094b|\u092e\u0947\u0902/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-  const broad = entity.length < 3 || brief, specific = intents.some(i => ['weather', 'time', 'markets', 'natural-events', 'statistics', 'science'].includes(i));
-  if ((f.news || always || wh.isToday) && !(specific && !always && !f.news)) {
-    if (!intents.includes('news')) intents.push('news');
-    if (broad) { feedT('world'); feedT(hi ? 'hindi' : 'india'); if (brief) { feedT('tech'); feedT('business'); } if (/india|\u092d\u093e\u0930\u0924|bharat/i.test(q)) feedT('india'); gn(hi ? '\u0924\u093e\u091c\u093c\u093e \u0916\u092c\u0930\u0947\u0902' : 'top stories world', { when: '1d', n: 8 }); }
-    else { gn(sq, { when: wh.kind === 'range' || wh.kind === 'day' ? undefined : '7d', n: 10 }); if (!wh.start) gd(entity || sq, { timespan: '3d', n: 10 }); }
-  }
-  if (always || (!tasks.length && !specific)) { intents.push('web'); ws(sq, { news: f.news }); }
-  if (always && /^(who|what|when|where|why|how)\b|\u0915\u094c\u0928|\u0915\u094d\u092f\u093e|\u0915\u092c|\u0915\u0939\u093e\u0901|\u0915\u0939\u093e\u0902/i.test(q) && entity.length >= 3 && !f.weather) T('wikipedia', () => wikiSearch(entity, lang, 3).then(items => ({ items })), 9000);
-  // ---- run with global deadline ----
-  const settled = await Promise.allSettled(tasks.map(t => t.run().then(r => ({ name: t.name, r }))));
-  const used = [], failed = [], blocks = [], items = [], stale = [];
-  settled.forEach((s, i) => {
-    const name = tasks[i].name;
-    if (s.status === 'fulfilled') { const r = s.value.r || {}; used.includes(name) || used.push(name); const sm = (r.items && r.items.stale ? r.items.staleMin : 0) || Math.max(0, ...(r.blocks || []).map(b => b.stale ? b.staleMin || 0 : -1)); if ((r.items && r.items.stale) || (r.blocks || []).some(b => b.stale)) stale.push(name + ' (~' + sm + ' min old)'); (r.blocks || []).forEach(b => blocks.push(b)); (r.items || []).forEach(x => items.push(x)); if (r.via && !used.includes('via:' + r.via)) used.push('via:' + r.via); }
-    else if (!failed.find(x => x.name === name)) failed.push({ name, why: String(s.reason && s.reason.message || s.reason).slice(0, 90) });
-  });
-  const ranked = rank(dedupe(items.filter(x => x.title && x.url)), q).slice(0, 14);
-  if (intents.includes('sports') && failed.some(x => x.name === 'scoreboard')) notes.push('A verified live scoreboard was unavailable; news articles are not being used as a substitute.');
-  stale.length && notes.push('CACHED DATA: these providers were unreachable, so the last successful result is shown (check the dates; it may be out of date): ' + stale.join(', ') + '.');
-  return finish({ q, tz, now, intents, used, failed, blocks, ranked, notes, wh, t0, hi });
+  const t0 = Date.now();
+  const now = new Date();
+  const tz = validTz(o.tz || 'Asia/Kolkata');
+  const q = String(qraw || '').trim().slice(0, 500);
+  const hi = /[\u0900-\u097F]/.test(q) || o.lang === 'hi';
+  const lang = hi ? 'hi' : 'en';
+  const weatherQ = /\b(weather|forecast|temperature|rain|aqi)\b|मौसम|बारिश|तापमान|वायु गुणवत्ता/i.test(q);
+  const marketsQ = /\b(market|markets|stock|share price|sensex|nifty|crypto|bitcoin|gold price|forex)\b|बाजार|शेयर|निफ्टी|सेंसेक्स|क्रिप्टो|सोने का भाव/i.test(q);
+  const sportsQ = /\b(sport|sports|score|scoreboard|match|cricket|football|soccer|ipl|tennis)\b|खेल|स्कोर|मैच|क्रिकेट|फुटबॉल/i.test(q);
+  const scienceQ = /\b(science|scientific|research|paper|study|space|physics|biology|chemistry|astronomy)\b|विज्ञान|अनुसंधान|शोध|अंतरिक्ष|भौतिकी|जीवविज्ञान/i.test(q);
+  const historyQ = /\b(history|historical|historic|timeline|2010|2011|2012|2013|2014|2015|2016|2017|2018|2019|2020|2021|2022|2023|2024|2025|2026)\b|इतिहास|ऐतिहासिक|घटनाक्रम/i.test(q);
+  const newsQ = /\b(news|latest|today|current|breaking|headlines|updates)\b|ताज़ा खबर|आज की खबर|समाचार|ताज़ा अपडेट/i.test(q);
+  const intents = [];
+  if (weatherQ) intents.push('weather');
+  if (marketsQ) intents.push('markets');
+  if (sportsQ) intents.push('sports');
+  if (scienceQ) intents.push('science');
+  if (historyQ) intents.push('history');
+  if (newsQ || !intents.length) intents.push('news');
+
+  let query = q;
+  if (weatherQ) query += ' current weather forecast, include observation/forecast time and location';
+  if (marketsQ) query += ' latest market information, quote date/time and exchange';
+  if (sportsQ) query += ' latest sports fixtures, results and live scores with match date';
+  if (scienceQ) query += ' current science research and scientific sources, include publication date';
+  if (historyQ) query += ' historical events and developments from 2010 through 2026, include event dates';
+  if (!weatherQ && !marketsQ && !sportsQ && !scienceQ && !historyQ) query += ' latest news and verified reporting';
+
+  const notes = [];
+  if (weatherQ && !placeFrom(q, o.place)) notes.push('No city was provided for the weather request. Ask the user which city; do not guess a location.');
+  const found = await webSearch(query, { lang, news: newsQ || (!weatherQ && !marketsQ && !sportsQ && !scienceQ && !historyQ) });
+  const items = (found.items || []).filter(x => x && x.title && safeUrl(x.url)).slice(0, 10);
+  if (!items.length) throw new Error('Live search unavailable. The configured provider returned no usable sources.');
+
+  const sources = items.map((item, i) => ({
+    n: i + 1,
+    title: lclean(item.title, 200),
+    url: safeUrl(item.url),
+    publisher: lclean(item.publisher || host(item.url), 120),
+    date: item.date || '',
+    eventDate: item.eventDate || '',
+    kind: item.kind || 'web',
+    quality: item.quality || 'other',
+    also: [],
+    connector: item.connector || found.via
+  }));
+  const retrievedAt = now.toISOString();
+  const context = [
+    '== LIVE DATA == retrieved ' + retrievedAt + ' | current local time: ' + localFmt(now, tz) + ' (' + tz + ')',
+    'Configured search provider: ' + found.via + '. Use only these retrieved results as live evidence. Search snippets can be incomplete; never invent missing prices, scores, dates, forecasts or facts.',
+    notes.length ? 'NOTE: ' + notes.join(' ') : '',
+    ...sources.map(s => '[' + s.n + '] ' + s.title + ' — ' + s.publisher + (s.date ? ' — published ' + s.date : ' — publication date not provided') + '\n    ' + String(items[s.n - 1].snippet || '').slice(0, 500))
+  ].filter(Boolean).join('\n');
+  return {
+    ok: true, q, retrievedAt, tz, intents,
+    used: ['via:' + found.via], failed: [], notes, sources, context,
+    ms: Date.now() - t0
+  };
 }
 function rank(items, q) {
   const tk = toks(q), nowT = Date.now();
@@ -1057,13 +1060,14 @@ const LIVE_MAX = Number(E.LIVE_CONCURRENCY) || 5;
 app.post('/api/live', async (q, r) => {
   const b = q.body || {}, text = String(b.q || '').trim().slice(0, 500);
   if (!text) return r.status(400).json({ ok: false, error: 'No question' });
+  if (!hasConfiguredSearchProvider()) return r.status(503).json({ ok: false, error: 'Live search unavailable', code: 'LIVE_SEARCH_UNAVAILABLE' });
   const nw = Date.now(), a = rateWindow(liveHits, q.ip, nw, 6e4);
   if (!a) return r.status(503).json({ ok: false, error: 'Live-search rate-limit capacity reached; retry shortly.' });
   if (a.length >= 24) return r.status(429).json({ ok: false, error: 'Too many live searches. Please wait a minute.' });
   if (liveActive >= LIVE_MAX) return r.status(429).json({ ok: false, error: 'Live search is busy. Try again in a few seconds.' });
   a.push(nw); liveHits.set(q.ip, a); liveActive++;
   try { r.json(await withTimeout(runLive(text, { mode: b.mode === 'always' ? 'always' : 'auto', lang: b.lang === 'hi' ? 'hi' : 'en', tz: String(b.tz || '').slice(0, 60), place: String(b.place || '').slice(0, 60) }), 20000, 'live')); }
-  catch (e) { r.status(502).json({ ok: false, error: 'Live retrieval failed: ' + String(e && e.message).slice(0, 80) }); }
+  catch (e) { r.status(502).json({ ok: false, error: 'Live search unavailable: configured provider did not return results', code: 'LIVE_SEARCH_UNAVAILABLE' }); }
   finally { liveActive--; }
 });
 const stHits = new Map();
@@ -1095,24 +1099,41 @@ app.get('/api/live/selftest', async (q, r) => {
   }));
   r.json({ at: new Date().toISOString(), results });
 });
-const CATS = ['world', 'india', 'tech', 'science', 'business', 'sports', 'health'];
+const FEED_SEARCH_QUERIES = {
+  world: 'latest world news headlines',
+  india: 'latest India news headlines',
+  hindi: 'latest India news headlines Hindi',
+  tech: 'latest technology news',
+  science: 'latest science research news',
+  business: 'latest business and economy news',
+  sports: 'latest sports news and results',
+  health: 'latest public health and medical research news'
+};
 app.get('/api/feed', async (q, r) => {
+  if (!hasConfiguredSearchProvider()) return r.status(503).json({ error: 'Live search unavailable', code: 'LIVE_SEARCH_UNAVAILABLE' });
+  const cat = String(q.query.cat || 'all');
+  const lang = q.query.lang === 'hi' ? 'hi' : 'en';
+  const cats = cat === 'all'
+    ? (lang === 'hi' ? ['hindi', 'world', 'tech', 'science', 'business', 'sports'] : ['world', 'india', 'tech', 'science', 'business', 'sports'])
+    : [cat];
+  if (cats.some(name => !Object.hasOwn(FEED_SEARCH_QUERIES, name))) return r.status(400).json({ error: 'Unknown category' });
+  const pick = x => ({ title: x.title, url: x.url, publisher: x.publisher, date: x.date, kind: x.kind });
   try {
-    const cat = String(q.query.cat || 'all'), hi = q.query.lang === 'hi';
-    const pick = x => ({ title: x.title, url: x.url, publisher: x.publisher, date: x.date, kind: x.kind });
-    if (cat === 'all') {
-      const cats = hi ? ['hindi', 'world', 'tech', 'science', 'business', 'sports'] : ['world', 'india', 'tech', 'science', 'business', 'sports'];
-      const rs = await Promise.allSettled(cats.map(c => cached('fc:' + c, 8 * 6e4, () => feedCat(c, 6)).then(v => [c, v])));
-      const out = {}; rs.forEach(x => { if (x.status === 'fulfilled' && x.value[1].items.length) out[x.value[0]] = x.value[1].items.map(pick); });
-      return r.json({ at: new Date().toISOString(), cats: out });
-    }
-    if (!FEEDS[cat]) return r.status(400).json({ error: 'Unknown category' });
-    const v = await cached('fc:' + cat, 8 * 6e4, () => feedCat(cat, 12));
-    r.json({ at: new Date().toISOString(), cat, items: v.items.map(pick), failed: v.failed });
-  } catch (e) { r.status(502).json({ error: 'Feed unavailable' }); }
+    const settled = await Promise.allSettled(cats.map(async name => {
+      const key = 'configured-feed:' + name + ':' + lang;
+      const found = await cached(key, 3 * 6e4, () => webSearch(FEED_SEARCH_QUERIES[name], { lang, news: true }));
+      return [name, (found.items || []).filter(x => x.title && safeUrl(x.url)).slice(0, 6).map(pick)];
+    }));
+    const out = {};
+    settled.forEach(item => { if (item.status === 'fulfilled' && item.value[1].length) out[item.value[0]] = item.value[1]; });
+    if (!Object.keys(out).length) return r.status(502).json({ error: 'Live search unavailable: configured provider returned no feed results', code: 'LIVE_SEARCH_UNAVAILABLE' });
+    if (cat === 'all') return r.json({ at: new Date().toISOString(), provider: 'configured-search', cats: out });
+    if (!out[cat]) return r.status(502).json({ error: 'Live search unavailable: configured provider returned no results', code: 'LIVE_SEARCH_UNAVAILABLE' });
+    return r.json({ at: new Date().toISOString(), cat, items: out[cat] });
+  } catch (e) {
+    return r.status(502).json({ error: 'Live search unavailable: configured provider request failed', code: 'LIVE_SEARCH_UNAVAILABLE' });
+  }
 });
-setTimeout(() => { CATS.slice(0, 2).forEach(c => cached('fc:' + c, 8 * 6e4, () => feedCat(c, 6)).catch(() => {})); }, 6000).unref();
-setInterval(() => { ['world', 'india'].forEach(c => cached('fc:' + c, 0, () => feedCat(c, 6)).catch(() => {})); }, 10 * 6e4).unref();
 
 // Normalize JSON parser failures for API clients instead of leaking Express HTML errors.
 app.use((err, q, r, next) => {
