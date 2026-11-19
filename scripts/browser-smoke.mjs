@@ -337,7 +337,7 @@ try{
  await desktop.locator('#strApp').waitFor({state:'visible'});
  await desktop.waitForTimeout(350);
  await desktop.locator('#strSkipIntro').click();
- await desktop.locator('#strPrompt').fill('मेरी दुकान की वेबसाइट बनाओ।');
+ await desktop.locator('#strPrompt').fill('मेरी दुकान की वेबसाइट बनाओ। WhatsApp और कॉल बटन चाहिए।');
  await desktop.locator('#strLangHi').click();
  assert.ok((await desktop.locator('#strApp').innerText()).includes('आप क्या बनाना चाहते हैं?'),'STR Hindi labels should update immediately');
  assert.equal(await desktop.locator('#strReplyLang').inputValue(),'hi','reply language should follow the UI language until explicitly changed');
@@ -345,7 +345,7 @@ try{
  await desktop.locator('#strLangEn').click();
  await desktop.locator('#strLangHi').click();
  assert.equal(await desktop.locator('#strReplyLang').inputValue(),'en','explicit reply-language choice must remain independent when the interface language changes');
- await desktop.locator('#strPrompt').fill('मेरी दुकान की वेबसाइट बनाओ।');
+ await desktop.locator('#strPrompt').fill('मेरी दुकान की वेबसाइट बनाओ। WhatsApp और कॉल बटन चाहिए।');
  assert.equal(await desktop.locator('#strReplyLang').inputValue(),'en','typing Hindi must not change the selected English reply language');
  assert.equal(await desktop.locator('#strContentLang').inputValue(),'hi','website content language should default from a Hindi prompt');
  await desktop.locator('#strContentLang').selectOption('hinglish');
@@ -353,6 +353,7 @@ try{
  await desktop.locator('#strSpecPanel').waitFor({state:'visible',timeout:5000});
  assert.ok((await desktop.locator('#strSpecPanel').innerText()).includes('स्थानीय नियम'),'starter plan must clearly disclose that it uses local rules rather than AI');
  assert.ok((await desktop.locator('#strSpecSections').innerText()).includes('Products and services'),'starter plan should show a structured shop section');
+  assert.ok((await desktop.locator('#strSpecSections').innerText()).includes('अनुरोधित सुविधाएँ'),'starter plan should show a requested-features section');
  assert.ok((await desktop.locator('#strAssumed').innerText()).length>0,'starter plan must list assumptions for review');
  assert.ok((await desktop.locator('#strPlaceholders').innerText()).length>0,'starter plan must list missing details');
  assert.equal(await desktop.locator('#strSpecName').inputValue(),'Untitled Project','vague prompt should use a disclosed temporary name');
@@ -421,6 +422,8 @@ try{
  await desktop.waitForFunction(()=>document.querySelector('#strBuildStatus')?.textContent.includes('स्थानीय preview तैयार है'),{timeout:10000});
  const previewHtml=await desktop.locator('#strPreviewFrame').getAttribute('srcdoc');
  assert.ok(previewHtml.includes('Updated after approval'),'preview must include approved user edits');
+  assert.ok(previewHtml.includes('WhatsApp contact')&&previewHtml.includes('Call button'),'preview must surface requested features with safe bilingual labels');
+  assert.ok(previewHtml.includes('interactive integrations are not implemented'),'preview must not imply requested integrations are already functional');
  assert.ok(previewHtml.includes("script-src 'none'"),'preview CSP must disallow scripts');
  assert.ok(!previewHtml.toLowerCase().includes('<script'),'local preview must not embed scripts');
  assert.match(previewHtml,/<meta[^>]+name=["']viewport["'][^>]+>/i,'local preview must declare a responsive viewport');
