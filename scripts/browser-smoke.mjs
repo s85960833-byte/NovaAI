@@ -426,7 +426,22 @@ try{
  assert.equal(await desktop.locator('#strPreviewFrame').getAttribute('sandbox'),'allow-scripts allow-forms','preview iframe must not grant same-origin or top-navigation');
  const completedBuild=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.build);r.onerror=()=>reject(r.error)})});
  assert.equal(completedBuild.status,'complete','completed local preview must persist in IndexedDB');
+
  assert.equal(completedBuild.approvedHash,secondApproval.hash,'build output must remain bound to the approved spec fingerprint');
+ assert.equal(await desktop.locator('#strDownloadZip').isDisabled(),false,'ZIP should unlock only for a completed approved preview');
+ const zipEvent=desktop.waitForEvent('download',{timeout:10000});
+ await desktop.locator('#strDownloadZip').click();
+ const zipDownload=await zipEvent;
+ assert.equal(zipDownload.suggestedFilename(),'test-shop-plan.zip');
+ const zipPath=await zipDownload.path();
+ assert.ok(zipPath);
+ const zipFiles=inspectStoredZip(readFileSync(zipPath));
+ assert.deepEqual(Object.keys(zipFiles).sort(),['GUIDE.md','icon.svg','index.html','manifest.webmanifest']);
+ assert.ok(zipFiles['index.html'].includes('Updated after approval'));
+ assert.ok(zipFiles['GUIDE.md'].includes('English guide')&&zipFiles['GUIDE.md'].includes('हिंदी गाइड'));
+ assert.equal(JSON.parse(zipFiles['manifest.webmanifest']).name,'Test Shop Plan');
+ assert.ok(zipFiles['icon.svg'].includes('<svg'));
+ console.log('PASS local ZIP download includes approved preview, bilingual guide, manifest and app icon');
 
 
  await desktop.locator('#strBack').click();
