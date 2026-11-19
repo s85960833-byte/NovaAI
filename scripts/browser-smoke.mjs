@@ -57,6 +57,24 @@ async function verifyIntroDoesNotReplay(page){
  console.log('PASS legacy intro marker migration prevents replay after upgrades');
 }
 
+
+function inspectStoredZip(bytes){
+ const files={};let offset=0,count=0;
+ while(offset+4<bytes.length&&bytes.readUInt32LE(offset)===0x04034b50){
+  const method=bytes.readUInt16LE(offset+8),size=bytes.readUInt32LE(offset+18);
+  const nameSize=bytes.readUInt16LE(offset+26),extraSize=bytes.readUInt16LE(offset+28);
+  assert.equal(method,0);
+  const nameStart=offset+30,nameEnd=nameStart+nameSize,dataStart=nameEnd+extraSize,dataEnd=dataStart+size;
+  assert.ok(dataEnd<=bytes.length);
+  files[bytes.toString('utf8',nameStart,nameEnd)]=bytes.toString('utf8',dataStart,dataEnd);
+  offset=dataEnd;count++;
+ }
+ assert.ok(count>=4);
+ assert.equal(bytes.readUInt32LE(offset),0x02014b50);
+ assert.ok(bytes.lastIndexOf(Buffer.from([0x50,0x4b,0x05,0x06]))>=0);
+ return files;
+}
+
 try{
  const desktop=await browser.newPage({viewport:{width:1365,height:900}});
  track(desktop);
