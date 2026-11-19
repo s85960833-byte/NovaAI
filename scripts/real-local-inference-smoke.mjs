@@ -147,7 +147,9 @@ try {
   assert.match(imageDisabled.body.error || '', /strict keyless mode/i);
 
 
-  // Image generation intentionally stays disabled until a local model is integrated and validated.\n\n  browser = await chromium.launch({
+  // Image generation intentionally stays disabled until a local model is integrated and validated.
+
+  browser = await chromium.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-dev-shm-usage']
   });
