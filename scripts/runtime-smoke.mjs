@@ -60,6 +60,14 @@ await expect('STR provider quotas fail closed','/api/str/limits',{},(r,b)=>r.ok&
 await expect('STR rejects cross-origin API calls','/api/str/spec',{method:'POST',headers:{origin:'https://attacker.example','sec-fetch-site':'cross-site','x-str-client-id':'client_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en'})},r=>r.status===403);
 await expect('STR fixed schema rejects arbitrary model/provider fields','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en',model:'attacker-selected'})},r=>r.status===400);
 await expect('STR valid spec request fails closed without a verified provider','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en'})},(r,b)=>r.status===503&&JSON.parse(b).code==='STR_PROVIDER_NOT_VERIFIED');
+const strRateHeaders={origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_rate_1234567890','content-type':'application/json'};
+for(let i=0;i<10;i++){
+ const response=await req('/api/str/spec',{method:'POST',headers:strRateHeaders,body:JSON.stringify({prompt:'owner test',uiLang:'en',contentLang:'en'})});
+ if(response.status!==503)throw new Error('STR per-client rate limit blocked request '+(i+1)+' before its threshold: HTTP '+response.status);
+}
+await expect('STR per-client rate limit blocks request eleven','/api/str/spec',{method:'POST',headers:strRateHeaders,body:JSON.stringify({prompt:'owner test',uiLang:'en',contentLang:'en'})},r=>r.status===429);
+await expect('STR prompt hard cap is enforced','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_cap_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'x'.repeat(1001),uiLang:'en',contentLang:'en'})},r=>r.status===400);
+
 await expect('STR PWA cache includes isolated module','/',{},(r,b)=>r.ok&&b.includes('id="nStr"')&&b.includes('id="strApp"')&&b.includes('src="/str-app.js"')&&b.includes('id="strLangHi"')&&b.includes('id="strLangEn"')&&b.includes('id="strReplyLang"')&&b.includes('id="strContentLang"'));
 await expect('STR isolated frontend module','/str-app.js',{},(r,b)=>r.ok&&b.includes("indexedDB.open('nova-str-local'")&&b.includes("localStorage.getItem('str_ui_lang')")&&b.includes('इंट्रो छोड़ें')&&b.includes('Draft saved on this device.')&&b.includes("localStorage.setItem('str_reply_lang',replyLang)")&&b.includes("localStorage.setItem('str_content_lang',contentLang)"));
 await expect('STR PWA cache includes isolated module','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v20-str')&&b.includes('/str-app.js'));
