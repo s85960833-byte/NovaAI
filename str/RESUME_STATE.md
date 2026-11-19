@@ -2,9 +2,9 @@
 
 Product: STR inside the existing Nova AI app (same link)
 Prompt version: final-3.0
-Build version: 0.3
-Phase: 1 — Nova-safe shell
-Step: 3.1 — Complete spec validation and unsafe-request gate
+Build version: 0.5
+Phase: 3 — Spec engine
+Step: 3.1 — Local starter-plan engine and review panel
 Done:
 - 0.1 — Exact Nova source files reviewed from the main branch and candidate branch
 - 0.2 — Official provider, Render and Google Play source checks recorded; customer routing remains disabled
@@ -14,23 +14,24 @@ Done:
 - 1.2 — Separate UI, reply and website-content language controls added; reply defaults to UI language; typed language does not automatically change reply language
 - 2.1 — Stateless `/api/str/` routes added with exact payload schemas, same-origin checks, bounded per-client/IP rate windows and fail-closed 503 responses until a provider is verified
 - 2.2 — Provider eligibility router added; customer data requires verified paid_no_training tier and known model/RPM/TPM/RPD/TPD; unknown quotas block
-- 3.1 — Compact v1 spec validator added; bilingual unsafe-request classifier blocks credential harvesting before provider routing
+- 3.1 — Compact v1 spec validator and deterministic local starter-plan engine added; `/api/str/spec` returns schema-validated spec, assumptions and placeholders without sending prompts to a provider; bilingual unsafe-request classifier blocks credential harvesting before processing
 Files:
 - index.html — STR navigation, screen markup and isolated styles
 - nova-server.txt — Same-origin STR module route and versioned PWA cache entry
-- str-app.js — Bilingual shell, separate language settings, IndexedDB drafts and 7-day local draft expiry
+- str-app.js — Bilingual shell, separate language settings, local spec-preview panel, and IndexedDB drafts with 7-day expiry
 - str/server.js — Stateless STR API health/limits and fixed-payload spec/section/fix/convert routes; generation disabled until provider verification
 - str/security.js — Same-origin, exact-schema, client-ID and bounded rate-window helpers
 - str/provider-router.js — Provider eligibility enforcement for owner test data vs customer data; unknown limits fail closed
 - str/safety.js — Bilingual unsafe-request classifier for credentials, impersonation, malware/spam, gambling and other prohibited requests
 - str/spec-schema.js — Compact v1 spec schema validator for fields, enums, unique IDs, bilingual copy and unsafe flags
+- str/spec-engine.js — Local rules-based spec constructor for known/vague prompts; validates every spec and never invents contact/pricing data
 - scripts/str-security.test.cjs — Unit tests for origin, payload, rate windows, provider data-tier routing, unsafe prompts and spec validation
 - str/provider-config.json — Provider tiers, null quotas fail-closed, Model 1 owner-only default
 - str/PHASE0-VERIFICATION.md — Official provider, Render and Play verification; owner decisions
 - str/DECISIONS.md — Owner-authorized decisions and implementation boundaries
 - str/RESUME_STATE.md — Current phase and next step
 - scripts/check.mjs — Static syntax/security and STR isolation assertions
-- scripts/runtime-smoke.mjs — Local routes, STR fail-closed API and PWA cache checks
+- scripts/runtime-smoke.mjs — Local routes, STR API security/rate limits, unsafe-request rejection and no-provider spec preview checks
 - scripts/check.mjs — Syntax and security assertions for STR server modules
 - .github/workflows/novaai-verification.yml — Runs STR security unit tests
 - scripts/browser-smoke.mjs — Existing Nova and STR browser regression checks
@@ -42,9 +43,9 @@ Owner decisions:
 - D-STR-001: Model 1 owner-only free; customer build/billing path disabled
 - D-STR-002: 7-day retention for local STR drafts/log policy default
 Open issues:
-- Verify latest PR checks; complete browser assertions for language controls
+- Latest static checks passed on recent candidate; current unit/runtime/browser runs require final confirmation
 - Exact Groq/Cerebras account quotas remain unknown; limits remain null and routing must fail closed
 - Render environment variable names are not exposed by the service metadata; no values requested
-- STR provider-backed spec/section/fix/convert generation remains disabled; AI-generated spec creation, browser quality gates, ZIP and bilingual guides remain
+- Local rule-based starter spec is implemented; provider-backed AI spec/section/fix/convert generation remains disabled. Prompt dock/spec editing, browser quality gates, chunked build, ZIP and bilingual guides remain
 - Real-device Android/iPhone tests not performed
-Next: 3.1 — Complete spec/safety CI tests; keep model generation blocked until a verified provider is configured
+Next: 3.1 — Pass 5 typical + 5 vague prompt exit tests and end-to-end browser spec preview; then 3.2 editable spec sheet
