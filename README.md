@@ -50,26 +50,28 @@ Only non-paid, adult-supervised buyer-interest conversations and synthetic-data 
 
 ## Keyless AI runtime
 
-NOVA is configured for **keyless AI mode**. Hosted LLM and hosted speech endpoints are disabled, and provider credentials (LLM, Groq, OpenRouter, Tavily, Brave, paid image, Pollinations-key and Horde-key settings) are ignored by the application.
+NOVA's existing assistant and answer-generation features are designed to use **no hosted AI-model API key and no paid LLM inference**.
 
-- Chat: Qwen3-0.6B ONNX in the browser through Transformers.js; WebGPU first, CPU/WASM fallback.
-- Voice transcription: Whisper Tiny ONNX in the browser; WebGPU first, CPU/WASM fallback.
-- Translation and image-prompt enhancement: use the same local chat model.
-- Live web search: anonymous DuckDuckGo HTML search with Wikipedia fallback; internet required and public sources may rate-limit or block requests.
-- Image generation: anonymous public Pollinations endpoint only; internet required, availability/rate limits are outside NOVA's control. This is keyless, not offline image generation.
-- PDF text extraction, scanned-page OCR, photo OCR and saved chats: browser-local. OCR can misread handwriting or low-quality images; general object/scene understanding is not yet implemented.
-- First use downloads model/runtime files. After successful caching, local inference can work offline, but browser storage may be cleared or evicted and low-memory phones may fail to load larger models.
+- **Chat and reasoning:** Qwen3-0.6B ONNX runs locally in the browser through Transformers.js; WebGPU first, CPU/WASM fallback.
+- **Voice transcription:** Whisper Base ONNX runs locally in the browser; WebGPU first, CPU/WASM fallback. Text-to-speech uses the browser speech engine.
+- **Photo text reading and scanned-PDF OCR:** Tesseract.js runs locally for English and Hindi. This extracts readable text; it is not general scene/object understanding.
+- **PDF/text/document handling:** PDF.js and browser file APIs parse supported files locally; extracted text is passed to the local model on the current device.
+- **Current answers:** main chat defaults to live research. The NOVA server retrieves evidence from public no-key sources such as DuckDuckGo, GDELT, Google News RSS and Wikipedia, plus public feeds/data services for weather, time, markets, science, statistics, natural events and sports.
+- **NOVA Learn / Build / Agents:** their time-sensitive questions use the same no-key live research route before local-model generation.
+- **Image generation:** deliberately disabled until a genuinely on-device image model is integrated and validated. No AI Horde, Pollinations or other remote image-generation request is made.
+- **Local storage:** chats and files remain browser-local unless the user explicitly enables the separate account/cloud feature.
 
-## Architecture
+First use downloads model/runtime/OCR files. After successful caching, local inference can work without internet, but **new live research requires internet**. Browser storage may be cleared or evicted, and low-memory phones may fail to load models. Qwen3-0.6B is a small on-device model, not equivalent to a frontier hosted model. Public search/data services can rate-limit, block traffic, change policies or return incomplete/stale evidence. If live retrieval fails, NOVA must disclose that it cannot verify current facts rather than inventing an answer.
 
-- Frontend: `index.html` and modular browser JavaScript.
-- Local inference: `nova-local-ai.js` in the browser; no hosted LLM API key is used.
-- Backend: Express server in `nova-server.txt`, used for app shell, keyless live search and anonymous image-job proxying.
-- Runtime: Node.js 22.
-- Start command: `node nova-server.txt`.
-- Optional account authentication/cloud sync still depends on Supabase configuration and an internet connection; it is separate from AI-provider keys. Without that configuration, NOVA must be used in local-device mode.
-- Never commit provider secrets or expose credentials in browser code.
+### Key boundary for the upcoming feature file
 
+The existing NOVA Core must not read, store or send a hosted LLM, speech, search or image-provider key. New functionality described in the later user-supplied specification must be added as an isolated module/route. If that new feature needs an API key, its key must be feature-scoped and server-side only; it must never be placed in browser code, local storage, chat history, URLs or logs. Existing chat, voice, OCR, PDF, Learn/Build/Agents answers and live search must keep using the local model and no-key public retrieval, even after the new feature is added. Add regression tests proving the Core never invokes the new paid route.
+
+### Existing optional account/cloud exception
+
+Optional NOVA Account / Company Cloud still uses the existing Supabase publishable project key for authentication and cloud data only. This is separate from AI generation and is not sent to the local model or public live-research connectors. Removing that cloud credential entirely would require a separate, reviewed migration to a first-party account/database service; it is not part of this keyless AI-Core change. Therefore the current guarantee is **no hosted AI-provider key or inference spend for existing AI answers**, not “no credential anywhere in every optional cloud feature.”
+
+Hosting, bandwidth, device data usage and model downloads may still have costs. “No AI API key” does not mean “no internet” or “all infrastructure is free.”
 
 ## Cloud-sync limitation to disclose
 
