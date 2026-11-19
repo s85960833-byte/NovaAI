@@ -62,7 +62,16 @@ async function putDraft(record){
   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Draft save failed'));tx.onabort=()=>reject(tx.error||new Error('Draft save aborted'));
  });
 }
+async function pruneExpiredDrafts(){
+ const db=await openDb();
+ const all=await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),req=tx.objectStore('drafts').getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error||new Error('Draft retention check failed'));});
+ const cutoff=Date.now()-7*24*60*60*1000;
+ const expired=all.filter(d=>Number(d.updatedAt||d.createdAt||0)<cutoff);
+ if(!expired.length)return;
+ await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readwrite'),store=tx.objectStore('drafts');expired.forEach(d=>store.delete(d.id));tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Draft retention cleanup failed'));});
+}
 async function getLatestDraft(){
+ await pruneExpiredDrafts();
  const db=await openDb();
  return await new Promise((resolve,reject)=>{
   const tx=db.transaction('drafts','readonly'),req=tx.objectStore('drafts').getAll();
@@ -101,6 +110,7 @@ function playIntro(){
  setTimeout(finish,2400);
 }
 function open(){
+ const side=document.getElementById('side');if(side)side.classList.remove('open');
  root.hidden=false;document.body.classList.add('str-open');status('');
  restoreDraft();playIntro();
 }
