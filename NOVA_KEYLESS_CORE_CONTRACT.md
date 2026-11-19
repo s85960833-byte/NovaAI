@@ -9,7 +9,7 @@ Status: engineering contract on `feature/keyless-main-chat-no-key-test-20261118`
 3. Photo text extraction and scanned-PDF OCR use local Tesseract. The UI must say OCR extracts text and is not general image/scene understanding.
 4. Supported PDFs and text documents are parsed locally.
 5. Current/time-sensitive questions in main chat default to live research through `/api/live`. NOVA retrieves public no-key evidence; the local model writes the answer from that context and cites only supplied sources.
-6. NOVA Learn / Build / Agents use the same local model. Time-sensitive questions in those workspaces use the same `/api/live` evidence service.
+6. NOVA Learn / Build / Agents use the same local model. Every submitted question in those workspaces uses the same `/api/live` evidence service.
 7. Old provider keys/config are discarded. Hosted chat and hosted speech endpoints stay disabled.
 8. Image generation stays disabled until a genuinely on-device model is integrated and validated. Do not call an anonymous public token or public remote image endpoint “zero-key”.
 9. Optional Supabase Account/Company Cloud remains a distinct data feature with an existing publishable project key; it must not be used for AI inference or public live retrieval.
