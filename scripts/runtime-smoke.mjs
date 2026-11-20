@@ -62,6 +62,19 @@ await expect('STR owner access endpoint rejects missing bearer session','/api/st
 await expect('STR content endpoint rejects missing bearer session','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_unauth_12345678','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en'})},(r,b)=>r.status===401&&JSON.parse(b).code==='STR_AUTH_REQUIRED');
 const unconfiguredOwnerToken='runtime-smoke.supabase.owner-token-1234567890';
 await expect('STR remains locked when the owner allow-list is not configured','/api/str/access',{headers:{authorization:'Bearer '+unconfiguredOwnerToken}},(r,b)=>r.status===503&&r.headers.get('cache-control')==='no-store'&&JSON.parse(b).code==='STR_OWNER_GATE_NOT_CONFIGURED');
+
+// Authentication attempts are independently throttled by client IP (30/minute).
+const strAuthIp='198.51.100.241';
+for(let i=0;i<30;i++){
+ const response=await req('/api/str/access',{headers:{'x-forwarded-for':strAuthIp,authorization:'Bearer '+unconfiguredOwnerToken}});
+ if(response.status!==503) throw new Error('STR auth throttle blocked request '+(i+1)+' before its configured threshold: HTTP '+response.status);
+ if(response.headers.get('cache-control')!=='no-store') throw new Error('STR auth throttle response must never be cached');
+}
+const strAuthBlocked=await req('/api/str/access',{headers:{'x-forwarded-for':strAuthIp,authorization:'Bearer '+unconfiguredOwnerToken}});
+if(strAuthBlocked.status!==429) throw new Error('STR auth throttle did not reject request 31: HTTP '+strAuthBlocked.status);
+if(strAuthBlocked.headers.get('cache-control')!=='no-store') throw new Error('STR auth throttle rejection must never be cached');
+console.log('PASS STR per-IP owner-verification throttle (30 allowed, 31st blocked)');
+
 for(const [route,body] of [
  ['/spec',{prompt:'hello',uiLang:'en',contentLang:'en'}],
  ['/section',{spec:{},sectionId:'home',uiLang:'en',contentLang:'en'}],
