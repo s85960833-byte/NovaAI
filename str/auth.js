@@ -54,7 +54,9 @@ function createOwnerGuard(options = {}) {
           Accept: 'application/json'
         },
         signal: AbortSignal.timeout(5000),
-        cache: 'no-store'
+        cache: 'no-store',
+        credentials: 'omit',
+        redirect: 'error'
       });
       if (response.status === 401 || response.status === 403) {
         return res.status(401).json({
