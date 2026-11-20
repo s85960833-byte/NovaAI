@@ -344,6 +344,10 @@ try{
  await desktop.locator('#strOpenAccount').click();
  await desktop.locator('#novaAccountDialog').waitFor({state:'visible'});
  await desktop.locator('#novaAccountClose').click();
+ await desktop.locator('#strAccessBack').click();
+ await desktop.locator('#strApp').waitFor({state:'hidden'});
+ await desktop.locator('#nStr').click();
+ await desktop.locator('#strAccessLock').waitFor({state:'visible'});
  await desktop.evaluate(()=>window.NovaSTR.close());
 
  // Stub only the authentication boundary and local-spec HTTP endpoint for deterministic browser regression.
