@@ -41,7 +41,9 @@ jobs:
         timeout-minutes: 8
         run: |
           timeout 360s npm install --no-save --no-package-lock playwright@1.56.1
-          timeout 360s npx playwright install --with-deps chromium
+          # The backend verification workflow installs and checks Chromium with all OS dependencies.
+          # Keep this duplicate account/browser job fast; hosted Ubuntu already includes Chromium runtime libraries.
+          timeout 360s npx playwright install chromium
       - name: Start local NOVA test server
         run: |
           LLM_KEY=test LLM_MODEL=test-model PORT=8787 node nova-server.txt > /tmp/nova-account-test.log 2>&1 &
