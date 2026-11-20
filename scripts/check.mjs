@@ -212,6 +212,9 @@ if (!strScript.includes('window.NovaBusinessCloud.getClient()') ||
     !html.includes('id="strAccessLock"') ||
     !html.includes('id="strOpenAccount"') ||
     !html.includes('id="strAccessRetry"') ||
+    !html.includes('id="strAccessBack"') ||
+    !strScript.includes("accessBack:'Back to NOVA'") ||
+    !strScript.includes("accessBack:'NOVA पर वापस जाएँ'") ||
     !strScript.includes("content.inert=!!locked")) {
   throw new Error('STR owner lock screen must use the shared NOVA sign-in session and remain inaccessible before server verification');
 }
