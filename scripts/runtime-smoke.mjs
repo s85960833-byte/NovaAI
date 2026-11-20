@@ -64,7 +64,7 @@ const unconfiguredOwnerToken='runtime-smoke.supabase.owner-token-1234567890';
 await expect('STR remains locked when the owner allow-list is not configured','/api/str/access',{headers:{authorization:'Bearer '+unconfiguredOwnerToken}},(r,b)=>r.status===503&&r.headers.get('cache-control')==='no-store'&&JSON.parse(b).code==='STR_OWNER_GATE_NOT_CONFIGURED');
 
 // Authentication attempts are independently throttled by client IP (30/minute).
-const strAuthIp='198.51.100.241';
+const strAuthIp='198.51.100.242';
 for(let i=0;i<30;i++){
  const response=await req('/api/str/access',{headers:{'x-forwarded-for':strAuthIp,authorization:'Bearer '+unconfiguredOwnerToken}});
  if(response.status!==503) throw new Error('STR auth throttle blocked request '+(i+1)+' before its configured threshold: HTTP '+response.status);
