@@ -607,7 +607,7 @@ try{
    accessAttempt++;
    setOwnerGate(true,dict[lang].accessNeedSignIn);
   }else if(event==='SIGNED_IN'){
-   retryOwnerAccess();
+   queueMicrotask(()=>retryOwnerAccess());
   }
  });
 }catch(e){}
