@@ -147,7 +147,7 @@ if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
 if (!appScript.includes('async function pollImageJob(') || !appScript.includes("API+'/image/status/'") || !appScript.includes('pollImageJob(j.jobId,sig)') || !appScript.includes("sig.addEventListener('abort',abort,{once:true})") || !appScript.includes("e1?.status===429")) throw new Error('Image studio must abort polling promptly and must not bypass server image rate limits');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'") || !server.includes("app.get('/nova-account.js'")) throw new Error('Existing optional feature asset routes missing');
-if (!server.includes("const CACHE='nova-shell-v20-str'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
+if (!server.includes("const CACHE='nova-shell-v21-str'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
 // Frontend entry points are external files and are syntax-checked above.
 
 const entryClient = readFileSync('nova-entry.js', 'utf8');
@@ -163,7 +163,11 @@ if (!html.includes('id="novaEntryGate"') || html.includes('id="novaEntryVideo"')
 }
 
 const strScript = readFileSync('str-app.js', 'utf8');
+const strAuth = readFileSync('str/auth.js', 'utf8');
+const strAuthTest = readFileSync('scripts/str-auth.test.cjs', 'utf8');
 syntaxCheck('STR app shell', strScript);
+syntaxCheck('STR owner authentication middleware', strAuth);
+syntaxCheck('STR owner authentication tests', strAuthTest);
 const strServer = readFileSync('str/server.js', 'utf8');
 const strSecurity = readFileSync('str/security.js', 'utf8');
 const strProviderRouter = readFileSync('str/provider-router.js', 'utf8');
@@ -192,6 +196,30 @@ if (!strServer.includes("eligibleProviders(providerConfig, 'customer_data')") ||
   throw new Error('STR customer-data routing must require verified paid no-training terms, known quotas and owner access controls');
 }
 if (!strServer.includes("generationEnabled: false") || !strServer.includes("customerBuildsEnabled: false") || !strServer.includes("RETENTION_DAYS = 7")) throw new Error('STR must remain owner-only and fail closed until provider verification');
+if (!strAuth.includes("process.env.STR_OWNER_USER_IDS") ||
+    !strAuth.includes("fetchImpl(endpoint") ||
+    !strAuth.includes("Authorization: 'Bearer ' + match[1]") ||
+    !strAuth.includes("STR_OWNER_GATE_NOT_CONFIGURED") ||
+    !strAuth.includes("STR_OWNER_NOT_ALLOWED") ||
+    !strServer.includes("router.get('/access', requireOwner") ||
+    !["spec","section","fix","convert"].every(route=>strServer.includes(`router.post('/${route}', requireOwner, postGuard`))) {
+  throw new Error('Every STR content route must require a verified Supabase session and the configured owner UUID allow-list');
+}
+if (!strScript.includes('window.NovaBusinessCloud.getClient()') ||
+    !strScript.includes('client.auth.getSession()') ||
+    !strScript.includes("Authorization:'Bearer '+await getAccessToken()") ||
+    !strScript.includes("fetch('/api/str/access'") ||
+    !html.includes('id="strAccessLock"') ||
+    !html.includes('id="strOpenAccount"') ||
+    !html.includes('id="strAccessRetry"') ||
+    !strScript.includes("content.inert=!!locked")) {
+  throw new Error('STR owner lock screen must use the shared NOVA sign-in session and remain inaccessible before server verification');
+}
+if (!strAuthTest.includes('STR owner gate denies a valid NOVA account that is not allow-listed') ||
+    !strAuthTest.includes('STR owner gate admits only a valid Supabase user whose UUID is allow-listed') ||
+    !strAuthTest.includes('STR owner gate returns a closed 503')) {
+  throw new Error('STR owner authentication tests must cover the owner allow-list and fail-closed verification boundary');
+}
 
 if (!strScript.includes("localStorage.setItem('str_reply_lang',replyLang)") ||
     !strScript.includes("localStorage.setItem('str_content_lang',contentLang)") ||
@@ -211,6 +239,6 @@ if (strScript.includes("localStorage.setItem('nova'") || /fetch\s*\(\s*['\"]http
 if (!strScript.includes('Draft saved on this device.') || !strScript.includes('ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।')) throw new Error('STR bilingual local-save feedback is missing');
 if (strProviderConfig.customer_builds_enabled !== false || strProviderConfig.routing.customer_data.length !== 0) throw new Error('STR customer builds/data routing must remain disabled in owner-only mode');
 if (strProviderConfig.providers.some(p => ['requests_per_minute','tokens_per_minute','requests_per_day','tokens_per_day'].some(k => p[k] === null)) && strProviderConfig.routing.unknown_limits_action !== 'block_and_report') throw new Error('Unknown provider quotas must fail closed');
-if (!server.includes("const CACHE='nova-shell-v20-str'") || !server.includes("'/str-app.js'")) throw new Error('STR must be included in the versioned offline shell');
+if (!server.includes("const CACHE='nova-shell-v21-str'") || !server.includes("'/str-app.js'")) throw new Error('STR must be included in the versioned offline shell');
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
 process.stdout.write('PASS NOVA video-first entry gate markup, interaction, asset integrity, and streaming route\n');
