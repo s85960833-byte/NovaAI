@@ -4,7 +4,7 @@ Product: STR inside the existing Nova AI app (same production app and URL)
 Prompt version: final-3.0
 Build version: 0.9 (owner-only, deterministic local build)
 Current phase: Phase 4.1 — local chunked build and server-verified owner gate implemented on the feature branch; provider-backed generation and full release gates remain blocked
-Latest code commit at this update: 376646b40b794d014257761e426f59fd37c0df68
+Latest code/workflow head at this update: 67d173c16c7b2b7a44e0227d01938028c477a81f
 Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 
 ## Completed work (verified in source and CI evidence)
@@ -29,7 +29,7 @@ Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 
 ### Phase 2.1 — server-verified owner access (implemented on the feature branch; verification pending)
 - STR reuses Nova's existing shared Supabase Auth client and obtains the current session through `auth.getSession()`; the browser sends the session bearer token only to fixed same-origin STR routes.
-- The backend independently verifies each bearer token with the existing Supabase Auth `/auth/v1/user` endpoint using the already-public publishable key. No service-role key or browser-supplied user ID is trusted.
+- The backend independently verifies each bearer token with the existing Supabase Auth `/auth/v1/user` endpoint using the already-public publishable key. The server request omits ambient credentials, rejects redirects, uses a five-second timeout and disables caching. No service-role key or browser-supplied user ID is trusted.
 - STR owner UUIDs are allow-listed through the server environment variable `STR_OWNER_USER_IDS`. Missing or malformed configuration fails closed; an authenticated but non-allow-listed account is denied.
 - The access endpoint and all STR content endpoints (`spec`, `section`, `fix`, `convert`) require the server-verified owner identity. Missing sessions return 401; non-owner accounts return 403; unconfigured gates or unavailable verification return 503.
 - The STR UI now stays inert behind a bilingual access lock until the backend confirms owner access. The existing Nova sign-in dialog is reused; account sign-out re-locks STR. A service-worker cache version bump prevents a stale pre-gate shell from being reused.
@@ -59,12 +59,11 @@ Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 - This static ZIP is not a production application and does not include a verified hosted backend or provider-generated full application.
 
 ## Latest verification evidence
-- Owner-authentication implementation and its updated runtime/browser checks are now part of the current feature branch. The first CI run exposed a test-only mock-key length issue; that fixture was corrected and the replacement CI runs are pending. Do not mark the owner gate verified until both latest workflows pass.
-- Browser workflow at commit `7ee977982da25da0bd681d49d14575894a1fbb71` succeeded: https://github.com/s85960833-byte/NovaAI/actions/runs/44577552807. It confirmed full-width STR layout at 360/390/412 CSS px, approved local ZIP, preview safety and IndexedDB draft persistence.
-- Final candidate `376646b40b794d014257761e426f59fd37c0df68` adds a seven-day expiry regression and copy corrections; its final CI runs are pending/in progress and must pass before this candidate is treated as verified.
-- That workflow exercised the STR API refusal/rate/schema checks, local spec, local preview/pause-resume, preview sandbox/CSP, ZIP export, and the added mobile-width regression.
-- Backend verification for the same commit was still running at the last check: https://github.com/s85960833-byte/NovaAI/actions/runs/44577552801
-- Previous integrated candidate had an XSS-test false positive because the inline-handler regex matched the escaped user text. The assertion now inspects actual HTML tags only; the latest browser workflow passed with that correction.
+- Backend/security workflow passed on implementation commit `7a724921e79f83b7f61fd712ad588afbe028fce0`: [run 44668891684](https://github.com/s85960833-byte/NovaAI/actions/runs/44668891684). It completed STR owner-auth tests (including the redirect/credentials assertions), request/origin/schema/rate-limit checks, syntax and security checks, runtime API smoke, Chromium browser smoke, and five-viewport mobile/drawer regression.
+- Account/browser workflow passed on workflow head `67d173c16c7b2b7a44e0227d01938028c477a81f`: [run 44669806573](https://github.com/s85960833-byte/NovaAI/actions/runs/44669806573). It completed install, runtime routes, account UI/privacy/opt-in cloud sync, shared Supabase auth, mobile layout/drawer and graceful-shutdown checks.
+- The account/browser run `44668891686` failed before app tests because Playwright's `--with-deps` apt install hit its 360-second timeout while downloading Ubuntu system packages (32.1 MB). No app test was executed in that failed run. The account workflow now installs the Chromium browser without repeating the OS dependency installation; the backend workflow retains the full Chromium + OS dependency installation. The new browser run passed.
+- Both green runs contain the same application code, including owner-auth redirect hardening; the later `67d173c` change only optimizes the duplicate account workflow's install step.
+- CI does not configure the owner UUID, prove a real Supabase owner session, profile real Android memory/CPU, or provide owner-device sign-off. Those are still release blockers; do not merge or deploy based only on CI.
 
 ## Current provider state and decisions
 - Model 1 — owner-only free; customer builds, onboarding, customer sales and billing remain disabled.
