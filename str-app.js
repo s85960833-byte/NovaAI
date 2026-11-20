@@ -387,7 +387,7 @@ async function startLocalBuild(){
    status(dict[lang].buildPaused);return;
   }
   currentBuild.html=currentBuild.htmlParts.join('');
-  if(currentBuild.html.length>250000)throw new Error('Local preview output exceeded its safe size limit.');
+  if(new TextEncoder().encode(currentBuild.html).length>250000)throw new Error('Local preview output exceeded its safe byte-size limit.');
   currentBuild.htmlParts=[];
   currentBuild.status='complete';currentBuild.updatedAt=Date.now();
   await persistBuildProgress();
