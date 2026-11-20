@@ -481,7 +481,7 @@ async function getAccessToken(){
  }
  const client=account.getClient();
  const result=await client.auth.getSession();
- if(result.error)throw result.error;
+ if(result.error){const error=new Error('NOVA account session could not be read.');error.code='STR_AUTH_UNAVAILABLE';throw error;}
  const token=result.data&&result.data.session&&result.data.session.access_token;
  if(typeof token!=='string'||token.length<30){const error=new Error(dict[lang].accessNeedSignIn);error.code='STR_AUTH_REQUIRED';throw error;}
  return token;
