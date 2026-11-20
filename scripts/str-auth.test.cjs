@@ -30,6 +30,8 @@ function authFetch(userId, status = 200) {
   return async (url, options) => {
     assert.equal(String(url), 'https://project.example/auth/v1/user');
     assert.equal(options.method, 'GET');
+    assert.equal(options.credentials, 'omit');
+    assert.equal(options.redirect, 'error');
     assert.equal(options.headers.apikey, 'sb_publishable_testkey0123456789012345abcdef');
     assert.equal(options.headers.Authorization, 'Bearer ' + TOKEN);
     return {
