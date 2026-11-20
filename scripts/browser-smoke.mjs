@@ -473,7 +473,7 @@ try{
  assert.doesNotMatch(previewHtml,/<(?:iframe|object|embed)\b/i,'local preview must not nest active embedded documents');
  assert.doesNotMatch(previewHtml,/<[a-z][^>]*\son[a-z]+\s*=/i,'local preview must not contain inline event handlers on actual HTML elements');
  assert.doesNotMatch(previewHtml,/(?:src|href)\s*=\s*["']https?:\/\//i,'local preview must not load remote resources automatically');
- assert.ok(previewHtml.length<250000,'local preview must stay within the documented output size cap');
+ assert.ok(Buffer.byteLength(previewHtml,'utf8')<250000,'local preview must stay within the documented UTF-8 byte-size cap');
  assert.equal(await desktop.locator('#strPreviewFrame').getAttribute('sandbox'),'allow-scripts allow-forms','preview iframe must not grant same-origin or top-navigation');
  const completedBuild=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.build);r.onerror=()=>reject(r.error)})});
  assert.equal(completedBuild.status,'complete','completed local preview must persist in IndexedDB');
