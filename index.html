@@ -227,6 +227,15 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 /* STR / Strata — isolated styles; no Nova theme selectors are overridden. */
 .str-app{position:fixed;inset:0;z-index:13000;overflow:auto;background:#0f172a;color:#f8fafc;font-family:Inter,"Noto Sans Devanagari",system-ui,sans-serif;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
 .str-app *{box-sizing:border-box}
+.str-access-lock{position:fixed;inset:0;z-index:8;display:grid;place-items:center;padding:20px;background:rgba(7,12,25,.98)}
+.str-access-lock[hidden]{display:none}
+.str-access-card{width:min(100%,480px);padding:24px;border:1px solid #475569;border-radius:18px;background:#17213a;box-shadow:0 24px 80px #0009}
+.str-access-card h2{margin:0 0 10px;font-size:clamp(22px,5vw,30px)}
+.str-access-card p{color:#cbd5e1;line-height:1.6}
+.str-access-actions{display:grid;gap:10px;margin-top:18px}
+.str-access-actions button:first-child{background:#f59e0b;color:#1e1b4b;border-color:#f59e0b;font-weight:800}
+.str-access-actions button:disabled{opacity:.55;cursor:wait}
+
 .str-app button,.str-app textarea{font:inherit}
 .str-app button{min-height:44px;border:1px solid #334155;border-radius:12px;padding:10px 14px;background:#17213a;color:#f8fafc;cursor:pointer}
 .str-app button:focus-visible,.str-app textarea:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
@@ -424,6 +433,16 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
     </main>
     <footer class="str-footer" data-str="footer">STR is in setup. Build generation will be enabled after the secure pipeline is ready.</footer>
   </div>
+  <section id="strAccessLock" class="str-access-lock" hidden role="dialog" aria-modal="true" aria-labelledby="strAccessTitle">
+    <div class="str-access-card">
+      <h2 id="strAccessTitle" data-str="accessTitle">STR is owner-only</h2>
+      <p id="strAccessMessage" role="status" aria-live="polite" data-str="accessBody">Sign in with your NOVA account and verify owner access before opening this workspace.</p>
+      <div class="str-access-actions">
+        <button id="strOpenAccount" type="button" data-str="accessSignIn">Sign in / Create NOVA account</button>
+        <button id="strAccessRetry" type="button" data-str="accessRetry">Check access again</button>
+      </div>
+    </div>
+  </section>
   <div id="strIntro" class="str-intro" hidden aria-hidden="true">
     <div class="str-intro-inner">
       <svg class="str-intro-mark" viewBox="0 0 120 120" aria-hidden="true">
