@@ -19,6 +19,8 @@ function createStrRouter() {
   const requireOwner = createOwnerGuard();
 
   router.use((req, res, next) => {
+    // STR plans and owner-access responses can contain private draft data; never cache them.
+    res.setHeader('Cache-Control', 'no-store');
     if (!sameOrigin(req)) return res.status(403).json({ error: 'STR requests must come from the same Nova origin.' });
     next();
   });
