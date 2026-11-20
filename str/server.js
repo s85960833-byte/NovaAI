@@ -6,6 +6,7 @@ const providerConfig = require('./provider-config.json');
 const { eligibleProviders } = require('./provider-router');
 const { classifyPrompt } = require('./safety');
 const { generateLocalSpec } = require('./spec-engine');
+const { createOwnerGuard } = require('./auth');
 
 const RETENTION_DAYS = 7;
 const MAX_BODY_BYTES = 20 * 1024;
@@ -15,11 +16,14 @@ const WINDOW_MS = 60 * 1000;
 function createStrRouter() {
   const router = express.Router();
   const rateWindows = new Map();
+  const requireOwner = createOwnerGuard();
 
   router.use((req, res, next) => {
     if (!sameOrigin(req)) return res.status(403).json({ error: 'STR requests must come from the same Nova origin.' });
     next();
   });
+
+  router.get('/access', requireOwner, (req, res) => res.json({ ok: true, ownerAccess: true }));
 
   router.get('/health', (req, res) => res.json({
     status: 'ok',
@@ -73,7 +77,7 @@ function createStrRouter() {
     });
   }
 
-  router.post('/spec', postGuard, (req, res) => {
+  router.post('/spec', requireOwner, postGuard, (req, res) => {
     const b = req.body;
     if (!exactKeys(b, ['prompt', 'uiLang', 'contentLang']) ||
         typeof b.prompt !== 'string' || !b.prompt.trim() || b.prompt.length > 1000 ||
@@ -111,7 +115,7 @@ function createStrRouter() {
     }
   });
 
-  router.post('/section', postGuard, (req, res) => {
+  router.post('/section', requireOwner, postGuard, (req, res) => {
     const b = req.body;
     if (!exactKeys(b, ['spec', 'sectionId', 'uiLang', 'contentLang']) ||
         !plainObject(b.spec) || typeof b.sectionId !== 'string' || !/^[A-Za-z0-9_-]{1,80}$/.test(b.sectionId) ||
@@ -121,7 +125,7 @@ function createStrRouter() {
     return disabled(res);
   });
 
-  router.post('/fix', postGuard, (req, res) => {
+  router.post('/fix', requireOwner, postGuard, (req, res) => {
     const b = req.body;
     if (!exactKeys(b, ['fragment', 'specSlice', 'failures', 'uiLang']) ||
         typeof b.fragment !== 'string' || b.fragment.length > 16000 ||
@@ -132,7 +136,7 @@ function createStrRouter() {
     return disabled(res);
   });
 
-  router.post('/convert', postGuard, (req, res) => {
+  router.post('/convert', requireOwner, postGuard, (req, res) => {
     const b = req.body;
     if (!exactKeys(b, ['text', 'targetLang', 'uiLang']) ||
         typeof b.text !== 'string' || !b.text.trim() || b.text.length > 1000 ||
