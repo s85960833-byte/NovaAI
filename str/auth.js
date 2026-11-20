@@ -1,6 +1,6 @@
 'use strict';
 
-const SUPABASE_URL = process.env.NOVA_SUPABASE_URL || 'https://qrfwsewppafhxibdboam.supabase.co';
+const SUPABASE_URL = 'https://qrfwsewppafhxibdboam.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = process.env.NOVA_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_uprqEe5o0URtEDZGN0ji2w_LiDiMJQ';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -43,6 +43,7 @@ function createOwnerGuard(options = {}) {
       });
     }
 
+    let user;
     try {
       const endpoint = new URL('/auth/v1/user', projectUrl);
       const response = await fetchImpl(endpoint, {
@@ -67,28 +68,29 @@ function createOwnerGuard(options = {}) {
           code: 'STR_AUTH_UNAVAILABLE'
         });
       }
-      const user = await response.json();
-      const userId = String(user && user.id || '').toLowerCase();
-      if (!UUID_RE.test(userId)) {
-        return res.status(401).json({
-          error: 'NOVA did not return a valid signed-in account. Sign in again.',
-          code: 'STR_SESSION_INVALID'
-        });
-      }
-      if (!ownerConfig.ids.has(userId)) {
-        return res.status(403).json({
-          error: 'This NOVA account is not authorized for STR owner access.',
-          code: 'STR_OWNER_NOT_ALLOWED'
-        });
-      }
-      req.strOwner = Object.freeze({ id: userId });
-      return next();
+      user = await response.json();
     } catch {
       return res.status(503).json({
         error: 'NOVA account verification timed out or failed. Access remains blocked.',
         code: 'STR_AUTH_UNAVAILABLE'
       });
     }
+
+    const userId = String(user && user.id || '').toLowerCase();
+    if (!UUID_RE.test(userId)) {
+      return res.status(401).json({
+        error: 'NOVA did not return a valid signed-in account. Sign in again.',
+        code: 'STR_SESSION_INVALID'
+      });
+    }
+    if (!ownerConfig.ids.has(userId)) {
+      return res.status(403).json({
+        error: 'This NOVA account is not authorized for STR owner access.',
+        code: 'STR_OWNER_NOT_ALLOWED'
+      });
+    }
+    req.strOwner = Object.freeze({ id: userId });
+    return next();
   };
 }
 
