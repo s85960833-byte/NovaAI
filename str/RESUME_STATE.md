@@ -3,7 +3,7 @@
 Product: STR inside the existing Nova AI app (same production app and URL)
 Prompt version: final-3.0
 Build version: 0.9 (owner-only, deterministic local build)
-Current phase: Phase 4.1 — local chunked build foundation implemented; provider-backed generation and full release gates remain blocked
+Current phase: Phase 4.1 — local chunked build and server-verified owner gate implemented on the feature branch; provider-backed generation and full release gates remain blocked
 Latest code commit at this update: 376646b40b794d014257761e426f59fd37c0df68
 Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 
@@ -26,6 +26,15 @@ Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 - Provider routing fails closed unless the provider is verified for paid no-training use, has a valid reviewed HTTPS terms URL, explicit no-training confirmation, verified owner-only access controls, a known model, and all RPM/TPM/RPD/TPD quotas.
 - Verification dates are strict calendar dates; malformed dates and insecure/credential-bearing terms URLs are rejected.
 - Credential collection, impersonation, malware/spam, gambling and other unsafe prompts receive bilingual refusals before processing.
+
+### Phase 2.1 — server-verified owner access (implemented on the feature branch; verification pending)
+- STR reuses Nova's existing shared Supabase Auth client and obtains the current session through `auth.getSession()`; the browser sends the session bearer token only to fixed same-origin STR routes.
+- The backend independently verifies each bearer token with the existing Supabase Auth `/auth/v1/user` endpoint using the already-public publishable key. No service-role key or browser-supplied user ID is trusted.
+- STR owner UUIDs are allow-listed through the server environment variable `STR_OWNER_USER_IDS`. Missing or malformed configuration fails closed; an authenticated but non-allow-listed account is denied.
+- The access endpoint and all STR content endpoints (`spec`, `section`, `fix`, `convert`) require the server-verified owner identity. Missing sessions return 401; non-owner accounts return 403; unconfigured gates or unavailable verification return 503.
+- The STR UI now stays inert behind a bilingual access lock until the backend confirms owner access. The existing Nova sign-in dialog is reused; account sign-out re-locks STR. A service-worker cache version bump prevents a stale pre-gate shell from being reused.
+- Added backend unit coverage for absent sessions, invalid sessions, allow-listed owners, non-owner accounts, missing configuration, malformed bearer values and Supabase verification failure. Runtime and browser checks now expect authenticated access.
+- **Not yet fully proven:** this feature branch has not been tested with the actual owner account UUID allow-listed against the live Supabase Auth project, and no Render environment setting has been changed. Production and `main` remain untouched.
 
 ### Phase 3 — editable spec and approval lifecycle
 - Compact v1 website spec validator and deterministic starter-plan constructor.
@@ -50,6 +59,7 @@ Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 - This static ZIP is not a production application and does not include a verified hosted backend or provider-generated full application.
 
 ## Latest verification evidence
+- Owner-authentication implementation and its updated runtime/browser checks are now part of the current feature branch. The first CI run exposed a test-only mock-key length issue; that fixture was corrected and the replacement CI runs are pending. Do not mark the owner gate verified until both latest workflows pass.
 - Browser workflow at commit `7ee977982da25da0bd681d49d14575894a1fbb71` succeeded: https://github.com/s85960833-byte/NovaAI/actions/runs/44577552807. It confirmed full-width STR layout at 360/390/412 CSS px, approved local ZIP, preview safety and IndexedDB draft persistence.
 - Final candidate `376646b40b794d014257761e426f59fd37c0df68` adds a seven-day expiry regression and copy corrections; its final CI runs are pending/in progress and must pass before this candidate is treated as verified.
 - That workflow exercised the STR API refusal/rate/schema checks, local spec, local preview/pause-resume, preview sandbox/CSP, ZIP export, and the added mobile-width regression.
@@ -78,7 +88,8 @@ Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 
 ### Phase 8 — quality and release
 - Complete the full quality matrix, resilience/security/language tests and Nova regression checks.
-- Backend workflow completion for the current candidate must be confirmed.
+- Confirm latest backend and browser CI after the owner-gate changes.
+- Configure the actual owner UUID allow-list only through an approved secure deployment process, then verify a real signed-in owner session and a non-owner denial against staging.
 - Real owner-device Android/iPhone review and owner phone sign-off have not occurred.
 - No merge or production deployment until all exit criteria and owner sign-off pass.
 
