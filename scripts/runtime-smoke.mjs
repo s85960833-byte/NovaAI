@@ -57,11 +57,11 @@ if(blocked.status!==429) throw new Error('API rate limit did not reject request 
 console.log('PASS integrated per-IP API rate limit (60 allowed, 61st blocked)');
 await expect('STR API health is stateless and owner-only','/api/str/health',{},(r,b)=>r.ok&&JSON.parse(b).generationEnabled===false&&JSON.parse(b).businessModel==='model_1_owner_only_free');
 await expect('STR provider quotas fail closed','/api/str/limits',{},(r,b)=>r.ok&&JSON.parse(b).generationEnabled===false&&JSON.parse(b).unknownLimitsAction==='block_and_report'&&JSON.parse(b).eligibleOwnerTestProviders===0&&JSON.parse(b).eligibleCustomerProviders===0&&JSON.parse(b).specPreviewEnabled===true);
-await expect('STR rejects cross-origin API calls','/api/str/spec',{method:'POST',headers:{origin:'https://attacker.example','sec-fetch-site':'cross-site','x-str-client-id':'client_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en'})},r=>r.status===403);
-await expect('STR owner access endpoint rejects missing bearer session','/api/str/access',{},(r,b)=>r.status===401&&JSON.parse(b).code==='STR_AUTH_REQUIRED');
+await expect('STR rejects cross-origin API calls','/api/str/spec',{method:'POST',headers:{origin:'https://attacker.example','sec-fetch-site':'cross-site','x-str-client-id':'client_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en'})},r=>r.status===403&&r.headers.get('cache-control')==='no-store');
+await expect('STR owner access endpoint rejects missing bearer session','/api/str/access',{},(r,b)=>r.status===401&&r.headers.get('cache-control')==='no-store'&&JSON.parse(b).code==='STR_AUTH_REQUIRED');
 await expect('STR content endpoint rejects missing bearer session','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_unauth_12345678','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en'})},(r,b)=>r.status===401&&JSON.parse(b).code==='STR_AUTH_REQUIRED');
 const unconfiguredOwnerToken='runtime-smoke.supabase.owner-token-1234567890';
-await expect('STR remains locked when the owner allow-list is not configured','/api/str/access',{headers:{authorization:'Bearer '+unconfiguredOwnerToken}},(r,b)=>r.status===503&&JSON.parse(b).code==='STR_OWNER_GATE_NOT_CONFIGURED');
+await expect('STR remains locked when the owner allow-list is not configured','/api/str/access',{headers:{authorization:'Bearer '+unconfiguredOwnerToken}},(r,b)=>r.status===503&&r.headers.get('cache-control')==='no-store'&&JSON.parse(b).code==='STR_OWNER_GATE_NOT_CONFIGURED');
 for(const [route,body] of [
  ['/spec',{prompt:'hello',uiLang:'en',contentLang:'en'}],
  ['/section',{spec:{},sectionId:'home',uiLang:'en',contentLang:'en'}],
