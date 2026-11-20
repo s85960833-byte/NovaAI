@@ -196,14 +196,29 @@ if (!strServer.includes("eligibleProviders(providerConfig, 'customer_data')") ||
   throw new Error('STR customer-data routing must require verified paid no-training terms, known quotas and owner access controls');
 }
 if (!strServer.includes("generationEnabled: false") || !strServer.includes("customerBuildsEnabled: false") || !strServer.includes("RETENTION_DAYS = 7")) throw new Error('STR must remain owner-only and fail closed until provider verification');
+const strAccessRoute = strServer.match(/router\.get\('\/access',\s*([^)]+)\)/);
+const strContentRouteMatches = [...strServer.matchAll(/router\.post\('\/(spec|section|fix|convert)',\s*([^)]+)\)/g)];
+const strContentRouteGuards = new Map(strContentRouteMatches.map(match => [
+  match[1],
+  match[2].split(',').map(name => name.trim())
+]));
+const accessGuardNames = strAccessRoute ? strAccessRoute[1].split(',').map(name => name.trim()) : [];
+const allSTRContentRoutesProtected = ["spec","section","fix","convert"].every(route => {
+  const guards = strContentRouteGuards.get(route) || [];
+  return ["postGuard","authRateGuard","requireOwner"].every(name => guards.includes(name));
+});
 if (!strAuth.includes("process.env.STR_OWNER_USER_IDS") ||
     !strAuth.includes("fetchImpl(endpoint") ||
     !strAuth.includes("Authorization: 'Bearer ' + match[1]") ||
     !strAuth.includes("STR_OWNER_GATE_NOT_CONFIGURED") ||
     !strAuth.includes("STR_OWNER_NOT_ALLOWED") ||
-    !strServer.includes("router.get('/access', requireOwner") ||
-    !["spec","section","fix","convert"].every(route=>strServer.includes(`router.post('/${route}', requireOwner, postGuard`))) {
-  throw new Error('Every STR content route must require a verified Supabase session and the configured owner UUID allow-list');
+    !accessGuardNames.includes("requireOwner") ||
+    !accessGuardNames.includes("authRateGuard") ||
+    !allSTRContentRoutesProtected ||
+    !strServer.includes("const AUTH_IP_LIMIT = 30") ||
+    !strServer.includes("const key = 'auth:' + req.ip") ||
+    !strServer.includes("consumeWindow(rateWindows, key, Date.now(), AUTH_IP_LIMIT, WINDOW_MS)")) {
+  throw new Error('Every STR content route must require owner authentication, request validation and the per-IP auth throttle');
 }
 if (!strScript.includes('window.NovaBusinessCloud.getClient()') ||
     !strScript.includes('client.auth.getSession()') ||
