@@ -1,5 +1,5 @@
 # STR Phase 0 Verification
-Research date: 2026-11-19
+Research date: 2026-11-20
 Prompt: STR Final Prompt v3
 Branch: feature/str-phase0-foundation-20261119
 Base: main
@@ -39,6 +39,13 @@ Base: main
 - Starting 2026-08-31, new apps and updates must target Android 16 (API 36) or higher, with platform-specific exceptions.
 - STR only prepares guides and packages; the customer performs account creation, payment, identity checks, uploads, testing and submission.
 
+## STR implementation verification (2026-11-20)
+- Server-side owner gate verifies the active Supabase session against `/auth/v1/user`, then compares the returned UUID against the `STR_OWNER_USER_IDS` allow-list. Invalid configuration, invalid sessions, non-owner accounts and upstream failures all fail closed.
+- The owner UUID is intentionally not guessed, scraped from unrelated records, or committed to source control. A real owner session cannot pass staging until the owner UUID is configured in the existing Render service's environment. No token or secret value is requested or stored in this repository.
+- Local spec input is bounded to 1,000 characters; validated project specs are capped at 48 KiB and 60 total sections; local preview output is capped at 250,000 UTF-8 bytes; ZIP archives are capped at 400,000 bytes.
+- Build checkpoints now skip repeated retention scans; expiry cleanup still runs on draft open/read. Browser tests cover pause/resume, restore, approval binding, safe preview sandbox, ZIP contents and 7-day expiry.
+- Latest completed baseline before the resource-limit hardening: both backend and account/browser workflows passed on commit `1b546bef318e1150593cab89babf87bc03e1c09f`. New resource-limit and UTF-8 byte-cap changes are being revalidated on the current branch head.
+
 ## Decisions applied provisionally
 - Business model: Model 1 — owner-only free (owner authorized all project defaults on 2026-11-19).
 - Customer builds: disabled.
@@ -47,8 +54,8 @@ Base: main
 - No customer data may be routed to any provider at this stage.
 
 ## Blockers / open items
-1. Render environment variable names are not exposed by the service-details endpoint; owner can provide names only if needed later. No values are requested.
-2. Retention is set to 7 days by owner authorization; revisit only if owner changes the policy.
+1. Real owner staging sign-in is blocked until the exact owner UUID is added to the existing Render service as `STR_OWNER_USER_IDS`. The service metadata does not expose configured environment variable names/values; the UUID must come from the owner's own NOVA account session. Do not infer or substitute another account.
+2. Browser-side draft retention is implemented at 7 days. No STR prompts or drafts are persisted on the server; server-side application logs do not intentionally store request bodies.
 3. Groq/Cerebras account-specific quotas need owner dashboard verification before exact capacity scheduling can be enabled.
 4. A paid provider has not been selected; this is not required for Model 1.
 5. No real-provider call or customer-data flow is enabled.
