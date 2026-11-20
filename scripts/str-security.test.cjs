@@ -239,3 +239,20 @@ test('STR spec validator enforces bounded project size, section count and strict
   const huge = structuredClone(base); huge.assumed=Array.from({length:41},(_,i)=>({field:'f'+i,value:'v',why:{hi:'कारण',en:'Reason'}}));
   assert.ok(validateSpec(huge).errors.includes('assumed_invalid'));
 });
+
+
+test('STR schema rejects UTF-8 oversized projects before preview generation', () => {
+  const spec = generateLocalSpec({ prompt: 'मेरी दुकान की वेबसाइट बनाओ।', uiLang: 'hi', contentLang: 'hi' });
+  const template = structuredClone(spec.pages[0].sections[0]);
+  spec.pages = [];
+  let count = 0;
+  for (let page = 0; page < 3; page++) {
+    const sections = [];
+    for (let i = 0; i < 20; i++) sections.push({ ...structuredClone(template), id: 'p' + page + '-s' + i, content: { heading: {hi:'शीर्षक',en:'Heading'}, body: {hi:'क'.repeat(600),en:'x'.repeat(600)} } });
+    spec.pages.push({ id:'page-' + page, title:{hi:'पृष्ठ ' + page,en:'Page ' + page}, sections });
+    count += sections.length;
+  }
+  assert.equal(count, 60);
+  assert.ok(Buffer.byteLength(JSON.stringify(spec),'utf8') > 48 * 1024);
+  assert.ok(validateSpec(spec).errors.includes('spec_too_large'));
+});
