@@ -576,9 +576,29 @@ try{
  track(strMobile);
  await strMobile.goto(BASE,{waitUntil:'domcontentloaded'});
  await enterNOVA(strMobile);
+ // Match the desktop STR smoke: mock a verified owner session at the browser boundary only.
+ // The real backend fail-closed behavior is independently exercised by runtime and unit tests.
+ const strMobileToken='str-mobile-browser-smoke-owner-token-1234567890';
+ await strMobile.evaluate(token=>{
+  const prior=window.NovaBusinessCloud;
+  window.NovaBusinessCloud=Object.freeze({...prior,getClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:token}},error:null})}})});
+ },strMobileToken);
+ await strMobile.route('**/api/str/access',route=>{
+  assert.equal(route.request().headers().authorization,'Bearer '+strMobileToken,'mobile STR must verify the active NOVA owner session');
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,ownerAccess:true})});
+ });
+ await strMobile.route('**/api/str/spec',route=>{
+  assert.equal(route.request().headers().authorization,'Bearer '+strMobileToken,'mobile STR content requests must carry the NOVA session');
+  const body=route.request().postDataJSON();
+  const spec=generateLocalSpec({prompt:body.prompt,uiLang:body.uiLang,contentLang:body.contentLang});
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,mode:'local_rules_no_provider',provider:null,aiGenerated:false,spec,notice:{hi:'स्थानीय नियमों से बनी योजना।',en:'Local rules starter plan.'}})});
+ });
  await strMobile.locator('#menu').tap();
  await strMobile.locator('#nStr').tap();
  await strMobile.locator('#strApp').waitFor({state:'visible'});
+ await strMobile.locator('#strAccessLock').waitFor({state:'hidden',timeout:5000});
+ await strMobile.locator('#strIntro').waitFor({state:'visible',timeout:5000});
+ await strMobile.waitForFunction(()=>{const button=document.querySelector('#strSkipIntro');return !!button&&!button.disabled;});
  await strMobile.locator('#strSkipIntro').tap();
  for(const width of [360,390,412]){
   await strMobile.setViewportSize({width,height:844});
