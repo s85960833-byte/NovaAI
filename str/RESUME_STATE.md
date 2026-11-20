@@ -59,8 +59,8 @@ Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 - This static ZIP is not a production application and does not include a verified hosted backend or provider-generated full application.
 
 ## Latest verification evidence
-- Backend/security workflow passed on implementation commit `7a724921e79f83b7f61fd712ad588afbe028fce0`: [run 44668891684](https://github.com/s85960833-byte/NovaAI/actions/runs/44668891684). It completed STR owner-auth tests (including the redirect/credentials assertions), request/origin/schema/rate-limit checks, syntax and security checks, runtime API smoke, Chromium browser smoke, and five-viewport mobile/drawer regression.
-- Account/browser workflow passed on workflow head `67d173c16c7b2b7a44e0227d01938028c477a81f`: [run 44669806573](https://github.com/s85960833-byte/NovaAI/actions/runs/44669806573). It completed install, runtime routes, account UI/privacy/opt-in cloud sync, shared Supabase auth, mobile layout/drawer and graceful-shutdown checks.
+- Backend/security workflow passed on current head `16edd49d8ae0e26cb67c82377b3c1a6d06897650`: [run 44670090682](https://github.com/s85960833-byte/NovaAI/actions/runs/44670090682). It completed STR owner-auth tests (including redirect/credentials assertions), request/origin/schema/rate-limit checks, syntax/security checks, runtime API smoke, Chromium browser smoke and five-viewport mobile/drawer regression.
+- Account/browser workflow passed on current head `16edd49d8ae0e26cb67c82377b3c1a6d06897650`: [run 44670090699](https://github.com/s85960833-byte/NovaAI/actions/runs/44670090699). It completed runtime routes, account UI/privacy/opt-in cloud sync, shared Supabase auth, mobile layout/drawer and graceful-shutdown checks.
 - The account/browser run `44668891686` failed before app tests because Playwright's `--with-deps` apt install hit its 360-second timeout while downloading Ubuntu system packages (32.1 MB). No app test was executed in that failed run. The account workflow now installs the Chromium browser without repeating the OS dependency installation; the backend workflow retains the full Chromium + OS dependency installation. The new browser run passed.
 - Both green runs contain the same application code, including owner-auth redirect hardening; the later `67d173c` change only optimizes the duplicate account workflow's install step.
 - CI does not configure the owner UUID, prove a real Supabase owner session, profile real Android memory/CPU, or provide owner-device sign-off. Those are still release blockers; do not merge or deploy based only on CI.
@@ -87,7 +87,7 @@ Draft PR: #112 — https://github.com/s85960833-byte/NovaAI/pull/112
 
 ### Phase 8 — quality and release
 - Complete the full quality matrix, resilience/security/language tests and Nova regression checks.
-- Confirm latest backend and browser CI after the owner-gate changes.
+- Latest backend and browser CI both pass on current documentation head `16edd49d8ae0e26cb67c82377b3c1a6d06897650`; live owner-session and device sign-off remain external release gates.
 - Configure the actual owner UUID allow-list only through an approved secure deployment process, then verify a real signed-in owner session and a non-owner denial against staging.
 - Real owner-device Android/iPhone review and owner phone sign-off have not occurred.
 - No merge or production deployment until all exit criteria and owner sign-off pass.
