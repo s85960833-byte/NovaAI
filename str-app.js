@@ -77,8 +77,8 @@ async function pruneExpiredDrafts(){
  if(!expired.length)return;
  await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readwrite'),store=tx.objectStore('drafts');expired.forEach(d=>store.delete(d.id));tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Draft retention cleanup failed'));});
 }
-async function getLatestDraft(){
- await pruneExpiredDrafts();
+async function getLatestDraft(options={}){
+ if(!options.skipPrune)await pruneExpiredDrafts();
  const db=await openDb();
  return await new Promise((resolve,reject)=>{
   const tx=db.transaction('drafts','readonly'),req=tx.objectStore('drafts').getAll();
@@ -346,7 +346,8 @@ function renderBuildPanel(){
  download.disabled=!(ready&&currentApproval&&currentBuild.approvedHash===currentApproval.hash);
 }
 async function persistBuildProgress(){
- const latest=await getLatestDraft();
+ // Expiry cleanup runs on open/read; avoid rescanning the whole draft store for every build checkpoint.
+ const latest=await getLatestDraft({skipPrune:true});
  if(!latest||!currentBuild)return false;
  await putDraft({...latest,build:currentBuild,updatedAt:Date.now()});
  return true;
