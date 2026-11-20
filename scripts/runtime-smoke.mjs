@@ -58,20 +58,21 @@ console.log('PASS integrated per-IP API rate limit (60 allowed, 61st blocked)');
 await expect('STR API health is stateless and owner-only','/api/str/health',{},(r,b)=>r.ok&&JSON.parse(b).generationEnabled===false&&JSON.parse(b).businessModel==='model_1_owner_only_free');
 await expect('STR provider quotas fail closed','/api/str/limits',{},(r,b)=>r.ok&&JSON.parse(b).generationEnabled===false&&JSON.parse(b).unknownLimitsAction==='block_and_report'&&JSON.parse(b).eligibleOwnerTestProviders===0&&JSON.parse(b).eligibleCustomerProviders===0&&JSON.parse(b).specPreviewEnabled===true);
 await expect('STR rejects cross-origin API calls','/api/str/spec',{method:'POST',headers:{origin:'https://attacker.example','sec-fetch-site':'cross-site','x-str-client-id':'client_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en'})},r=>r.status===403);
-await expect('STR fixed schema rejects arbitrary model/provider fields','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en',model:'attacker-selected'})},r=>r.status===400);
-await expect('STR refuses credential collection request before provider routing','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_t20_123456789','content-type':'application/json'},body:JSON.stringify({prompt:'ऐसी वेबसाइट बनाओ जो लोगों से OTP और बैंक पासवर्ड माँगे और सेव करे।',uiLang:'hi',contentLang:'hi'})},(r,b)=>r.status===422&&JSON.parse(b).code==='STR_UNSAFE_REQUEST'&&JSON.parse(b).unsafe.includes('credential_collection'));
-await expect('STR local spec preview returns a valid no-provider plan','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_preview_12345678','content-type':'application/json'},body:JSON.stringify({prompt:'मेरी किराना दुकान की वेबसाइट बनाओ। नाम रामू किराना।',uiLang:'hi',contentLang:'hi'})},(r,b)=>{const d=JSON.parse(b);return r.status===200&&d.ok===true&&d.aiGenerated===false&&d.mode==='local_rules_no_provider'&&d.spec.name==='रामू किराना'&&d.spec.kind==='shop'&&d.spec.pages[0].sections.length>=4;});
-await expect('STR local spec rejects malformed prompt language','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_badlang_1234567','content-type':'application/json'},body:JSON.stringify({prompt:'Build a shop',uiLang:'fr',contentLang:'en'})},r=>r.status===400);
-await expect('STR valid spec request uses local rules without a provider','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en'})},(r,b)=>r.status===200&&JSON.parse(b).mode==='local_rules_no_provider'&&JSON.parse(b).aiGenerated===false);
-const strRateHeaders={origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_rate_1234567890','content-type':'application/json'};
-for(let i=0;i<10;i++){
- const response=await req('/api/str/spec',{method:'POST',headers:strRateHeaders,body:JSON.stringify({prompt:'owner test',uiLang:'en',contentLang:'en'})});
- if(response.status!==200)throw new Error('STR per-client rate limit blocked request '+(i+1)+' before its threshold: HTTP '+response.status);
+await expect('STR owner access endpoint rejects missing bearer session','/api/str/access',{},(r,b)=>r.status===401&&JSON.parse(b).code==='STR_AUTH_REQUIRED');
+await expect('STR content endpoint rejects missing bearer session','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_unauth_12345678','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en'})},(r,b)=>r.status===401&&JSON.parse(b).code==='STR_AUTH_REQUIRED');
+const unconfiguredOwnerToken='runtime-smoke.supabase.owner-token-1234567890';
+await expect('STR remains locked when the owner allow-list is not configured','/api/str/access',{headers:{authorization:'Bearer '+unconfiguredOwnerToken}},(r,b)=>r.status===503&&JSON.parse(b).code==='STR_OWNER_GATE_NOT_CONFIGURED');
+for(const [route,body] of [
+ ['/spec',{prompt:'hello',uiLang:'en',contentLang:'en'}],
+ ['/section',{spec:{},sectionId:'home',uiLang:'en',contentLang:'en'}],
+ ['/fix',{fragment:'',specSlice:{},failures:[],uiLang:'en'}],
+ ['/convert',{text:'hello',targetLang:'hi',uiLang:'en'}]
+]){
+ await expect('STR '+route+' endpoint requires owner authentication','/api/str'+route,{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_route_'+route.slice(1).padEnd(12,'x'),'content-type':'application/json'},body:JSON.stringify(body)},r=>r.status===401);
 }
-await expect('STR per-client rate limit blocks request eleven','/api/str/spec',{method:'POST',headers:strRateHeaders,body:JSON.stringify({prompt:'owner test',uiLang:'en',contentLang:'en'})},r=>r.status===429);
-await expect('STR prompt hard cap is enforced','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_cap_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'x'.repeat(1001),uiLang:'en',contentLang:'en'})},r=>r.status===400);
-
+await expect('STR API health remains available without account data','/api/str/health',{},(r,b)=>r.ok&&JSON.parse(b).generationEnabled===false&&JSON.parse(b).businessModel==='model_1_owner_only_free');
+await expect('STR provider quotas fail closed','/api/str/limits',{},(r,b)=>r.ok&&JSON.parse(b).generationEnabled===false&&JSON.parse(b).unknownLimitsAction==='block_and_report'&&JSON.parse(b).eligibleOwnerTestProviders===0&&JSON.parse(b).eligibleCustomerProviders===0&&JSON.parse(b).specPreviewEnabled===true);
 await expect('STR PWA cache includes isolated module','/',{},(r,b)=>r.ok&&b.includes('id="nStr"')&&b.includes('id="strApp"')&&b.includes('src="/str-app.js"')&&b.includes('id="strLangHi"')&&b.includes('id="strLangEn"')&&b.includes('id="strReplyLang"')&&b.includes('id="strContentLang"'));
 await expect('STR isolated frontend module','/str-app.js',{},(r,b)=>r.ok&&b.includes("indexedDB.open('nova-str-local'")&&b.includes("localStorage.getItem('str_ui_lang')")&&b.includes('इंट्रो छोड़ें')&&b.includes('Draft saved on this device.')&&b.includes("localStorage.setItem('str_reply_lang',replyLang)")&&b.includes("localStorage.setItem('str_content_lang',contentLang)"));
-await expect('STR PWA cache includes isolated module','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v20-str')&&b.includes('/str-app.js'));
+await expect('STR PWA cache includes isolated module','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v21-str')&&b.includes('/str-app.js'));
 console.log('PASS local runtime smoke tests');
