@@ -217,3 +217,25 @@ test('STR spec editor can store optional Hinglish copy while requiring complete 
   blankHinglish.pages[0].sections[0].content.body.hinglish='';
   assert.ok(validateSpec(blankHinglish).errors.includes('section_invalid'));
 });
+
+
+test('STR spec validator enforces bounded project size, section count and strict feature/contact shapes', () => {
+  const base = generateLocalSpec({ prompt: 'मेरी दुकान की वेबसाइट बनाओ।', uiLang: 'hi', contentLang: 'hi' });
+  const oversized = structuredClone(base);
+  oversized.pages[0].sections[0].content.body.hi = 'क'.repeat(600);
+  // The per-field limit catches oversized content before a browser preview can be assembled.
+  assert.ok(validateSpec(oversized).errors.includes('section_invalid'));
+  const tooMany = structuredClone(base);
+  const template = tooMany.pages[0].sections[0];
+  tooMany.pages[0].sections = Array.from({length: 20}, (_, i) => ({...structuredClone(template), id: 'section-' + i}));
+  tooMany.pages.push({id:'second',title:{hi:'दूसरा',en:'Second'},sections:Array.from({length:20},(_,i)=>({...structuredClone(template),id:'second-'+i}))});
+  tooMany.pages.push({id:'third',title:{hi:'तीसरा',en:'Third'},sections:Array.from({length:20},(_,i)=>({...structuredClone(template),id:'third-'+i}))});
+  tooMany.pages.push({id:'fourth',title:{hi:'चौथा',en:'Fourth'},sections:[{...structuredClone(template),id:'fourth-1'}]});
+  assert.ok(validateSpec(tooMany).errors.includes('too_many_sections'));
+  const duplicateFeature = structuredClone(base); duplicateFeature.features=['call','call'];
+  assert.ok(validateSpec(duplicateFeature).errors.includes('features_invalid'));
+  const extraContact = structuredClone(base); extraContact.contact.adminToken='do-not-accept';
+  assert.ok(validateSpec(extraContact).errors.includes('contact_invalid'));
+  const huge = structuredClone(base); huge.assumed=Array.from({length:41},(_,i)=>({field:'f'+i,value:'v',why:{hi:'कारण',en:'Reason'}}));
+  assert.ok(validateSpec(huge).errors.includes('assumed_invalid'));
+});
