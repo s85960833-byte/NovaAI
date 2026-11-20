@@ -599,6 +599,18 @@ function close(){
 $('strBack').addEventListener('click',close);
 $('strOpenAccount').addEventListener('click',()=>{const button=document.getElementById('novaAccountOpen');if(button)button.click();else $('strAccessMessage').textContent=dict[lang].accessClientUnavailable;});
 $('strAccessRetry').addEventListener('click',retryOwnerAccess);
+try{
+ const auth=window.NovaBusinessCloud.getClient().auth;
+ auth.onAuthStateChange((event,session)=>{
+  if(root.hidden)return;
+  if(!session?.access_token){
+   accessAttempt++;
+   setOwnerGate(true,dict[lang].accessNeedSignIn);
+  }else if(event==='SIGNED_IN'){
+   retryOwnerAccess();
+  }
+ });
+}catch(e){}
 $('strLangHi').addEventListener('click',()=>setLanguage('hi',true));
 $('strReplyLang').addEventListener('change',event=>{replyLang=event.target.value==='hi'?'hi':'en';replyLangExplicit=true;try{localStorage.setItem('str_reply_lang',replyLang);}catch(e){}});
 $('strContentLang').addEventListener('change',event=>{contentLang=event.target.value==='hinglish'?'hinglish':event.target.value==='hi'?'hi':'en';contentLangTouched=true;try{localStorage.setItem('str_content_lang',contentLang);}catch(e){}if(currentSpec)renderSpec({spec:currentSpec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});});
