@@ -13,7 +13,7 @@ stageSpec:'01 · Spec',stageSpecDesc:'Understand the idea and list assumptions.'
 stageBuild:'02 · Build',stageBuildDesc:'Render a local static preview in small, resumable chunks.',
 stageCheck:'03 · Quality',stageCheckDesc:'Review the preview, safety notes and missing details.',
 footer:'Local preview and ZIP export work without an AI provider. Full AI generation and production deployment remain disabled until provider and security checks pass.',
-tagline:'Short prompt. A useful starter.',skipIntro:'Skip intro',owner:'Owner mode',empty:'Write a short description first.',
+tagline:'Short prompt. A useful starter.',skipIntro:'Skip intro',owner:'Owner access required',ownerVerified:'Owner access verified',accessTitle:'STR is owner-only',accessBody:'Sign in with your NOVA account and verify owner access before opening this workspace.',accessSignIn:'Sign in / Create NOVA account',accessRetry:'Check access again',accessChecking:'Checking owner access…',accessNeedSignIn:'Sign in to your NOVA account, then check access again.',accessNotOwner:'This NOVA account is not authorized for STR owner access.',accessNotConfigured:'Owner access is not configured yet. STR stays locked until the owner account is securely allow-listed.',accessUnavailable:'NOVA account verification is unavailable. STR remains locked.',accessClientUnavailable:'NOVA Account is not ready. Refresh Nova and try again.',empty:'Write a short description first.',
 saved:'Draft saved on this device.',saveError:'This browser could not save the draft. Please try again.',
 cleared:'Draft cleared.',welcome:'You can choose Hindi or English. You can change this any time.',savePlan:'Save plan edits',specSaved:'Plan changes saved on this device.',conversionBlocked:'Content conversion needs a verified provider and is not available yet.',voiceUnavailable:'On-device speech recognition is not available in this build. Please type your idea.',approveSpec:'Approve this plan',reapproveSpec:'Approve revised plan',approvedLabel:'Approved on this device',notApproved:'Not approved yet.',needsApproval:'Changes made · approval needed.',diffTitle:'Changes from the starter plan',specApproved:'Plan approved and saved on this device.',approvalUnavailable:'Secure approval verification is unavailable in this browser.',buildLocal:'Build local preview',pauseBuild:'Pause local preview',resumeBuild:'Resume local preview',rebuildPreview:'Rebuild local preview',buildNeedsApproval:'Approve the spec before building.',buildReady:'Ready to build a local preview. No AI provider will be used.',buildStarting:'Starting local preview…',buildProgress:'Rendering preview chunk {done} of {total}…',buildPaused:'Build paused. You can resume it on this device.',buildDone:'Local preview ready. No AI provider was used.',buildError:'Local preview could not be completed.',previewTitle:'Local website preview',downloadZip:'Download ZIP',zipReady:'ZIP package downloaded. It includes the static preview and bilingual guide.',zipError:'ZIP creation failed. Please rebuild the preview and try again.'
 },
@@ -26,11 +26,12 @@ stageSpec:'01 · योजना',stageSpecDesc:'विचार समझें
 stageBuild:'02 · निर्माण',stageBuildDesc:'स्थानीय static preview को छोटे हिस्सों में बनाएँ और जरूरत पर फिर शुरू करें।',
 stageCheck:'03 · गुणवत्ता',stageCheckDesc:'preview, सुरक्षा नोट और बाकी जानकारी की समीक्षा करें।',
 footer:'स्थानीय preview और ZIP export बिना AI provider के चलते हैं। Provider और security जाँच पूरी होने तक full AI generation और production deployment बंद रहेंगे।',
-tagline:'छोटा सा प्रॉम्प्ट, काम की शुरुआती वेबसाइट।',skipIntro:'इंट्रो छोड़ें',owner:'मालिक मोड',empty:'पहले छोटा-सा विवरण लिखें।',
+tagline:'छोटा सा प्रॉम्प्ट, काम की शुरुआती वेबसाइट।',skipIntro:'इंट्रो छोड़ें',owner:'मालिक की पहुँच आवश्यक',ownerVerified:'मालिक की पहुँच सत्यापित',accessTitle:'STR केवल मालिक के लिए है',accessBody:'इस workspace को खोलने से पहले अपने NOVA खाते से साइन इन करके मालिक की पहुँच सत्यापित करें।',accessSignIn:'NOVA खाते में साइन इन / खाता बनाएँ',accessRetry:'पहुँच फिर जाँचें',accessChecking:'मालिक की पहुँच जाँची जा रही है…',accessNeedSignIn:'अपने NOVA खाते में साइन इन करें, फिर पहुँच दोबारा जाँचें।',accessNotOwner:'इस NOVA खाते को STR मालिक की पहुँच नहीं मिली है।',accessNotConfigured:'मालिक की पहुँच अभी कॉन्फ़िगर नहीं है। मालिक का खाता सुरक्षित allow-list होने तक STR बंद रहेगा।',accessUnavailable:'NOVA खाते की पुष्टि उपलब्ध नहीं है। STR बंद रहेगा।',accessClientUnavailable:'NOVA Account तैयार नहीं है। Nova refresh करके फिर कोशिश करें।',empty:'पहले छोटा-सा विवरण लिखें।',
 saved:'ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।',saveError:'इस browser में ड्राफ्ट सुरक्षित नहीं हो पाया। दोबारा कोशिश करें।',
 cleared:'ड्राफ्ट साफ़ कर दिया गया।',welcome:'आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं।',savePlan:'योजना में बदलाव सुरक्षित करें',specSaved:'योजना में किए गए बदलाव इसी डिवाइस पर सुरक्षित हो गए।',conversionBlocked:'Content बदलने के लिए verified provider चाहिए; यह सुविधा अभी उपलब्ध नहीं है।',voiceUnavailable:'इस build में डिवाइस पर चलने वाली voice typing उपलब्ध नहीं है। कृपया अपना विचार टाइप करें।',approveSpec:'इस योजना को मंज़ूरी दें',reapproveSpec:'बदली योजना को फिर मंज़ूरी दें',approvedLabel:'इस डिवाइस पर मंज़ूर',notApproved:'अभी मंज़ूरी नहीं दी गई।',needsApproval:'बदलाव किए गए हैं · फिर मंज़ूरी ज़रूरी है।',diffTitle:'शुरुआती योजना से बदलाव',specApproved:'योजना मंज़ूर होकर इसी डिवाइस पर सुरक्षित हो गई।',approvalUnavailable:'इस browser में सुरक्षित approval verification उपलब्ध नहीं है।',buildLocal:'स्थानीय preview बनाएँ',pauseBuild:'preview रोकें',resumeBuild:'preview फिर शुरू करें',rebuildPreview:'preview दोबारा बनाएँ',buildNeedsApproval:'बनाने से पहले spec को मंज़ूरी दें।',buildReady:'स्थानीय preview तैयार है। कोई AI provider इस्तेमाल नहीं होगा।',buildStarting:'स्थानीय preview शुरू हो रहा है…',buildProgress:'preview का chunk {done} / {total} बनाया जा रहा है…',buildPaused:'निर्माण रुका है। इसी डिवाइस पर फिर शुरू कर सकते हैं।',buildDone:'स्थानीय preview तैयार है। कोई AI provider इस्तेमाल नहीं हुआ।',buildError:'स्थानीय preview पूरा नहीं हो पाया।',previewTitle:'वेबसाइट का स्थानीय preview',downloadZip:'ZIP डाउनलोड करें',zipReady:'ZIP पैकेज डाउनलोड हो गया। इसमें static preview और हिंदी-अंग्रेज़ी guide है।',zipError:'ZIP नहीं बन पाया। Preview दोबारा बनाएँ और कोशिश करें।'
 }
 };
+let ownerAccessVerified=false, accessAttempt=0;
 let lang='en', replyLang='en', replyLangExplicit=false, contentLang='en', contentLangTouched=false, dbPromise=null, introShown=false, currentSpec=null, originalSpec=null, currentApproval=null, currentFieldValues={}, originalFieldValues={}, currentBuild=null, buildRunning=false, buildPauseRequested=false;
 function readInitialLanguage(){
  try{const v=localStorage.getItem('str_ui_lang');if(v==='hi'||v==='en')return v;}catch(e){}
@@ -47,7 +48,7 @@ function setLanguage(next,persist){
  root.querySelectorAll('[data-str-placeholder]').forEach(el=>{const k=el.getAttribute('data-str-placeholder');if(dict[lang][k])el.placeholder=dict[lang][k];});
  $('strLangHi').setAttribute('aria-pressed',String(lang==='hi'));
  $('strLangEn').setAttribute('aria-pressed',String(lang==='en'));
- $('strQuota').textContent=dict[lang].owner;
+ $('strQuota').textContent=ownerAccessVerified?dict[lang].ownerVerified:dict[lang].owner;
  if(persist){try{localStorage.setItem('str_ui_lang',lang);if(!localStorage.getItem('str_reply_lang'))localStorage.setItem('str_reply_lang',replyLang);}catch(e){}}
  if(currentSpec&&!$('strSpecPanel').hidden)renderSpec({spec:currentSpec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});
 }
@@ -473,6 +474,52 @@ function renderSpec(payload){
  });
  renderApprovalPanel();
 }
+async function getAccessToken(){
+ const account=window.NovaBusinessCloud;
+ if(!account||typeof account.getClient!=='function'){
+  const error=new Error(dict[lang].accessClientUnavailable);error.code='STR_AUTH_CLIENT_UNAVAILABLE';throw error;
+ }
+ const client=account.getClient();
+ const result=await client.auth.getSession();
+ if(result.error)throw result.error;
+ const token=result.data&&result.data.session&&result.data.session.access_token;
+ if(typeof token!=='string'||token.length<30){const error=new Error(dict[lang].accessNeedSignIn);error.code='STR_AUTH_REQUIRED';throw error;}
+ return token;
+}
+function accessMessage(error){
+ const code=error&&error.code;
+ const key=code==='STR_AUTH_REQUIRED'||code==='STR_SESSION_INVALID'||code==='STR_AUTH_CLIENT_UNAVAILABLE'?'accessNeedSignIn':
+  code==='STR_OWNER_NOT_ALLOWED'?'accessNotOwner':
+  code==='STR_OWNER_GATE_NOT_CONFIGURED'?'accessNotConfigured':
+  'accessUnavailable';
+ return dict[lang][key];
+}
+async function verifyOwnerAccess(){
+ const token=await getAccessToken();
+ const response=await fetch('/api/str/access',{method:'GET',credentials:'same-origin',headers:{Authorization:'Bearer '+token},signal:AbortSignal.timeout(7000)});
+ let data={};try{data=await response.json();}catch(e){}
+ if(!response.ok||data.ownerAccess!==true){const error=new Error(data.error||dict[lang].accessUnavailable);error.code=data.code||'STR_AUTH_UNAVAILABLE';throw error;}
+ return token;
+}
+function setOwnerGate(locked,message){
+ const gate=$('strAccessLock'),content=root.querySelector('.str-wrap');
+ gate.hidden=!locked;content.inert=!!locked;ownerAccessVerified=!locked;
+ $('strQuota').textContent=locked?dict[lang].owner:dict[lang].ownerVerified;
+ if(message)$('strAccessMessage').textContent=message;
+}
+async function retryOwnerAccess(){
+ const attempt=++accessAttempt;
+ $('strAccessRetry').disabled=true;
+ setOwnerGate(true,dict[lang].accessChecking);
+ try{
+  await verifyOwnerAccess();
+  if(attempt!==accessAttempt||root.hidden)return;
+  setOwnerGate(false,dict[lang].ownerVerified);
+  restoreDraft();playIntro();
+ }catch(error){
+  if(attempt===accessAttempt&&!root.hidden)setOwnerGate(true,accessMessage(error));
+ }finally{$('strAccessRetry').disabled=false;}
+}
 async function createSpec(){
  const prompt=$('strPrompt').value.trim();
  if(!prompt){status(dict[lang].empty);$('strPrompt').focus();return;}
@@ -480,12 +527,13 @@ async function createSpec(){
  try{
   const response=await fetch('/api/str/spec',{
    method:'POST',credentials:'same-origin',
-   headers:{'content-type':'application/json','x-str-client-id':clientId()},
+   headers:{'content-type':'application/json','x-str-client-id':clientId(),Authorization:'Bearer '+await getAccessToken()},
    body:JSON.stringify({prompt,uiLang:lang,contentLang})
   });
   let data={};try{data=await response.json();}catch(e){}
   if(!response.ok){
-   if(response.status===422&&data.message)status(data.message[lang]||dict[lang].unsafeError);
+   if(response.status===401||response.status===403||response.status===503){setOwnerGate(true,accessMessage({code:data.code}));}
+   else if(response.status===422&&data.message)status(data.message[lang]||dict[lang].unsafeError);
    else if(response.status===429)status(lang==='hi'?'STR की अनुरोध सीमा पूरी हुई। कुछ देर बाद फिर कोशिश करें।':'STR request limit reached. Please retry shortly.');
    else status(dict[lang].specError);
    return;
@@ -539,13 +587,18 @@ function inferContentLanguage(value){return /[\u0900-\u097f]/.test(value)?'hi':'
 function open(){
  const side=document.getElementById('side');if(side)side.classList.remove('open');
  root.hidden=false;document.body.classList.add('str-open');status('');
- restoreDraft();playIntro();
+ const content=root.querySelector('.str-wrap');if(content)content.inert=true;
+ setOwnerGate(true,dict[lang].accessChecking);
+ retryOwnerAccess();
 }
 function close(){
+ accessAttempt++;ownerAccessVerified=false;
  root.hidden=true;document.body.classList.remove('str-open');
  try{$('strIntro').hidden=true;}catch(e){}
 }
 $('strBack').addEventListener('click',close);
+$('strOpenAccount').addEventListener('click',()=>{const button=document.getElementById('novaAccountOpen');if(button)button.click();else $('strAccessMessage').textContent=dict[lang].accessClientUnavailable;});
+$('strAccessRetry').addEventListener('click',retryOwnerAccess);
 $('strLangHi').addEventListener('click',()=>setLanguage('hi',true));
 $('strReplyLang').addEventListener('change',event=>{replyLang=event.target.value==='hi'?'hi':'en';replyLangExplicit=true;try{localStorage.setItem('str_reply_lang',replyLang);}catch(e){}});
 $('strContentLang').addEventListener('change',event=>{contentLang=event.target.value==='hinglish'?'hinglish':event.target.value==='hi'?'hi':'en';contentLangTouched=true;try{localStorage.setItem('str_content_lang',contentLang);}catch(e){}if(currentSpec)renderSpec({spec:currentSpec,notice:{hi:dict.hi.specReady,en:dict.en.specReady}});});
