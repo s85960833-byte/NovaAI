@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
+import { createRequire } from 'node:module';
+const require=createRequire(import.meta.url);
+const { generateLocalSpec }=require('../str/spec-engine');
 
 const BASE=process.env.NOVAAI_URL||'http://127.0.0.1:8787';
 const browser=await chromium.launch({headless:true});
@@ -331,10 +334,39 @@ try{
  await desktop.waitForFunction(()=>document.querySelector('#photo').hidden);
  console.log('PASS Learn Photo Questions launcher opens and closes the existing photo-question panel');
 
- // STR must open as an isolated bilingual workspace and keep drafts out of Nova chat storage.
+ // STR owner gate must lock the UI without a signed-in/allow-listed NOVA account.
  const novaStorageBefore=await desktop.evaluate(()=>localStorage.getItem('nova'));
  await desktop.locator('#nStr').click();
  await desktop.locator('#strApp').waitFor({state:'visible'});
+ await desktop.locator('#strAccessLock').waitFor({state:'visible'});
+ assert.equal(await desktop.locator('.str-wrap').evaluate(el=>el.inert),true,'STR workspace must remain inert until owner access is verified');
+ assert.ok((await desktop.locator('#strAccessMessage').innerText()).length>0,'STR must explain why access is locked');
+ await desktop.locator('#strOpenAccount').click();
+ await desktop.locator('#novaAccountDialog').waitFor({state:'visible'});
+ await desktop.locator('#novaAccountClose').click();
+ await desktop.evaluate(()=>window.NovaSTR.close());
+
+ // Stub only the authentication boundary and local-spec HTTP endpoint for deterministic browser regression.
+ const strTestToken='str-browser-smoke-owner-token-1234567890';
+ await desktop.evaluate(token=>{
+  const prior=window.NovaBusinessCloud;
+  window.NovaBusinessCloud=Object.freeze({...prior,getClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:token}},error:null})}})});
+ },strTestToken);
+ await desktop.route('**/api/str/access',route=>{
+  assert.equal(route.request().headers().authorization,'Bearer '+strTestToken,'STR must send the active NOVA account session to the owner gate');
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,ownerAccess:true})});
+ });
+ await desktop.route('**/api/str/spec',route=>{
+  assert.equal(route.request().headers().authorization,'Bearer '+strTestToken,'STR content requests must carry the NOVA session');
+  const body=route.request().postDataJSON();
+  const spec=generateLocalSpec({prompt:body.prompt,uiLang:body.uiLang,contentLang:body.contentLang});
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,mode:'local_rules_no_provider',provider:null,aiGenerated:false,spec,notice:{hi:'स्थानीय नियमों से बनी योजना।',en:'Local rules starter plan.'}})});
+ });
+
+ // STR must open as an isolated bilingual workspace and keep drafts out of Nova chat storage.
+ await desktop.locator('#nStr').click();
+ await desktop.locator('#strApp').waitFor({state:'visible'});
+ await desktop.locator('#strAccessLock').waitFor({state:'hidden'});
  await desktop.waitForTimeout(350);
  await desktop.locator('#strSkipIntro').click();
  await desktop.locator('#strPrompt').fill('मेरी दुकान की वेबसाइट बनाओ। WhatsApp और कॉल बटन चाहिए।');
