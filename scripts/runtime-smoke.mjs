@@ -55,4 +55,37 @@ for(let i=0;i<60;i++){
 const blocked=await req('/api/config',{headers:{'x-forwarded-for':rateLimitIp}});
 if(blocked.status!==429) throw new Error('API rate limit did not reject request 61: HTTP '+blocked.status);
 console.log('PASS integrated per-IP API rate limit (60 allowed, 61st blocked)');
+await expect('STR API health is stateless and owner-only','/api/str/health',{},(r,b)=>r.ok&&JSON.parse(b).generationEnabled===false&&JSON.parse(b).businessModel==='model_1_owner_only_free');
+await expect('STR provider quotas fail closed','/api/str/limits',{},(r,b)=>r.ok&&JSON.parse(b).generationEnabled===false&&JSON.parse(b).unknownLimitsAction==='block_and_report'&&JSON.parse(b).eligibleOwnerTestProviders===0&&JSON.parse(b).eligibleCustomerProviders===0&&JSON.parse(b).specPreviewEnabled===true);
+await expect('STR rejects cross-origin API calls','/api/str/spec',{method:'POST',headers:{origin:'https://attacker.example','sec-fetch-site':'cross-site','x-str-client-id':'client_1234567890','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en'})},r=>r.status===403&&r.headers.get('cache-control')==='no-store');
+await expect('STR owner access endpoint rejects missing bearer session','/api/str/access',{},(r,b)=>r.status===401&&r.headers.get('cache-control')==='no-store'&&JSON.parse(b).code==='STR_AUTH_REQUIRED');
+await expect('STR content endpoint rejects missing bearer session','/api/str/spec',{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_unauth_12345678','content-type':'application/json'},body:JSON.stringify({prompt:'hello',uiLang:'en',contentLang:'en'})},(r,b)=>r.status===401&&JSON.parse(b).code==='STR_AUTH_REQUIRED');
+const unconfiguredOwnerToken='runtime-smoke.supabase.owner-token-1234567890';
+await expect('STR remains locked when the owner allow-list is not configured','/api/str/access',{headers:{authorization:'Bearer '+unconfiguredOwnerToken}},(r,b)=>r.status===503&&r.headers.get('cache-control')==='no-store'&&JSON.parse(b).code==='STR_OWNER_GATE_NOT_CONFIGURED');
+
+// Authentication attempts are independently throttled by client IP (30/minute).
+const strAuthIp='198.51.100.242';
+for(let i=0;i<30;i++){
+ const response=await req('/api/str/access',{headers:{'x-forwarded-for':strAuthIp,authorization:'Bearer '+unconfiguredOwnerToken}});
+ if(response.status!==503) throw new Error('STR auth throttle blocked request '+(i+1)+' before its configured threshold: HTTP '+response.status);
+ if(response.headers.get('cache-control')!=='no-store') throw new Error('STR auth throttle response must never be cached');
+}
+const strAuthBlocked=await req('/api/str/access',{headers:{'x-forwarded-for':strAuthIp,authorization:'Bearer '+unconfiguredOwnerToken}});
+if(strAuthBlocked.status!==429) throw new Error('STR auth throttle did not reject request 31: HTTP '+strAuthBlocked.status);
+if(strAuthBlocked.headers.get('cache-control')!=='no-store') throw new Error('STR auth throttle rejection must never be cached');
+console.log('PASS STR per-IP owner-verification throttle (30 allowed, 31st blocked)');
+
+for(const [route,body] of [
+ ['/spec',{prompt:'hello',uiLang:'en',contentLang:'en'}],
+ ['/section',{spec:{},sectionId:'home',uiLang:'en',contentLang:'en'}],
+ ['/fix',{fragment:'',specSlice:{},failures:[],uiLang:'en'}],
+ ['/convert',{text:'hello',targetLang:'hi',uiLang:'en'}]
+]){
+ await expect('STR '+route+' endpoint requires owner authentication','/api/str'+route,{method:'POST',headers:{origin:BASE,'sec-fetch-site':'same-origin','x-str-client-id':'client_route_'+route.slice(1).padEnd(12,'x'),'content-type':'application/json'},body:JSON.stringify(body)},r=>r.status===401);
+}
+await expect('STR API health remains available without account data','/api/str/health',{},(r,b)=>r.ok&&JSON.parse(b).generationEnabled===false&&JSON.parse(b).businessModel==='model_1_owner_only_free');
+await expect('STR provider quotas fail closed','/api/str/limits',{},(r,b)=>r.ok&&JSON.parse(b).generationEnabled===false&&JSON.parse(b).unknownLimitsAction==='block_and_report'&&JSON.parse(b).eligibleOwnerTestProviders===0&&JSON.parse(b).eligibleCustomerProviders===0&&JSON.parse(b).specPreviewEnabled===true);
+await expect('STR PWA cache includes isolated module','/',{},(r,b)=>r.ok&&b.includes('id="nStr"')&&b.includes('id="strApp"')&&b.includes('src="/str-app.js"')&&b.includes('id="strLangHi"')&&b.includes('id="strLangEn"')&&b.includes('id="strReplyLang"')&&b.includes('id="strContentLang"'));
+await expect('STR isolated frontend module','/str-app.js',{},(r,b)=>r.ok&&b.includes("indexedDB.open('nova-str-local'")&&b.includes("localStorage.getItem('str_ui_lang')")&&b.includes('इंट्रो छोड़ें')&&b.includes('Draft saved on this device.')&&b.includes("localStorage.setItem('str_reply_lang',replyLang)")&&b.includes("localStorage.setItem('str_content_lang',contentLang)"));
+await expect('STR PWA cache includes isolated module','/sw.js',{},(r,b)=>r.ok&&b.includes('nova-shell-v21-str')&&b.includes('/str-app.js'));
 console.log('PASS local runtime smoke tests');

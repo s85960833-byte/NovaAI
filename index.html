@@ -223,11 +223,126 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 @keyframes novaEntrySweep{from{transform:translateX(-150%)}to{transform:translateX(360%)}}
 @media(max-width:480px){.nova-entry-core{gap:19px}.nova-entry-caption{font-size:10px}}
 @media(prefers-reduced-motion:reduce){#novaEntryGate:before,.nova-entry-mark,.nova-entry-rule:after{animation:none!important}#novaEntryGate{transition:none}}
+</style><style id="str-styles">
+/* STR / Strata — isolated styles; no Nova theme selectors are overridden. */
+.str-app{position:fixed;inset:0;z-index:13000;overflow:auto;background:#0f172a;color:#f8fafc;font-family:Inter,"Noto Sans Devanagari",system-ui,sans-serif;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
+.str-app *{box-sizing:border-box}
+.str-access-lock{position:fixed;inset:0;z-index:8;display:grid;place-items:center;padding:20px;background:rgba(7,12,25,.98)}
+.str-access-lock[hidden]{display:none}
+.str-access-card{width:min(100%,480px);padding:24px;border:1px solid #475569;border-radius:18px;background:#17213a;box-shadow:0 24px 80px #0009}
+.str-access-card h2{margin:0 0 10px;font-size:clamp(22px,5vw,30px)}
+.str-access-card p{color:#cbd5e1;line-height:1.6}
+.str-access-actions{display:grid;gap:10px;margin-top:18px}
+.str-access-actions button:first-child{background:#f59e0b;color:#1e1b4b;border-color:#f59e0b;font-weight:800}
+.str-access-actions button:disabled{opacity:.55;cursor:wait}
+
+.str-app button,.str-app textarea{font:inherit}
+.str-app button{min-height:44px;border:1px solid #334155;border-radius:12px;padding:10px 14px;background:#17213a;color:#f8fafc;cursor:pointer}
+.str-app button:focus-visible,.str-app textarea:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}
+.str-wrap{width:min(100%,960px);margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+.str-welcome{font-size:11px;line-height:1.4;color:#94a3b8;margin:0 4px;max-width:240px}.str-top{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #334155}
+.str-mark{width:38px;height:38px;flex:none}
+.str-word{font-weight:800;letter-spacing:.06em;font-size:19px}
+.str-grow{flex:1}
+.str-lang{display:flex;gap:4px;padding:3px;border:1px solid #334155;border-radius:999px}
+.str-lang button{min-height:34px;padding:5px 10px;border:0;background:transparent;border-radius:999px;font-size:13px}
+.str-lang button[aria-pressed=true]{background:#3730a3;color:#fff}
+.str-quota{border:1px solid #475569;border-radius:999px;padding:7px 10px;font-size:12px;color:#cbd5e1;white-space:nowrap}
+.str-back{white-space:nowrap}
+.str-hero{padding:clamp(28px,8vh,72px) 0 24px;max-width:680px}
+.str-eyebrow{color:#f59e0b;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.str-hero h1{font-size:clamp(28px,6vw,42px);line-height:1.15;margin:12px 0}
+.str-hero p{color:#cbd5e1;font-size:16px;line-height:1.65;margin:0}
+.str-panel{background:#17213a;border:1px solid #334155;border-radius:16px;padding:16px;box-shadow:inset 0 1px rgba(255,255,255,.05)}
+.str-panel:before{content:"";display:block;width:4px;height:100%;position:absolute;left:0;top:0;border-radius:16px 0 0 16px;background:#3730a3}
+.str-prompt-panel{position:relative;overflow:hidden}
+.str-prompt-panel:before{background:#f59e0b}
+.str-prompt-label{display:block;font-weight:700;margin-bottom:10px}
+.str-prompt{display:block;width:100%;min-height:120px;max-height:240px;resize:vertical;background:#0f172a;color:#f8fafc;border:1px solid #475569;border-radius:12px;padding:12px;line-height:1.6}
+.str-prompt::placeholder{color:#94a3b8}
+.str-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+.str-primary{background:#f59e0b!important;color:#1e1b4b!important;border-color:#f59e0b!important;font-weight:800}
+.str-secondary{color:#e2e8f0}
+.str-note{font-size:13px;color:#94a3b8;line-height:1.55;margin:14px 0 0}
+.str-status{min-height:24px;margin-top:12px;color:#fde68a;font-size:14px}
+.str-state{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:22px 0 32px}
+.str-state-card{border:1px solid #334155;border-radius:14px;padding:12px;background:#111c33;min-width:0}
+.str-state-card b{display:block;font-size:13px;margin-bottom:5px}
+.str-state-card span{font-size:12px;color:#94a3b8;line-height:1.4}
+.str-footer{margin-top:auto;padding:18px 0 24px;color:#94a3b8;font-size:12px;border-top:1px solid #334155}
+.str-intro{position:fixed;inset:0;z-index:2;display:grid;place-items:center;background:#0f172a;pointer-events:none;animation:strFade .2s ease both}
+.str-intro-inner{text-align:center;display:grid;justify-items:center;gap:10px}.str-skip{pointer-events:auto;margin-top:12px;min-height:44px;background:#17213a;border:1px solid #64748b;color:#f8fafc;border-radius:999px;padding:8px 16px}.str-skip:disabled{opacity:.45}
+.str-intro-mark{width:94px;height:94px;animation:strRise .5s cubic-bezier(.16,1,.3,1) both}
+.str-intro-word{font-size:32px;font-weight:800;letter-spacing:.08em;opacity:0;animation:strFadeUp .35s .65s ease forwards}
+.str-intro-tag{font-size:13px;color:#cbd5e1;opacity:0;animation:strFade .3s 1s ease forwards}
+.str-intro.str-done{opacity:0;pointer-events:none;transition:opacity .2s ease}
+@keyframes strFade{from{opacity:0}to{opacity:1}}
+@keyframes strRise{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes strFadeUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+@media(max-width:560px){.str-top{gap:8px}.str-quota{font-size:11px;padding:6px 8px}.str-back{padding:8px 10px!important}.str-state{grid-template-columns:1fr}.str-hero{padding-top:38px}}
+@media(prefers-reduced-motion:reduce){.str-intro,.str-intro-mark,.str-intro-word,.str-intro-tag{animation:none!important}.str-intro{transition:opacity .3s ease}}
+
+.str-language-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px 0;border-bottom:1px solid #334155}
+.str-language-settings label{display:grid;gap:5px;min-width:0;color:#cbd5e1;font-size:12px}
+.str-language-settings select{width:100%;min-height:44px;border:1px solid #475569;border-radius:10px;background:#17213a;color:#f8fafc;padding:8px 10px;font:inherit;font-size:14px}
+@media(max-width:560px){.str-language-settings{grid-template-columns:1fr}}
+
+.str-spec-panel{margin-top:14px}
+.str-spec-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.str-spec-panel h2{margin:8px 0 4px;font-size:22px}
+.str-spec-panel h3{margin:18px 0 10px;font-size:14px}
+.str-local-badge{border:1px solid #a16207;color:#fde68a;background:#422006;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:700}
+.str-spec-notice{border-left:3px solid #f59e0b;padding:10px 12px;background:#111c33;border-radius:8px}
+.str-spec-meta{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.str-spec-chip{border:1px solid #475569;border-radius:999px;padding:6px 9px;color:#e2e8f0;font-size:12px}
+.str-spec-sections{display:grid;gap:8px}
+.str-spec-section{border:1px solid #334155;background:#111c33;border-radius:12px;padding:12px}
+.str-spec-section b{display:block;margin-bottom:5px}
+.str-spec-section p{margin:0;color:#cbd5e1;font-size:13px;line-height:1.55}
+.str-spec-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.str-spec-list{margin:0;padding-inline-start:20px;color:#cbd5e1;font-size:13px;line-height:1.65}
+.str-blocked-note{margin-top:18px;border:1px solid #92400e;background:#2b1b0a;color:#fde68a;border-radius:12px;padding:12px;font-size:13px;line-height:1.55}
+@media(max-width:560px){.str-spec-columns{grid-template-columns:1fr}.str-spec-heading{align-items:flex-start}}
+
+.str-spec-page{border:1px solid #334155;border-radius:14px;background:#111c33;padding:10px 12px}
+.str-spec-page>summary{cursor:pointer;font-weight:800;min-height:36px;display:flex;align-items:center}
+.str-spec-name-label{display:grid;gap:5px;min-width:min(100%,220px);color:#cbd5e1;font-size:12px}
+.str-spec-name-label input,.str-assumption-row input,.str-placeholder-row input{min-height:40px;width:100%;border:1px solid #64748b;border-radius:8px;background:#0f172a;color:#f8fafc;padding:8px 10px;font:inherit}
+.str-section-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.str-section-heading button,.str-convert-disabled{min-height:32px;padding:5px 9px;font-size:11px;opacity:.55;cursor:not-allowed}
+.str-assumption-row,.str-placeholder-row{display:grid;gap:6px;margin:8px 0}
+.str-assumption-field{font-weight:700;color:#fde68a;font-size:12px}
+.str-assumption-why{display:block;color:#94a3b8;font-size:11px;line-height:1.45}
+.str-placeholder-row{border:1px dashed #64748b;border-radius:10px;padding:9px}
+.str-placeholder-label{font-size:12px;color:#cbd5e1}
+.str-spec-heading-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.str-save-plan{min-height:40px!important;background:#f59e0b!important;border-color:#f59e0b!important;color:#1e1b4b!important;font-weight:800}
+.str-spec-copy-editor{display:grid;gap:6px;margin:8px 0;color:#cbd5e1;font-size:12px}
+.str-spec-copy-editor input,.str-spec-copy-editor textarea{width:100%;min-height:42px;border:1px solid #64748b;border-radius:8px;background:#0f172a;color:#f8fafc;padding:9px 10px;font:inherit;font-size:14px;line-height:1.5}
+.str-spec-copy-editor textarea{min-height:82px;resize:vertical}
+.str-copy-preview{margin:6px 0 0!important;color:#94a3b8!important;font-size:12px!important}
+.str-approve-spec{min-height:40px!important;background:#3730a3!important;border-color:#4f46e5!important;color:#fff!important;font-weight:800}
+.str-approval-state{margin:10px 0;padding:10px 12px;border:1px solid #475569;border-radius:10px;color:#e2e8f0;background:#111c33;font-size:13px}
+.str-spec-diff{margin:10px 0;padding:10px 12px;border:1px solid #475569;border-radius:10px;background:#111c33}
+.str-spec-diff>summary{cursor:pointer;font-weight:800;color:#fde68a}
+.str-spec-diff ul{max-height:220px;overflow:auto;overflow-wrap:anywhere}
+.str-spec-diff li{margin:7px 0;font-size:12px;color:#cbd5e1}
+.str-local-build{margin:14px 0;padding:14px;border:1px solid #475569;border-radius:14px;background:#111c33}
+.str-local-build h3{margin:0 0 8px}
+.str-local-build p{margin:6px 0;color:#cbd5e1;font-size:13px}
+.str-build-progress{height:6px;margin:10px 0;border-radius:99px;background:#334155;overflow:hidden}
+.str-build-progress span{display:inline-block;padding:4px 9px;border-radius:99px;background:#1e293b;color:#cbd5e1;font-size:11px}
+.str-build-local{min-height:42px;width:100%;border-color:#4f46e5;background:#3730a3;color:#fff;font-weight:800}
+.str-download-zip{margin-top:8px;border-color:#0f766e;background:#115e59}.str-download-zip:disabled{opacity:.45;cursor:not-allowed}
+#strPreviewFrame{display:block;width:100%;height:640px;margin-top:14px;border:1px solid #475569;border-radius:12px;background:#fff}
+@media(max-width:560px){#strPreviewFrame{height:560px}}
+@media(max-width:560px){.str-approve-spec{width:100%}}
+@media(max-width:560px){.str-spec-heading-actions{width:100%}.str-save-plan{width:100%}}
 </style></head><body>
 <section id="novaEntryGate" aria-label="NOVA introduction" aria-live="polite"><div class="nova-entry-core"><div class="nova-entry-mark" aria-hidden="true">✦</div><p class="nova-entry-word">NOVA</p><p class="nova-entry-tagline">A NEW ERA OF INTELLIGENCE</p><div class="nova-entry-rule" aria-hidden="true"></div><p class="nova-entry-caption">THINK · CREATE · DISCOVER</p></div></section>
 
 <aside id="side"><div class="brand"><span class="logo">✦</span><b>Nova AI</b></div>
-<button id="new" data-i="new">＋ New chat</button><nav class="nav"><button id="nHome" data-i="nHome"></button><button id="nPhoto" data-i="nPhoto" hidden></button><button id="nArch" data-i="nArch" hidden></button><button id="nImg" data-i="nImg" hidden></button><button id="nLive" data-i="nLive" hidden></button></nav><input id="q" type="search" data-p="search" aria-label="Search chats"><div id="list"></div>
+<button id="new" data-i="new">＋ New chat</button><nav class="nav"><button id="nHome" data-i="nHome"></button><button id="nPhoto" data-i="nPhoto" hidden></button><button id="nArch" data-i="nArch" hidden></button><button id="nImg" data-i="nImg" hidden></button><button id="nLive" data-i="nLive" hidden></button><button id="nStr" type="button">STR</button></nav><input id="q" type="search" data-p="search" aria-label="Search chats"><div id="list"></div>
 <select id="lang" aria-label="Reply language"></select>
 <div class="row"><button id="setb" data-i="setB"></button><button id="theme" aria-label="Theme">◐</button></div></aside><div id="scrim"></div>
 <div id="main"><div id="top"><button id="menu" aria-label="Menu">☰</button><span class="logo">✦</span><b>Nova AI</b><label class="ui-language-wrap" aria-label="Interface language"><span class="ui-language-label">Language</span><select id="uiLangTop" aria-label="Interface language"><option value="en">English</option><option value="hi">हिंदी</option></select></label><select id="mode" aria-label="Mode"></select><button id="acc" type="button" class="on" aria-pressed="true">🎯</button><button id="xcopy" type="button" hidden>📋</button><button id="xexp" type="button" hidden>⤓</button></div>
@@ -237,6 +352,111 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 <div id="box"><label id="att" class="ibtn" for="file" role="button" tabindex="0" aria-label="Attach image, PDF or text file">📎</label><input id="file" class="vh" type="file" accept=".txt,.md,.csv,.tsv,.json,.xml,.html,.log,.pdf,image/*"><button id="camb" aria-label="Take a photo">📷</button>
 <textarea id="in" rows="1" placeholder="Message Nova AI…"></textarea><button id="lv" aria-label="Live voice" hidden>🎧</button><button id="web" aria-label="Web search" hidden>🌐</button><button id="gen" aria-label="Generate image" hidden>🎨</button><button id="mic" aria-label="Voice input" hidden>🎤</button><button id="send">↑</button></div>
 <p class="note">Nova AI can make mistakes. Check important information.</p></div>
+
+
+<section id="strApp" class="str-app" hidden aria-label="STR app builder">
+  <div class="str-wrap">
+    <header class="str-top">
+      <button id="strBack" class="str-back" type="button">← <span data-str="back">Nova</span></button>
+      <svg class="str-mark" viewBox="0 0 120 120" role="img" aria-label="STR Strata mark">
+        <path d="M14 34 78 20 92 32 28 46Q20 47 17 41Z" fill="#1E1B4B"/>
+        <path d="M26 45 90 31 104 43 40 57Q32 58 29 52Z" fill="#3730A3"/>
+        <path d="M38 56 102 42 116 54 52 68Q44 69 41 63Z" fill="#F59E0B"/>
+        <path d="M78 20 105 8 116 19 102 42 88 33Z" fill="#F59E0B"/>
+      </svg>
+      <strong class="str-word">STR</strong>
+      <span class="str-grow"></span><p id="strWelcome" class="str-welcome">आप हिंदी या English चुन सकते हैं। आप इसे कभी भी बदल सकते हैं। / You can choose Hindi or English. You can change this any time.</p>
+      <div class="str-lang" role="group" aria-label="STR interface language">
+        <button id="strLangHi" type="button" aria-pressed="false">हिंदी</button>
+        <button id="strLangEn" type="button" aria-pressed="true">English</button>
+      </div>
+      <span class="str-quota" id="strQuota">Owner mode</span>
+    </header>
+    <section class="str-language-settings" aria-label="STR language settings">
+      <label><span data-str="replyLabel">Reply language</span>
+        <select id="strReplyLang" aria-label="Reply language"><option value="en">English</option><option value="hi">हिंदी</option></select>
+      </label>
+      <label><span data-str="contentLabel">Website content</span>
+        <select id="strContentLang" aria-label="Website content language"><option value="en">English</option><option value="hi">हिंदी</option><option value="hinglish">Hinglish</option></select>
+      </label>
+    </section>
+    <main>
+      <section class="str-hero">
+        <div class="str-eyebrow">STRATA / NOVA BUILDER</div>
+        <h1 data-str="headline">A clear idea. A complete build.</h1>
+        <p data-str="subhead">Describe the app or website you want. STR will turn your idea into a structured plan, a preview and a downloadable package.</p>
+      </section>
+      <section class="str-panel str-prompt-panel" aria-labelledby="strPromptLabel">
+        <label class="str-prompt-label" id="strPromptLabel" for="strPrompt" data-str="promptLabel">What would you like to build?</label>
+        <textarea id="strPrompt" class="str-prompt" maxlength="1000" rows="4" data-str-placeholder="promptPlaceholder" placeholder="Describe your shop website…"></textarea>
+        <div class="str-actions">
+          <button id="strCreateSpec" class="str-primary" type="button" data-str="createSpec">Create starter plan</button>
+          <button id="strSaveDraft" class="str-secondary" type="button" data-str="saveDraft">Save draft</button>
+          <button id="strClearDraft" class="str-secondary" type="button" data-str="clear">Clear</button>
+        </div>
+        <p class="str-note" data-str="localNote">Your prompt and starter plan stay inside Nova. No AI provider is used in this preview phase.</p>
+        <div class="str-status" id="strStatus" role="status" aria-live="polite"></div>
+      </section>
+      <section class="str-panel str-spec-panel" id="strSpecPanel" hidden aria-labelledby="strSpecTitle">
+        <div class="str-spec-heading">
+          <div><div class="str-eyebrow" data-str="specEyebrow">LOCAL STARTER PLAN</div><h2 id="strSpecTitle" data-str="specTitle">Review your starter plan</h2></div>
+          <div class="str-spec-heading-actions"><span class="str-local-badge" data-str="localBadge">Local rules · No AI</span><button id="strSavePlan" class="str-save-plan" type="button" data-str="savePlan">Save plan edits</button><button id="strApproveSpec" class="str-approve-spec" type="button" data-str="approveSpec">Approve this plan</button></div>
+        </div>
+        <p class="str-note str-spec-notice" id="strSpecNotice" role="status"></p>
+        <div class="str-spec-meta" id="strSpecMeta"></div>
+        <div class="str-approval-state" id="strApprovalState" role="status">Not approved yet.</div>
+        <details class="str-spec-diff" id="strSpecDiff" hidden>
+          <summary data-str="diffTitle">Changes from the starter plan</summary>
+          <ul id="strSpecDiffList" class="str-spec-list"></ul>
+        </details>
+        <div class="str-local-build" id="strBuildPanel">
+          <h3 data-str="previewTitle">Local website preview</h3>
+          <p id="strBuildStatus" role="status">Approve the spec before building.</p>
+          <div class="str-build-progress"><span id="strBuildProgress">0/0</span></div>
+          <button id="strBuildLocal" class="str-build-local" type="button" disabled data-str="buildLocal">Build local preview</button>
+          <button id="strDownloadZip" class="str-build-local str-download-zip" type="button" disabled data-str="downloadZip">Download ZIP</button>
+          <iframe id="strPreviewFrame" title="Local website preview" sandbox="allow-scripts allow-forms" loading="lazy" hidden></iframe>
+        </div>
+        <h3 data-str="sectionsTitle">Page sections</h3>
+        <div class="str-spec-sections" id="strSpecSections"></div>
+        <div class="str-spec-columns">
+          <div><h3 data-str="assumedTitle">Assumptions to review</h3><ul id="strAssumed" class="str-spec-list"></ul></div>
+          <div><h3 data-str="placeholderTitle">Details you still need</h3><ul id="strPlaceholders" class="str-spec-list"></ul></div>
+        </div>
+        <div class="str-blocked-note" data-str="buildBlocked">Full AI website generation and ZIP export are not enabled yet. This plan is a reviewable outline only.</div>
+      </section>
+      <section class="str-state" aria-label="Build stages">
+        <div class="str-state-card"><b data-str="stageSpec">01 · Spec</b><span data-str="stageSpecDesc">Understand the idea and list assumptions.</span></div>
+        <div class="str-state-card"><b data-str="stageBuild">02 · Build</b><span data-str="stageBuildDesc">Generate the site in small, resumable sections.</span></div>
+        <div class="str-state-card"><b data-str="stageCheck">03 · Quality</b><span data-str="stageCheckDesc">Check safety, mobile layout and completeness.</span></div>
+      </section>
+    </main>
+    <footer class="str-footer" data-str="footer">STR is in setup. Build generation will be enabled after the secure pipeline is ready.</footer>
+  </div>
+  <section id="strAccessLock" class="str-access-lock" hidden role="dialog" aria-modal="true" aria-labelledby="strAccessTitle">
+    <div class="str-access-card">
+      <h2 id="strAccessTitle" data-str="accessTitle">STR is owner-only</h2>
+      <p id="strAccessMessage" role="status" aria-live="polite" data-str="accessBody">Sign in with your NOVA account and verify owner access before opening this workspace.</p>
+      <div class="str-access-actions">
+        <button id="strOpenAccount" type="button" data-str="accessSignIn">Sign in / Create NOVA account</button>
+        <button id="strAccessRetry" type="button" data-str="accessRetry">Check access again</button>
+        <button id="strAccessBack" type="button" data-str="accessBack">Back to NOVA</button>
+      </div>
+    </div>
+  </section>
+  <div id="strIntro" class="str-intro" hidden aria-hidden="true">
+    <div class="str-intro-inner">
+      <svg class="str-intro-mark" viewBox="0 0 120 120" aria-hidden="true">
+        <path d="M14 34 78 20 92 32 28 46Q20 47 17 41Z" fill="#1E1B4B"/>
+        <path d="M26 45 90 31 104 43 40 57Q32 58 29 52Z" fill="#3730A3"/>
+        <path d="M38 56 102 42 116 54 52 68Q44 69 41 63Z" fill="#F59E0B"/>
+        <path d="M78 20 105 8 116 19 102 42 88 33Z" fill="#F59E0B"/>
+      </svg>
+      <div class="str-intro-word">STR</div>
+      <div class="str-intro-tag" data-str="tagline">Short prompt. Complete app.</div><button id="strSkipIntro" class="str-skip" type="button" disabled data-str="skipIntro">Skip intro</button>
+    </div>
+  </div>
+</section>
 
 <dialog id="dset"><div class="ptop"><b data-i="setB"></b><button id="sclose" type="button" aria-label="Close">✕</button></div>
 <h4 data-i="sgA"></h4><label for="uiLang">Interface language / इंटरफ़ेस भाषा</label><select id="uiLang" aria-label="Interface language"><option value="en">English</option><option value="hi">हिंदी</option></select><div class="sgrid"><button id="mem" data-i="mem"></button><button id="cfg" data-i="cfg"></button></div><label class="sw"><input type="checkbox" id="accset" checked><span data-i="accD"></span></label><label class="sw"><input type="checkbox" id="ultset" checked><span data-i="ultD"></span></label>
@@ -278,4 +498,4 @@ body{background:radial-gradient(900px 520px at 78% -12%,rgba(72,44,210,.28),tran
 <dialog id="novaAccountDialog" class="nova-account-dialog"></dialog>
 <dialog id="dpriv"><b data-i="priv"></b><div id="privt" style="font-size:14px"></div><button id="pclose" style="margin-top:10px;width:100%">OK</button></dialog>
 <script src="/nova-config.js"></script>
-<script src="/nova-sync-merge.js"></script><script src="/nova-app.js"></script><script src="/mode-registry.js"></script><script src="/mode-workspace.js"></script><script src="/nova-suite.js"></script><script src="/s-tier.js"></script><script src="/nova-reference.js"></script><script src="/nova-business-core.js" defer></script><script src="/nova-business.js" defer></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js" defer></script><script src="/nova-business-cloud.js" defer></script><script src="/nova-account.js" defer></script><script src="/nova-entry.js" defer></script></body></html>
+<script src="/nova-sync-merge.js"></script><script src="/nova-app.js"></script><script src="/mode-registry.js"></script><script src="/mode-workspace.js"></script><script src="/nova-suite.js"></script><script src="/s-tier.js"></script><script src="/nova-reference.js"></script><script src="/nova-business-core.js" defer></script><script src="/nova-business.js" defer></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.min.js" defer></script><script src="/nova-business-cloud.js" defer></script><script src="/nova-account.js" defer></script><script src="/nova-entry.js" defer></script><script src="/str-app.js" defer></script></body></html>

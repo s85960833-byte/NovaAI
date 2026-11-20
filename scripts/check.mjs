@@ -147,7 +147,7 @@ if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
 if (!appScript.includes('async function pollImageJob(') || !appScript.includes("API+'/image/status/'") || !appScript.includes('pollImageJob(j.jobId,sig)') || !appScript.includes("sig.addEventListener('abort',abort,{once:true})") || !appScript.includes("e1?.status===429")) throw new Error('Image studio must abort polling promptly and must not bypass server image rate limits');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'") || !server.includes("app.get('/nova-account.js'")) throw new Error('Existing optional feature asset routes missing');
-if (!server.includes("const CACHE='nova-shell-v19-entry-gate'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
+if (!server.includes("const CACHE='nova-shell-v21-str'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
 // Frontend entry points are external files and are syntax-checked above.
 
 const entryClient = readFileSync('nova-entry.js', 'utf8');
@@ -162,5 +162,101 @@ if (!html.includes('id="novaEntryGate"') || html.includes('id="novaEntryVideo"')
   throw new Error('NOVA crisp, non-interactive, persistent one-time motion intro is missing');
 }
 
+const strScript = readFileSync('str-app.js', 'utf8');
+const strAuth = readFileSync('str/auth.js', 'utf8');
+const strAuthTest = readFileSync('scripts/str-auth.test.cjs', 'utf8');
+syntaxCheck('STR app shell', strScript);
+syntaxCheck('STR owner authentication middleware', strAuth);
+syntaxCheck('STR owner authentication tests', strAuthTest);
+const strServer = readFileSync('str/server.js', 'utf8');
+const strSecurity = readFileSync('str/security.js', 'utf8');
+const strProviderRouter = readFileSync('str/provider-router.js', 'utf8');
+const strSafety = readFileSync('str/safety.js', 'utf8');
+const strSpecSchema = readFileSync('str/spec-schema.js', 'utf8');
+const strSpecEngine = readFileSync('str/spec-engine.js', 'utf8');
+syntaxCheck('STR API router', strServer);
+syntaxCheck('STR security helpers', strSecurity);
+syntaxCheck('STR provider router', strProviderRouter);
+syntaxCheck('STR safety classifier', strSafety);
+syntaxCheck('STR spec schema', strSpecSchema);
+syntaxCheck('STR spec engine', strSpecEngine);
+if (!server.includes("require('./str/server')()") || !strServer.includes("router.post('/spec'") || !strServer.includes("router.post('/section'") || !strServer.includes("router.post('/fix'") || !strServer.includes("router.post('/convert'")) throw new Error('STR fixed API routes are not mounted');
+if (!strServer.includes("classifyPrompt(b.prompt)") || !strSafety.includes("credential_collection")) throw new Error('STR unsafe-request refusal must run before any provider call');
+if (!strServer.includes("generateLocalSpec({ prompt: b.prompt, uiLang: b.uiLang, contentLang: b.contentLang })") || !strSpecEngine.includes('validateSpec(spec)') || !html.includes('id="strCreateSpec"') || !html.includes('id="strSpecPanel"')) throw new Error('STR local spec engine and prompt dock must be connected');
+if (!strScript.includes('async function persistSpecEdits(options={})') || !strScript.includes('str-assumption-row') || !strScript.includes('str-placeholder-row') || !strScript.includes('fieldValues:{...currentFieldValues}') || !strScript.includes("setAttribute('data-str-field','page-title')") || !strScript.includes("setAttribute('data-str-field','heading')") || !strScript.includes("setAttribute('data-str-field','body')") || !html.includes('id="strSavePlan"') || !html.includes('.str-spec-copy-editor') || !strScript.includes('conversionBlocked') || !strScript.includes('async function approveSpec()') || !strScript.includes('async function computeSpecFingerprint()') || !strScript.includes('function buildSpecDiff()') || !strScript.includes("algorithm:'SHA-256'") || !strScript.includes('function markSpecChanged()') || !html.includes('id="strApproveSpec"') || !html.includes('id="strSpecDiff"') || !strScript.includes('function buildLocalChunks(') || !strScript.includes('async function startLocalBuild()') || !strScript.includes('async function persistBuildProgress()') || !html.includes('id="strBuildLocal"') || !html.includes('sandbox="allow-scripts allow-forms"') || html.includes('allow-same-origin')) throw new Error('STR local chunk builder, resumability or preview sandbox is missing');
+if (!html.includes('.str-spec-page') || !html.includes('.str-assumption-row') || !html.includes('.str-placeholder-row')) throw new Error('STR strata cards and editable dotted placeholders are missing');
+
+if (!strServer.includes("eligibleProviders(providerConfig, 'customer_data')") ||
+    !strProviderRouter.includes('customerDataControlsVerified(provider)') ||
+    !strProviderRouter.includes("provider.data_tier === 'paid_no_training'") ||
+    !strProviderRouter.includes('verifiedTermsUrl(provider.terms_url)') ||
+    !strProviderRouter.includes('provider.no_training_confirmed === true') ||
+    !strProviderRouter.includes('provider.owner_only_access === true') ||
+    !strProviderRouter.includes('quotasKnown(provider)')) {
+  throw new Error('STR customer-data routing must require verified paid no-training terms, known quotas and owner access controls');
+}
+if (!strServer.includes("generationEnabled: false") || !strServer.includes("customerBuildsEnabled: false") || !strServer.includes("RETENTION_DAYS = 7")) throw new Error('STR must remain owner-only and fail closed until provider verification');
+const strAccessRoute = strServer.match(/router\.get\('\/access',\s*([^)]+)\)/);
+const strContentRouteMatches = [...strServer.matchAll(/router\.post\('\/(spec|section|fix|convert)',\s*([^)]+)\)/g)];
+const strContentRouteGuards = new Map(strContentRouteMatches.map(match => [
+  match[1],
+  match[2].split(',').map(name => name.trim())
+]));
+const accessGuardNames = strAccessRoute ? strAccessRoute[1].split(',').map(name => name.trim()) : [];
+const allSTRContentRoutesProtected = ["spec","section","fix","convert"].every(route => {
+  const guards = strContentRouteGuards.get(route) || [];
+  return ["postGuard","authRateGuard","requireOwner"].every(name => guards.includes(name));
+});
+if (!strAuth.includes("process.env.STR_OWNER_USER_IDS") ||
+    !strAuth.includes("fetchImpl(endpoint") ||
+    !strAuth.includes("Authorization: 'Bearer ' + match[1]") ||
+    !strAuth.includes("STR_OWNER_GATE_NOT_CONFIGURED") ||
+    !strAuth.includes("STR_OWNER_NOT_ALLOWED") ||
+    !accessGuardNames.includes("requireOwner") ||
+    !accessGuardNames.includes("authRateGuard") ||
+    !allSTRContentRoutesProtected ||
+    !strServer.includes("const AUTH_IP_LIMIT = 30") ||
+    !strServer.includes("const key = 'auth:' + req.ip") ||
+    !strServer.includes("consumeWindow(rateWindows, key, Date.now(), AUTH_IP_LIMIT, WINDOW_MS)")) {
+  throw new Error('Every STR content route must require owner authentication, request validation and the per-IP auth throttle');
+}
+if (!strScript.includes('window.NovaBusinessCloud.getClient()') ||
+    !strScript.includes('client.auth.getSession()') ||
+    !strScript.includes("Authorization:'Bearer '+await getAccessToken()") ||
+    !strScript.includes("fetch('/api/str/access'") ||
+    !html.includes('id="strAccessLock"') ||
+    !html.includes('id="strOpenAccount"') ||
+    !html.includes('id="strAccessRetry"') ||
+    !html.includes('id="strAccessBack"') ||
+    !strScript.includes("accessBack:'Back to NOVA'") ||
+    !strScript.includes("accessBack:'NOVA पर वापस जाएँ'") ||
+    !strScript.includes("content.inert=!!locked")) {
+  throw new Error('STR owner lock screen must use the shared NOVA sign-in session and remain inaccessible before server verification');
+}
+if (!strAuthTest.includes('STR owner gate denies a valid NOVA account that is not allow-listed') ||
+    !strAuthTest.includes('STR owner gate admits only a valid Supabase user whose UUID is allow-listed') ||
+    !strAuthTest.includes('STR owner gate returns a closed 503')) {
+  throw new Error('STR owner authentication tests must cover the owner allow-list and fail-closed verification boundary');
+}
+
+if (!strScript.includes("localStorage.setItem('str_reply_lang',replyLang)") ||
+    !strScript.includes("localStorage.setItem('str_content_lang',contentLang)") ||
+    !strScript.includes("uiLang:lang,contentLang,replyLang") ||
+    !html.includes('id="strReplyLang"') || !html.includes('id="strContentLang"') ||
+    !strScript.includes("replyLabel:'Reply language'") || !strScript.includes("replyLabel:'उत्तर भाषा'")) {
+  throw new Error('STR must keep UI, reply and website-content languages independent and bilingual');
+}
+const strKeys = [...strScript.matchAll(/(?:en|hi):\{([\s\S]*?)\n\},?/g)].slice(0,2).map(m=>[...m[1].matchAll(/([A-Za-z][A-Za-z0-9]*):/g)].map(x=>x[1]));
+if (strKeys.length!==2 || strKeys[0].length!==strKeys[1].length || strKeys[0].some(k=>!strKeys[1].includes(k))) throw new Error('Every STR visible dictionary key must exist in Hindi and English');
+
+const strProviderConfig = JSON.parse(readFileSync('str/provider-config.json', 'utf8'));
+if (!html.includes('id="nStr"') || !html.includes('id="strApp"') || !html.includes('src="/str-app.js"')) throw new Error('STR navigation, isolated shell, or script entry point is missing');
+if (!server.includes("app.get('/str-app.js'") || !server.includes("'/str-app.js'")) throw new Error('STR script route or offline cache entry is missing');
+if (!strScript.includes("indexedDB.open('nova-str-local'") || !strScript.includes("localStorage.getItem('str_ui_lang')") || !strScript.includes("localStorage.getItem('nova')")) throw new Error('STR must use its own IndexedDB and seed language from Nova without sharing chat memory');
+if (strScript.includes("localStorage.setItem('nova'") || /fetch\s*\(\s*['\"]https?:/i.test(strScript) || /XMLHttpRequest/.test(strScript) || !strScript.includes("fetch('/api/str/spec'") || !strScript.includes("credentials:'same-origin'")) throw new Error('STR may only call its fixed same-origin local spec endpoint and must not write Nova chat memory');
+if (!strScript.includes('Draft saved on this device.') || !strScript.includes('ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।')) throw new Error('STR bilingual local-save feedback is missing');
+if (strProviderConfig.customer_builds_enabled !== false || strProviderConfig.routing.customer_data.length !== 0) throw new Error('STR customer builds/data routing must remain disabled in owner-only mode');
+if (strProviderConfig.providers.some(p => ['requests_per_minute','tokens_per_minute','requests_per_day','tokens_per_day'].some(k => p[k] === null)) && strProviderConfig.routing.unknown_limits_action !== 'block_and_report') throw new Error('Unknown provider quotas must fail closed');
+if (!server.includes("const CACHE='nova-shell-v21-str'") || !server.includes("'/str-app.js'")) throw new Error('STR must be included in the versioned offline shell');
 process.stdout.write('PASS previous standard UI, storage compatibility, required assets, and project syntax checks\n');
 process.stdout.write('PASS NOVA video-first entry gate markup, interaction, asset integrity, and streaming route\n');

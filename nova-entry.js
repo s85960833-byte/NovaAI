@@ -28,6 +28,8 @@
     } catch (_) {}
   };
   if (hasPlayed()) {
+    // Migrate the legacy/session/cookie marker so every release has the current marker.
+    rememberPlayed();
     gate.remove();
     return;
   }

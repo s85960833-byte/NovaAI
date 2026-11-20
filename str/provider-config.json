@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "updated_on": "2026-11-19",
+  "default_business_model": "model_1_owner_only_free",
+  "customer_builds_enabled": false,
+  "customer_data_policy": "paid_no_training_only",
+  "providers": [
+    {
+      "provider": "groq",
+      "model": null,
+      "data_tier": "unverified",
+      "verified_on": "2026-11-19",
+      "verification_note": "Official rate-limit docs checked. Exact limits are organization/model-specific and must be read from the owner's account dashboard. Official data controls describe default non-retention for inference with limited reliability/abuse logging; do not route customer data until contract, controls and account settings are explicitly reviewed.",
+      "requests_per_minute": null,
+      "tokens_per_minute": null,
+      "requests_per_day": null,
+      "tokens_per_day": null
+    },
+    {
+      "provider": "cerebras",
+      "model": null,
+      "data_tier": "unverified",
+      "verified_on": "2026-11-19",
+      "verification_note": "Official pricing docs confirm a free tier with lower rate limits and an 8192-token free-tier context length, but do not publish exact free-tier quotas on the checked page. Official terms/privacy checked; keep customer routing disabled until the precise API tier and contractual data terms are reviewed.",
+      "requests_per_minute": null,
+      "tokens_per_minute": null,
+      "requests_per_day": null,
+      "tokens_per_day": null
+    },
+    {
+      "provider": "gemini",
+      "model": null,
+      "data_tier": "unpaid",
+      "verified_on": "2026-11-19",
+      "verification_note": "Official pricing docs state free-tier content may be used to improve Google products while paid-tier content is not used for product improvement. Exact quotas vary by model/project. Free tier is owner-test-data-only.",
+      "requests_per_minute": null,
+      "tokens_per_minute": null,
+      "requests_per_day": null,
+      "tokens_per_day": null
+    },
+    {
+      "provider": "paid_provider",
+      "model": null,
+      "data_tier": "unverified",
+      "verified_on": null,
+      "verification_note": "Not selected or configured. Customer builds remain disabled.",
+      "requests_per_minute": null,
+      "tokens_per_minute": null,
+      "requests_per_day": null,
+      "tokens_per_day": null
+    }
+  ],
+  "routing": {
+    "owner_non_personal_test_data": [
+      "groq",
+      "cerebras",
+      "gemini"
+    ],
+    "customer_data": [],
+    "fallback_on_limit": "only_to_another_eligible_provider",
+    "unknown_limits_action": "block_and_report"
+  },
+  "owner_defaults": {
+    "retention_days": 7,
+    "quota_mode": "provider_limits_only"
+  }
+}

@@ -1,11 +1,23 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { chromium } from 'playwright';
+import { createRequire } from 'node:module';
+const require=createRequire(import.meta.url);
+const { generateLocalSpec }=require('../str/spec-engine');
 
 const BASE=process.env.NOVAAI_URL||'http://127.0.0.1:8787';
 const browser=await chromium.launch({headless:true});
-const errors=[],cspErrors=[];
+const errors=[],cspErrors=[],sandboxIsolationErrors=[];
 const track=page=>{
- page.on('pageerror',e=>errors.push(String(e.message||e)));
+ page.on('pageerror',e=>{
+  const message=String(e.message||e),details=message+' [stack: '+String(e.stack||'').slice(0,1200)+']';
+  const isOpaquePreviewStorageError=/Failed to read the 'localStorage' property from 'Window'.*sandboxed and lacks the 'allow-same-origin' flag/i.test(message);
+  // Chromium can surface an opaque-origin storage denial from the sandboxed preview
+  // without a stable srcdoc frame URL. The exact message itself proves sandbox denial;
+  // do not weaken the iframe sandbox to silence this expected browser exception.
+  if(isOpaquePreviewStorageError)sandboxIsolationErrors.push(details);
+  else errors.push(details);
+ });
  page.on('console',msg=>{if(msg.type()==='error'&&/content security policy|refused to (?:load|execute|apply)/i.test(msg.text()))cspErrors.push(msg.text())});
 };
 
@@ -46,6 +58,24 @@ async function verifyIntroDoesNotReplay(page){
  assert.equal(await legacyPage.evaluate(()=>localStorage.getItem('nova_intro_completed_v2')),'1','legacy completion marker must be migrated to the current marker');
  await legacyContext.close();
  console.log('PASS legacy intro marker migration prevents replay after upgrades');
+}
+
+
+function inspectStoredZip(bytes){
+ const files={};let offset=0,count=0;
+ while(offset+4<bytes.length&&bytes.readUInt32LE(offset)===0x04034b50){
+  const method=bytes.readUInt16LE(offset+8),size=bytes.readUInt32LE(offset+18);
+  const nameSize=bytes.readUInt16LE(offset+26),extraSize=bytes.readUInt16LE(offset+28);
+  assert.equal(method,0);
+  const nameStart=offset+30,nameEnd=nameStart+nameSize,dataStart=nameEnd+extraSize,dataEnd=dataStart+size;
+  assert.ok(dataEnd<=bytes.length);
+  files[bytes.toString('utf8',nameStart,nameEnd)]=bytes.toString('utf8',dataStart,dataEnd);
+  offset=dataEnd;count++;
+ }
+ assert.ok(count>=4);
+ assert.equal(bytes.readUInt32LE(offset),0x02014b50);
+ assert.ok(bytes.lastIndexOf(Buffer.from([0x50,0x4b,0x05,0x06]))>=0);
+ return files;
 }
 
 try{
@@ -291,7 +321,7 @@ try{
  await desktop.locator('#log img.thumb[src^="data:image/png;base64,"]').waitFor({state:'visible',timeout:12000});
  assert.equal(imageRequests.length,1,'Build Image Studio must submit one image-generation job');
  assert.ok(imageRequests[0].prompt.includes('blue geometric star'),"image-generation request must include the user's prompt");
- console.log('PASS NOVA Build Image Studio launch, async image job polling and rendered image result');
+  console.log('PASS NOVA Build Image Studio launch, async image job polling and rendered image result');
  await desktop.locator('#imbar').click();
  await desktop.waitForFunction(()=>!document.body.classList.contains('nova-image-mode'));
  assert.equal(await desktop.locator('#box').isVisible(),true,'closing Image Studio must return to the saved generated-image chat');
@@ -303,6 +333,201 @@ try{
  await desktop.locator('#pclose2').click();
  await desktop.waitForFunction(()=>document.querySelector('#photo').hidden);
  console.log('PASS Learn Photo Questions launcher opens and closes the existing photo-question panel');
+
+ // STR owner gate must lock the UI without a signed-in/allow-listed NOVA account.
+ const novaStorageBefore=await desktop.evaluate(()=>localStorage.getItem('nova'));
+ await desktop.locator('#nStr').click();
+ await desktop.locator('#strApp').waitFor({state:'visible'});
+ await desktop.locator('#strAccessLock').waitFor({state:'visible'});
+ assert.equal(await desktop.locator('.str-wrap').evaluate(el=>el.inert),true,'STR workspace must remain inert until owner access is verified');
+ assert.ok((await desktop.locator('#strAccessMessage').innerText()).length>0,'STR must explain why access is locked');
+ await desktop.locator('#strOpenAccount').click();
+ await desktop.locator('#novaAccountDialog').waitFor({state:'visible'});
+ await desktop.locator('#novaAccountClose').click();
+ await desktop.locator('#strAccessBack').click();
+ await desktop.locator('#strApp').waitFor({state:'hidden'});
+ await desktop.locator('#nStr').click();
+ await desktop.locator('#strAccessLock').waitFor({state:'visible'});
+ await desktop.evaluate(()=>window.NovaSTR.close());
+
+ // Stub only the authentication boundary and local-spec HTTP endpoint for deterministic browser regression.
+ const strTestToken='str-browser-smoke-owner-token-1234567890';
+ await desktop.evaluate(token=>{
+  const prior=window.NovaBusinessCloud;
+  window.NovaBusinessCloud=Object.freeze({...prior,getClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:token}},error:null})}})});
+ },strTestToken);
+ await desktop.route('**/api/str/access',route=>{
+  assert.equal(route.request().headers().authorization,'Bearer '+strTestToken,'STR must send the active NOVA account session to the owner gate');
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,ownerAccess:true})});
+ });
+ await desktop.route('**/api/str/spec',route=>{
+  assert.equal(route.request().headers().authorization,'Bearer '+strTestToken,'STR content requests must carry the NOVA session');
+  const body=route.request().postDataJSON();
+  const spec=generateLocalSpec({prompt:body.prompt,uiLang:body.uiLang,contentLang:body.contentLang});
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,mode:'local_rules_no_provider',provider:null,aiGenerated:false,spec,notice:{hi:'स्थानीय नियमों से बनी योजना।',en:'Local rules starter plan.'}})});
+ });
+
+ // STR must open as an isolated bilingual workspace and keep drafts out of Nova chat storage.
+ await desktop.locator('#nStr').click();
+ await desktop.locator('#strApp').waitFor({state:'visible'});
+ await desktop.locator('#strAccessLock').waitFor({state:'hidden'});
+ await desktop.waitForTimeout(350);
+ await desktop.locator('#strSkipIntro').click();
+ await desktop.locator('#strPrompt').fill('मेरी दुकान की वेबसाइट बनाओ। WhatsApp और कॉल बटन चाहिए।');
+ await desktop.locator('#strLangHi').click();
+ assert.ok((await desktop.locator('#strApp').innerText()).includes('आप क्या बनाना चाहते हैं?'),'STR Hindi labels should update immediately');
+ assert.equal(await desktop.locator('#strReplyLang').inputValue(),'hi','reply language should follow the UI language until explicitly changed');
+ await desktop.locator('#strReplyLang').selectOption('en');
+ await desktop.locator('#strLangEn').click();
+ await desktop.locator('#strLangHi').click();
+ assert.equal(await desktop.locator('#strReplyLang').inputValue(),'en','explicit reply-language choice must remain independent when the interface language changes');
+ await desktop.locator('#strPrompt').fill('मेरी दुकान की वेबसाइट बनाओ। WhatsApp और कॉल बटन चाहिए।');
+ assert.equal(await desktop.locator('#strReplyLang').inputValue(),'en','typing Hindi must not change the selected English reply language');
+ assert.equal(await desktop.locator('#strContentLang').inputValue(),'hi','website content language should default from a Hindi prompt');
+ await desktop.locator('#strContentLang').selectOption('hinglish');
+ await desktop.locator('#strCreateSpec').click();
+ await desktop.locator('#strSpecPanel').waitFor({state:'visible',timeout:5000});
+ assert.ok((await desktop.locator('#strSpecPanel').innerText()).includes('स्थानीय नियम'),'starter plan must clearly disclose that it uses local rules rather than AI');
+ assert.ok((await desktop.locator('#strSpecSections').innerText()).includes('Products and services'),'starter plan should show a structured shop section');
+  assert.ok((await desktop.locator('#strSpecSections').innerText()).includes('Requested features'),'starter plan should show a requested-features section');
+ assert.ok((await desktop.locator('#strAssumed').innerText()).length>0,'starter plan must list assumptions for review');
+ assert.ok((await desktop.locator('#strPlaceholders').innerText()).length>0,'starter plan must list missing details');
+ assert.equal(await desktop.locator('#strSpecName').inputValue(),'Untitled Project','vague prompt should use a disclosed temporary name');
+ await desktop.locator('#strSpecName').fill('Test Shop Plan');
+ await desktop.locator('#strSpecName').press('Tab');
+ await desktop.locator('#strAssumed input').first().fill('Owner confirmed name');
+ await desktop.locator('#strAssumed input').first().press('Tab');
+ await desktop.locator('#strPlaceholders input').first().fill('Sample contact detail');
+ await desktop.locator('#strPlaceholders input').first().press('Tab');
+ await desktop.waitForFunction(()=>document.querySelector('#strStatus')?.textContent.includes('योजना में किए गए बदलाव'));
+ assert.equal(await desktop.locator('#strSpecSections .str-spec-page').count(),1,'spec sheet must render pages as expandable strata cards');
+ assert.ok(await desktop.locator('#strSpecSections button:disabled').count()>=2,'conversion controls must be visible but disabled until a verified provider exists');
+
+ await desktop.locator('#strSaveDraft').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strStatus')?.textContent.includes('ड्राफ्ट इसी डिवाइस पर सुरक्षित हो गया।'));
+ const strSaved=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})});
+ assert.equal(strSaved.length,1,'STR draft must be stored in its own IndexedDB database');
+ assert.equal(strSaved[0].prompt,'मेरी दुकान की वेबसाइट बनाओ। WhatsApp और कॉल बटन चाहिए।','STR must preserve the saved prompt');
+ assert.equal(strSaved[0].replyLang,'en','draft must persist reply language independently');
+ assert.equal(strSaved[0].contentLang,'hinglish','draft must persist the explicit website content language');
+ assert.equal(strSaved[0].spec.content_lang,'hinglish','draft must preserve the local spec and its content language');
+ assert.equal(strSaved[0].spec.name,'Test Shop Plan','edited project name must persist in the spec');
+ assert.equal(strSaved[0].spec.assumed[0].value,'Owner confirmed name','edited assumptions must persist in IndexedDB');
+ assert.equal(strSaved[0].fieldValues['Contact phone number'],'Sample contact detail','filled placeholders must persist separately from the compact spec');
+ // The editable page and section copy is stored independently for the selected content language.
+ await desktop.locator('[data-str-page-id="home"] [data-str-field="page-title"]').fill('Home Ghar');
+ await desktop.locator('[data-str-section-id="details"] [data-str-field="heading"]').fill('Products and services');
+ await desktop.locator('[data-str-section-id="details"] [data-str-field="body"]').fill('Yahan details dein. <img src=x onerror=alert(1)>');
+ await desktop.locator('#strSavePlan').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strStatus')?.textContent.includes('योजना में किए गए बदलाव'));
+ const savedCopy=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})});
+ assert.equal(savedCopy[0].spec.pages[0].title.hinglish,'Home Ghar','page title edit must persist in Hinglish');
+ const savedDetails=savedCopy[0].spec.pages[0].sections.find(section=>section.id==='details');
+ assert.equal(savedDetails.content.heading.hinglish,'Products and services','section heading edit must persist in Hinglish');
+ assert.equal(savedDetails.content.body.hinglish,'Yahan details dein. <img src=x onerror=alert(1)>','section description edit must persist in Hinglish');
+ await desktop.locator('#strSpecDiff').evaluate(el=>{el.open=true;});
+ const diffReview=await desktop.locator('#strSpecDiffList').innerText();
+ assert.ok(diffReview.includes('Page home title · hinglish'),'approval diff must show edited page titles');
+ assert.ok(diffReview.includes('Section details heading · hinglish'),'approval diff must show edited section headings');
+ assert.ok(diffReview.includes('Section details description · hinglish'),'approval diff must show edited section descriptions');
+ await desktop.locator('#strApproveSpec').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strApprovalState')?.textContent.includes('इस डिवाइस पर मंज़ूर'));
+ const firstApproval=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.approval);r.onerror=()=>reject(r.error)})});
+ assert.equal(firstApproval.algorithm,'SHA-256','approval record must identify its digest algorithm');
+ assert.match(firstApproval.hash,/^[a-f0-9]{64}$/,'approval must store a SHA-256 fingerprint');
+ assert.ok(firstApproval.approvedAt>0,'approval must be timestamped');
+ await desktop.locator('[data-str-section-id="details"] [data-str-field="heading"]').fill('Updated after approval');
+ await desktop.locator('[data-str-section-id="details"] [data-str-field="heading"]').press('Tab');
+ assert.ok((await desktop.locator('#strApprovalState').innerText()).includes('फिर मंज़ूरी ज़रूरी है'),'any plan edit must invalidate the previous approval');
+ await desktop.locator('#strSavePlan').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strStatus')?.textContent.includes('योजना में किए गए बदलाव'));
+ const invalidatedApproval=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.approval);r.onerror=()=>reject(r.error)})});
+ assert.equal(invalidatedApproval,null,'edited plan must clear the stored approval');
+ await desktop.locator('#strApproveSpec').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strApprovalState')?.textContent.includes('इस डिवाइस पर मंज़ूर'));
+ const secondApproval=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.approval);r.onerror=()=>reject(r.error)})});
+ assert.notEqual(secondApproval.hash,firstApproval.hash,'re-approval must bind to the revised spec fingerprint');
+ await desktop.locator('#strBuildLocal').click();
+ await desktop.waitForFunction(()=>Number((document.querySelector('#strBuildProgress')?.textContent||'0/0').split('/')[0])>=1);
+ await desktop.locator('#strBuildLocal').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strBuildStatus')?.textContent.includes('रुका है'));
+ const pausedBuild=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.build);r.onerror=()=>reject(r.error)})});
+ assert.equal(pausedBuild.status,'paused','local build interruption must checkpoint to IndexedDB');
+ assert.ok(pausedBuild.doneChunks>0&&pausedBuild.doneChunks<pausedBuild.totalChunks,'pause must retain completed chunk progress');
+ const localResumeStartedAt=Date.now();
+ await desktop.locator('#strBuildLocal').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strBuildStatus')?.textContent.includes('स्थानीय preview तैयार है'),{timeout:10000});
+ const localResumeMs=Date.now()-localResumeStartedAt;
+ assert.ok(localResumeMs<10000,'resuming a bounded local preview should complete within the 10-second smoke budget');
+ console.log('PERF STR local preview resume: '+localResumeMs+' ms');
+ const previewHtml=await desktop.locator('#strPreviewFrame').getAttribute('srcdoc');
+ assert.ok(previewHtml.includes('Updated after approval'),'preview must include approved user edits');
+  assert.ok(previewHtml.includes('&lt;img src=x onerror=alert(1)&gt;')&&!/<img src=x onerror=alert\(1\)>/i.test(previewHtml),'user-supplied HTML must be rendered as inert escaped text');
+  assert.ok(previewHtml.includes('WhatsApp contact')&&previewHtml.includes('Call button'),'preview must surface requested features with safe bilingual labels');
+  assert.ok(previewHtml.includes('interactive integrations are not implemented'),'preview must not imply requested integrations are already functional');
+ assert.ok(previewHtml.includes("script-src 'none'"),'preview CSP must disallow scripts');
+ assert.ok(!previewHtml.toLowerCase().includes('<script'),'local preview must not embed scripts');
+ assert.match(previewHtml,/<meta[^>]+name=["']viewport["'][^>]+>/i,'local preview must declare a responsive viewport');
+ assert.match(previewHtml,/<h1[ >]/i,'local preview must have a primary page heading');
+ assert.match(previewHtml,/<main[ >]/i,'local preview must expose a main landmark');
+ assert.doesNotMatch(previewHtml,/<(?:iframe|object|embed)\b/i,'local preview must not nest active embedded documents');
+ assert.doesNotMatch(previewHtml,/<[a-z][^>]*\son[a-z]+\s*=/i,'local preview must not contain inline event handlers on actual HTML elements');
+ assert.doesNotMatch(previewHtml,/(?:src|href)\s*=\s*["']https?:\/\//i,'local preview must not load remote resources automatically');
+ assert.ok(Buffer.byteLength(previewHtml,'utf8')<250000,'local preview must stay within the documented UTF-8 byte-size cap');
+ assert.equal(await desktop.locator('#strPreviewFrame').getAttribute('sandbox'),'allow-scripts allow-forms','preview iframe must not grant same-origin or top-navigation');
+ const completedBuild=await desktop.evaluate(async()=>{const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').getAll();r.onsuccess=()=>resolve(r.result[0]?.build);r.onerror=()=>reject(r.error)})});
+ assert.equal(completedBuild.status,'complete','completed local preview must persist in IndexedDB');
+
+ assert.equal(completedBuild.approvedHash,secondApproval.hash,'build output must remain bound to the approved spec fingerprint');
+ assert.equal(await desktop.locator('#strDownloadZip').isDisabled(),false,'ZIP should unlock only for a completed approved preview');
+ const zipEvent=desktop.waitForEvent('download',{timeout:10000});
+ await desktop.locator('#strDownloadZip').click();
+ const zipDownload=await zipEvent;
+ assert.equal(zipDownload.suggestedFilename(),'test-shop-plan.zip');
+ const zipPath=await zipDownload.path();
+ assert.ok(zipPath);
+ const zipBytes=readFileSync(zipPath);
+ assert.ok(zipBytes.byteLength<400000,'local ZIP must respect the 400 KB archive limit');
+ const zipFiles=inspectStoredZip(zipBytes);
+ assert.deepEqual(Object.keys(zipFiles).sort(),['GUIDE.md','icon.svg','index.html','manifest.webmanifest']);
+ assert.ok(zipFiles['index.html'].includes('Updated after approval'));
+ assert.ok(zipFiles['GUIDE.md'].includes('English guide')&&zipFiles['GUIDE.md'].includes('हिंदी गाइड'));
+ assert.equal(JSON.parse(zipFiles['manifest.webmanifest']).name,'Test Shop Plan');
+ assert.ok(zipFiles['icon.svg'].includes('<svg'));
+ assert.ok(zipFiles['GUIDE.md'].includes('not a production application'));
+ assert.ok(Buffer.byteLength(zipFiles['index.html'],'utf8')<250000,'ZIP preview must respect the local output size cap');
+ console.log('PASS local ZIP download includes approved preview, bilingual guide, manifest and app icon');
+
+
+ await desktop.locator('#strBack').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strApp').hidden);
+ await desktop.evaluate(()=>{document.querySelector('#strSpecPanel').hidden=true;});
+ await desktop.locator('#nStr').click();
+ await desktop.locator('#strSpecPanel').waitFor({state:'visible'});
+ await desktop.waitForFunction(()=>document.querySelector('[data-str-page-id="home"] [data-str-field="page-title"]')?.value==='Home Ghar');
+ assert.equal(await desktop.locator('[data-str-page-id="home"] [data-str-field="page-title"]').inputValue(),'Home Ghar','page title must restore from IndexedDB');
+ assert.equal(await desktop.locator('[data-str-section-id="details"] [data-str-field="heading"]').inputValue(),'Updated after approval','revised section heading must restore from IndexedDB');
+ assert.ok((await desktop.locator('#strApprovalState').innerText()).includes('इस डिवाइस पर मंज़ूर'),'saved approval must be re-verified when restoring the spec');
+ await desktop.evaluate(async()=>{
+  const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+  await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readwrite');tx.objectStore('drafts').put({id:'str-expired-retention-test',prompt:'expired draft',createdAt:Date.now()-8*86400000,updatedAt:Date.now()-8*86400000});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
+ });
+ await desktop.locator('#strBack').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strApp').hidden);
+ await desktop.locator('#nStr').click();
+ await desktop.waitForFunction(async()=>{
+  const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('nova-str-local',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+  return await new Promise(resolve=>{const tx=db.transaction('drafts','readonly'),r=tx.objectStore('drafts').get('str-expired-retention-test');r.onsuccess=()=>resolve(!r.result);r.onerror=()=>resolve(false)});
+ });
+ console.log('PASS STR seven-day IndexedDB retention removes expired drafts on reopen');
+
+ assert.ok((await desktop.locator('#strApprovalState').innerText()).includes('इस डिवाइस पर मंज़ूर'),'saved approval must be re-verified when restoring the spec');
+
+
+ assert.equal(await desktop.evaluate(()=>localStorage.getItem('nova')),novaStorageBefore,'STR must not modify Nova chat storage');
+ await desktop.locator('#strBack').click();
+ await desktop.waitForFunction(()=>document.querySelector('#strApp').hidden);
+ console.log('PASS STR open/close, Hindi switch, non-blocking intro, IndexedDB draft isolation and Nova storage preservation');
 
  const mobileContext=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2,isMobile:true,hasTouch:true});
  const mobile=await mobileContext.newPage();
@@ -349,6 +574,57 @@ try{
  console.log('PASS Android-sized touch navigation, strict Build/Agents placement and Agents-only chat composer');
  await mobileContext.close();
 
+ // Exercise STR itself on narrow Android-sized viewports, not just the NOVA home screen.
+ const strMobileContext=await browser.newContext({viewport:{width:412,height:915},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+ const strMobile=await strMobileContext.newPage();
+ track(strMobile);
+ await strMobile.goto(BASE,{waitUntil:'domcontentloaded'});
+ await enterNOVA(strMobile);
+ // Match the desktop STR smoke: mock a verified owner session at the browser boundary only.
+ // The real backend fail-closed behavior is independently exercised by runtime and unit tests.
+ const strMobileToken='str-mobile-browser-smoke-owner-token-1234567890';
+ await strMobile.evaluate(token=>{
+  const prior=window.NovaBusinessCloud;
+  window.NovaBusinessCloud=Object.freeze({...prior,getClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:token}},error:null})}})});
+ },strMobileToken);
+ await strMobile.route('**/api/str/access',route=>{
+  assert.equal(route.request().headers().authorization,'Bearer '+strMobileToken,'mobile STR must verify the active NOVA owner session');
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,ownerAccess:true})});
+ });
+ await strMobile.route('**/api/str/spec',route=>{
+  assert.equal(route.request().headers().authorization,'Bearer '+strMobileToken,'mobile STR content requests must carry the NOVA session');
+  const body=route.request().postDataJSON();
+  const spec=generateLocalSpec({prompt:body.prompt,uiLang:body.uiLang,contentLang:body.contentLang});
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,mode:'local_rules_no_provider',provider:null,aiGenerated:false,spec,notice:{hi:'स्थानीय नियमों से बनी योजना।',en:'Local rules starter plan.'}})});
+ });
+ await strMobile.locator('#menu').tap();
+ await strMobile.locator('#nStr').tap();
+ await strMobile.locator('#strApp').waitFor({state:'visible'});
+ await strMobile.locator('#strAccessLock').waitFor({state:'hidden',timeout:5000});
+ await strMobile.locator('#strIntro').waitFor({state:'visible',timeout:5000});
+ await strMobile.waitForFunction(()=>{const button=document.querySelector('#strSkipIntro');return !!button&&!button.disabled;});
+ await strMobile.locator('#strSkipIntro').tap();
+ for(const width of [360,390,412]){
+  await strMobile.setViewportSize({width,height:844});
+  const layout=await strMobile.evaluate(()=>{
+   const app=document.querySelector('#strApp').getBoundingClientRect(),prompt=document.querySelector('#strPrompt').getBoundingClientRect();
+   return {viewport:innerWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth,
+    appLeft:app.left,appRight:app.right,appWidth:app.width,promptLeft:prompt.left,promptRight:prompt.right};
+  });
+  assert.ok(layout.document<=width+1&&layout.body<=width+1,'STR must not introduce horizontal overflow at '+width+'px');
+  assert.ok(Math.abs(layout.appLeft)<=1&&Math.abs(layout.appRight-width)<=1&&Math.abs(layout.appWidth-width)<=1,'STR must occupy full phone width at '+width+'px');
+  assert.ok(layout.promptLeft>=0&&layout.promptRight<=width+1,'STR prompt must remain inside viewport at '+width+'px');
+ }
+ await strMobile.locator('#strPrompt').fill('Build a small shop website with WhatsApp and a call button.');
+ await strMobile.locator('#strCreateSpec').tap();
+ await strMobile.locator('#strSpecPanel').waitFor({state:'visible',timeout:5000});
+ const mobileSpec=await strMobile.evaluate(()=>({width:innerWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth}));
+ assert.ok(mobileSpec.document<=mobileSpec.width+1&&mobileSpec.body<=mobileSpec.width+1,'expanded STR plan must not overflow on mobile');
+ assert.equal(await strMobile.locator('#strBuildLocal').isVisible(),true,'local build action must remain reachable on mobile');
+ await strMobile.locator('#strBack').tap();
+ await strMobileContext.close();
+ console.log('PASS STR full-width phone layout, prompt, editable plan and build action at 360/390/412 CSS px');
+
  const reducedContext=await browser.newContext({viewport:{width:412,height:915},reducedMotion:'reduce'});
  const reduced=await reducedContext.newPage();
  track(reduced);
@@ -364,9 +640,10 @@ try{
  console.log('PASS reduced-motion mode and transition suppression');
  await reducedContext.close();
 
- assert.deepEqual(errors,[],'browser runtime errors: '+errors.join('; '));
+ assert.deepEqual(errors,[],'browser runtime errors outside the intentionally opaque preview frame: '+errors.join('; '));
+ assert.ok(sandboxIsolationErrors.every(message=>/Failed to read the 'localStorage' property from 'Window'.*sandboxed and lacks the 'allow-same-origin' flag/i.test(message)),'only the exact expected opaque-origin localStorage denial may be filtered');
  assert.deepEqual(cspErrors,[],'browser CSP violations: '+cspErrors.join('; '));
- console.log('PASS no browser page errors or CSP violations');
+ console.log('PASS opaque preview cannot access localStorage; no app-level browser errors or CSP violations');
 }finally{
  await browser.close();
 }
