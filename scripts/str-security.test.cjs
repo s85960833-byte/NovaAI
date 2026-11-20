@@ -222,7 +222,7 @@ test('STR spec editor can store optional Hinglish copy while requiring complete 
 test('STR spec validator enforces bounded project size, section count and strict feature/contact shapes', () => {
   const base = generateLocalSpec({ prompt: 'मेरी दुकान की वेबसाइट बनाओ।', uiLang: 'hi', contentLang: 'hi' });
   const oversized = structuredClone(base);
-  oversized.pages[0].sections[0].content.body.hi = 'क'.repeat(600);
+  oversized.pages[0].sections[0].content.body.hi = 'क'.repeat(601);
   // The per-field limit catches oversized content before a browser preview can be assembled.
   assert.ok(validateSpec(oversized).errors.includes('section_invalid'));
   const tooMany = structuredClone(base);
