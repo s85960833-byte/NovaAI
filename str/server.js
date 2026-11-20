@@ -11,6 +11,7 @@ const { createOwnerGuard } = require('./auth');
 const RETENTION_DAYS = 7;
 const MAX_BODY_BYTES = 20 * 1024;
 const CLIENT_LIMIT = 10;
+const AUTH_IP_LIMIT = 30;
 const WINDOW_MS = 60 * 1000;
 
 function createStrRouter() {
@@ -25,7 +26,7 @@ function createStrRouter() {
     next();
   });
 
-  router.get('/access', requireOwner, (req, res) => res.json({ ok: true, ownerAccess: true }));
+  router.get('/access', authRateGuard, requireOwner, (req, res) => res.json({ ok: true, ownerAccess: true }));
 
   router.get('/health', (req, res) => res.json({
     status: 'ok',
@@ -68,6 +69,15 @@ function createStrRouter() {
     next();
   }
 
+  function authRateGuard(req, res, next) {
+    const key = 'auth:' + req.ip;
+    const state = consumeWindow(rateWindows, key, Date.now(), AUTH_IP_LIMIT, WINDOW_MS);
+    if (!state.allowed) return res.status(state.capacity ? 503 : 429).json({
+      error: state.capacity ? 'STR authentication capacity is temporarily full.' : 'Too many STR sign-in checks. Please retry shortly.'
+    });
+    next();
+  }
+
   function disabled(res) {
     return res.status(503).json({
       error: 'STR generation is not enabled until provider routing is verified.',
@@ -79,7 +89,7 @@ function createStrRouter() {
     });
   }
 
-  router.post('/spec', requireOwner, postGuard, (req, res) => {
+  router.post('/spec', postGuard, authRateGuard, requireOwner, (req, res) => {
     const b = req.body;
     if (!exactKeys(b, ['prompt', 'uiLang', 'contentLang']) ||
         typeof b.prompt !== 'string' || !b.prompt.trim() || b.prompt.length > 1000 ||
@@ -117,7 +127,7 @@ function createStrRouter() {
     }
   });
 
-  router.post('/section', requireOwner, postGuard, (req, res) => {
+  router.post('/section', postGuard, authRateGuard, requireOwner, (req, res) => {
     const b = req.body;
     if (!exactKeys(b, ['spec', 'sectionId', 'uiLang', 'contentLang']) ||
         !plainObject(b.spec) || typeof b.sectionId !== 'string' || !/^[A-Za-z0-9_-]{1,80}$/.test(b.sectionId) ||
@@ -127,7 +137,7 @@ function createStrRouter() {
     return disabled(res);
   });
 
-  router.post('/fix', requireOwner, postGuard, (req, res) => {
+  router.post('/fix', postGuard, authRateGuard, requireOwner, (req, res) => {
     const b = req.body;
     if (!exactKeys(b, ['fragment', 'specSlice', 'failures', 'uiLang']) ||
         typeof b.fragment !== 'string' || b.fragment.length > 16000 ||
@@ -138,7 +148,7 @@ function createStrRouter() {
     return disabled(res);
   });
 
-  router.post('/convert', requireOwner, postGuard, (req, res) => {
+  router.post('/convert', postGuard, authRateGuard, requireOwner, (req, res) => {
     const b = req.body;
     if (!exactKeys(b, ['text', 'targetLang', 'uiLang']) ||
         typeof b.text !== 'string' || !b.text.trim() || b.text.length > 1000 ||
