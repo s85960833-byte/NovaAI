@@ -30,7 +30,7 @@ function authFetch(userId, status = 200) {
   return async (url, options) => {
     assert.equal(String(url), 'https://project.example/auth/v1/user');
     assert.equal(options.method, 'GET');
-    assert.equal(options.headers.apikey, 'sb_publishable_testkey0123456789abcdef');
+    assert.equal(options.headers.apikey, 'sb_publishable_testkey0123456789012345abcdef');
     assert.equal(options.headers.Authorization, 'Bearer ' + TOKEN);
     return {
       ok: status >= 200 && status < 300,
@@ -70,7 +70,7 @@ test('STR owner gate rejects an invalid Supabase session', async () => {
   const guard = createOwnerGuard({
     ownerIds: [OWNER_ID],
     projectUrl: 'https://project.example',
-    publishableKey: 'sb_publishable_testkey0123456789abcdef',
+    publishableKey: 'sb_publishable_testkey0123456789012345abcdef',
     fetchImpl: authFetch(null, 401)
   });
   const result = await invoke(guard);
@@ -83,7 +83,7 @@ test('STR owner gate denies a valid NOVA account that is not allow-listed', asyn
   const guard = createOwnerGuard({
     ownerIds: [OWNER_ID],
     projectUrl: 'https://project.example',
-    publishableKey: 'sb_publishable_testkey0123456789abcdef',
+    publishableKey: 'sb_publishable_testkey0123456789012345abcdef',
     fetchImpl: authFetch(OTHER_ID)
   });
   const result = await invoke(guard);
@@ -96,7 +96,7 @@ test('STR owner gate admits only a valid Supabase user whose UUID is allow-liste
   const guard = createOwnerGuard({
     ownerIds: [OWNER_ID],
     projectUrl: 'https://project.example',
-    publishableKey: 'sb_publishable_testkey0123456789abcdef',
+    publishableKey: 'sb_publishable_testkey0123456789012345abcdef',
     fetchImpl: authFetch(OWNER_ID)
   });
   const result = await invoke(guard);
@@ -109,7 +109,7 @@ test('STR owner gate returns a closed 503 when Supabase verification is unavaila
   const guard = createOwnerGuard({
     ownerIds: [OWNER_ID],
     projectUrl: 'https://project.example',
-    publishableKey: 'sb_publishable_testkey0123456789abcdef',
+    publishableKey: 'sb_publishable_testkey0123456789012345abcdef',
     fetchImpl: async () => { throw new Error('network timeout'); }
   });
   const result = await invoke(guard);
@@ -123,7 +123,7 @@ test('STR owner gate fails closed when the owner allow-list contains an invalid 
   const guard = createOwnerGuard({
     ownerIds: [OWNER_ID, 'not-a-uuid'],
     projectUrl: 'https://project.example',
-    publishableKey: 'sb_publishable_testkey0123456789abcdef',
+    publishableKey: 'sb_publishable_testkey0123456789012345abcdef',
     fetchImpl: async () => { throw new Error('must not fetch'); }
   });
   const result = await invoke(guard);
@@ -136,7 +136,7 @@ test('STR owner gate returns a closed 503 for Supabase upstream errors', async (
   const guard = createOwnerGuard({
     ownerIds: [OWNER_ID],
     projectUrl: 'https://project.example',
-    publishableKey: 'sb_publishable_testkey0123456789abcdef',
+    publishableKey: 'sb_publishable_testkey0123456789012345abcdef',
     fetchImpl: authFetch(null, 503)
   });
   const result = await invoke(guard);
@@ -149,7 +149,7 @@ test('STR owner gate rejects malformed user payloads without granting access', a
   const guard = createOwnerGuard({
     ownerIds: [OWNER_ID],
     projectUrl: 'https://project.example',
-    publishableKey: 'sb_publishable_testkey0123456789abcdef',
+    publishableKey: 'sb_publishable_testkey0123456789012345abcdef',
     fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({ id: 'not-a-uuid' }) })
   });
   const result = await invoke(guard);
@@ -162,7 +162,7 @@ test('STR owner gate fails closed when Supabase returns an unreadable user body'
   const guard = createOwnerGuard({
     ownerIds: [OWNER_ID],
     projectUrl: 'https://project.example',
-    publishableKey: 'sb_publishable_testkey0123456789abcdef',
+    publishableKey: 'sb_publishable_testkey0123456789012345abcdef',
     fetchImpl: async () => ({ ok: true, status: 200, json: async () => { throw new Error('invalid json'); } })
   });
   const result = await invoke(guard);
