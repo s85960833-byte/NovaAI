@@ -101,6 +101,8 @@ jobs:
       - name: Test Company Cloud mobile browser workflows
         timeout-minutes: 6
         run: node scripts/company-cloud-browser.mjs
+      - name: Build NOVA 2.0 workspaces for integrated E2E
+        run: npm run build
       - name: Run five-viewport mobile and drawer regression tests
         env:
           NOVA2_E2E_PORT: "8789"
