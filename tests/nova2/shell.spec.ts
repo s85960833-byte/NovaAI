@@ -402,7 +402,7 @@ test("server-side auth and upload APIs fail closed when server auth is not confi
   expect(session.status()).toBe(503);
 
   const upload = await request.post("/api/files/upload", {
-    headers: { origin: "http://127.0.0.1:8787" },
+    headers: { origin: `http://127.0.0.1:${process.env.NOVA2_E2E_PORT || "8787"}` },
     multipart: { consent: "true" },
   });
   expect(upload.status()).toBe(401);
