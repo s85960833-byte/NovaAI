@@ -14,7 +14,7 @@ export default defineConfig({
   },
   webServer: {
     command: "npm run start --workspace @nova/api",
-    url: "http://127.0.0.1:8787/api/health",
+    url: `http://127.0.0.1:${process.env.NOVA2_E2E_PORT || "8787"}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
     env: {
@@ -22,9 +22,9 @@ export default defineConfig({
       AI_PROVIDER: "mock",
       AI_KILL_SWITCH: "true",
       PORT: process.env.NOVA2_E2E_PORT || "8787",
-      NOVA2_API_PORT: "8788",
+      NOVA2_API_PORT: process.env.NOVA2_E2E_API_PORT || "8788",
       NOVA2_API_HOST: "127.0.0.1",
-      APP_BASE_URL: "http://127.0.0.1:8787",
+      APP_BASE_URL: `http://127.0.0.1:${process.env.NOVA2_E2E_PORT || "8787"}`,
     },
   },
 });
