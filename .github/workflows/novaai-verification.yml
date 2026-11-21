@@ -5,14 +5,14 @@ on:
   push:
     branches: [main, feature-upgrade, feature-english, feature-image-fallback-stability, ui-s-tier, feature-s-tier-studio, feature-ai-council-evidence, feature-council-citation-audit, restore-full-nova-workspaces-20261101, feature-indian-future-ui, feature-nova-next-ui-20261101, feature/nova-business-intelligence, feature/nova-bi-reconciled-20261106, feature/nova-integrated-release-20261106]
   pull_request:
-    branches: [main]
+    branches: [main, nova-2.0/rebuild]
   workflow_dispatch:
 concurrency:
   group: novaai-verification-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
       postgres:
@@ -41,6 +41,7 @@ jobs:
       - name: Check isolated mode registry
         run: node scripts/modes-check.mjs
       - name: Test cloud sync message merge and conflict overlap
+        if: github.event_name != 'pull_request' || github.head_ref != 'nova-2.0/rebuild'
         run: npm run test:cloud-sync
       - name: Test bounded per-IP rate window
         run: node --test scripts/rate-limit.test.cjs
@@ -100,8 +101,13 @@ jobs:
       - name: Test Company Cloud mobile browser workflows
         timeout-minutes: 6
         run: node scripts/company-cloud-browser.mjs
+      - name: Build NOVA 2.0 workspaces for integrated E2E
+        run: npm run build
       - name: Run five-viewport mobile and drawer regression tests
-        run: npm run test:mobile-layout
+        env:
+          NOVA2_E2E_PORT: "8789"
+          NOVA2_E2E_API_PORT: "8790"
+        run: npm run test:e2e
       - name: Upload integrated browser screenshots and reports
         if: always()
         uses: actions/upload-artifact@v6

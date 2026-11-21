@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0a0e1f"/>
+  <path d="M256 54c-92 0-166 74-166 166v206h332V220c0-92-74-166-166-166Z" fill="none" stroke="#d4af37" stroke-width="16"/>
+  <path d="M256 112c-61 0-110 49-110 110v148h220V222c0-61-49-110-110-110Z" fill="#12182f" stroke="#f2d88a" stroke-width="8"/>
+  <path d="m256 156 20 66 66 20-66 20-20 66-20-66-66-20 66-20 20-66Z" fill="#e8871e"/>
+  <text x="256" y="354" text-anchor="middle" fill="#f2d88a" font-family="Georgia,serif" font-size="54" font-weight="700" letter-spacing="8">NOVA</text>
+</svg>

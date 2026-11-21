@@ -28,6 +28,8 @@
     } catch (_) {}
   };
   if (hasPlayed()) {
+    // Upgrade legacy completion markers so the current versioned marker is always present.
+    rememberPlayed();
     gate.remove();
     return;
   }

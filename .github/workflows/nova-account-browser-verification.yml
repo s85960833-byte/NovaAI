@@ -3,7 +3,7 @@ permissions:
   contents: read
 on:
   pull_request:
-    branches: [main]
+    branches: [main, nova-2.0/rebuild]
     paths:
       - index.html
       - nova-app.js
@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   browser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 18
     steps:
       - uses: actions/checkout@v5
@@ -56,6 +56,6 @@ jobs:
           NOVAAI_URL: http://127.0.0.1:8787
         run: node scripts/company-cloud-browser.mjs
       - name: Verify mobile layout and drawer regression
-        run: npm run test:mobile-layout
+        run: node scripts/browser-smoke.mjs
       - name: Verify graceful shutdown
         run: node scripts/shutdown-smoke.mjs

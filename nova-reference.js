@@ -102,6 +102,11 @@ function boot(){
   new MutationObserver(apply).observe(host,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
   window.addEventListener('nova:ui-language-changed',()=>{const root=$('#hi');if(root&&!root.hidden){delete root.dataset.referenceUi;render(root);}const search=$('#nrGlobalSearch');if(search){search.placeholder='⌕  '+tr('Search saved chats…','सेव की गई चैट खोजें…');search.setAttribute('aria-label',tr('Search saved chats','सेव की गई चैट खोजें'));}const links=$('#nrSidebarLinks');if(links){const pairs=[['NOVA Build','नोवा बिल्ड'],['NOVA Learn','नोवा लर्न'],['NOVA Agents','नोवा एजेंट्स']];links.querySelectorAll('button').forEach((b,i)=>{if(pairs[i])b.textContent=['⌘','▱','◈'][i]+'　'+tr(...pairs[i])})}});
  }
+ const requestedWorkspace = new URLSearchParams(window.location.search).get('workspace');
+ if (['learn','build','agents'].includes(requestedWorkspace)) {
+  window.NovaModeWorkspace?.openGroup?.(requestedWorkspace);
+  window.history.replaceState({}, '', '/classic');
+ }
 }
 if($('#log')&&$('#top'))boot();else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

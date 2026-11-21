@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="hi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0A0E1F" />
+    <meta
+      name="description"
+      content="NOVA — Darbar, Sakha and Diwan: a Hindi and English study and work assistant."
+    />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/nova-emblem.svg" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/svg+xml" href="/icons/nova-emblem.svg" />
+    <title>NOVA — Darbar</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        background: #0a0e1f;
+        color: #f6efe0;
+        font-family: system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: #0a0e1f;
+      }
+      .boot {
+        min-height: 100dvh;
+        padding: 20px 18px 36px;
+        max-width: 796px;
+        margin: 0 auto;
+      }
+      .boot-top {
+        height: 48px;
+        display: flex;
+        align-items: center;
+        color: #d4af37;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+      }
+      .boot-top small {
+        display: block;
+        color: #a9a397;
+        font-size: 11px;
+        letter-spacing: 0;
+        font-weight: 400;
+      }
+      .boot-hero {
+        text-align: center;
+        padding: 44px 4px 32px;
+      }
+      .boot-hero p {
+        color: #a9a397;
+        line-height: 1.6;
+      }
+      .boot-hero h1 {
+        font:
+          600 clamp(29px, 8vw, 42px) / 1.3 Georgia,
+          serif;
+        color: #f6efe0;
+        margin: 12px 0;
+      }
+      .boot-rule {
+        width: 72px;
+        height: 1px;
+        background: #d4af37;
+        margin: 24px auto 0;
+      }
+      .boot-cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .boot-card {
+        min-height: 170px;
+        border: 1px solid #61532b;
+        border-radius: 42px 42px 18px 18px;
+        padding: 20px 16px;
+        background: linear-gradient(160deg, #1a2142, #12182f);
+      }
+      .boot-card strong {
+        display: block;
+        color: #f2d88a;
+        font:
+          600 23px Georgia,
+          serif;
+        margin: 12px 0 8px;
+      }
+      .boot-card span {
+        color: #a9a397;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .boot-symbol {
+        width: 38px;
+        height: 38px;
+        border: 1px solid #2a3358;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        color: #d4af37;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .boot-hero,
+        .boot-card {
+          animation: boot-in 0.35s ease-out both;
+        }
+      }
+      @keyframes boot-in {
+        from {
+          opacity: 0.75;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <main class="boot" aria-label="NOVA Darbar loading">
+        <header class="boot-top">NOVA <small>दरबार</small></header>
+        <section class="boot-hero">
+          <p>नमस्ते · WELCOME</p>
+          <h1>दरबार में आपका स्वागत है</h1>
+          <p>आपकी पढ़ाई, काम और रोज़मर्रा के कागज़ात के लिए एक सरल सहायक।</p>
+          <div class="boot-rule"></div>
+        </section>
+        <section class="boot-cards" aria-label="NOVA workspaces">
+          <article class="boot-card">
+            <span class="boot-symbol">✦</span><strong>सखा · Sakha</strong
+            ><span>बातचीत और रोज़मर्रा की मदद</span>
+          </article>
+          <article class="boot-card">
+            <span class="boot-symbol">✧</span><strong>दीवान · Diwan</strong
+            ><span>कागज़ात और सरकारी प्रक्रियाएँ</span>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

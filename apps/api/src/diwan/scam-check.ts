@@ -1,0 +1,49 @@
+const indicators = [
+  {
+    pattern: /\b(otp|one.time.password|pin|cvv)\b|ओटीपी|पिन|सीवीवी/i,
+    weight: 3,
+    code: "SECRET_REQUEST",
+  },
+  {
+    pattern: /\b(remote access|anydesk|screen share|quick support)\b|रिमोट ऐप|स्क्रीन शेयर/i,
+    weight: 3,
+    code: "REMOTE_ACCESS",
+  },
+  {
+    pattern:
+      /\b(pay|transfer|send)\b.{0,35}\b(release|unlock|refund|parcel|job)\b|रिलीज़.*पैसे|पैसे.*भेजें/i,
+    weight: 3,
+    code: "PAYMENT_PRESSURE",
+  },
+  {
+    pattern:
+      /\b(urgent|immediately|within 10 minutes|account blocked)\b|तुरंत|अभी नहीं तो|खाता बंद/i,
+    weight: 2,
+    code: "URGENCY",
+  },
+  {
+    pattern: /\b(lottery|prize|winner|free gift)\b|लॉटरी|इनाम|मुफ़्त उपहार/i,
+    weight: 2,
+    code: "UNEXPECTED_REWARD",
+  },
+] as const;
+export function checkScamText(text: string) {
+  const found = indicators.filter((item) => item.pattern.test(text));
+  const score = found.reduce((sum, item) => sum + item.weight, 0);
+  const riskLevel = score >= 6 ? "very_high" : score >= 3 ? "high" : score >= 2 ? "medium" : "low";
+  return {
+    riskLevel,
+    indicators: found.map((item) => item.code),
+    whatToDo: [
+      "Do not share OTP, PIN or passwords.",
+      "Do not install remote-access apps or share your screen.",
+      "Verify the sender using an official contact you already trust.",
+    ],
+    whatNotToDo: [
+      "Do not pay money to release a parcel, prize, job or refund.",
+      "Do not open unexpected links or attachments.",
+    ],
+    officialContacts: [],
+    disclaimer: "This is an automated risk check, not a definitive fraud or legal verdict.",
+  };
+}

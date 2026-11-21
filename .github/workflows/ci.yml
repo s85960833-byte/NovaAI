@@ -1,0 +1,237 @@
+name: NOVA 2.0 CI
+on:
+  pull_request:
+    branches: ["main", "nova-2.0/rebuild"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: nova2-ci-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        id: install
+        run: npm ci
+      - name: Prepare evidence directory
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: mkdir -p docs/evidence
+      - name: Typecheck
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run typecheck 2>&1 | tee docs/evidence/typecheck.log
+      - name: Lint
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run lint 2>&1 | tee docs/evidence/lint.log
+      - name: Format check
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run format:check 2>&1 | tee docs/evidence/format-check.log
+      - name: Generate Prettier repair candidates
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          mkdir -p docs/evidence/prettier-candidates/apps/web/src/perf
+          mkdir -p docs/evidence/prettier-candidates/apps/api/src
+          mkdir -p docs/evidence/prettier-candidates/scripts
+          mkdir -p docs/evidence/prettier-candidates/apps/web/src/ui
+          mkdir -p docs/evidence/prettier-candidates/apps/web/src/sakha
+          mkdir -p docs/evidence/prettier-candidates/apps/web/src/i18n
+          mkdir -p docs/evidence/prettier-candidates/tests/nova2
+          cp apps/web/src/perf/PerfPage.tsx docs/evidence/prettier-candidates/apps/web/src/perf/PerfPage.tsx
+          cp apps/api/src/index.ts docs/evidence/prettier-candidates/apps/api/src/index.ts
+          cp scripts/check-dependency-audit.mjs docs/evidence/prettier-candidates/scripts/check-dependency-audit.mjs
+          cp apps/web/src/ui/App.tsx docs/evidence/prettier-candidates/apps/web/src/ui/App.tsx
+          cp apps/web/src/ui/AuthPanel.tsx docs/evidence/prettier-candidates/apps/web/src/ui/AuthPanel.tsx
+          cp apps/web/src/sakha/SakhaPanel.tsx docs/evidence/prettier-candidates/apps/web/src/sakha/SakhaPanel.tsx
+          cp tests/nova2/performance.spec.ts docs/evidence/prettier-candidates/tests/nova2/performance.spec.ts
+          cp apps/web/src/ui/styles.css docs/evidence/prettier-candidates/apps/web/src/ui/styles.css
+          cp apps/web/src/i18n/en.json docs/evidence/prettier-candidates/apps/web/src/i18n/en.json
+          cp apps/web/src/i18n/hi.json docs/evidence/prettier-candidates/apps/web/src/i18n/hi.json
+          cp tests/nova2/shell.spec.ts docs/evidence/prettier-candidates/tests/nova2/shell.spec.ts
+          npx prettier --write docs/evidence/prettier-candidates/apps/web/src/perf/PerfPage.tsx docs/evidence/prettier-candidates/apps/api/src/index.ts docs/evidence/prettier-candidates/scripts/check-dependency-audit.mjs docs/evidence/prettier-candidates/apps/web/src/ui/App.tsx docs/evidence/prettier-candidates/apps/web/src/ui/AuthPanel.tsx docs/evidence/prettier-candidates/apps/web/src/sakha/SakhaPanel.tsx docs/evidence/prettier-candidates/tests/nova2/performance.spec.ts docs/evidence/prettier-candidates/apps/web/src/ui/styles.css docs/evidence/prettier-candidates/apps/web/src/i18n/en.json docs/evidence/prettier-candidates/apps/web/src/i18n/hi.json docs/evidence/prettier-candidates/tests/nova2/shell.spec.ts
+      - name: Upload Prettier repair candidates
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nova2-prettier-repair-candidates
+          path: docs/evidence/prettier-candidates/
+          if-no-files-found: error
+      - name: Unit tests
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm test 2>&1 | tee docs/evidence/unit-tests.log
+      - name: Translation checks
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run check:i18n 2>&1 | tee docs/evidence/i18n-check.log
+      - name: Official scheme data checks
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run check:schemes 2>&1 | tee docs/evidence/schemes-check.log
+      - name: Secret scan
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run check:secrets 2>&1 | tee docs/evidence/secrets-check.log
+      - name: Synthetic model evaluations
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run evals 2>&1 | tee docs/evidence/mock-evals.log
+      - name: Dependency audit
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run audit 2>&1 | tee docs/evidence/dependency-audit.log
+      - name: Build workspaces
+        id: build
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run build 2>&1 | tee docs/evidence/build.log
+      - name: Install Playwright Chromium
+        id: playwright_install
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: npx playwright install --with-deps chromium
+      - name: Playwright E2E
+        if: ${{ always() && steps.install.outcome == 'success' && steps.build.outcome == 'success' && steps.playwright_install.outcome == 'success' }}
+        run: set -o pipefail && npm run test:e2e 2>&1 | tee docs/evidence/playwright.log
+      - name: Upload Playwright evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nova2-playwright-evidence
+          path: |
+            test-results/
+            playwright-report/
+            artifacts/frame-time-metrics.json
+            docs/evidence/
+          if-no-files-found: ignore
+      - name: Bundle budget
+        if: ${{ always() && steps.install.outcome == 'success' && steps.build.outcome == 'success' }}
+        run: set -o pipefail && npm run check:bundle 2>&1 | tee docs/evidence/bundle-budget.log
+      - name: Lighthouse
+        if: ${{ always() && steps.install.outcome == 'success' && steps.build.outcome == 'success' }}
+        run: set -o pipefail && npm run lighthouse 2>&1 | tee docs/evidence/lighthouse.log
+      - name: Upload Lighthouse evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nova2-lighthouse-evidence
+          path: |
+            .lighthouseci/
+            artifacts/
+            docs/evidence/
+          if-no-files-found: ignore
+  database:
+    needs: checks
+    if: ${{ always() && needs.checks.result != 'cancelled' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        id: install
+        run: npm ci
+      - name: Prepare database evidence
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: mkdir -p docs/evidence
+      - name: Build shared package
+        id: shared
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: npm run build --workspace @nova/shared
+      - uses: supabase/setup-cli@v1
+        id: setup_supabase
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        with:
+          version: 3.2.0
+      - name: Start isolated local Supabase
+        id: supabase_start
+        if: ${{ always() && steps.setup_supabase.outcome == 'success' }}
+        run: cd supabase-v2 && supabase start
+      - name: Migrate from scratch and verify RLS/lifecycle
+        id: migrations
+        if: ${{ always() && steps.supabase_start.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          cd supabase-v2
+          supabase db reset 2>&1 | tee ../docs/evidence/migration-reset.log
+          supabase migration list 2>&1 | tee ../docs/evidence/migration-list.log
+          cd ..
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase-v2/scripts/check-schema.sql 2>&1 | tee docs/evidence/schema-rls-check.log
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase-v2/scripts/check-account-lifecycle.sql 2>&1 | tee docs/evidence/account-lifecycle-check.log
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
+      - name: Wallet, webhook and spend-cap integration
+        if: ${{ always() && steps.migrations.outcome == 'success' && steps.shared.outcome == 'success' }}
+        run: set -o pipefail && npm run test:db 2>&1 | tee docs/evidence/wallet-integration-tests.log
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
+          MOCK_FEATURES_ENABLED: "true"
+      - name: Synthetic database backup and restore
+        if: ${{ always() && steps.migrations.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/nova2-backup"
+          RESTORE_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54332/nova2_restore_check
+          docker run --rm --network host \
+            -e DATABASE_URL="$DATABASE_URL" \
+            -e RESTORE_DATABASE_URL="$RESTORE_DATABASE_URL" \
+            -v "$RUNNER_TEMP/nova2-backup:/backup" \
+            postgres:17-alpine sh -ec '
+              pg_dump "$DATABASE_URL" --schema=nova2_staging --format=custom --no-owner --file=/backup/nova2-staging.dump
+              pg_restore --list /backup/nova2-staging.dump >/backup/nova2-staging.contents
+              PGPASSWORD=postgres createdb -h 127.0.0.1 -p 54332 -U postgres nova2_restore_check
+              pg_restore --no-owner --single-transaction --dbname="$RESTORE_DATABASE_URL" /backup/nova2-staging.dump
+              ORIGINAL=$(psql "$DATABASE_URL" -Atc "select concat_ws(chr(58),(select count(*) from nova2_staging.wallet_accounts),(select count(*) from nova2_staging.wallet_orders),(select count(*) from nova2_staging.wallet_ledger),(select count(*) from nova2_staging.wallet_events),(select count(*) from nova2_staging.ai_spend_events))")
+              RESTORED=$(psql "$RESTORE_DATABASE_URL" -Atc "select concat_ws(chr(58),(select count(*) from nova2_staging.wallet_accounts),(select count(*) from nova2_staging.wallet_orders),(select count(*) from nova2_staging.wallet_ledger),(select count(*) from nova2_staging.wallet_events),(select count(*) from nova2_staging.ai_spend_events))")
+              test "$ORIGINAL" = "$RESTORED"
+              TABLES=$(psql "$RESTORE_DATABASE_URL" -Atc "select count(*) from information_schema.tables where table_schema = chr(110)||chr(111)||chr(118)||chr(97)||chr(50)||chr(95)||chr(115)||chr(116)||chr(97)||chr(103)||chr(105)||chr(110)||chr(103)")
+              test "$TABLES" -ge 5
+              echo "SYNTHETIC BACKUP/RESTORE PASS: $TABLES tables; row counts $RESTORED"
+            ' 2>&1 | tee docs/evidence/backup-restore.log
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54332/postgres
+      - name: Upload database evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nova2-database-evidence
+          path: |
+            ${{ runner.temp }}/nova2-backup/
+            docs/evidence/
+          if-no-files-found: ignore
+      - name: Stop isolated local Supabase
+        if: ${{ always() && steps.supabase_start.outcome == 'success' }}
+        run: cd supabase-v2 && supabase stop
+  staging-smoke:
+    needs: [checks, database]
+    if: ${{ always() && needs.checks.result != 'cancelled' && needs.database.result != 'cancelled' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        id: install
+        run: npm ci
+      - name: Prepare staging evidence
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: mkdir -p docs/evidence
+      - name: Read-only staging health, /perf and load test
+        if: ${{ always() && steps.install.outcome == 'success' }}
+        run: set -o pipefail && npm run test:staging:load 2>&1 | tee docs/evidence/staging-smoke.log
+        env:
+          STAGING_URL: https://nova-2-staging.onrender.com
+      - name: Upload staging evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: nova2-staging-load-evidence
+          path: |
+            artifacts/staging-load.json
+            docs/evidence/
+          if-no-files-found: ignore

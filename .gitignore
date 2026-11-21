@@ -1,20 +1,21 @@
-# Local secrets and environment configuration
-.env
-.env.*
-!.env.example
-!.env.*.example
-*.pem
-*.key
-*.p12
-*.pfx
-service-account*.json
-credentials*.json
-
-# Dependencies and generated test output
 node_modules/
+dist/
 coverage/
 playwright-report/
 test-results/
-artifacts/
-npm-debug.log*
+.env
+.env.*
+!.env.example
 .DS_Store
+*.log
+.vite/
+.tmp/
+*.pem
+.env*
+*.key
+*.p12
+*.pfx
+secrets/
+artifacts/
+service-account*.json
+credentials*.json

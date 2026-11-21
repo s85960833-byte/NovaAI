@@ -136,5 +136,6 @@ $('novaSignOut').addEventListener('click',async()=>{
  try{const {error}=await getClient().auth.signOut();if(error)throw error;setEnabled(false);say('Signed out.');}catch(e){say(e.message,true)}
 });
 window.addEventListener('nova:state-saved',scheduleSync);
+if(location.pathname==='/classic'&&new URLSearchParams(location.search).get('account')==='1')showDialog();
 boot();
 })();

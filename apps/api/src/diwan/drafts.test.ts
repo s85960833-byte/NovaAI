@@ -1,0 +1,24 @@
+import { it, expect } from "vitest";
+import { buildRtiDraft, buildComplaintDraft } from "./drafts.js";
+it("builds an RTI draft in both languages without inventing fees", () => {
+  const input = {
+    authority: "Public Works Department",
+    subject: "Copy of an existing circular",
+    questions: ["Please provide the circular copy."],
+    language: "en" as const,
+  };
+  expect(buildRtiDraft(input)).toContain("Public Information Officer");
+  expect(buildRtiDraft({ ...input, period: "2024-2025" })).toContain("Period: 2024-2025");
+  expect(buildRtiDraft({ ...input, language: "hi" })).toContain("लोक सूचना अधिकारी");
+});
+it("builds a complaint draft with supplied facts and requested relief", () => {
+  const input = {
+    category: "consumer",
+    facts: "Synthetic issue timeline for test only.",
+    relief: "Please review this issue.",
+    language: "en" as const,
+  };
+  expect(buildComplaintDraft(input)).toContain(input.facts);
+  expect(buildComplaintDraft({ ...input, language: "hi" })).toContain("अनुरोध");
+  expect(buildComplaintDraft({ ...input, language: "hi" })).toContain("शिकायत");
+});

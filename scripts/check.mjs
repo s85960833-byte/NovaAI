@@ -88,7 +88,7 @@ const cloudClient = readFileSync('nova-business-cloud.js', 'utf8');
 if (!cloudClient.includes('const orgId=state.orgId') || !cloudClient.includes('if(state.orgId!==orgId)return')) throw new Error('Company switch must discard stale tenant responses');
 if (!cloudClient.includes('if(value!==raw)node.nodeValue=value') || !cloudClient.includes('if(value!==raw)el.setAttribute(attr,value)')) throw new Error('Company Cloud bilingual MutationObserver must skip unchanged DOM values to avoid a self-triggering mutation loop');
 if (!cloudClient.includes('queueMicrotask(()=>refresh().catch(e=>say(e.message,true)))')) throw new Error('Supabase auth refresh must run after the auth callback lock is released');
-if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start command mismatch');
+if (pkg.name === 'nova-2') { if (!pkg.workspaces?.includes('apps/*') || !pkg.scripts?.build) throw new Error('NOVA 2.0 workspace build contract missing'); } else if (pkg.scripts?.start !== 'node nova-server.txt') throw new Error('Render start command mismatch');
 if (pkg.engines?.node !== '22.x') throw new Error('Render and CI must use the same pinned Node.js 22 LTS runtime');
 for (const route of ["app.get('/health'", "app.post('/api/live'", "app.get('/api/live/selftest'", "app.get('/api/feed'", "app.get('/nova-reference.js'"]) if (!server.includes(route)) throw new Error('Required backend route missing: ' + route);
 if (server.includes('nova-ai-mlxf.onrender.com')) throw new Error('Legacy website URL remains in server');
@@ -147,7 +147,7 @@ if (!html.includes('id="photo"')) throw new Error('Image/photo panel missing');
 if (!appScript.includes('async function pollImageJob(') || !appScript.includes("API+'/image/status/'") || !appScript.includes('pollImageJob(j.jobId,sig)') || !appScript.includes("sig.addEventListener('abort',abort,{once:true})") || !appScript.includes("e1?.status===429")) throw new Error('Image studio must abort polling promptly and must not bypass server image rate limits');
 if (!/@media\(max-width:760px\)\{#side\{position:fixed;[^}]*transform:translateX\(-100%\)/.test(html) || !html.includes('#side.open{transform:none}') || html.includes('#side,#main{position:relative')) throw new Error('Mobile navigation drawer must remain fixed, initially off-canvas, and openable');
 if (!server.includes("app.get('/s-tier.js'") || !server.includes("app.get('/nova-suite.js'") || !server.includes("app.get('/nova-business-core.js'") || !server.includes("app.get('/nova-business.js'") || !server.includes("app.get('/nova-business-cloud.js'") || !server.includes("app.get('/nova-account.js'")) throw new Error('Existing optional feature asset routes missing');
-if (!server.includes("const CACHE='nova-shell-v19-entry-gate'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
+if (!server.includes("const CACHE='nova-shell-v20-unified'") || !server.includes("'/nova-account.js'")) throw new Error('NOVA account client must be part of the versioned offline shell');
 // Frontend entry points are external files and are syntax-checked above.
 
 const entryClient = readFileSync('nova-entry.js', 'utf8');

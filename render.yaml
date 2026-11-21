@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: nova-2-staging
+    runtime: node
+    plan: free
+    region: singapore
+    branch: nova-2.0/rebuild
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run db:migrate:staging && npm run start --workspace @nova/api
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_BASE_URL
+        value: https://nova-2-staging.onrender.com
+      - key: AI_PROVIDER
+        value: mock
+      - key: AI_KILL_SWITCH
+        value: "true"
+      - key: MOCK_FEATURES_ENABLED
+        value: "true"
+      - key: NOVA2_API_PORT
+        value: "8787"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nova-2-test-db
+          property: connectionString
+databases:
+  - name: nova-2-test-db
+    plan: free
+    region: singapore
+    databaseName: nova_2_test_db
+    user: nova_2_test_db_user
+    postgresMajorVersion: 17
