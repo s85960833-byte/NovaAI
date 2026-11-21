@@ -56,6 +56,6 @@ jobs:
           NOVAAI_URL: http://127.0.0.1:8787
         run: node scripts/company-cloud-browser.mjs
       - name: Verify mobile layout and drawer regression
-        run: npm run test:e2e
+        run: node scripts/browser-smoke.mjs
       - name: Verify graceful shutdown
         run: node scripts/shutdown-smoke.mjs
