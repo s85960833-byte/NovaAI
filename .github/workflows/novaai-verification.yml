@@ -102,6 +102,8 @@ jobs:
         timeout-minutes: 6
         run: node scripts/company-cloud-browser.mjs
       - name: Run five-viewport mobile and drawer regression tests
+        env:
+          NOVA2_E2E_PORT: "8789"
         run: npm run test:e2e
       - name: Upload integrated browser screenshots and reports
         if: always()
