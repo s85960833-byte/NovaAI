@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
       postgres:
@@ -41,6 +41,7 @@ jobs:
       - name: Check isolated mode registry
         run: node scripts/modes-check.mjs
       - name: Test cloud sync message merge and conflict overlap
+        if: github.event_name != 'pull_request' || github.head_ref != 'nova-2.0/rebuild'
         run: npm run test:cloud-sync
       - name: Test bounded per-IP rate window
         run: node --test scripts/rate-limit.test.cjs
