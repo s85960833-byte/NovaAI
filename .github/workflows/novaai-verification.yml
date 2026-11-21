@@ -102,7 +102,7 @@ jobs:
         timeout-minutes: 6
         run: node scripts/company-cloud-browser.mjs
       - name: Run five-viewport mobile and drawer regression tests
-        run: npm run test:mobile-layout
+        run: npm run test:e2e
       - name: Upload integrated browser screenshots and reports
         if: always()
         uses: actions/upload-artifact@v6
